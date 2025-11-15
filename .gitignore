@@ -1,0 +1,51 @@
+# Gradle build system
+.gradle/
+build/
+gradle/wrapper/gradle-wrapper.jar
+gradle/wrapper/*.lock
+gradle/wrapper/downloaded/
+gradle-app.setting
+
+# Build output
+*.class
+*.jar
+*.war
+*.ear
+*.zip
+*.tar.gz
+*.log
+
+# IDE and editor files
+.idea/
+*.iml
+*.iws
+*.ipr
+.DS_Store
+.vscode/
+*.swp
+*.swo
+*~
+.project
+.classpath
+.c9/
+*.sublime-workspace
+.settings/
+
+# Java
+.idea_modules/
+out/
+
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+._*
+.Spotlight-V100
+.Trashes
+
+# Package/version management
+.env
+.env.local
+
+# OS temp files
+Thumbs.db

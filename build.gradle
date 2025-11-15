@@ -1,0 +1,58 @@
+plugins {
+    id 'java'
+    id 'application'
+}
+
+group = 'epox'
+version = '2.0.0'
+description = 'WebAOM - Web Anime-o-Matic (AniDB file identification and organization)'
+
+java {
+    sourceCompatibility = JavaVersion.VERSION_1_8
+    targetCompatibility = JavaVersion.VERSION_1_8
+}
+
+application {
+    mainClass = 'epox.webaom.WebAOM'
+}
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    // Database drivers (optional, runtime-only)
+    runtimeOnly 'org.postgresql:postgresql:42.7.1'
+    runtimeOnly 'com.mysql:mysql-connector-j:8.3.0'
+
+    // Note: All hashing and utility libraries are bundled as source code
+    // in src/main/java (Jacksum, GNU Crypto, Fast MD5, TigerTree, JTreeTable)
+}
+
+// Configure JAR with manifest and all dependencies
+jar {
+    manifest {
+        attributes(
+            'Main-Class': 'epox.webaom.WebAOM',
+            'Implementation-Title': 'WebAOM',
+            'Implementation-Version': version,
+            'Created-By': 'epoximator',
+            'Specification-Title': 'WebAOM',
+            'Specification-Version': '2.0.0',
+            'Specification-Vendor': 'epoximator'
+        )
+    }
+
+    // Include all runtime dependencies in the JAR (fat JAR)
+    from {
+        configurations.runtimeClasspath.collect { it.isDirectory() ? it : zipTree(it) }
+    }
+
+    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+}
+
+// Configure Java compilation
+tasks.withType(JavaCompile) {
+    options.encoding = 'UTF-8'
+    options.compilerArgs.addAll(['-Xlint:unchecked', '-Xlint:deprecation'])
+}
