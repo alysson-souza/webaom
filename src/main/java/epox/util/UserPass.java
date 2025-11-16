@@ -39,8 +39,16 @@ public class UserPass{
 		try{
 			String a[] = U.split(s,':');
 			usr = a[0];
-			psw = dec(a[1]);
-			key = dec(a[2]);
+			if(a.length >= 2) {
+				psw = dec(a[1]);
+			} else {
+				psw = null;
+			}
+			if(a.length >= 3) {
+				key = dec(a[2]);
+			} else {
+				key = null;
+			}
 		}catch(Exception e){
 			//
 		}
