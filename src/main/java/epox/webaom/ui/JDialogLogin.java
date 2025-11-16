@@ -55,7 +55,7 @@ public class JDialogLogin extends JDialog implements ActionListener{
 	}
 	private void init(){
 		usr = new JTextField(A.up.usr, 20);
-		psw = new JPasswordField(A.up.psw);
+		psw = new JPasswordField(A.up.psw, 20);
 		key = new JTextField(A.up.key, 20);
 		key.setToolTipText("Use blank if you don't care about encryption");
 		ok  = new JButton("OK");
