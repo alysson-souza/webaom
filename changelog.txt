@@ -1,6 +1,14 @@
 Please note that this version is marked "unstable", meaning it can be broken from time
 to time. Do at least check the changelog for relevant info before using it.
 
+2.0.0 16.11.2025:
+*Added automatic embedded database support. If PostgreSQL/MySQL is unavailable, WebAOM will now use an embedded database automatically.
+*Log files and database now use platform-appropriate default locations when not specified.
+*Added startup validation that shows helpful messages if there are configuration issues.
+*Application will now continue to run even if optional features (logging, external database) fail to initialize.
+*Log directories are now created automatically if they don't exist.
+*Fixed several minor bugs and improved compatibility with modern Java versions.
+
 1.19 20.11.2006:
 *Fixed 'year' parsing exception.
 *Added 'ASSUME [SPECIAL] {int}' rule. For padding epno when total is unknown (always true for specials).

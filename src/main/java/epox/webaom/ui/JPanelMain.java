@@ -75,6 +75,9 @@ import epox.webaom.net.ACon;
 import epox.webaom.net.AConE;
 import epox.webaom.net.AConS;
 import epox.webaom.net.Pinger;
+import epox.webaom.startup.StartupValidator;
+import epox.webaom.startup.StartupIssue;
+import java.util.List;
 
 public class JPanelMain extends JPanel implements Log, ActionListener,HyperlinkListener,ChangeListener{
 	protected JTableJobs jtJobs;
@@ -132,11 +135,62 @@ public class JPanelMain extends JPanel implements Log, ActionListener,HyperlinkL
 		}catch(Exception e){/*don't care*/}
 	}
 	public void startup(){
-		if(jpOdiv.autoLog())
-			startLog();
-		if(jpOdiv.autoLoadDB())
+		// Validate startup configuration and collect any issues
+		List<StartupIssue> startupIssues = StartupValidator.validateStartup(A.opt);
+
+		// Try to start logging if enabled
+		if(jpOdiv.autoLog()) {
+			String validatedLogPath = StartupValidator.validateLogging(true, jpOdiv.tfLogfl.getText());
+			if (validatedLogPath != null) {
+				// Use the validated path (which may be a default if original was empty)
+				if(!jepM.openLogFile(validatedLogPath))
+					jpOdiv.tfLogfl.setEnabled(true); // Re-enable if failed
+				else
+					jpOdiv.tfLogfl.setEnabled(false); // Disable if successful
+			}
+			// If validatedLogPath is null, logging was disabled due to validation failure
+		}
+
+		// Try to start database if enabled
+		if(jpOdiv.autoLoadDB()) {
 			startDB();
-		else mTgui.start();
+		} else {
+			mTgui.start();
+		}
+
+		// Show startup issues to user if there are any
+		if (!startupIssues.isEmpty() && StartupValidator.hasWarningsOrInfo(startupIssues)) {
+			showStartupIssuesDialog(startupIssues);
+		}
+	}
+
+	/**
+	 * Show startup issues dialog to inform user about any problems encountered
+	 * during initialization (non-blocking, app continues to run).
+	 */
+	private void showStartupIssuesDialog(List<StartupIssue> issues) {
+		if (issues == null || issues.isEmpty()) return;
+
+		StringBuilder message = new StringBuilder();
+		message.append("The following startup issues were detected:\n\n");
+
+		for (StartupIssue issue : issues) {
+			message.append("[").append(issue.getSeverity().getDisplayName()).append("] ");
+			message.append(issue.getTitle()).append("\n");
+			message.append(issue.getMessage());
+			if (issue.getSuggestion() != null && !issue.getSuggestion().isEmpty()) {
+				message.append("\n").append("Suggestion: ").append(issue.getSuggestion());
+			}
+			message.append("\n\n");
+		}
+
+		// Show as informational dialog (not blocking)
+		JOptionPane.showMessageDialog(
+			this,
+			message.toString(),
+			"Startup Information",
+			JOptionPane.INFORMATION_MESSAGE
+		);
 	}
 	public void shutdown(){
 		jepM.closeLogFile();
@@ -170,8 +224,6 @@ public class JPanelMain extends JPanel implements Log, ActionListener,HyperlinkL
 			jtJobs.updateUI();
 			jpAlt.jttAlt.updateUI();
 			System.gc();
-			System.runFinalization();
-			System.gc();
 		}
 	}
 	private void init(){
@@ -204,7 +256,8 @@ public class JPanelMain extends JPanel implements Log, ActionListener,HyperlinkL
 		jtfNewExt = new JTextField();
 		jtfNewExt.addActionListener(this);
 
-		final JList jlExt = new JList(A.fha.m_ext);
+		@SuppressWarnings("unchecked") // UniqueStringList doesn't have generics
+		final JList<String> jlExt = new JList<String>(A.fha.m_ext);
 		jlExt.getInputMap().put(KeyStroke.getKeyStroke("DELETE"),"pressed");
 		jlExt.getActionMap().put("pressed", new AbstractAction(){
 			public void actionPerformed(ActionEvent e){
@@ -575,9 +628,9 @@ public class JPanelMain extends JPanel implements Log, ActionListener,HyperlinkL
 			U.out(url);
 			String path = jpOdiv.tfBrows.getText();
 			if(path.length()>0)
-				rt.exec(path+" "+url);
+				rt.exec(new String[]{path, url});
 			else
-				rt.exec("rundll32 url.dll,FileProtocolHandler \""+url+"\"");
+				rt.exec(new String[]{"rundll32", "url.dll,FileProtocolHandler", url});
 		}catch(java.io.IOException f){f.printStackTrace();}
 	}
 	public AConE getConnection(){
