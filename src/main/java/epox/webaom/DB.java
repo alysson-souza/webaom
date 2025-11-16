@@ -38,14 +38,14 @@ import epox.webaom.data.Anime;
 import epox.webaom.data.Base;
 import epox.webaom.data.Ep;
 import epox.webaom.data.Group;
+import epox.webaom.util.PlatformPaths;
 
 public class DB{
 	public static final int PLY = 1;
 	public static final int I_A=0, I_E=1, I_G=2, I_F=3, I_J=4, I_L=5;
 	private static final String sqjob = "select d.name,j.name,j.status,j.orig,j.ed2k,j.md5,j.sha1,j.tth,j.crc32,j.size,j.did,j.uid,j.lid,j.avxml,f.fid,f.aid,f.eid,f.gid,f.def_name,f.state,f.size,f.ed2k,f.md5,f.sha1,f.crc32,f.dublang,f.sublang,f.quality,f.ripsource,f.audio,f.video,f.resolution,f.ext,f.len,e.eid,e.number,e.english,e.romaji,e.kanji from dtb d,jtb j,ftb f,etb e where d.did=j.did and j.fid=f.fid and f.eid=e.eid";
 	private Connection con = null;
-	//!private HashMap<String,Integer> m_hmd = new HashMap<String,Integer>();
-	private final HashMap m_hmd = new HashMap();
+	private final HashMap<String,Integer> m_hmd = new HashMap<String,Integer>();
 	private String mSc = null, mSu=null, mSp=null;
 
 	private boolean mBinitd = false, mBallj = false, mBpgre=true, mBclean=false;
@@ -84,13 +84,49 @@ public class DB{
 			}
 			mSu="root";
 			mSp=null;
-			if(dbstr.indexOf("postgresql")>0)
-				Class.forName("org.postgresql.Driver").newInstance();
-			else{
+
+			// Try to initialize with provided database string, or fallback to embedded H2
+			boolean success = _tryInitDatabase(dbstr);
+			if (!success) {
+				// If external database fails, attempt fallback to embedded H2
+				_out("External database connection failed, attempting embedded H2 database...");
+				String embeddedDbPath = PlatformPaths.getDefaultEmbeddedDatabasePath();
+				String h2ConnectionString = "jdbc:h2:" + embeddedDbPath;
+				success = _tryInitDatabase(h2ConnectionString);
+
+				if (success) {
+					_out("Successfully initialized embedded H2 database at: " + embeddedDbPath);
+				} else {
+					return false;
+				}
+			}
+
+			if(!_connect()) return false;
+			if(!_updateDef()){
+				_shutdown();
+				return false;
+			}
+			if(mBclean) _clean();
+			return true;
+		}catch(Exception e){
+			A.dialog("Database:", e.toString());
+		}
+		return false;
+	}
+
+	private boolean _tryInitDatabase(String dbstr) {
+		try {
+			if(dbstr.indexOf("postgresql")>0){
+				Class.forName("org.postgresql.Driver").getDeclaredConstructor().newInstance();
+				mBpgre = true;
+			}else if(dbstr.indexOf("mysql")>0){
+				Class.forName("com.mysql.jdbc.Driver").getDeclaredConstructor().newInstance();
 				mBpgre = false;
-				if(dbstr.indexOf("mysql")>0)
-					Class.forName("com.mysql.jdbc.Driver").newInstance();
-				else throw new Exception("Database type not supported.");
+			}else if(dbstr.indexOf("h2")>0){
+				Class.forName("org.h2.Driver").getDeclaredConstructor().newInstance();
+				mBpgre = false;
+			}else {
+				return false;
 			}
 
 			String str = dbstr.toLowerCase();
@@ -104,17 +140,11 @@ public class DB{
 			else mSu = dbstr.substring(i+6,j);
 			mSc = dbstr.substring(0,i);
 
-			if(!_connect()) return false;
-			if(!_updateDef()){
-				_shutdown();
-				return false;
-			}
-			if(mBclean) _clean();
 			return true;
-		}catch(Exception e){
-			A.dialog("Database:", e.toString());
+		} catch(Exception e) {
+			_out("Database initialization attempt failed: " + e.getMessage());
+			return false;
 		}
-		return false;
 	}
 	private boolean _connect(){
 		mBinitd = false;
@@ -193,9 +223,19 @@ public class DB{
 						else _execStr(A.getFileString("db08b.sql"), silent);
 					}
 				}else{
-					String s = A.getFileString("db00.sql");
-					if(!mBpgre)
+					// Initialize new database with appropriate schema
+					String s;
+					if(mSc.indexOf("h2")>0){
+						// H2 database - use H2-specific schema
+						s = A.getFileString("db00-h2.sql");
+					}else if(mBpgre){
+						// PostgreSQL - use default schema (has serial)
+						s = A.getFileString("db00.sql");
+					}else{
+						// MySQL - convert serial to auto_increment
+						s = A.getFileString("db00.sql");
 						s = U.replace(s,"serial","integer NOT NULL auto_increment");
+					}
 					_execStr(s, silent);
 				}
 			}
@@ -336,7 +376,7 @@ public class DB{
 			ResultSet rs = query("select did from dtb where name='"+path+"'", false);
 			if(rs.first()){
 				int did = rs.getInt(1);
-				m_hmd.put(path, new Integer(did));
+				m_hmd.put(path, Integer.valueOf(did));
 				return did;
 			}
 			_out("} insert into dtb (name) values ('"+path+"')");
@@ -346,7 +386,7 @@ public class DB{
 				rs = stmt.getResultSet(); //stmt.getGeneratedKeys();
 				if(rs.first()){
 					int did = rs.getInt(1);
-					m_hmd.put(path, new Integer(did));
+					m_hmd.put(path, Integer.valueOf(did));
 					return did;
 				}
 			}else{
@@ -354,7 +394,7 @@ public class DB{
 				rs = stmt.getGeneratedKeys();
 				if(rs.first()){
 					int did = rs.getInt(1);
-					m_hmd.put(path, new Integer(did));
+					m_hmd.put(path, Integer.valueOf(did));
 					return did;
 				}
 			}

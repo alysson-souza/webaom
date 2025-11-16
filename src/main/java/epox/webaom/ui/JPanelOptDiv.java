@@ -72,7 +72,7 @@ public class JPanelOptDiv extends JPanel{
 
 		tfHDirs.setToolTipText("Check these directories for new files every now and then");
 		tfBrows.setToolTipText("Absolute path to preferred browser");
-		tfMyDBs.setToolTipText("JDBC url, press enter to connect");
+		tfMyDBs.setToolTipText("JDBC url (e.g. jdbc:postgresql://localhost:5432/webaom?user=root&password=pass). If empty, H2 embedded database will be used. Press enter to connect.");
 		tfLogfl.setToolTipText("Absolute path to log file, press enter to enable");
 
 		jcbAdbc = new JCheckBox("Auto db");

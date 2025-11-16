@@ -24,7 +24,6 @@
 package epox.webaom.ui;
 
 import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.io.PrintStream;
@@ -43,8 +42,9 @@ import epox.swing.Log;
 import epox.util.U;
 import epox.webaom.A;
 import epox.webaom.Hyper;
+import epox.webaom.util.PlatformPaths;
 
-public class JEditorPaneLog extends JEditorPane implements Log,Action,ActionListener{
+public class JEditorPaneLog extends JEditorPane implements Log,Action{
 	public static String HEAD = "<style type=\"text/css\">body{background-color:#FFFFFF;font-family:Verdana,Arial,Helvetica,sans-serif;font-size:11pt;}</style>";
 	private PrintStream ps;
 
@@ -85,6 +85,18 @@ public class JEditorPaneLog extends JEditorPane implements Log,Action,ActionList
 	}
 	public boolean openLogFile(String path){
 		try{
+			// Use default log path if the provided path is empty or null
+			if (path == null || path.trim().isEmpty()) {
+				path = PlatformPaths.getDefaultLogFilePath();
+			}
+
+			// Ensure the parent directory exists
+			if (!PlatformPaths.ensureParentDirectoryExists(path)) {
+				String errorMsg = "Failed to create log directory for: " + path;
+				A.dialog("Log Error", errorMsg);
+				return false;
+			}
+
 			ps = new PrintStream(new AppendFileStream(path), true, "utf8");
 			return true;
 		}catch(IOException e){

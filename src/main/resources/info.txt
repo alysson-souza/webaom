@@ -1,6 +1,12 @@
 WebAOM!
 
-2.0.0 2025.11.15
+2.0.0 2025.11.16
+*Added automatic embedded database support. If PostgreSQL/MySQL is unavailable, WebAOM will now use an embedded database automatically.
+*Log files and database now use platform-appropriate default locations when not specified.
+*Added startup validation that shows helpful messages if there are configuration issues.
+*Application will now continue to run even if optional features (logging, external database) fail to initialize.
+*Log directories are now created automatically if they don't exist.
+*Fixed several minor bugs and improved compatibility with modern Java versions.
 *Migrated to Gradle build system.
 *Updated Java requirement to 1.8 (from 1.5).
 *Restructured to standard src/main/java layout.
