@@ -8,6 +8,8 @@ WebAOM!
 *Log directories are now created automatically if they don't exist.
 *Fixed credential loading from saved options - credentials are now properly restored on startup.
 *Fixed login dialog layout - password field no longer stretches incorrectly.
+*Added support for more video formats (3gp, asf, dat, divx, f4v, flv, m2ts, m2v, m4v, mov, mpeg, mpg, mts, ogv, qt, ram, rm, rmvb, ts, vob, webm, wmv).
+*Added support for more subtitle formats (sbv, smi, vtt).
 *Fixed several minor bugs and improved compatibility with modern Java versions.
 *Migrated to Gradle build system.
 *Updated Java requirement to 1.8 (from 1.5).

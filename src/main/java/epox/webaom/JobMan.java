@@ -265,12 +265,15 @@ public class JobMan{
 		A.dialog2(job.m_fc.getName(), job.convert(A.fschema));
 	}
 	private static void moveSub(File a, File b){
-		moveSub(a,b,"srt");
 		moveSub(a,b,"ass");
 		moveSub(a,b,"idx");
-		moveSub(a,b,"sub");
 		moveSub(a,b,"pdf");
+		moveSub(a,b,"sbv");
+		moveSub(a,b,"smi");
+		moveSub(a,b,"srt");
 		moveSub(a,b,"ssa");
+		moveSub(a,b,"sub");
+		moveSub(a,b,"vtt");
 	}
 	private static void moveSub(File a, File b, String ext){
 		File c = new File(changeExt(a, ext));
