@@ -120,10 +120,32 @@ public class JPanelMain extends JPanel implements Log, ActionListener,HyperlinkL
 		mTprg.start();
 		if(A.opt.load()) optl(A.opt);
 		else{
-			A.fha.addExt("mp4");
-			A.fha.addExt("mkv");
-			A.fha.addExt("ogm");
+			A.fha.addExt("3gp");
+			A.fha.addExt("asf");
 			A.fha.addExt("avi");
+			A.fha.addExt("dat");
+			A.fha.addExt("divx");
+			A.fha.addExt("f4v");
+			A.fha.addExt("flv");
+			A.fha.addExt("m2ts");
+			A.fha.addExt("m2v");
+			A.fha.addExt("m4v");
+			A.fha.addExt("mkv");
+			A.fha.addExt("mov");
+			A.fha.addExt("mp4");
+			A.fha.addExt("mpeg");
+			A.fha.addExt("mpg");
+			A.fha.addExt("mts");
+			A.fha.addExt("ogm");
+			A.fha.addExt("ogv");
+			A.fha.addExt("qt");
+			A.fha.addExt("ram");
+			A.fha.addExt("rm");
+			A.fha.addExt("rmvb");
+			A.fha.addExt("ts");
+			A.fha.addExt("vob");
+			A.fha.addExt("webm");
+			A.fha.addExt("wmv");
 			jpJob.optl(A.opt); //default hack
 		}
 		try{
