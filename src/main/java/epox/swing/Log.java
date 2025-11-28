@@ -22,15 +22,18 @@
  */
 package epox.swing;
 
-public interface Log{
-	public void println(Object o);
-	public void status0(String str);
-	public void status1(String str);
-}/*
-class DebugLog implements Log{
-	public void println(String str){
-		System.out.println(str);
-	}
-	public void status0(String str){}
-	public void status1(String str){}
-}*/
+public interface Log {
+    public void println(Object o);
+
+    public void status0(String str);
+
+    public void status1(String str);
+} /*
+   * class DebugLog implements Log{
+   * public void println(String str){
+   * System.out.println(str);
+   * }
+   * public void status0(String str){}
+   * public void status1(String str){}
+   * }
+   */

@@ -25,39 +25,38 @@ package epox.webaom.net;
 import epox.webaom.Hyper;
 import epox.webaom.ui.JPanelMain;
 
+public class Pinger extends Thread {
+    private JPanelMain web;
 
-public class Pinger extends Thread{
-	private JPanelMain web;
-	public Pinger(JPanelMain w){
-		super("Pinger");
-		web = w;
-		web.fatal(true);
-		start();
-	}
-	public void run(){
-		ACon ani = null;
-		try{
-			ani = web.getConnection();
-			if(ani.connect()){
-				web.println("PING...");
-				String str = "PONG (in "+(ani.ping()/1000f)+" seconds).";
-				web.println(str);
-				web.msg(str);
-			}else web.msg(ani.getLastError()+".");
-		}
-		catch(java.net.SocketTimeoutException e){
-			String str = "AniDB is not reachable";
-			web.println(Hyper.error(str+"."));
-			web.msg(str);
-		}
-		catch(NumberFormatException e){
-			web.msg("Invalid number."+e.getMessage());
-		}
-		catch(Exception e){ e.printStackTrace();
-			web.println(Hyper.error(e.getMessage()+"."));
-			web.msg(e.getMessage()+".");
-		}
-		if(ani!=null) ani.disconnect();
-		web.fatal(false);
-	}
+    public Pinger(JPanelMain w) {
+        super("Pinger");
+        web = w;
+        web.fatal(true);
+        start();
+    }
+
+    public void run() {
+        ACon ani = null;
+        try {
+            ani = web.getConnection();
+            if (ani.connect()) {
+                web.println("PING...");
+                String str = "PONG (in " + (ani.ping() / 1000f) + " seconds).";
+                web.println(str);
+                web.msg(str);
+            } else web.msg(ani.getLastError() + ".");
+        } catch (java.net.SocketTimeoutException e) {
+            String str = "AniDB is not reachable";
+            web.println(Hyper.error(str + "."));
+            web.msg(str);
+        } catch (NumberFormatException e) {
+            web.msg("Invalid number." + e.getMessage());
+        } catch (Exception e) {
+            e.printStackTrace();
+            web.println(Hyper.error(e.getMessage() + "."));
+            web.msg(e.getMessage() + ".");
+        }
+        if (ani != null) ani.disconnect();
+        web.fatal(false);
+    }
 }

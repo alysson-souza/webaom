@@ -24,47 +24,60 @@ package epox.webaom.data;
 
 import epox.util.U;
 
-public class Ep extends Base{
-	public String num, rom, kan, eng;
-	public Ep(int id){
-		this.id = id;
-	}
-	public Ep(String[] s){
-		int i = 0;
-		id = U.i(s[i++]);
-		num = s[i++].intern();
-		eng = s[i++];
-		rom = U.n(s[i++]);
-		kan = U.n(s[i++]);
-	}
-	public static int TPRI=0;
-	public String toString(){
-		switch(TPRI){
-		case 1: return num+" - "+(rom==null?eng:rom);
-		case 2: return num+" - "+(kan==null?eng:kan);
-		default: return num+" - "+eng;
-		}
-	}
-	/*public String toString(){
-		return num+eng+kan+rom;
-	}*/
-	public String serialize(){
-		return ""+id+S+num+S+eng+S+rom+S+kan;
-	}
-	public int compareTo(Object obj){
-		if(obj instanceof Ep){
-			Ep e = (Ep)obj;
-			/*if(mBs==e.mBs)*/try{
-				int a = Integer.parseInt(num);
-				int b = Integer.parseInt(e.num);
-				//if(a==b) return english.compareTo(e.english);
-				return a-b;
-			}catch(Exception x){
-				return num.compareTo(((Ep)obj).num);
-			}
-			/*if(mBs&&!e.mBs) return -1;
-			return 1;*/
-		}
-		return super.compareTo(obj);
-	}
+public class Ep extends Base {
+    public String num, rom, kan, eng;
+
+    public Ep(int id) {
+        this.id = id;
+    }
+
+    public Ep(String[] s) {
+        int i = 0;
+        id = U.i(s[i++]);
+        num = s[i++].intern();
+        eng = s[i++];
+        rom = U.n(s[i++]);
+        kan = U.n(s[i++]);
+    }
+
+    public static int TPRI = 0;
+
+    public String toString() {
+        switch (TPRI) {
+            case 1:
+                return num + " - " + (rom == null ? eng : rom);
+            case 2:
+                return num + " - " + (kan == null ? eng : kan);
+            default:
+                return num + " - " + eng;
+        }
+    }
+
+    /*
+     * public String toString(){
+     * return num+eng+kan+rom;
+     * }
+     */
+    public String serialize() {
+        return "" + id + S + num + S + eng + S + rom + S + kan;
+    }
+
+    public int compareTo(Object obj) {
+        if (obj instanceof Ep) {
+            Ep e = (Ep) obj;
+            /* if(mBs==e.mBs) */ try {
+                int a = Integer.parseInt(num);
+                int b = Integer.parseInt(e.num);
+                // if(a==b) return english.compareTo(e.english);
+                return a - b;
+            } catch (Exception x) {
+                return num.compareTo(((Ep) obj).num);
+            }
+            /*
+             * if(mBs&&!e.mBs) return -1;
+             * return 1;
+             */
+        }
+        return super.compareTo(obj);
+    }
 }

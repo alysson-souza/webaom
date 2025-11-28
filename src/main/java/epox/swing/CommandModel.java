@@ -20,6 +20,6 @@
  */
 package epox.swing;
 
-public interface CommandModel{
-	public void handleCommand(String s);
+public interface CommandModel {
+    public void handleCommand(String s);
 }

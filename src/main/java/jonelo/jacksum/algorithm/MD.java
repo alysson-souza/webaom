@@ -28,25 +28,29 @@ import java.security.NoSuchAlgorithmException;
 
 public class MD extends AbstractChecksum {
 
-	private MessageDigest md = null;
+    private MessageDigest md = null;
 
-	public MD(String arg) throws NoSuchAlgorithmException {
-		length=0;
-		md = MessageDigest.getInstance(arg);
-	}
-	public void reset() {
-		md.reset();
-		length=0;
-	}
-	public void update(byte[] buffer, int offset, int len) {
-		md.update(buffer,offset,len);
-		length+=len;
-	}
-	public void update(byte b) {
-		md.update(b);
-		length++;
-	}
-	public String getHexValue() {
-		return format(md.digest(),uppercase);
-	}
+    public MD(String arg) throws NoSuchAlgorithmException {
+        length = 0;
+        md = MessageDigest.getInstance(arg);
+    }
+
+    public void reset() {
+        md.reset();
+        length = 0;
+    }
+
+    public void update(byte[] buffer, int offset, int len) {
+        md.update(buffer, offset, len);
+        length += len;
+    }
+
+    public void update(byte b) {
+        md.update(b);
+        length++;
+    }
+
+    public String getHexValue() {
+        return format(md.digest(), uppercase);
+    }
 }

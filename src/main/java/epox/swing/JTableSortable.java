@@ -19,42 +19,45 @@ package epox.swing;
 import java.awt.Font;
 import java.awt.FontMetrics;
 import java.awt.Graphics;
-
 import javax.swing.JTable;
 import javax.swing.table.AbstractTableModel;
 import javax.swing.table.JTableHeader;
 import javax.swing.table.TableColumnModel;
 
-public class JTableSortable extends JTable{
-	public HeaderListener m_hl;
-	public JTableSortable(AbstractTableModel mod){
-		super(mod);
+public class JTableSortable extends JTable {
+    public HeaderListener m_hl;
 
-		SortButtonRenderer r = new SortButtonRenderer();
+    public JTableSortable(AbstractTableModel mod) {
+        super(mod);
 
-		TableColumnModel m = this.getColumnModel();
-		for (int i=0;i<m.getColumnCount();i++)
-			m.getColumn(i).setHeaderRenderer(r);
+        SortButtonRenderer r = new SortButtonRenderer();
 
-		JTableHeader h = getTableHeader();
-		m_hl = new HeaderListener(h, m, r);
-		h.addMouseListener(m_hl);
-	}
-	private void calcRowHeight(Graphics g){
-		Font f = getFont();
-		FontMetrics fm = g.getFontMetrics(f);
-		setRowHeight(fm.getHeight()+3);
-	}
-	private boolean needCalcRowHeight=true;
-	public void paint(Graphics g){
-		if (needCalcRowHeight) {
-			calcRowHeight(g);
-			needCalcRowHeight = false;
-		}
-		super.paint(g);
-	}
-	public void setFont(Font f){
-		needCalcRowHeight=true;
-		super.setFont(f);
-	}
+        TableColumnModel m = this.getColumnModel();
+        for (int i = 0; i < m.getColumnCount(); i++) m.getColumn(i).setHeaderRenderer(r);
+
+        JTableHeader h = getTableHeader();
+        m_hl = new HeaderListener(h, m, r);
+        h.addMouseListener(m_hl);
+    }
+
+    private void calcRowHeight(Graphics g) {
+        Font f = getFont();
+        FontMetrics fm = g.getFontMetrics(f);
+        setRowHeight(fm.getHeight() + 3);
+    }
+
+    private boolean needCalcRowHeight = true;
+
+    public void paint(Graphics g) {
+        if (needCalcRowHeight) {
+            calcRowHeight(g);
+            needCalcRowHeight = false;
+        }
+        super.paint(g);
+    }
+
+    public void setFont(Font f) {
+        needCalcRowHeight = true;
+        super.setFont(f);
+    }
 }

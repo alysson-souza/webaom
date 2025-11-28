@@ -26,60 +26,63 @@ import java.awt.Frame;
 import java.awt.Rectangle;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-
 import javax.swing.JButton;
 import javax.swing.JDialog;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
 
 public class JTextInputDialog extends JDialog implements ActionListener {
-	private JTextField jtf;
-	private JButton ok, cl;
-	private String val = null;
-	private int num = -1;
-	public JTextInputDialog(Frame f, String t, String v/*, boolean n*/){
-		super(f, t, true);
-		jtf = new JTextField(v);
-		//if(n) num = 0;
-		ok = new JButton("OK");
-		cl = new JButton("Cancel");
-		jtf.addActionListener(this);
-		ok.addActionListener(this);
-		cl.addActionListener(this);
-		JPanel p = new JPanel();
-		p.add(ok);
-		p.add(cl);
-		JPanel q = new JPanel();
-		q.add(jtf);
-		add(q, BorderLayout.CENTER);
-		add(p , BorderLayout.SOUTH);
-		pack();
-		Dimension d = java.awt.Toolkit.getDefaultToolkit().getScreenSize();
-		Rectangle r = getBounds();
-		setBounds(d.width/2-r.width/2, d.height/2-r.height/2, r.width, r.height);
-	}
-	public void actionPerformed(ActionEvent e) {
-		if(e.getSource()==ok || e.getSource()==jtf){
-			val = jtf.getText();
-			if(num==0){
-				try{
-					num = Integer.parseInt(val.trim());
-				}catch(NumberFormatException x){
-					//don't care
-					num = 0;
-				}
-				if(num>0) dispose();
-				else setTitle("Only positive integers allowed.");
-			}else dispose();
-		}else dispose();
-	}
-	public String getStr(){
-		setVisible(true);
-		return num==0?null:val;
-	}
-	public int getInt(){
-		num = 0;
-		setVisible(true);
-		return num;
-	}
+    private JTextField jtf;
+    private JButton ok, cl;
+    private String val = null;
+    private int num = -1;
+
+    public JTextInputDialog(Frame f, String t, String v /* , boolean n */) {
+        super(f, t, true);
+        jtf = new JTextField(v);
+        // if(n) num = 0;
+        ok = new JButton("OK");
+        cl = new JButton("Cancel");
+        jtf.addActionListener(this);
+        ok.addActionListener(this);
+        cl.addActionListener(this);
+        JPanel p = new JPanel();
+        p.add(ok);
+        p.add(cl);
+        JPanel q = new JPanel();
+        q.add(jtf);
+        add(q, BorderLayout.CENTER);
+        add(p, BorderLayout.SOUTH);
+        pack();
+        Dimension d = java.awt.Toolkit.getDefaultToolkit().getScreenSize();
+        Rectangle r = getBounds();
+        setBounds(d.width / 2 - r.width / 2, d.height / 2 - r.height / 2, r.width, r.height);
+    }
+
+    public void actionPerformed(ActionEvent e) {
+        if (e.getSource() == ok || e.getSource() == jtf) {
+            val = jtf.getText();
+            if (num == 0) {
+                try {
+                    num = Integer.parseInt(val.trim());
+                } catch (NumberFormatException x) {
+                    // don't care
+                    num = 0;
+                }
+                if (num > 0) dispose();
+                else setTitle("Only positive integers allowed.");
+            } else dispose();
+        } else dispose();
+    }
+
+    public String getStr() {
+        setVisible(true);
+        return num == 0 ? null : val;
+    }
+
+    public int getInt() {
+        num = 0;
+        setVisible(true);
+        return num;
+    }
 }

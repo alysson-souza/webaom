@@ -26,55 +26,64 @@ package jonelo.jacksum.algorithm;
 
 import java.util.zip.Checksum;
 
-abstract public class AbstractChecksum implements Checksum {
-	protected long value;
-	protected long length;
-	protected boolean uppercase;
+public abstract class AbstractChecksum implements Checksum {
+    protected long value;
+    protected long length;
+    protected boolean uppercase;
 
-	public AbstractChecksum() {
-		value=0;
-		length=0;
-		uppercase=false;
-	}
-	public void reset() {
-		value = 0;
-		length = 0;
-	}
-	public void update(byte[] bytes, int offset, int len) {
-		for (int i=offset; i < len; i++)
-			update(bytes[i]);
-	}
-	public void update(byte b) {
-		update(b&0xFF);
-	}
-	public void update(int b) {
-		length++;
-	}
-	public void update(byte[] bytes) {
-		update(bytes,0,bytes.length);
-	}
-	public long getValue(){
-		return value;
-	}
-	public String getHexValue() {
-		String s = Long.toHexString(getValue());
-		return (uppercase ? s.toUpperCase() : s);
-	}
-	private final static char[] HEX = "0123456789abcdef".toCharArray();
-	public static String hexformat(long value, int nibbles) {
-		StringBuffer sb = new StringBuffer(Long.toHexString(value));
-		while (sb.length() < nibbles) sb.insert(0,'0');
-		return sb.toString();
-	}
-	public static String format(byte[] bytes, boolean uppercase) {
-		if (bytes==null) return "";
-		StringBuffer sb = new StringBuffer(bytes.length * 2);
-		int b;
-		for (int i=0; i < bytes.length; i++) {
-			b=bytes[i] & 0xFF;
-			sb.append(HEX[b >>> 4]);
-			sb.append(HEX[b & 0x0F]);
-		}
-		return (uppercase ? sb.toString().toUpperCase() : sb.toString());
-	}
+    public AbstractChecksum() {
+        value = 0;
+        length = 0;
+        uppercase = false;
+    }
+
+    public void reset() {
+        value = 0;
+        length = 0;
+    }
+
+    public void update(byte[] bytes, int offset, int len) {
+        for (int i = offset; i < len; i++) update(bytes[i]);
+    }
+
+    public void update(byte b) {
+        update(b & 0xFF);
+    }
+
+    public void update(int b) {
+        length++;
+    }
+
+    public void update(byte[] bytes) {
+        update(bytes, 0, bytes.length);
+    }
+
+    public long getValue() {
+        return value;
+    }
+
+    public String getHexValue() {
+        String s = Long.toHexString(getValue());
+        return (uppercase ? s.toUpperCase() : s);
+    }
+
+    private static final char[] HEX = "0123456789abcdef".toCharArray();
+
+    public static String hexformat(long value, int nibbles) {
+        StringBuffer sb = new StringBuffer(Long.toHexString(value));
+        while (sb.length() < nibbles) sb.insert(0, '0');
+        return sb.toString();
+    }
+
+    public static String format(byte[] bytes, boolean uppercase) {
+        if (bytes == null) return "";
+        StringBuffer sb = new StringBuffer(bytes.length * 2);
+        int b;
+        for (int i = 0; i < bytes.length; i++) {
+            b = bytes[i] & 0xFF;
+            sb.append(HEX[b >>> 4]);
+            sb.append(HEX[b & 0x0F]);
+        }
+        return (uppercase ? sb.toString().toUpperCase() : sb.toString());
+    }
 }

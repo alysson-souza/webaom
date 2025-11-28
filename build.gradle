@@ -1,6 +1,8 @@
 plugins {
-    id 'java'
-    id 'application'
+	id 'java'
+	id 'application'
+	id 'com.diffplug.spotless' version '7.0.2'
+	id 'checkstyle'
 }
 
 group = 'epox'
@@ -8,51 +10,79 @@ version = '2.1.0'
 description = 'WebAOM - Web Anime-o-Matic (AniDB file identification and organization)'
 
 java {
-    sourceCompatibility = JavaVersion.VERSION_21
-    targetCompatibility = JavaVersion.VERSION_21
+	toolchain {
+		languageVersion = JavaLanguageVersion.of(21)
+		vendor = JvmVendorSpec.AZUL
+	}
 }
 
 application {
-    mainClass = 'epox.webaom.WebAOM'
+	mainClass = 'epox.webaom.WebAOM'
 }
 
 repositories {
-    mavenCentral()
+	mavenCentral()
 }
 
 dependencies {
-    // Database drivers (optional, runtime-only)
-    runtimeOnly 'org.postgresql:postgresql:42.7.7'
-    runtimeOnly 'com.mysql:mysql-connector-j:9.1.0'
-
-    // Note: All hashing and utility libraries are bundled as source code
-    // in src/main/java (Jacksum, GNU Crypto, Fast MD5, TigerTree, JTreeTable)
+	runtimeOnly 'org.postgresql:postgresql:42.7.7'
+	runtimeOnly 'com.mysql:mysql-connector-j:9.1.0'
 }
 
-// Configure JAR with manifest and all dependencies
 jar {
-    manifest {
-        attributes(
-            'Main-Class': 'epox.webaom.WebAOM',
-            'Implementation-Title': 'WebAOM',
-            'Implementation-Version': version,
-            'Created-By': 'epoximator',
-            'Specification-Title': 'WebAOM',
-            'Specification-Version': '2.0.0',
-            'Specification-Vendor': 'epoximator'
-        )
-    }
+	manifest {
+		attributes(
+				'Main-Class': 'epox.webaom.WebAOM',
+				'Implementation-Title': 'WebAOM',
+				'Implementation-Version': version,
+				'Created-By': 'epoximator',
+				'Specification-Title': 'WebAOM',
+				'Specification-Version': '2.0.0',
+				'Specification-Vendor': 'epoximator'
+				)
+	}
 
-    // Include all runtime dependencies in the JAR (fat JAR)
-    from {
-        configurations.runtimeClasspath.collect { it.isDirectory() ? it : zipTree(it) }
-    }
+	from {
+		configurations.runtimeClasspath.collect { it.isDirectory() ? it : zipTree(it) }
+	}
 
-    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+	duplicatesStrategy = DuplicatesStrategy.EXCLUDE
 }
 
-// Configure Java compilation
 tasks.withType(JavaCompile) {
-    options.encoding = 'UTF-8'
-    options.compilerArgs.addAll(['-Xlint:unchecked', '-Xlint:deprecation'])
+	options.encoding = 'UTF-8'
+	options.compilerArgs.addAll([
+		'-Xlint:unchecked',
+		'-Xlint:deprecation'
+	])
+}
+
+spotless {
+	java {
+		target 'src/**/*.java'
+		removeUnusedImports()
+		googleJavaFormat('1.25.2').aosp()
+		trimTrailingWhitespace()
+		endWithNewline()
+	}
+
+	groovyGradle {
+		target '*.gradle'
+		greclipse()
+	}
+}
+
+checkstyle {
+	toolVersion = '10.21.1'
+	configFile = file("${rootDir}/config/checkstyle/checkstyle.xml")
+	ignoreFailures = true
+	maxWarnings = 0
+	maxErrors = 0
+}
+
+tasks.withType(Checkstyle) {
+	reports {
+		xml.required = true
+		html.required = true
+	}
 }
