@@ -28,28 +28,33 @@ import java.util.zip.CRC32;
 
 public class Crc32 extends AbstractChecksum {
 
-	private CRC32 crc32 = null;
+    private CRC32 crc32 = null;
 
-	public Crc32() {
-		crc32 = new CRC32();
-	}
-	public void reset() {
-		crc32.reset();
-		length=0;
-	}
-	public void update(byte[] buffer, int offset, int len) {
-		crc32.update(buffer,offset,len);
-		length+=len;
-	}
-	public void update(int b) {
-		crc32.update(b);
-		length++;
-	}
-	public long getValue() {
-		return crc32.getValue();
-	}
-	public String getHexValue() {
-		String s = hexformat(getValue(),8);
-		return (uppercase ? s.toUpperCase() : s);
-	}
+    public Crc32() {
+        crc32 = new CRC32();
+    }
+
+    public void reset() {
+        crc32.reset();
+        length = 0;
+    }
+
+    public void update(byte[] buffer, int offset, int len) {
+        crc32.update(buffer, offset, len);
+        length += len;
+    }
+
+    public void update(int b) {
+        crc32.update(b);
+        length++;
+    }
+
+    public long getValue() {
+        return crc32.getValue();
+    }
+
+    public String getHexValue() {
+        String s = hexformat(getValue(), 8);
+        return (uppercase ? s.toUpperCase() : s);
+    }
 }

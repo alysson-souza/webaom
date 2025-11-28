@@ -4,8 +4,8 @@
  */
 package epox.webaom.net;
 
-class TagEx extends Exception{
-	public TagEx(){
-		super("Wrong Tag");
-	}
+class TagEx extends Exception {
+    public TagEx() {
+        super("Wrong Tag");
+    }
 }

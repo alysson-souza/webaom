@@ -4,16 +4,18 @@
  */
 package epox.webaom.data;
 
-public class Path extends Base{
-	private String mSp;
+public class Path extends Base {
+    private String mSp;
 
-	public Path(String p){
-		mSp = p;
-	}
-	public Object getKey(){
-		return mSp;
-	}
-	public String toString(){
-		return mSp;
-	}
+    public Path(String p) {
+        mSp = p;
+    }
+
+    public Object getKey() {
+        return mSp;
+    }
+
+    public String toString() {
+        return mSp;
+    }
 }

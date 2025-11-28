@@ -25,49 +25,54 @@ package epox.util;
 
 /**
  * Combined linked list and hash map. Fast and ordered.
+ *
  * @author JV
  * @version 1
  */
-public class LinkedHash extends java.util.HashMap/*!<Object,Object>*/{
-	private Node head = null, tail = null;
-	public LinkedHash(){
-		super();
-		head = tail = new Node(null, null);
-	}
-	public boolean addLast(Object o){
-		Node n = new Node(o, tail);
-		if(super.put(o, n)==null){
-			tail = tail.next = n;
-			return true;
-		}
-		return false;
-	}
-	public Object remove(Object o){
-		Node n = (Node) super.remove(o);
-		if(n==null)
-			System.out.println("! LinkedHash: Tried to remove non existing entry: "+o);
-		n.prev.next = n.next;
-		if(n.next!=null)
-			n.next.prev = n.prev;
-		else tail = n.prev;
-		return null;
-	}
-	public void clear(){
-		super.clear();
-		head.next = head.prev = null;
-		tail = head;
-	}
-	public Object getFirst(){
-		if(head.next==null)
-			return null;
-		return head.next.o;
-	}
-	private class Node{
-		Node prev, next;
-		Object o;
-		public Node(Object o, Node prev){
-			this.o = o;
-			this.prev = prev;
-		}
-	}
+public class LinkedHash extends java.util.HashMap /* !<Object,Object> */ {
+    private Node head = null, tail = null;
+
+    public LinkedHash() {
+        super();
+        head = tail = new Node(null, null);
+    }
+
+    public boolean addLast(Object o) {
+        Node n = new Node(o, tail);
+        if (super.put(o, n) == null) {
+            tail = tail.next = n;
+            return true;
+        }
+        return false;
+    }
+
+    public Object remove(Object o) {
+        Node n = (Node) super.remove(o);
+        if (n == null) System.out.println("! LinkedHash: Tried to remove non existing entry: " + o);
+        n.prev.next = n.next;
+        if (n.next != null) n.next.prev = n.prev;
+        else tail = n.prev;
+        return null;
+    }
+
+    public void clear() {
+        super.clear();
+        head.next = head.prev = null;
+        tail = head;
+    }
+
+    public Object getFirst() {
+        if (head.next == null) return null;
+        return head.next.o;
+    }
+
+    private class Node {
+        Node prev, next;
+        Object o;
+
+        public Node(Object o, Node prev) {
+            this.o = o;
+            this.prev = prev;
+        }
+    }
 }

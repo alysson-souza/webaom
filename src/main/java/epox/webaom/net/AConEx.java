@@ -23,42 +23,45 @@
 package epox.webaom.net;
 
 public class AConEx extends Exception {
-	public static final int
-	CLIENT_BANNED		=0,
-	CLIENT_OUTDATED		=1,
-	CLIENT_BUG			=2,
-	CLIENT_SYSTEM		=3,
-	CLIENT_USER			=4,
-	ANIDB_UNREACHABLE	=5,
-	ANIDB_OUT_OF_SERVICE=6,
-	ANIDB_SERVER_ERROR	=7,
-	ENCRYPTION			=8;
+    public static final int CLIENT_BANNED = 0,
+            CLIENT_OUTDATED = 1,
+            CLIENT_BUG = 2,
+            CLIENT_SYSTEM = 3,
+            CLIENT_USER = 4,
+            ANIDB_UNREACHABLE = 5,
+            ANIDB_OUT_OF_SERVICE = 6,
+            ANIDB_SERVER_ERROR = 7,
+            ENCRYPTION = 8;
 
-	private int code;
-	public AConEx(int code){
-		this(code, defaultMsg(code));
-	}
-	public AConEx(int code, String msg) {
-		super(msg);
-		this.code = code;
-	}
-	public boolean is(int i){
-		return code==i;
-	}
-	public static String defaultMsg(int code){
-		switch(code){
-			case CLIENT_BANNED:
-			return "This version of WebAOM is no longer supported! Check WIKI.";
-			case CLIENT_OUTDATED:
-			return "A new version of WebAOM is out. Check WIKI!";
-			case ANIDB_OUT_OF_SERVICE:
-			return "AniDB is out of service! Try again next year.";
-			case ANIDB_SERVER_ERROR:
-			return "Internal Server Error @ AniDB!";
-			case ENCRYPTION:
-			return "Decryption failed. The connection timed out (most likely).";
-			default:
-			return "Unknown Error.";
-		}
-	}
+    private int code;
+
+    public AConEx(int code) {
+        this(code, defaultMsg(code));
+    }
+
+    public AConEx(int code, String msg) {
+        super(msg);
+        this.code = code;
+    }
+
+    public boolean is(int i) {
+        return code == i;
+    }
+
+    public static String defaultMsg(int code) {
+        switch (code) {
+            case CLIENT_BANNED:
+                return "This version of WebAOM is no longer supported! Check WIKI.";
+            case CLIENT_OUTDATED:
+                return "A new version of WebAOM is out. Check WIKI!";
+            case ANIDB_OUT_OF_SERVICE:
+                return "AniDB is out of service! Try again next year.";
+            case ANIDB_SERVER_ERROR:
+                return "Internal Server Error @ AniDB!";
+            case ENCRYPTION:
+                return "Decryption failed. The connection timed out (most likely).";
+            default:
+                return "Unknown Error.";
+        }
+    }
 }

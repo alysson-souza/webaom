@@ -18,27 +18,29 @@ package epox.swing;
 
 import java.awt.Component;
 import java.awt.Insets;
-
 import javax.swing.JButton;
 import javax.swing.JTable;
 import javax.swing.table.TableCellRenderer;
 
-public class SortButtonRenderer extends JButton implements TableCellRenderer{
-	int pc;
+public class SortButtonRenderer extends JButton implements TableCellRenderer {
+    int pc;
 
-	public SortButtonRenderer(){
-		pc = -1;
-		setMargin(new Insets(0,0,0,0));
-		setToolTipText("Right click to select columns");
-	}
-	public Component getTableCellRendererComponent(JTable t, Object o, boolean sel, boolean foc, int r, int c){
-		setText((o == null) ? "" : o.toString());
-		boolean isPressed = (c == pc);
-		getModel().setPressed(isPressed);
-		getModel().setArmed(isPressed);
-		return this;
-	}
-	public void setPressedColumn(int c){
-		pc = c;
-	}
+    public SortButtonRenderer() {
+        pc = -1;
+        setMargin(new Insets(0, 0, 0, 0));
+        setToolTipText("Right click to select columns");
+    }
+
+    public Component getTableCellRendererComponent(
+            JTable t, Object o, boolean sel, boolean foc, int r, int c) {
+        setText((o == null) ? "" : o.toString());
+        boolean isPressed = (c == pc);
+        getModel().setPressed(isPressed);
+        getModel().setArmed(isPressed);
+        return this;
+    }
+
+    public void setPressedColumn(int c) {
+        pc = c;
+    }
 }

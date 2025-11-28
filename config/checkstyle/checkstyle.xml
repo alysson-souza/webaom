@@ -1,0 +1,121 @@
+<?xml version="1.0"?>
+<!DOCTYPE module PUBLIC
+    "-//Checkstyle//DTD Checkstyle Configuration 1.3//EN"
+    "https://checkstyle.org/dtds/configuration_1_3.dtd">
+
+<!--
+    Checkstyle configuration for WebAOM
+    Based on Google Java Style with some relaxations for legacy code
+-->
+<module name="Checker">
+    <property name="charset" value="UTF-8"/>
+    <property name="severity" value="warning"/>
+    <property name="fileExtensions" value="java"/>
+
+    <!-- Suppressions for generated/vendored code -->
+    <module name="SuppressionFilter">
+        <property name="file" value="${config_loc}/suppressions.xml"/>
+        <property name="optional" value="true"/>
+    </module>
+
+    <!-- File length -->
+    <module name="FileLength">
+        <property name="max" value="2000"/>
+        <property name="severity" value="warning"/>
+    </module>
+
+    <!-- Line length (must be at Checker level in newer Checkstyle) -->
+    <module name="LineLength">
+        <property name="max" value="120"/>
+        <property name="severity" value="info"/>
+    </module>
+
+    <module name="TreeWalker">
+        <!-- Naming conventions -->
+        <module name="ConstantName">
+            <property name="severity" value="warning"/>
+        </module>
+        <module name="LocalFinalVariableName"/>
+        <module name="LocalVariableName"/>
+        <module name="MemberName"/>
+        <module name="MethodName"/>
+        <module name="PackageName"/>
+        <module name="ParameterName"/>
+        <module name="StaticVariableName"/>
+        <module name="TypeName"/>
+
+        <!-- Imports -->
+        <module name="AvoidStarImport">
+            <property name="severity" value="info"/>
+        </module>
+        <module name="IllegalImport"/>
+        <module name="RedundantImport"/>
+        <module name="UnusedImports"/>
+
+        <!-- Size violations -->
+        <module name="MethodLength">
+            <property name="max" value="200"/>
+            <property name="severity" value="warning"/>
+        </module>
+        <module name="ParameterNumber">
+            <property name="max" value="10"/>
+            <property name="severity" value="warning"/>
+        </module>
+
+        <!-- Whitespace -->
+        <module name="EmptyForIteratorPad"/>
+        <module name="GenericWhitespace"/>
+        <module name="MethodParamPad"/>
+        <module name="NoWhitespaceAfter"/>
+        <module name="NoWhitespaceBefore"/>
+        <module name="ParenPad"/>
+        <module name="TypecastParenPad"/>
+        <module name="WhitespaceAfter"/>
+        <module name="WhitespaceAround">
+            <property name="allowEmptyConstructors" value="true"/>
+            <property name="allowEmptyMethods" value="true"/>
+            <property name="allowEmptyTypes" value="true"/>
+            <property name="allowEmptyLoops" value="true"/>
+        </module>
+
+        <!-- Modifiers -->
+        <module name="ModifierOrder"/>
+        <module name="RedundantModifier"/>
+
+        <!-- Blocks -->
+        <module name="AvoidNestedBlocks"/>
+        <module name="EmptyBlock">
+            <property name="severity" value="warning"/>
+        </module>
+        <module name="LeftCurly"/>
+        <module name="NeedBraces">
+            <property name="severity" value="info"/>
+        </module>
+        <module name="RightCurly"/>
+
+        <!-- Coding -->
+        <module name="EmptyStatement"/>
+        <module name="EqualsHashCode"/>
+        <module name="IllegalInstantiation"/>
+        <module name="InnerAssignment">
+            <property name="severity" value="info"/>
+        </module>
+        <module name="MissingSwitchDefault">
+            <property name="severity" value="info"/>
+        </module>
+        <module name="MultipleVariableDeclarations"/>
+        <module name="SimplifyBooleanExpression"/>
+        <module name="SimplifyBooleanReturn"/>
+
+        <!-- Design -->
+        <module name="FinalClass"/>
+        <module name="HideUtilityClassConstructor">
+            <property name="severity" value="info"/>
+        </module>
+        <module name="InterfaceIsType"/>
+
+        <!-- Miscellaneous -->
+        <module name="ArrayTypeStyle"/>
+        <module name="UpperEll"/>
+    </module>
+</module>
