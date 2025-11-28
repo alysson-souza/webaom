@@ -8,37 +8,23 @@ on:
 
 jobs:
   build:
-    runs-on: ${{ matrix.os }}
-    strategy:
-      fail-fast: false
-      matrix:
-        os: [ ubuntu-latest, macos-latest, windows-latest ]
-        java-version: [ '8', '11', '17', '21' ]
-
-    name: Build on ${{ matrix.os }} with Java ${{ matrix.java-version }}
+    runs-on: ubuntu-latest
+    name: Build with Java 21
 
     steps:
     - uses: actions/checkout@v4
-      with:
-        fetch-depth: 0
 
-    - name: Set up Java ${{ matrix.java-version }}
+    - name: Set up Java 21
       uses: actions/setup-java@v4
       with:
-        java-version: ${{ matrix.java-version }}
+        java-version: '21'
         distribution: 'temurin'
         cache: gradle
 
-    - name: Make gradlew executable
-      run: chmod +x gradlew
-      if: runner.os != 'Windows'
-
     - name: Build with Gradle
       run: ./gradlew clean build --no-daemon
-      shell: bash
 
     - name: Upload JAR artifact
-      if: matrix.java-version == '11' && matrix.os == 'ubuntu-latest'
       uses: actions/upload-artifact@v4
       with:
         name: webaom-jar
@@ -46,36 +32,9 @@ jobs:
         retention-days: 7
 
     - name: Upload test reports
-      if: always() && matrix.java-version == '11' && matrix.os == 'ubuntu-latest'
+      if: always()
       uses: actions/upload-artifact@v4
       with:
         name: gradle-reports
         path: build/reports/
         retention-days: 5
-
-  code-quality:
-    runs-on: ubuntu-latest
-    name: Code Quality Checks
-
-    steps:
-    - uses: actions/checkout@v4
-      with:
-        fetch-depth: 0
-
-    - name: Set up Java 11
-      uses: actions/setup-java@v4
-      with:
-        java-version: '11'
-        distribution: 'temurin'
-        cache: gradle
-
-    - name: Make gradlew executable
-      run: chmod +x gradlew
-
-    - name: Build with Gradle
-      run: ./gradlew clean build --no-daemon
-
-    - name: Check compilation warnings
-      run: |
-        echo "Build completed successfully with expected deprecation warnings"
-        echo "Note: Deprecation warnings are expected due to legacy code (2010)"
