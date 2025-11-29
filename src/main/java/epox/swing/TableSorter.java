@@ -106,12 +106,10 @@ public class TableSorter {
 			for (;;) {
 				do {
 					i++;
-				}
-				while (compare(i, v) < 0);
+				} while (compare(i, v) < 0);
 				do {
 					j--;
-				}
-				while (j > 0 && compare(v, j) < 0);
+				} while (j > 0 && compare(v, j) < 0);
 				if (j < i) {
 					break;
 				}

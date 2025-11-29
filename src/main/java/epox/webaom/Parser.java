@@ -114,7 +114,7 @@ public class Parser {
 		}
 		String sp = pre + n[log10(tot) - log10(nr > 0 ? nr : 1)] + nr;
 		if (x >= 0)
-			// return sp+c+pad(s.substring(x+1), tot);
+		// return sp+c+pad(s.substring(x+1), tot);
 		{
 			return sp + c + s.substring(x + 1);
 		}
