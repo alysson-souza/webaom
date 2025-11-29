@@ -47,10 +47,11 @@ public class MouseAdapterJob extends MouseAdapter {
 			int i = jm.convertRow(jt.getSelectedRow())[0];
 			if (i >= 0 && i < jl.size()) {
 				Job j = jl.get(i);
-				if ((e.getModifiers() & InputEvent.ALT_MASK) == InputEvent.ALT_MASK)
+				if ((e.getModifiers() & InputEvent.ALT_MASK) == InputEvent.ALT_MASK) {
 					JobMan.c_watch(j);
-				else
+				} else {
 					JobMan.showInfo(j);
+				}
 			}
 		}
 	}

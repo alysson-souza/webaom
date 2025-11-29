@@ -43,8 +43,9 @@ public class JTableJobs extends JTableSortable {
 	public Component prepareRenderer(TableCellRenderer renderer, int row, int col) {
 		Component c = super.prepareRenderer(renderer, row, col);
 
-		if (isSelected(row))
+		if (isSelected(row)) {
 			return c;
+		}
 
 		Job j = (Job) m_jlm.getValueAt(row, TableModelJobs.JOB);
 
@@ -54,14 +55,15 @@ public class JTableJobs extends JTableSortable {
 		} else {
 			c.setBackground(this.getBackground());
 
-			if (j.check(Job.D_DIO | Job.S_DOING))
+			if (j.check(Job.D_DIO | Job.S_DOING)) {
 				c.setForeground(c_dio);
-			else if (j.check(Job.D_NIO | Job.S_DOING))
+			} else if (j.check(Job.D_NIO | Job.S_DOING)) {
 				c.setForeground(c_nio);
-			else if (j.check(Job.H_MISSING))
+			} else if (j.check(Job.H_MISSING)) {
 				c.setForeground(c_mis);
-			else
+			} else {
 				c.setForeground(Color.black);
+			}
 		}
 
 		return c;

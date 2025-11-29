@@ -49,15 +49,16 @@ public class JPopupMenuM extends JPopupMenu implements MouseListener, ActionList
 		this.jlm = jlm;
 
 		items = new JMenuItem[iCommands];
-		for (int i = 0; i < iCommands; i++)
-			if (separator(i))
+		for (int i = 0; i < iCommands; i++) {
+			if (separator(i)) {
 				this.addSeparator();
-			else {
+			} else {
 				items[i] = new JMenuItem(commandText(i));
 				items[i].addActionListener(this);
 				items[i].setActionCommand("" + i);
 				this.add(items[i]);
 			}
+		}
 	}
 
 	public void stop() {
@@ -75,13 +76,15 @@ public class JPopupMenuM extends JPopupMenu implements MouseListener, ActionList
 		/* don't care */ }
 
 	public void mousePressed(MouseEvent e) {
-		if (jt instanceof JTableJobs)
+		if (jt instanceof JTableJobs) {
 			((JTableJobs) jt).upd = false;
+		}
 	}
 
 	public void mouseReleased(MouseEvent e) {
-		if (jt instanceof JTableJobs)
+		if (jt instanceof JTableJobs) {
 			((JTableJobs) jt).upd = true;
+		}
 	}
 
 	public void mouseClicked(MouseEvent e) {
@@ -94,8 +97,9 @@ public class JPopupMenuM extends JPopupMenu implements MouseListener, ActionList
 	}
 
 	public void actionPerformed(ActionEvent e) {
-		if (jt.getSelectedRowCount() > 0)
+		if (jt.getSelectedRowCount() > 0) {
 			worker = new MenuWorker(Integer.parseInt(e.getActionCommand()));
+		}
 	}
 
 	private class MenuWorker extends Thread {
@@ -109,40 +113,46 @@ public class JPopupMenuM extends JPopupMenu implements MouseListener, ActionList
 		}
 
 		public void run() {
-			ie : if (single(cmd))
+			ie : if (single(cmd)) {
 				try {
 					commandSingle(cmd, jlm.getJobs(jt.getSelectedRow())[0]);
 				} catch (ArrayIndexOutOfBoundsException e) {
 					//
 				}
-			else {
+			} else {
 				String arg = null;
 				if (cmd == SET_FOLDER || cmd == SET_PAR_FLD) {
 					arg = getFolder();
-					if (arg == null)
+					if (arg == null) {
 						break ie;
+					}
 				}
 				int[] rows = jt.getSelectedRows();
 
 				jt.clearSelection();
-				for (int i = 0; i < rows.length && run; i++)
+				for (int i = 0; i < rows.length && run; i++) {
 					command(cmd, jlm.getJobs(rows[i]), arg);
+				}
 			}
 			worker = null;
 		}
 	}
 
 	void command(int cmd, Job[] rows, String arg) {
-		if (rows.length < 1)
+		if (rows.length < 1) {
 			return;
+		}
 		if (cmd == EDIT_PATH) {
 			arg = new JTextInputDialog(A.frame, "Edit path", rows[0].getFile().getParent()).getStr();
-			if (arg == null || arg.length() < 2)
+			if (arg == null || arg.length() < 2) {
 				return;
+			}
 		}
-		for (int i = 0; i < rows.length; i++)
-			if (rows[i] != null)
+		for (int i = 0; i < rows.length; i++) {
+			if (rows[i] != null) {
 				command0(cmd, rows[i], arg);
+			}
+		}
 	}
 
 	void command0(int cmd, Job j, String arg) {
@@ -170,12 +180,14 @@ public class JPopupMenuM extends JPopupMenu implements MouseListener, ActionList
 				JobMan.updateStatus(j, Job.FINISHED, true);
 				break;
 			case SET_FOLDER :
-				if (arg != null)
+				if (arg != null) {
 					JobMan.setPath(j, arg, false);
+				}
 				break;
 			case SET_PAR_FLD :
-				if (arg != null)
+				if (arg != null) {
 					JobMan.setPath(j, arg, true);
+				}
 				break;
 			case REMOVE_DB :
 				JobMan.updateStatus(j, Job.H_DELETED, true);
@@ -184,8 +196,9 @@ public class JPopupMenuM extends JPopupMenu implements MouseListener, ActionList
 				JobMan.restoreName(j);
 				break;
 			case EDIT_PATH :
-				if (arg != null)
+				if (arg != null) {
 					JobMan.setPath(j, arg, false);
+				}
 				break;
 			case PARSE :
 				JobMan.updateStatus(j, Job.PARSEWAIT, true);
@@ -222,8 +235,9 @@ public class JPopupMenuM extends JPopupMenu implements MouseListener, ActionList
 		JFileChooser fc = new JFileChooser();
 		fc.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
 		fc.setMultiSelectionEnabled(false);
-		if (dir != null)
+		if (dir != null) {
 			fc.setCurrentDirectory(new java.io.File(dir));
+		}
 		int option = fc.showDialog(A.component, "Select Directory");
 		if (option == JFileChooser.APPROVE_OPTION) {
 			dir = fc.getSelectedFile().getAbsolutePath();

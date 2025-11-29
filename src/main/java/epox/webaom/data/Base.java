@@ -33,8 +33,9 @@ public class Base implements Comparable {
 	public long mLs;
 
 	public Base get(int i) {
-		if (m_array == null)
+		if (m_array == null) {
 			return null;
+		}
 		return (Base) m_array[i];
 	}
 
@@ -65,15 +66,17 @@ public class Base implements Comparable {
 				U.err("Base: Negative size: " + b + " (" + this + ")");
 				mLs = 0;
 			}
-		} else
+		} else {
 			U.err("Base: Tried to remove non ex obj: " + b + " (" + this + ")");
+		}
 	}
 
 	public void clear() {
 		mLs = 0;
 		Iterator it = m_hm.values().iterator();
-		while (it.hasNext())
+		while (it.hasNext()) {
 			((Base) it.next()).clear();
+		}
 
 		m_hm.clear();
 	}
@@ -81,8 +84,9 @@ public class Base implements Comparable {
 	public void dump(String pre) {
 		System.out.println(pre + this);
 		Iterator it = m_hm.values().iterator();
-		while (it.hasNext())
+		while (it.hasNext()) {
 			((Base) it.next()).dump(pre + ".");
+		}
 	}
 
 	public int size() {
@@ -111,8 +115,9 @@ public class Base implements Comparable {
 	}
 
 	public static Base getInst(String[] arg) {
-		if (arg == null)
+		if (arg == null) {
 			return null;
+		}
 		return null;
 	}
 }

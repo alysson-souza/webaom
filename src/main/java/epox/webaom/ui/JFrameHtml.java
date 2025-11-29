@@ -60,23 +60,27 @@ public class JFrameHtml extends JFrame implements HyperlinkListener, KeyListener
 		Rectangle r = getBounds();
 		int w = (int) (0.95 * d.width);
 		int h = (int) (0.95 * d.height);
-		if (r.width > w)
+		if (r.width > w) {
 			r.width = w;
-		if (r.height > h)
+		}
+		if (r.height > h) {
 			r.height = h;
+		}
 		setBounds(d.width / 2 - r.width / 2, d.height / 2 - r.height / 2, r.width, r.height);
 		setVisible(true);
 		jep.addKeyListener(this);
 	}
 
 	public void hyperlinkUpdate(HyperlinkEvent e) {
-		if (e.getEventType() == HyperlinkEvent.EventType.ACTIVATED)
+		if (e.getEventType() == HyperlinkEvent.EventType.ACTIVATED) {
 			A.gui.hlGo(e.getDescription());
+		}
 	}
 
 	public void keyTyped(KeyEvent e) {
-		if (e.getKeyChar() == 'q')
+		if (e.getKeyChar() == 'q') {
 			dispose();
+		}
 	}
 
 	public void keyPressed(KeyEvent e) {

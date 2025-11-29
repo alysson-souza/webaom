@@ -134,9 +134,9 @@ public class JPanelMain extends JPanel
 		mTgui = new Timer(500, this);
 
 		mTprg.start();
-		if (A.opt.load())
+		if (A.opt.load()) {
 			optl(A.opt);
-		else {
+		} else {
 			A.fha.addExt("3gp");
 			A.fha.addExt("asf");
 			A.fha.addExt("avi");
@@ -168,9 +168,11 @@ public class JPanelMain extends JPanel
 		try {
 			Thread[] t = new Thread[Thread.activeCount()];
 			Thread.enumerate(t);
-			for (int i = 0; i < t.length; i++)
-				if (t[i].getName().equals("AWT-EventQueue-0"))
+			for (int i = 0; i < t.length; i++) {
+				if (t[i].getName().equals("AWT-EventQueue-0")) {
 					t[i].setName("GUI");
+				}
+			}
 		} catch (Exception e) {
 			/* don't care */
 		}
@@ -209,8 +211,9 @@ public class JPanelMain extends JPanel
 	 * initialization (non-blocking, app continues to run).
 	 */
 	private void showStartupIssuesDialog(List<StartupIssue> issues) {
-		if (issues == null || issues.isEmpty())
+		if (issues == null || issues.isEmpty()) {
 			return;
+		}
 
 		StringBuilder message = new StringBuilder();
 		message.append("The following startup issues were detected:\n\n");
@@ -245,8 +248,9 @@ public class JPanelMain extends JPanel
 
 	public void reset() {
 		synchronized (A.p) {
-			if (mBdio)
+			if (mBdio) {
 				dioToggle();
+			}
 			nioEnable(false);
 			try {
 				mWdio.join(1000);
@@ -306,8 +310,9 @@ public class JPanelMain extends JPanel
 			public void actionPerformed(ActionEvent e) {
 				int[] i = jlExt.getSelectedIndices();
 				java.util.Arrays.sort(i);
-				for (int j = i.length - 1; j >= 0; j--)
+				for (int j = i.length - 1; j >= 0; j--) {
 					A.fha.removeExt(i[j]);
+				}
 				jlExt.clearSelection();
 			}
 		});
@@ -457,9 +462,9 @@ public class JPanelMain extends JPanel
 
 	public void nioEnable(boolean b) {
 		if (!killed()) {
-			if (b)
+			if (b) {
 				jbButt[B_CONN].setText(S_NIOD);
-			else {
+			} else {
 				jbButt[B_CONN].setText(S_NIOE);
 				mBnio = false;
 			}
@@ -469,19 +474,22 @@ public class JPanelMain extends JPanel
 
 	public void fatal(boolean b) {
 		if (b) {
-			if (mBdio)
+			if (mBdio) {
 				dioToggle();
+			}
 			setEnabled_dio(false);
 			setEnabled_nio(false);
-			for (int i = 1; i < jbButt.length; i++)
+			for (int i = 1; i < jbButt.length; i++) {
 				jbButt[i].setEnabled(false);
+			}
 			mTunf.start();
 		} else {
 			mTunf.stop();
 			setEnabled_dio(true);
 			setEnabled_nio(true);
-			for (int i = 1; i < jbButt.length; i++)
+			for (int i = 1; i < jbButt.length; i++) {
 				jbButt[i].setEnabled(true);
+			}
 		}
 	}
 
@@ -505,33 +513,36 @@ public class JPanelMain extends JPanel
 
 	///////////////////////////// IMPLEMENTATIONS////////////////////////////////
 	public void hyperlinkUpdate(HyperlinkEvent e) {
-		if (e.getEventType() == HyperlinkEvent.EventType.ACTIVATED)
+		if (e.getEventType() == HyperlinkEvent.EventType.ACTIVATED) {
 			hlGo(e.getDescription());
-		else if (e.getEventType() == HyperlinkEvent.EventType.ENTERED) {
+		} else if (e.getEventType() == HyperlinkEvent.EventType.ENTERED) {
 			mSmsg = jpb0.getString();
 			jpb0.setString(e.getDescription());
-		} else if (e.getEventType() == HyperlinkEvent.EventType.EXITED)
+		} else if (e.getEventType() == HyperlinkEvent.EventType.EXITED) {
 			jpb0.setString(mSmsg);
+		}
 	}
 
 	public void actionPerformed(ActionEvent e) {
 		Object source = e.getSource();
-		if (source == jbButt[B_SELF])
+		if (source == jbButt[B_SELF]) {
 			selectFiles();
-		else if (source == jbButt[B_SELD])
+		} else if (source == jbButt[B_SELD]) {
 			selectDirs();
-		else if (source == jbButt[B_HASH])
+		} else if (source == jbButt[B_HASH]) {
 			dioToggle();
-		else if (source == jbButt[B_CONN])
+		} else if (source == jbButt[B_CONN]) {
 			nioToggle();
-		else if (source == jbButt[B_EXPO]) {
-			if (mWdiv != null)
+		} else if (source == jbButt[B_EXPO]) {
+			if (mWdiv != null) {
 				return;
+			}
 			mWdiv = new ExImp(false);
 			mWdiv.start();
 		} else if (source == jbButt[B_IMPO]) {
-			if (mWdiv != null)
+			if (mWdiv != null) {
 				return;
+			}
 			mWdiv = new ExImp(true);
 			mWdiv.start();
 		} else if (source == jbButt[B_SAVE]) {
@@ -539,28 +550,30 @@ public class JPanelMain extends JPanel
 			A.opt.save();
 		} else if (source == jbButt[B_WIKI]) {
 			hlGo("http://wiki.anidb.net/w/WebAOM");
-		} else if (source == mTdio)
+		} else if (source == mTdio) {
 			dioStart();
-		else if (source == mTprg)
+		} else if (source == mTprg)
 			// System.err.println(A.frame.getFocusOwner());
+		{
 			updateProgressbar();
-		else if (source == mTunf) {
+		} else if (source == mTunf) {
 			mBkill = false;
 			fatal(false);
 		} else if (source == mTgui) {
-			if (jtp.getSelectedComponent() == jpJob)
+			if (jtp.getSelectedComponent() == jpJob) {
 				jpJob.update();
+			}
 
-		} else if (source == jpOnio.jbPing)
+		} else if (source == jpOnio.jbPing) {
 			new Pinger(this);
-		else if (source == jpOdiv.tfMyDBs)
+		} else if (source == jpOdiv.tfMyDBs) {
 			startDB();
-		else if (source == jtfNewExt) {
+		} else if (source == jtfNewExt) {
 			A.fha.addExt(jtfNewExt.getText());
 			jtfNewExt.setText("");
-		} else if (source == jpOdiv.tfLogfl)
+		} else if (source == jpOdiv.tfLogfl) {
 			startLog();
-		else if (source == jpAlt.jcbAm) {
+		} else if (source == jpAlt.jcbAm) {
 			Cache.mImode = jpAlt.jcbAm.getSelectedIndex();
 			jpAlt.updateAlt(true);
 		} else if (source == jpAlt.jcbAs) {
@@ -569,10 +582,11 @@ public class JPanelMain extends JPanel
 			jpAlt.updateAlt(true);
 		} else if (source == jpAlt.jtfAp) {
 			String s = jpAlt.jtfAp.getText();
-			if (s.length() < 1)
+			if (s.length() < 1) {
 				A.preg = null;
-			else
+			} else {
 				A.preg = s;
+			}
 			jpAlt.updateAlt(true);
 		} else if (source == jpAlt.jcbAt) {
 			Anime.TPRI = jpAlt.jcbAt.getSelectedIndex();
@@ -584,13 +598,15 @@ public class JPanelMain extends JPanel
 	}
 
 	private void startLog() {
-		if (jepM.openLogFile(jpOdiv.tfLogfl.getText()))
+		if (jepM.openLogFile(jpOdiv.tfLogfl.getText())) {
 			jpOdiv.tfLogfl.setEnabled(false);
+		}
 	}
 
 	private void startDB() {
-		if (A.db._ok() || mWdiv != null)
+		if (A.db._ok() || mWdiv != null) {
 			return;
+		}
 		mWdiv = new InitDB(jpOdiv.tfMyDBs);
 		mWdiv.start();
 	}
@@ -622,8 +638,9 @@ public class JPanelMain extends JPanel
 				Thread rw = new RecDir(jpOdiv.getDirs(), true);
 				rw.start();
 				Thread.yield();
-				if (!A.jobs.workForDio())
+				if (!A.jobs.workForDio()) {
 					return;
+				}
 			}
 			mWdio = new Thread(A.dio, "DiskIO");
 			mWdio.start();
@@ -651,8 +668,9 @@ public class JPanelMain extends JPanel
 	private boolean nioEnableInt() {
 		if (!killed() && mWnio == null) {
 			// if(A.up.usr==null||A.up.psw==null||A.up.key==null)
-			if (new JDialogLogin().getPass() == null)
+			if (new JDialogLogin().getPass() == null) {
 				return false;
+			}
 			// A.conn = getConnection();
 			mWnio = new Thread(A.nio, "NetIO");
 			mWnio.start();
@@ -688,15 +706,17 @@ public class JPanelMain extends JPanel
 	protected class JobScrollDown implements Runnable {
 		@Override
 		public void run() {
-			if (!jsbJobs.getValueIsAdjusting())
+			if (!jsbJobs.getValueIsAdjusting()) {
 				jsbJobs.setValue(jsbJobs.getMaximum());
+			}
 		}
 	}
 
 	public void println(Object o) {
 		jepM.println(o.toString());
-		if (jepM.isVisible())
+		if (jepM.isVisible()) {
 			javax.swing.SwingUtilities.invokeLater(mRjsd);
+		}
 	}
 
 	public void status0(String str) {
@@ -714,10 +734,12 @@ public class JPanelMain extends JPanel
 
 	public void updateProgressbar() {
 		jpb1.setValue(A.jobc.getProgress());
-		if (A.frame != null)
+		if (A.frame != null) {
 			A.frame.setTitle("WebAOM " + A.S_VER + " " + A.jobc.getStatus());
-		if (((mIupds++) % 10) == 0)
+		}
+		if (((mIupds++) % 10) == 0) {
 			System.gc();
+		}
 	}
 
 	public void hlGo(String url) {
@@ -725,10 +747,11 @@ public class JPanelMain extends JPanel
 		try {
 			U.out(url);
 			String path = jpOdiv.tfBrows.getText();
-			if (path.length() > 0)
+			if (path.length() > 0) {
 				rt.exec(new String[]{path, url});
-			else
+			} else {
 				rt.exec(new String[]{"rundll32", "url.dll,FileProtocolHandler", url});
+			}
 		} catch (java.io.IOException f) {
 			f.printStackTrace();
 		}
@@ -789,34 +812,40 @@ public class JPanelMain extends JPanel
 	///////////////////////////////// ADD FILES//////////////////////////////////
 	private void selectFiles() {
 		mBcrw = true;
-		if (mWdiv != null)
+		if (mWdiv != null) {
 			return;
+		}
 		JFileChooser fc = new JFileChooser();
 		fc.setFileFilter(A.fha.m_ff);
 		fc.setMultiSelectionEnabled(true);
-		if (A.dir != null)
+		if (A.dir != null) {
 			fc.setCurrentDirectory(new File(A.dir));
+		}
 		int option = fc.showDialog(A.component, "Select File(s)");
-		if (option == JFileChooser.APPROVE_OPTION)
+		if (option == JFileChooser.APPROVE_OPTION) {
 			select(fc.getSelectedFiles());
-		else
+		} else {
 			A.dir = fc.getCurrentDirectory().getAbsolutePath();
+		}
 	}
 
 	private void selectDirs() {
 		mBcrw = true;
-		if (mWdiv != null)
+		if (mWdiv != null) {
 			return;
+		}
 		JFileChooser fc = new JFileChooser();
 		fc.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
 		fc.setMultiSelectionEnabled(true);
-		if (A.dir != null)
+		if (A.dir != null) {
 			fc.setCurrentDirectory(new File(A.dir));
+		}
 		int option = fc.showDialog(A.component, "Select Directory(ies) (recursive)");
-		if (option == JFileChooser.APPROVE_OPTION)
+		if (option == JFileChooser.APPROVE_OPTION) {
 			select(fc.getSelectedFiles());
-		else
+		} else {
 			A.dir = fc.getCurrentDirectory().getAbsolutePath();
+		}
 	}
 
 	public void select(File[] files) {
@@ -824,12 +853,14 @@ public class JPanelMain extends JPanel
 			A.dialog("Message", "There is already a thread like this running.");
 			return;
 		}
-		if (files.length <= 0)
+		if (files.length <= 0) {
 			return;
-		if (files[0].getParent() != null)
+		}
+		if (files[0].getParent() != null) {
 			A.dir = files[0].getParent();
-		else
+		} else {
 			A.dir = files[0].getAbsolutePath();
+		}
 		mWdiv = new RecDir(files, false);
 		mWdiv.start();
 	}
@@ -853,20 +884,23 @@ public class JPanelMain extends JPanel
 			int nr = 0;
 			for (int i = 0; i < dirs.length; i++) {
 				String parent = dirs[i].getParent();
-				if (parent != null && parent.startsWith("\\\\"))
+				if (parent != null && parent.startsWith("\\\\")) {
 					msg("Windor network paths not supported: " + dirs[i]);
-				else
+				} else {
 					nr += addFileRecursive(dirs[i]);
+				}
 			}
 			if (print) {
 				String s = "";
-				if (nr == 1)
+				if (nr == 1) {
 					s = "Added one file in " + (System.currentTimeMillis() - t0) + " ms.";
-				else if (nr > 1)
+				} else if (nr > 1) {
 					s = "Added " + nr + " files in " + (System.currentTimeMillis() - t0) + " ms.";
+				}
 				status0(s);
-				if (s.length() > 0)
+				if (s.length() > 0) {
 					println(s);
+				}
 			}
 			setEnabled(true);
 			Thread.yield();
@@ -874,21 +908,26 @@ public class JPanelMain extends JPanel
 		}
 
 		private int addFileRecursive(File file) {
-			if (mBcrw)
+			if (mBcrw) {
 				return 0;
+			}
 			if (file.isDirectory()) {
-				if (print && (nd++) % 100 == 0)
+				if (print && (nd++) % 100 == 0) {
 					status0("Checking: " + file);
+				}
 				int nr = 0;
 				File[] files = file.listFiles(A.fha.m_ff);
-				if (files == null)
+				if (files == null) {
 					return 0;
-				for (int i = 0; i < files.length; i++)
+				}
+				for (int i = 0; i < files.length; i++) {
 					nr += addFileRecursive(files[i]);
+				}
 				return nr;
 			}
-			if (A.fha.addFile(file))
+			if (A.fha.addFile(file)) {
 				return 1;
+			}
 			return 0;
 		}
 	}
@@ -919,15 +958,17 @@ public class JPanelMain extends JPanel
 					j = (Job) o[i];
 					j.mBf = false;
 					A.cache.gatherInfo(j, false);
-					if (j.getStatus() == Job.MOVEWAIT)
+					if (j.getStatus() == Job.MOVEWAIT) {
 						JobMan.updatePath(j);
+					}
 					// updateJobTable(j);
 				}
 				int m = (int) (System.currentTimeMillis() - t0);
 				println("Loaded db in " + Hyper.number(m) + " ms. " + Hyper.number(A.jobs.size()) + " files found.");
 				jpAlt.updateAlt(true);
-			} else
+			} else {
 				jt.setEnabled(true);
+			}
 			A.db.debug = true;
 			mWdiv = null;
 
@@ -951,8 +992,9 @@ public class JPanelMain extends JPanel
 				if (imp) {
 					Parser.importDB();
 					jpAlt.updateAlt(true);
-				} else
+				} else {
 					Parser.exportDB();
+				}
 			} catch (Exception e) {
 				e.printStackTrace();
 			}

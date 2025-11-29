@@ -46,17 +46,19 @@ public class AFile extends Base {
 		fid = U.i(s[i++]);
 		aid = U.i(s[i++]);
 		eid = U.i(s[i++]);
-		if (s[i].length() < 1)
+		if (s[i].length() < 1) {
 			gid = 0;
-		else
+		} else {
 			gid = U.i(s[i]);
+		}
 		i++;
 		lid = U.i(s[i++]);
 		stt = U.i(s[i++]);
-		if (s[i].length() < 1)
+		if (s[i].length() < 1) {
 			mLs = 0;
-		else
+		} else {
 			mLs = Long.parseLong(s[i]);
+		}
 		i++;
 		ed2 = s[i++];
 		md5 = U.n(s[i++]);
@@ -86,8 +88,9 @@ public class AFile extends Base {
 	}
 
 	public String toString() {
-		if (job != null)
+		if (job != null) {
 			return job.getFile().getName();
+		}
 		return def;
 	}
 
@@ -118,13 +121,17 @@ public class AFile extends Base {
 		dub = dub.replace('/', '&'); // for jap/eng
 		vid = vid.replace('/', ' '); // for 'H264/AVC'
 		int i = vid.indexOf(" ");
-		if (i > 0)
+		if (i > 0) {
 			vid = vid.substring(0, i);
+		}
 		i = aud.indexOf(" ("); // for Vorbis (Ogg Vorbis)
-		if (i > 0)
+		if (i > 0) {
 			aud = aud.substring(0, i);
+		}
 		if (dub.startsWith("dual (")) // remove dual()
+		{
 			dub = dub.substring(6, dub.lastIndexOf(')'));
+		}
 
 		vid = vid.intern();
 		aud = aud.intern();
@@ -132,8 +139,9 @@ public class AFile extends Base {
 	}
 
 	private String url0(String str, boolean non) {
-		if (non)
+		if (non) {
 			return "http://" + A.S_WEB + "/perl-bin/animedb.pl?" + str + "&nonav=1";
+		}
 		return "http://" + A.S_WEB + "/perl-bin/animedb.pl?" + str;
 	}
 
@@ -162,8 +170,9 @@ public class AFile extends Base {
 	}
 
 	public String urlMylistE(int i) {
-		if (i < 2)
+		if (i < 2) {
 			return urlMylist();
+		}
 		return url1("mylist&do=add&aid=" + aid + "&eid=" + eid + "&fid=" + fid + "&lid=" + i);
 	}
 
@@ -240,52 +249,68 @@ public class AFile extends Base {
 	}
 
 	public String getInvalid() {
-		if ((stt & F_CRCERR) == F_CRCERR)
+		if ((stt & F_CRCERR) == F_CRCERR) {
 			return "invalid crc";
+		}
 		return "";
 	}
 
 	public String mds() {
-		if (anime == null || ep == null)
+		if (anime == null || ep == null) {
 			return "N/A";
+		}
 		String x = "";
 
-		if (crc == null || crc.length() < 1)
+		if (crc == null || crc.length() < 1) {
 			x += 'c';
-		if (md5 == null || md5.length() < 1 || sha == null || sha.length() < 1)
+		}
+		if (md5 == null || md5.length() < 1 || sha == null || sha.length() < 1) {
 			x += 'h';
-		if (len < 1)
+		}
+		if (len < 1) {
 			x += 'l';
-		if (dub.indexOf("unknown") >= 0)
+		}
+		if (dub.indexOf("unknown") >= 0) {
 			x += 'd';
-		if (sub.indexOf("unknown") >= 0)
+		}
+		if (sub.indexOf("unknown") >= 0) {
 			x += 's';
-		if (aud.indexOf("unknown") >= 0)
+		}
+		if (aud.indexOf("unknown") >= 0) {
 			x += 'a';
-		if (vid.indexOf("unknown") >= 0)
+		}
+		if (vid.indexOf("unknown") >= 0) {
 			x += 'v';
-		if (res.equals("0x0") || res.equals("unknown"))
+		}
+		if (res.equals("0x0") || res.equals("unknown")) {
 			x += 'x';
+		}
 
 		return x;
 	}
 
 	public String mda() {
-		if (anime == null || ep == null)
+		if (anime == null || ep == null) {
 			return "N/A";
+		}
 		String x = "";
 
-		if (qua.indexOf("unknown") >= 0)
+		if (qua.indexOf("unknown") >= 0) {
 			x += 'q';
-		if (rip.indexOf("unknown") >= 0)
+		}
+		if (rip.indexOf("unknown") >= 0) {
 			x += 'o';
+		}
 
-		if (ep.eng == null || ep.eng.length() < 1)
+		if (ep.eng == null || ep.eng.length() < 1) {
 			x += 'e';
-		if (ep.kan == null || ep.kan.length() < 1)
+		}
+		if (ep.kan == null || ep.kan.length() < 1) {
 			x += 'k';
-		if (ep.rom == null || ep.rom.length() < 1)
+		}
+		if (ep.rom == null || ep.rom.length() < 1) {
 			x += 'r';
+		}
 
 		return x;
 	}

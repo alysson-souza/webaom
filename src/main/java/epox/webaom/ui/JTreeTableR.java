@@ -79,8 +79,9 @@ public class JTreeTableR extends JTreeTable implements RowModel, MouseListener {
 	public Job[] getJobs(int row) {
 		Object o = tree.getPathForRow(row).getLastPathComponent();
 		if (o instanceof AFile f) {
-			if (f.getJob() != null)
+			if (f.getJob() != null) {
 				return new Job[]{f.getJob()}; // new int[]{f.getJob().mIid};
+			}
 		} else {
 			ArrayList /* !<Job> */ al = new ArrayList /* !<Job> */();
 			rec(al, (Base) o);
@@ -99,13 +100,15 @@ public class JTreeTableR extends JTreeTable implements RowModel, MouseListener {
 
 	private void rec(ArrayList /* !<Job> */ al, Base p) {
 		if (p.size() < 1) {
-			if (p instanceof AFile)
+			if (p instanceof AFile) {
 				al.add(((AFile) p).getJob());
+			}
 			return;
 		}
 		p.mkArray();
-		for (int i = 0; i < p.size(); i++)
+		for (int i = 0; i < p.size(); i++) {
 			rec(al, p.get(i));
+		}
 	}
 
 	/*
@@ -126,11 +129,13 @@ public class JTreeTableR extends JTreeTable implements RowModel, MouseListener {
 		if (e.getClickCount() == 2) {
 			Object o = tree.getPathForRow(getSelectedRow()).getLastPathComponent();
 			if (o instanceof AFile f) {
-				if (f.getJob() != null)
-					if ((e.getModifiers() & InputEvent.ALT_MASK) == InputEvent.ALT_MASK)
+				if (f.getJob() != null) {
+					if ((e.getModifiers() & InputEvent.ALT_MASK) == InputEvent.ALT_MASK) {
 						JobMan.c_watch(f.getJob());
-					else
+					} else {
 						JobMan.showInfo(f.getJob());
+					}
+				}
 			}
 		}
 	}

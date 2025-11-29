@@ -78,8 +78,9 @@ public class JPanelAlt extends JPanel {
 
 	protected void updateAlt(boolean r) {
 		synchronized (A.p) {
-			if (r)
+			if (r) {
 				A.cache.rebuildTree();
+			}
 			jttAlt.updateUI();
 		}
 	}

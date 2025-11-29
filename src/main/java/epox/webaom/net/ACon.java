@@ -88,18 +88,21 @@ public class ACon implements ActionListener {
 	private void generateTag() {
 		m_tcnt++;
 		m_tag = "" + m_tcnt;
-		while (m_tag.length() < m_tag_len)
+		while (m_tag.length() < m_tag_len) {
 			m_tag = "0" + m_tag;
+		}
 		m_tag = 't' + m_tag;
 	}
 
 	public void actionPerformed(ActionEvent e) {
-		if (!m_s.nat)
+		if (!m_s.nat) {
 			return;
+		}
 		try {
 			long now = System.currentTimeMillis();
-			if ((now - m_tstamp) > m_ka_time)
+			if ((now - m_tstamp) > m_ka_time) {
 				ping();
+			}
 		} catch (SocketTimeoutException x) {
 			debug("! No response from server.");
 			m_tm.start();
@@ -121,8 +124,9 @@ public class ACon implements ActionListener {
 	protected void error(String str) {
 		debug(str);
 		m_err = str;
-		if (m_log == null)
+		if (m_log == null) {
 			return;
+		}
 		m_log.println("<font color=#FF0000>" + str + "</font>");
 		m_log.status1(str);
 	}
@@ -146,10 +150,11 @@ public class ACon implements ActionListener {
 	}
 
 	public int enCrypt() throws Exception {
-		if (m_up.key == null || m_up.key.length() < 1)
+		if (m_up.key == null || m_up.key.length() < 1) {
 			return ping();
+		}
 		AConR r = send_layer1("ENCRYPT", "user=" + m_up.usr + "&type=1", true);
-		if (r.code == AConR.ENCRYPTION_ENABLED)
+		if (r.code == AConR.ENCRYPTION_ENABLED) {
 			try {
 				MessageDigest md = MessageDigest.getInstance("MD5");
 				md.update(m_up.key.getBytes());
@@ -163,16 +168,18 @@ public class ACon implements ActionListener {
 				m_key = null;
 				m_cip = null;
 			}
-		else if (r.code == AConR.API_PASSWORD_NOT_DEFINED)
+		} else if (r.code == AConR.API_PASSWORD_NOT_DEFINED) {
 			throw new AConEx(AConEx.ENCRYPTION, "AniPass not defined. Check your profile settings.");
-		else if (r.code == AConR.NO_SUCH_USER)
+		} else if (r.code == AConR.NO_SUCH_USER) {
 			throw new AConEx(AConEx.ENCRYPTION, "No such user. Check username.");
+		}
 		return -1;
 	}
 
 	private boolean showLoginDialog() throws AConEx {
-		if (m_rem_login_att <= 0)
+		if (m_rem_login_att <= 0) {
 			throw new AConEx(AConEx.CLIENT_USER, "Access Denied! No more login attempts allowed.");
+		}
 		loginAtt();
 		error("Logins left: " + m_rem_login_att);
 		m_up = (new JDialogLogin()).getPass();
@@ -180,13 +187,15 @@ public class ACon implements ActionListener {
 	}
 
 	public boolean login() throws AConEx {
-		if (m_up == null)
+		if (m_up == null) {
 			if (!showLoginDialog()) {
 				error("User Abort");
 				return false;
 			}
-		if (m_rem_auth_att <= 0)
+		}
+		if (m_rem_auth_att <= 0) {
 			throw new AConEx(AConEx.CLIENT_BUG, "Invalid session.");
+		}
 		AConR r = send("AUTH", "user=" + m_up.usr + "&pass=" + m_up.psw + m_ver, true);
 		m_rem_auth_att--;
 		switch (r.code) {
@@ -198,7 +207,7 @@ public class ACon implements ActionListener {
 				m_session = r.data;
 				if (r.data.length() > 5) {
 					m_session = r.data.substring(0, 5);
-					if (m_s.nat)
+					if (m_s.nat) {
 						try {
 							int p = Integer.parseInt(r.data.substring(1 + r.data.lastIndexOf(':')));
 							if (p != m_s.lport) {
@@ -208,16 +217,19 @@ public class ACon implements ActionListener {
 						} catch (Exception e) {
 							e.printStackTrace();
 						}
-				} else
+					}
+				} else {
 					m_session = r.data;
+				}
 				m_authed = true;
 				m_rem_auth_att = 2;
 				return true;
 			}
 			case AConR.LOGIN_FAILED :
 				error("Login Failed");
-				if (showLoginDialog())
+				if (showLoginDialog()) {
 					return login();
+				}
 				return false;
 			default :
 				error(r.message);
@@ -240,8 +252,9 @@ public class ACon implements ActionListener {
 			return true;
 		}
 		AConR r = send("LOGOUT", null, true);
-		if (r == null)
+		if (r == null) {
 			return false;
+		}
 		switch (r.code) {
 			case AConR.LOGGED_OUT :
 			case AConR.NOT_LOGGED_IN :
@@ -287,14 +300,16 @@ public class ACon implements ActionListener {
 	}
 
 	public synchronized AConR send(String op, String param, boolean wait) throws AConEx {
-		if (op == null)
+		if (op == null) {
 			throw new AConEx(AConEx.CLIENT_BUG);
+		}
 		return send_layer2(op, param, wait);
 	}
 
 	public synchronized String send(String command, boolean wait) throws AConEx {
-		if (command == null)
+		if (command == null) {
 			throw new AConEx(AConEx.CLIENT_BUG);
+		}
 
 		String[] arg = command.split(" ", 2);
 		AConR r = send_layer2(arg[0], arg.length > 1 ? arg[1] : null, wait);
@@ -304,7 +319,7 @@ public class ACon implements ActionListener {
 	private AConR send_layer2(String op, String param, boolean wait) throws AConEx {
 		int timeouts = 0;
 		AConR r;
-		while (timeouts++ < m_s.max_tout && !shutdown)
+		while (timeouts++ < m_s.max_tout && !shutdown) {
 			try {
 				r = send_layer1(op, param, wait);
 				if (!op.equals("LOGOUT") && (r.code == AConR.LOGIN_FIRST || r.code == AConR.INVALID_SESSION)) {
@@ -321,26 +336,30 @@ public class ACon implements ActionListener {
 				e.printStackTrace();
 				error("Operation Failed: IOEXCEPT: " + e.getMessage());
 			}
+		}
 		throw new AConEx(AConEx.ANIDB_UNREACHABLE, getLastError());
 	}
 
 	private AConR send_layer1(String op, String param, boolean wait) throws IOException, AConEx {
 		if (param != null) {
-			if (m_session != null)
+			if (m_session != null) {
 				param += "&s=" + m_session;
-		} else if (m_session != null)
+			}
+		} else if (m_session != null) {
 			param = "s=" + m_session;
+		}
 		generateTag();
-		if (param != null)
+		if (param != null) {
 			param += "&tag=" + m_tag;
-		else
+		} else {
 			param = "tag=" + m_tag;
+		}
 		return send_layer0(op + " " + param, wait);
 	}
 
 	private AConR send_layer0(String s, boolean wait) throws IOException, AConEx {
 		m_tm.stop();
-		if (wait)
+		if (wait) {
 			try {
 				long td = System.currentTimeMillis() - m_tstamp;
 				td = (td / 100) * 100; // round down to nearest 100
@@ -351,18 +370,20 @@ public class ACon implements ActionListener {
 			} catch (InterruptedException e) {
 				throw new AConEx(AConEx.CLIENT_SYSTEM, "Java: " + e.getMessage());
 			}
+		}
 		String cen = s;
 		int i = cen.indexOf("pass=");
 		if (i > 0) {
 			int j = cen.indexOf("&", i);
-			if (j > 0)
+			if (j > 0) {
 				cen = cen.substring(0, i + 5) + "xxxxx" + cen.substring(j);
+			}
 		}
 		debug("> " + cen);
 		byte[] out = s.getBytes(m_enc);
 		int len = out.length;
 
-		if (m_key != null)
+		if (m_key != null) {
 			try {
 				m_cip.init(Cipher.ENCRYPT_MODE, m_key);
 				out = m_cip.doFinal(out);
@@ -370,6 +391,7 @@ public class ACon implements ActionListener {
 			} catch (Exception e) {
 				e.printStackTrace();
 			}
+		}
 
 		DatagramPacket pckt_out = new DatagramPacket(out, len, m_ia, m_s.rport);
 		m_tstamp = System.currentTimeMillis();
@@ -379,8 +401,9 @@ public class ACon implements ActionListener {
 		if ((i = s.indexOf("&enc=")) > 0) {
 			i += 5;
 			int y = s.indexOf('&', i);
-			if (y < 0)
+			if (y < 0) {
 				y = s.length();
+			}
 			m_enc = s.substring(i, y);
 		}
 
@@ -393,8 +416,9 @@ public class ACon implements ActionListener {
 	}
 
 	private AConR receive() throws IOException, AConEx {
-		if (shutdown)
+		if (shutdown) {
 			return null;
+		}
 		byte[] buf = new byte[m_buf_siz];
 		DatagramPacket pckt_in = new DatagramPacket(buf, m_buf_siz);
 
@@ -404,7 +428,7 @@ public class ACon implements ActionListener {
 
 		int len = pckt_in.getLength();
 
-		if (m_key != null)
+		if (m_key != null) {
 			try {
 				m_cip.init(Cipher.DECRYPT_MODE, m_key);
 				buf = m_cip.doFinal(buf, 0, len);
@@ -415,7 +439,8 @@ public class ACon implements ActionListener {
 				m_cip = null;
 				throw new AConEx(AConEx.ENCRYPTION);
 			}
-		if (buf.length > 1 && buf[0] == 0 && buf[1] == 0)
+		}
+		if (buf.length > 1 && buf[0] == 0 && buf[1] == 0) {
 			try {
 				Inflater dec = new Inflater();
 				dec.setInput(buf, 2, len - 2);
@@ -426,6 +451,7 @@ public class ACon implements ActionListener {
 			} catch (DataFormatException e) {
 				e.printStackTrace();
 			}
+		}
 		try {
 			byte[] raw = new byte[len];
 			System.arraycopy(buf, 0, raw, 0, len);

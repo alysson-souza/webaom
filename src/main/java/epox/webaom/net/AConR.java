@@ -31,8 +31,9 @@ public class AConR {
 	public AConR(String sTag, int tag_len, String raw) throws AConEx, TagEx, SocketTimeoutException {
 		if (sTag != null && raw.length() > 0 && raw.charAt(0) == 't') {
 			tag = raw.substring(0, tag_len + 1);
-			if (!tag.equals(sTag))
+			if (!tag.equals(sTag)) {
 				throw new TagEx();
+			}
 			raw = raw.substring(tag_len + 2);
 		}
 		try {
@@ -41,16 +42,18 @@ public class AConR {
 			throw new AConEx(AConEx.ANIDB_SERVER_ERROR, "Unexpected response");
 		}
 
-		if ((code > 600 && code < 700) && code != 602)
+		if ((code > 600 && code < 700) && code != 602) {
 			throw new AConEx(AConEx.ANIDB_SERVER_ERROR, raw);
+		}
 
 		int i;
 		switch (code) {
 			case BANNED :
 				i = raw.indexOf('\n');
 				String why = "Unknown";
-				if (i > 0)
+				if (i > 0) {
 					why = raw.substring(i + 1);
+				}
 				throw new AConEx(AConEx.CLIENT_USER, "Banned: " + why);
 			case LOGIN_ACCEPTED :
 			case LOGIN_ACCEPTED_NEW_VER :
@@ -80,8 +83,9 @@ public class AConR {
 				if (i > 0) {
 					message = raw.substring(4, i);
 					data = raw.substring(i + 1);
-				} else
+				} else {
 					message = raw.substring(4);
+				}
 		}
 		data = U.htmldesc(data);
 	}
