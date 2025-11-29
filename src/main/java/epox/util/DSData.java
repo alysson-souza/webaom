@@ -27,43 +27,49 @@ import java.util.StringTokenizer;
 import java.util.Vector;
 
 public class DSData {
-    public String src, dst;
-    public Boolean sel;
+	public String src, dst;
+	public Boolean sel;
 
-    public DSData(String s, String d, boolean b) {
-        src = s;
-        dst = d;
-        sel = Boolean.valueOf(b);
-    }
+	public DSData(String s, String d, boolean b) {
+		src = s;
+		dst = d;
+		sel = Boolean.valueOf(b);
+	}
 
-    public String toString() {
-        String d = dst;
-        if (d.equals("")) d = "\\0";
-        if (sel.booleanValue()) return src + Options.S_SEP + d;
-        return "#" + src + Options.S_SEP + d;
-    }
+	public String toString() {
+		String d = dst;
+		if (d.equals(""))
+			d = "\\0";
+		if (sel.booleanValue())
+			return src + Options.S_SEP + d;
+		return "#" + src + Options.S_SEP + d;
+	}
 
-    public static DSData parse(String s0, String s1) {
-        boolean b = s0.startsWith("#");
-        if (b) s0 = s0.substring(1);
-        if (s1.equals("\\0")) s1 = "";
-        return new DSData(s0, s1, !b);
-    }
+	public static DSData parse(String s0, String s1) {
+		boolean b = s0.startsWith("#");
+		if (b)
+			s0 = s0.substring(1);
+		if (s1.equals("\\0"))
+			s1 = "";
+		return new DSData(s0, s1, !b);
+	}
 
-    public static String encode(Vector v) {
-        String s = "";
-        DSData ds;
-        for (int i = 0; i < v.size(); i++) {
-            ds = (DSData) v.elementAt(i);
-            if (!ds.src.equals("")) s += ds + Options.S_SEP;
-        }
-        return s;
-    }
+	public static String encode(Vector v) {
+		String s = "";
+		DSData ds;
+		for (int i = 0; i < v.size(); i++) {
+			ds = (DSData) v.elementAt(i);
+			if (!ds.src.equals(""))
+				s += ds + Options.S_SEP;
+		}
+		return s;
+	}
 
-    public static String decode(Vector /* !<DSData> */ v, String s) {
-        v.clear();
-        StringTokenizer st = new StringTokenizer(s, Options.S_SEP);
-        while (st.hasMoreTokens()) v.add(parse(st.nextToken(), st.nextToken()));
-        return s;
-    }
+	public static String decode(Vector /* !<DSData> */ v, String s) {
+		v.clear();
+		StringTokenizer st = new StringTokenizer(s, Options.S_SEP);
+		while (st.hasMoreTokens())
+			v.add(parse(st.nextToken(), st.nextToken()));
+		return s;
+	}
 }

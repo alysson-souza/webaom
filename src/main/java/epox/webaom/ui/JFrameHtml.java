@@ -39,49 +39,51 @@ import javax.swing.event.HyperlinkEvent;
 import javax.swing.event.HyperlinkListener;
 
 public class JFrameHtml extends JFrame implements HyperlinkListener, KeyListener {
-    public JFrameHtml(String title, String text) {
-        super(title);
+	public JFrameHtml(String title, String text) {
+		super(title);
 
-        JEditorPane jep =
-                new JEditorPane("text/html", text) {
-                    protected void paintComponent(Graphics g) {
-                        Graphics2D g2 = (Graphics2D) g;
-                        g2.setRenderingHint(
-                                RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+		JEditorPane jep = new JEditorPane("text/html", text) {
+			protected void paintComponent(Graphics g) {
+				Graphics2D g2 = (Graphics2D) g;
+				g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
 
-                        super.paintComponent(g2);
-                    }
-                };
-        jep.setEditable(false);
-        jep.addHyperlinkListener(this);
+				super.paintComponent(g2);
+			}
+		};
+		jep.setEditable(false);
+		jep.addHyperlinkListener(this);
 
-        getContentPane().add(new JScrollPane(jep));
-        setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
-        pack();
-        Dimension d = java.awt.Toolkit.getDefaultToolkit().getScreenSize();
-        Rectangle r = getBounds();
-        int w = (int) (0.95 * d.width);
-        int h = (int) (0.95 * d.height);
-        if (r.width > w) r.width = w;
-        if (r.height > h) r.height = h;
-        setBounds(d.width / 2 - r.width / 2, d.height / 2 - r.height / 2, r.width, r.height);
-        setVisible(true);
-        jep.addKeyListener(this);
-    }
+		getContentPane().add(new JScrollPane(jep));
+		setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
+		pack();
+		Dimension d = java.awt.Toolkit.getDefaultToolkit().getScreenSize();
+		Rectangle r = getBounds();
+		int w = (int) (0.95 * d.width);
+		int h = (int) (0.95 * d.height);
+		if (r.width > w)
+			r.width = w;
+		if (r.height > h)
+			r.height = h;
+		setBounds(d.width / 2 - r.width / 2, d.height / 2 - r.height / 2, r.width, r.height);
+		setVisible(true);
+		jep.addKeyListener(this);
+	}
 
-    public void hyperlinkUpdate(HyperlinkEvent e) {
-        if (e.getEventType() == HyperlinkEvent.EventType.ACTIVATED) A.gui.hlGo(e.getDescription());
-    }
+	public void hyperlinkUpdate(HyperlinkEvent e) {
+		if (e.getEventType() == HyperlinkEvent.EventType.ACTIVATED)
+			A.gui.hlGo(e.getDescription());
+	}
 
-    public void keyTyped(KeyEvent e) {
-        if (e.getKeyChar() == 'q') dispose();
-    }
+	public void keyTyped(KeyEvent e) {
+		if (e.getKeyChar() == 'q')
+			dispose();
+	}
 
-    public void keyPressed(KeyEvent e) {
-        //
-    }
+	public void keyPressed(KeyEvent e) {
+		//
+	}
 
-    public void keyReleased(KeyEvent e) {
-        //
-    }
+	public void keyReleased(KeyEvent e) {
+		//
+	}
 }

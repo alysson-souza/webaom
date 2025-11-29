@@ -19,48 +19,51 @@ package epox.swing;
 import javax.swing.table.AbstractTableModel;
 
 public abstract class TableModelSortable extends AbstractTableModel {
-    protected int[] m_idx; // , m_rev;
-    private final TableSorter m_ts = new TableSorter(this);
-    private int m_sort_col;
+	protected int[] m_idx; // , m_rev;
+	private final TableSorter m_ts = new TableSorter(this);
+	private int m_sort_col;
 
-    public void reset() {
-        m_sort_col = -1;
-        m_ts.reset();
-        m_idx = null;
-    }
+	public void reset() {
+		m_sort_col = -1;
+		m_ts.reset();
+		m_idx = null;
+	}
 
-    protected int getRowIndex(int row) {
-        try {
-            return m_idx[row];
-        } catch (NullPointerException e) {
-            return row;
-        } catch (ArrayIndexOutOfBoundsException e) {
-            return row;
-        }
-    }
+	protected int getRowIndex(int row) {
+		try {
+			return m_idx[row];
+		} catch (NullPointerException e) {
+			return row;
+		} catch (ArrayIndexOutOfBoundsException e) {
+			return row;
+		}
+	}
 
-    public void sortByColumn(int column) {
-        m_sort_col = column;
-        sort(false);
-    }
+	public void sortByColumn(int column) {
+		m_sort_col = column;
+		sort(false);
+	}
 
-    public void sort(boolean refresh) {
-        if (m_sort_col < 0) return;
-        m_ts.sort(getIndexes(), m_sort_col, refresh);
-        // for(int i=0; i<m_rev.length; i++)
-        //	m_rev[m_idx[i]] = i;
+	public void sort(boolean refresh) {
+		if (m_sort_col < 0)
+			return;
+		m_ts.sort(getIndexes(), m_sort_col, refresh);
+		// for(int i=0; i<m_rev.length; i++)
+		//	m_rev[m_idx[i]] = i;
 
-        fireTableDataChanged();
-    }
+		fireTableDataChanged();
+	}
 
-    private int[] getIndexes() {
-        int n = getRowCount();
-        if (m_idx != null && m_idx.length == n) return m_idx;
+	private int[] getIndexes() {
+		int n = getRowCount();
+		if (m_idx != null && m_idx.length == n)
+			return m_idx;
 
-        m_idx = new int[n];
-        // m_rev = new int[n];
-        for (int i = 0; i < n; i++) m_idx[i] = i;
+		m_idx = new int[n];
+		// m_rev = new int[n];
+		for (int i = 0; i < n; i++)
+			m_idx[i] = i;
 
-        return m_idx;
-    }
+		return m_idx;
+	}
 }

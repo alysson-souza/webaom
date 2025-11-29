@@ -27,71 +27,73 @@ import javax.crypto.Cipher;
 import javax.crypto.spec.SecretKeySpec;
 
 public class UserPass {
-    public String usr, psw, key;
+	public String usr, psw, key;
 
-    public UserPass(String u, String p, String k) {
-        usr = u;
-        psw = p;
-        key = k;
-    }
+	public UserPass(String u, String p, String k) {
+		usr = u;
+		psw = p;
+		key = k;
+	}
 
-    public void set(String s) {
-        try {
-            String[] a = U.split(s, ':');
-            usr = a[0];
-            if (a.length >= 2) {
-                psw = dec(a[1]);
-            } else {
-                psw = null;
-            }
-            if (a.length >= 3) {
-                key = dec(a[2]);
-            } else {
-                key = null;
-            }
-        } catch (Exception e) {
-            //
-        }
-    }
+	public void set(String s) {
+		try {
+			String[] a = U.split(s, ':');
+			usr = a[0];
+			if (a.length >= 2) {
+				psw = dec(a[1]);
+			} else {
+				psw = null;
+			}
+			if (a.length >= 3) {
+				key = dec(a[2]);
+			} else {
+				key = null;
+			}
+		} catch (Exception e) {
+			//
+		}
+	}
 
-    public String get(boolean sp) {
-        if (!sp) return usr;
-        return usr + ":" + nne(psw) + ":" + nne(key);
-    }
+	public String get(boolean sp) {
+		if (!sp)
+			return usr;
+		return usr + ":" + nne(psw) + ":" + nne(key);
+	}
 
-    private static String nne(String s) {
-        if (s == null || s.length() < 1) return "";
-        return enc(s);
-    }
+	private static String nne(String s) {
+		if (s == null || s.length() < 1)
+			return "";
+		return enc(s);
+	}
 
-    private static byte[] envk() throws NoSuchAlgorithmException {
-        MessageDigest md = MessageDigest.getInstance("MD5");
-        md.update(System.getProperty("os.name", "").getBytes());
-        md.update(System.getProperty("os.version", "").getBytes());
-        md.update(System.getProperty("os.arch", "").getBytes());
-        md.update(System.getProperty("user.name", "").getBytes());
-        md.update(System.getProperty("user.home", "").getBytes());
-        md.update(System.getProperty("user.language", "").getBytes());
-        return md.digest();
-    }
+	private static byte[] envk() throws NoSuchAlgorithmException {
+		MessageDigest md = MessageDigest.getInstance("MD5");
+		md.update(System.getProperty("os.name", "").getBytes());
+		md.update(System.getProperty("os.version", "").getBytes());
+		md.update(System.getProperty("os.arch", "").getBytes());
+		md.update(System.getProperty("user.name", "").getBytes());
+		md.update(System.getProperty("user.home", "").getBytes());
+		md.update(System.getProperty("user.language", "").getBytes());
+		return md.digest();
+	}
 
-    private static String enc(String p) {
-        try {
-            Cipher c = Cipher.getInstance("AES");
-            c.init(Cipher.ENCRYPT_MODE, new SecretKeySpec(envk(), "AES"));
-            return Base32.encode(c.doFinal(p.getBytes()));
-        } catch (Exception e) {
-            return null;
-        }
-    }
+	private static String enc(String p) {
+		try {
+			Cipher c = Cipher.getInstance("AES");
+			c.init(Cipher.ENCRYPT_MODE, new SecretKeySpec(envk(), "AES"));
+			return Base32.encode(c.doFinal(p.getBytes()));
+		} catch (Exception e) {
+			return null;
+		}
+	}
 
-    private static String dec(String p) {
-        try {
-            Cipher c = Cipher.getInstance("AES");
-            c.init(Cipher.DECRYPT_MODE, new SecretKeySpec(envk(), "AES"));
-            return new String(c.doFinal(Base32.decode(p)));
-        } catch (Exception e) {
-            return null;
-        }
-    }
+	private static String dec(String p) {
+		try {
+			Cipher c = Cipher.getInstance("AES");
+			c.init(Cipher.DECRYPT_MODE, new SecretKeySpec(envk(), "AES"));
+			return new String(c.doFinal(Base32.decode(p)));
+		} catch (Exception e) {
+			return null;
+		}
+	}
 }

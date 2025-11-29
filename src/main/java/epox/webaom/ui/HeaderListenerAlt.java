@@ -27,28 +27,30 @@ import java.awt.event.MouseEvent;
 import javax.swing.table.TableColumnModel;
 
 public class HeaderListenerAlt extends HeaderListener {
-    private int cur = 0;
-    protected JTreeTableR jttr;
+	private int cur = 0;
+	protected JTreeTableR jttr;
 
-    public HeaderListenerAlt(JTreeTableR tree) {
-        super(null, null, null);
-        jttr = tree;
-        m_r = new SortButtonRenderer();
-        TableColumnModel model = jttr.getColumnModel();
-        for (int i = 0; i < model.getColumnCount(); i++) model.getColumn(i).setHeaderRenderer(m_r);
+	public HeaderListenerAlt(JTreeTableR tree) {
+		super(null, null, null);
+		jttr = tree;
+		m_r = new SortButtonRenderer();
+		TableColumnModel model = jttr.getColumnModel();
+		for (int i = 0; i < model.getColumnCount(); i++)
+			model.getColumn(i).setHeaderRenderer(m_r);
 
-        m_h = jttr.getTableHeader();
-        m_h.addMouseListener(this);
-    }
+		m_h = jttr.getTableHeader();
+		m_h.addMouseListener(this);
+	}
 
-    public void mouseClicked(MouseEvent e) {
-        int col = m_h.columnAtPoint(e.getPoint());
-        int sortCol = m_h.getTable().convertColumnIndexToModel(col) + 1;
-        if (cur == sortCol) sortCol *= -1;
-        cur = sortCol;
-        synchronized (jttr) {
-            Anime.setCol(sortCol);
-            jttr.updateUI();
-        }
-    }
+	public void mouseClicked(MouseEvent e) {
+		int col = m_h.columnAtPoint(e.getPoint());
+		int sortCol = m_h.getTable().convertColumnIndexToModel(col) + 1;
+		if (cur == sortCol)
+			sortCol *= -1;
+		cur = sortCol;
+		synchronized (jttr) {
+			Anime.setCol(sortCol);
+			jttr.updateUI();
+		}
+	}
 }

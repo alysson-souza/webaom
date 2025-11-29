@@ -31,116 +31,122 @@ import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.TableColumnModel;
 
 public class TableModelDS extends AbstractTableModel {
-    public static final int SEL = 0, SRC = 1, DST = 2;
+	public static final int SEL = 0, SRC = 1, DST = 2;
 
-    private Vector /* !<DSData> */ data;
-    private final String stitle0;
-    private final String stitle1;
-    private final DSData dummy;
+	private Vector /* !<DSData> */ data;
+	private final String stitle0;
+	private final String stitle1;
+	private final DSData dummy;
 
-    public TableModelDS(Vector /* <DSData> */ d, String s0, String s1) {
-        setData(d);
-        stitle0 = s0;
-        stitle1 = s1;
-        dummy = new DSData("", "", false);
-    }
+	public TableModelDS(Vector /* <DSData> */ d, String s0, String s1) {
+		setData(d);
+		stitle0 = s0;
+		stitle1 = s1;
+		dummy = new DSData("", "", false);
+	}
 
-    public Vector /* !<DSData> */ getData() {
-        return data;
-    }
+	public Vector /* !<DSData> */ getData() {
+		return data;
+	}
 
-    public void setData(Vector /* !<DSData> */ d) {
-        data = d;
-    }
+	public void setData(Vector /* !<DSData> */ d) {
+		data = d;
+	}
 
-    public int getColumnCount() {
-        return 3;
-    }
+	public int getColumnCount() {
+		return 3;
+	}
 
-    public Class /* !<?> */ getColumnClass(int col) {
-        switch (col) {
-            case SEL:
-                return Boolean.class;
-            default:
-                return String.class;
-        }
-    }
+	public Class /* !<?> */ getColumnClass(int col) {
+		switch (col) {
+			case SEL :
+				return Boolean.class;
+			default :
+				return String.class;
+		}
+	}
 
-    public int getRowCount() {
-        return data.size() + 1;
-    }
+	public int getRowCount() {
+		return data.size() + 1;
+	}
 
-    public Object getValueAt(int row, int col) {
-        DSData rd;
-        if (row == data.size()) rd = dummy;
-        else rd = (DSData) data.elementAt(row); // !
-        switch (col) {
-            case SEL:
-                return rd.sel;
-            case SRC:
-                return rd.src;
-            case DST:
-                return rd.dst;
-        }
-        return null;
-    }
+	public Object getValueAt(int row, int col) {
+		DSData rd;
+		if (row == data.size())
+			rd = dummy;
+		else
+			rd = (DSData) data.elementAt(row); // !
+		switch (col) {
+			case SEL :
+				return rd.sel;
+			case SRC :
+				return rd.src;
+			case DST :
+				return rd.dst;
+		}
+		return null;
+	}
 
-    public boolean isCellEditable(int row, int col) {
-        return true;
-    }
+	public boolean isCellEditable(int row, int col) {
+		return true;
+	}
 
-    public void setValueAt(Object obj, int row, int col) {
-        DSData rd;
-        if (row == data.size()) {
-            rd = new DSData("", "", false);
-            data.add(rd);
-            fireTableRowsInserted(row, row);
-        } else rd = (DSData) data.elementAt(row); // !
-        if (rd != null)
-            switch (col) {
-                case SEL:
-                    if (rd.src.length() > 0) rd.sel = (Boolean) obj;
-                    break;
-                case SRC:
-                    rd.src = (String) obj;
-                    if (rd.src.length() == 0) data.remove(rd);
-                    break;
-                case DST:
-                    rd.dst = getString(obj);
-                    break;
-            }
-    }
+	public void setValueAt(Object obj, int row, int col) {
+		DSData rd;
+		if (row == data.size()) {
+			rd = new DSData("", "", false);
+			data.add(rd);
+			fireTableRowsInserted(row, row);
+		} else
+			rd = (DSData) data.elementAt(row); // !
+		if (rd != null)
+			switch (col) {
+				case SEL :
+					if (rd.src.length() > 0)
+						rd.sel = (Boolean) obj;
+					break;
+				case SRC :
+					rd.src = (String) obj;
+					if (rd.src.length() == 0)
+						data.remove(rd);
+					break;
+				case DST :
+					rd.dst = getString(obj);
+					break;
+			}
+	}
 
-    private String getString(Object o) {
-        String str = (String) o;
-        DSData rd;
-        for (int i = 0; i < data.size(); i++) {
-            rd = (DSData) data.elementAt(i); // !
-            if (rd.src.equals(str)) return "";
-        }
-        return str;
-    }
+	private String getString(Object o) {
+		String str = (String) o;
+		DSData rd;
+		for (int i = 0; i < data.size(); i++) {
+			rd = (DSData) data.elementAt(i); // !
+			if (rd.src.equals(str))
+				return "";
+		}
+		return str;
+	}
 
-    public String getColumnName(int columnIndex) {
-        switch (columnIndex) {
-            case SEL:
-                return "Enabled";
-            case SRC:
-                return stitle0;
-            case DST:
-                return stitle1;
-        }
-        return "No such column!";
-    }
+	public String getColumnName(int columnIndex) {
+		switch (columnIndex) {
+			case SEL :
+				return "Enabled";
+			case SRC :
+				return stitle0;
+			case DST :
+				return stitle1;
+		}
+		return "No such column!";
+	}
 
-    public static void formatTable(JTable table) {
-        TableColumnModel m = table.getColumnModel();
-        m.getColumn(0).setMaxWidth(50);
-        m.getColumn(1).setPreferredWidth(100);
-        m.getColumn(2).setPreferredWidth(100);
-        DefaultTableCellRenderer centerRend = new DefaultTableCellRenderer();
-        centerRend.setHorizontalAlignment(SwingConstants.CENTER);
-        m.getColumn(1).setCellRenderer(centerRend);
-        m.getColumn(2).setCellRenderer(centerRend);
-    }
+	public static void formatTable(JTable table) {
+		TableColumnModel m = table.getColumnModel();
+		m.getColumn(0).setMaxWidth(50);
+		m.getColumn(1).setPreferredWidth(100);
+		m.getColumn(2).setPreferredWidth(100);
+		DefaultTableCellRenderer centerRend = new DefaultTableCellRenderer();
+		centerRend.setHorizontalAlignment(SwingConstants.CENTER);
+		m.getColumn(1).setCellRenderer(centerRend);
+		m.getColumn(2).setCellRenderer(centerRend);
+	}
 }

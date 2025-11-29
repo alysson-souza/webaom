@@ -1,7 +1,7 @@
 plugins {
 	id 'java'
 	id 'application'
-	id 'com.diffplug.spotless' version '7.0.2'
+	id 'com.diffplug.spotless' version '8.1.0'
 	id 'checkstyle'
 }
 
@@ -73,9 +73,11 @@ spotless {
 	java {
 		target 'src/main/java/epox/**/*.java'
 		removeUnusedImports()
-		googleJavaFormat('1.25.2').aosp()
+		eclipse().configFile("${rootDir}/config/eclipse-formatter.xml")
+		formatAnnotations()
 		trimTrailingWhitespace()
 		endWithNewline()
+		toggleOffOn()
 	}
 
 	groovyGradle {
@@ -85,7 +87,7 @@ spotless {
 }
 
 checkstyle {
-	toolVersion = '10.21.1'
+	toolVersion = '12.1.2'
 	configFile = file("${rootDir}/config/checkstyle/checkstyle.xml")
 	ignoreFailures = true
 	maxWarnings = 0

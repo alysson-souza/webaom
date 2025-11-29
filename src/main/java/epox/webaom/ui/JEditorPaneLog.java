@@ -44,128 +44,130 @@ import javax.swing.text.Document;
 import javax.swing.text.EditorKit;
 
 public class JEditorPaneLog extends JEditorPane implements Log, Action {
-    public static String HEAD =
-            "<style type=\"text/css\">body{background-color:#FFFFFF;font-family:Verdana,Arial,Helvetica,sans-serif;font-size:11pt;}</style>";
-    private PrintStream ps;
+	public static String HEAD = "<style"
+			+ " type=\"text/css\">body{background-color:#FFFFFF;font-family:Verdana,Arial,Helvetica,sans-serif;font-size:11pt;}</style>";
+	private PrintStream ps;
 
-    public JEditorPaneLog() {
-        super("text/html", HEAD);
-        setEditable(false);
-        getInputMap().put(KeyStroke.getKeyStroke("DELETE"), "remove");
-        getActionMap().put("remove", this);
-    }
+	public JEditorPaneLog() {
+		super("text/html", HEAD);
+		setEditable(false);
+		getInputMap().put(KeyStroke.getKeyStroke("DELETE"), "remove");
+		getActionMap().put("remove", this);
+	}
 
-    public synchronized void append(String t) {
-        try {
-            Document doc = getDocument();
-            int len = doc.getLength();
-            if (t == null || t.equals("")) return;
-            Reader r = new StringReader(t);
-            EditorKit kit = getEditorKit();
-            kit.read(r, doc, len);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-    }
+	public synchronized void append(String t) {
+		try {
+			Document doc = getDocument();
+			int len = doc.getLength();
+			if (t == null || t.equals(""))
+				return;
+			Reader r = new StringReader(t);
+			EditorKit kit = getEditorKit();
+			kit.read(r, doc, len);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+	}
 
-    public void println(Object o) {
-        String time = Hyper.number(U.time());
-        StringBuffer line = new StringBuffer(256);
-        line.append('[');
-        line.append(time);
-        line.append("] ");
-        line.append(o);
-        line.append("<br>\n");
-        append(line.toString());
+	public void println(Object o) {
+		String time = Hyper.number(U.time());
+		StringBuffer line = new StringBuffer(256);
+		line.append('[');
+		line.append(time);
+		line.append("] ");
+		line.append(o);
+		line.append("<br>\n");
+		append(line.toString());
 
-        try {
-            ps.print(line);
-        } catch (NullPointerException e) {
-            // don't care
-        }
-    }
+		try {
+			ps.print(line);
+		} catch (NullPointerException e) {
+			// don't care
+		}
+	}
 
-    public boolean openLogFile(String path) {
-        try {
-            // Use default log path if the provided path is empty or null
-            if (path == null || path.trim().isEmpty()) {
-                path = PlatformPaths.getDefaultLogFilePath();
-            }
+	public boolean openLogFile(String path) {
+		try {
+			// Use default log path if the provided path is empty or null
+			if (path == null || path.trim().isEmpty()) {
+				path = PlatformPaths.getDefaultLogFilePath();
+			}
 
-            // Ensure the parent directory exists
-            if (!PlatformPaths.ensureParentDirectoryExists(path)) {
-                String errorMsg = "Failed to create log directory for: " + path;
-                A.dialog("Log Error", errorMsg);
-                return false;
-            }
+			// Ensure the parent directory exists
+			if (!PlatformPaths.ensureParentDirectoryExists(path)) {
+				String errorMsg = "Failed to create log directory for: " + path;
+				A.dialog("Log Error", errorMsg);
+				return false;
+			}
 
-            ps = new PrintStream(new AppendFileStream(path), true, StandardCharsets.UTF_8);
-            return true;
-        } catch (IOException e) {
-            A.dialog("Log Error", e.getMessage());
-            return false;
-        }
-    }
+			ps = new PrintStream(new AppendFileStream(path), true, StandardCharsets.UTF_8);
+			return true;
+		} catch (IOException e) {
+			A.dialog("Log Error", e.getMessage());
+			return false;
+		}
+	}
 
-    public void closeLogFile() {
-        try {
-            ps.close();
-        } catch (Exception e) {
-            // don't care
-        }
-    }
+	public void closeLogFile() {
+		try {
+			ps.close();
+		} catch (Exception e) {
+			// don't care
+		}
+	}
 
-    public void status0(String msg) {
-        // don't care
-    }
+	public void status0(String msg) {
+		// don't care
+	}
 
-    public void status1(String msg) {
-        // don't care
-    }
+	public void status1(String msg) {
+		// don't care
+	}
 
-    private class AppendFileStream extends OutputStream {
-        RandomAccessFile fd;
+	private class AppendFileStream extends OutputStream {
+		RandomAccessFile fd;
 
-        AppendFileStream(String file) throws IOException {
-            fd = new RandomAccessFile(file, "rw");
-            fd.seek(fd.length());
-        }
+		AppendFileStream(String file) throws IOException {
+			fd = new RandomAccessFile(file, "rw");
+			fd.seek(fd.length());
+		}
 
-        public void close() throws IOException {
-            fd.close();
-        }
+		public void close() throws IOException {
+			fd.close();
+		}
 
-        public void write(byte[] b) throws IOException {
-            fd.write(b);
-        }
+		public void write(byte[] b) throws IOException {
+			fd.write(b);
+		}
 
-        public void write(byte[] b, int off, int len) throws IOException {
-            fd.write(b, off, len);
-        }
+		public void write(byte[] b, int off, int len) throws IOException {
+			fd.write(b, off, len);
+		}
 
-        public void write(int b) throws IOException {
-            fd.write(b);
-        }
-    }
+		public void write(int b) throws IOException {
+			fd.write(b);
+		}
+	}
 
-    public Object getValue(String key) {
-        return null;
-    }
+	public Object getValue(String key) {
+		return null;
+	}
 
-    public void putValue(String key, Object value) {
-        // don't care
-    }
+	public void putValue(String key, Object value) {
+		// don't care
+	}
 
-    public void actionPerformed(ActionEvent e) {
-        setHeader((new JTextInputDialog(A.frame, "Edit header", HEAD)).getStr());
-    }
+	public void actionPerformed(ActionEvent e) {
+		setHeader((new JTextInputDialog(A.frame, "Edit header", HEAD)).getStr());
+	}
 
-    public void setHeader(String h) {
-        if (h == null || h.length() < 1) return;
-        synchronized (this) {
-            HEAD = h;
-            setText(HEAD);
-            Runtime.getRuntime().gc();
-        }
-    }
+	public void setHeader(String h) {
+		if (h == null || h.length() < 1)
+			return;
+		synchronized (this) {
+			HEAD = h;
+			setText(HEAD);
+			Runtime.getRuntime().gc();
+		}
+	}
 }

@@ -23,17 +23,17 @@
 package epox.swing;
 
 public interface Log {
-    void println(Object o);
+	void println(Object o);
 
-    void status0(String str);
+	void status0(String str);
 
-    void status1(String str);
+	void status1(String str);
 } /*
-   * class DebugLog implements Log{
-   * public void println(String str){
-   * System.out.println(str);
-   * }
-   * public void status0(String str){}
-   * public void status1(String str){}
-   * }
-   */
+	 * class DebugLog implements Log{
+	 * public void println(String str){
+	 * System.out.println(str);
+	 * }
+	 * public void status0(String str){}
+	 * public void status1(String str){}
+	 * }
+	 */

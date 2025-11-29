@@ -14,34 +14,34 @@ import javax.swing.UIManager;
 import javax.swing.UIManager.LookAndFeelInfo;
 
 public class JComboBoxLF extends JComboBox {
-    protected static final LookAndFeelInfo[] lf = UIManager.getInstalledLookAndFeels();
+	protected static final LookAndFeelInfo[] lf = UIManager.getInstalledLookAndFeels();
 
-    public JComboBoxLF(final Component c) {
-        super(
-                new DefaultComboBoxModel() {
-                    public Object getElementAt(int index) {
-                        return lf[index].getName();
-                    }
+	public JComboBoxLF(final Component c) {
+		super(new DefaultComboBoxModel() {
+			public Object getElementAt(int index) {
+				return lf[index].getName();
+			}
 
-                    public int getSize() {
-                        return lf.length;
-                    }
-                });
-        addActionListener(
-                new ActionListener() {
-                    public void actionPerformed(ActionEvent e) {
-                        try {
-                            UIManager.setLookAndFeel(lf[getSelectedIndex()].getClassName());
-                        } catch (Exception x) {
-                            x.printStackTrace();
-                        }
-                        SwingUtilities.updateComponentTreeUI(c);
-                    }
-                });
-        String s = UIManager.getLookAndFeel().getClass().getCanonicalName();
-        int i;
-        for (i = 0; i < lf.length; i++) if (s.equals(lf[i].getClassName())) break;
-        setSelectedIndex(i);
-        setToolTipText("Select wanted look and feel here.");
-    }
+			public int getSize() {
+				return lf.length;
+			}
+		});
+		addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				try {
+					UIManager.setLookAndFeel(lf[getSelectedIndex()].getClassName());
+				} catch (Exception x) {
+					x.printStackTrace();
+				}
+				SwingUtilities.updateComponentTreeUI(c);
+			}
+		});
+		String s = UIManager.getLookAndFeel().getClass().getCanonicalName();
+		int i;
+		for (i = 0; i < lf.length; i++)
+			if (s.equals(lf[i].getClassName()))
+				break;
+		setSelectedIndex(i);
+		setToolTipText("Select wanted look and feel here.");
+	}
 }

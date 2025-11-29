@@ -24,114 +24,98 @@ import java.util.Map;
  * description, type) for maintainability.
  */
 public enum JobColumn {
-    // Row metadata
-    NUMB(0, "#", "Row", Integer.class),
+	// Row metadata
+	NUMB(0, "#", "Row", Integer.class),
 
-    // IDs
-    LIDN(1, "lid", "Mylist ID", Integer.class),
-    FIDN(2, "fid", "File ID", Integer.class),
-    AIDN(3, "aid", "Anime ID", Integer.class),
-    EIDN(4, "eid", "Episode ID", Integer.class),
-    GIDN(5, "gid", "Group ID", Integer.class),
+	// IDs
+	LIDN(1, "lid", "Mylist ID", Integer.class), FIDN(2, "fid", "File ID", Integer.class), AIDN(3, "aid", "Anime ID",
+			Integer.class), EIDN(4, "eid", "Episode ID", Integer.class), GIDN(5, "gid", "Group ID", Integer.class),
 
-    // Anime metadata
-    AYEA(6, "yea", "Year Start", Integer.class),
-    AEPS(7, "eps", "Episodes", Integer.class),
-    ALEP(8, "lep", "Latest Episode", Integer.class),
+	// Anime metadata
+	AYEA(6, "yea", "Year Start", Integer.class), AEPS(7, "eps", "Episodes", Integer.class), ALEP(8, "lep",
+			"Latest Episode", Integer.class),
 
-    // File metadata
-    FSIZ(9, "size", "File Size", Long.class),
-    FLEN(10, "len", "Length", Integer.class),
-    FILE(11, "file", "File Path", String.class),
-    PATH(12, "path", "Directory", String.class),
-    NAME(13, "name", "Filename", String.class),
-    STAT(14, "status", "Status", String.class),
+	// File metadata
+	FSIZ(9, "size", "File Size", Long.class), FLEN(10, "len", "Length", Integer.class), FILE(11, "file", "File Path",
+			String.class), PATH(12, "path", "Directory", String.class), NAME(13, "name", "Filename",
+					String.class), STAT(14, "status", "Status", String.class),
 
-    // Anime titles
-    AROM(15, "ann", "Romaji Title", String.class),
-    AKAN(16, "kan", "Kanji Title", String.class),
-    AENG(17, "eng", "English Title", String.class),
-    ATYP(18, "typ", "Anime Type", String.class),
+	// Anime titles
+	AROM(15, "ann", "Romaji Title", String.class), AKAN(16, "kan", "Kanji Title", String.class), AENG(17, "eng",
+			"English Title", String.class), ATYP(18, "typ", "Anime Type", String.class),
 
-    // Episode info
-    ENUM(19, "enr", "Episode Number", String.class),
-    EENG(20, "epn", "Episode Title (EN)", String.class),
-    EKAN(21, "epk", "Episode Title (JP)", String.class),
-    EROM(22, "epr", "Episode Title (Romaji)", String.class),
+	// Episode info
+	ENUM(19, "enr", "Episode Number", String.class), EENG(20, "epn", "Episode Title (EN)", String.class), EKAN(21,
+			"epk", "Episode Title (JP)", String.class), EROM(22, "epr", "Episode Title (Romaji)", String.class),
 
-    // Group info
-    GNAM(23, "grn", "Group Name", String.class),
-    GSHO(24, "grp", "Group Short Name", String.class),
+	// Group info
+	GNAM(23, "grn", "Group Name", String.class), GSHO(24, "grp", "Group Short Name", String.class),
 
-    // File attributes
-    FDUB(25, "dub", "Audio Language", String.class),
-    FSUB(26, "sub", "Subtitle Language", String.class),
-    FSRC(27, "src", "Source", String.class),
-    FQUA(28, "qua", "Quality", String.class),
-    FRES(29, "res", "Resolution", String.class),
-    FVID(30, "vid", "Video Codec", String.class),
-    FAUD(31, "aud", "Audio Codec", String.class),
+	// File attributes
+	FDUB(25, "dub", "Audio Language", String.class), FSUB(26, "sub", "Subtitle Language", String.class), FSRC(27, "src",
+			"Source",
+			String.class), FQUA(28, "qua", "Quality", String.class), FRES(29, "res", "Resolution", String.class), FVID(
+					30, "vid", "Video Codec", String.class), FAUD(31, "aud", "Audio Codec", String.class),
 
-    // Hash metadata
-    FMDS(32, "mds", "MD5 / SHA1", String.class),
-    FMDA(33, "mda", "MD5 / Audio", String.class),
+	// Hash metadata
+	FMDS(32, "mds", "MD5 / SHA1", String.class), FMDA(33, "mda", "MD5 / Audio", String.class),
 
-    // Extended anime metadata
-    AYEN(34, "yen", "Year End", Integer.class);
+	// Extended anime metadata
+	AYEN(34, "yen", "Year End", Integer.class);
 
-    // Pseudo-column for row object access
-    public static final int JOB = -1;
+	// Pseudo-column for row object access
+	public static final int JOB = -1;
 
-    private final int index;
-    private final String tag;
-    private final String description;
-    private final Class<?> type;
+	private final int index;
+	private final String tag;
+	private final String description;
+	private final Class<?> type;
 
-    JobColumn(int index, String tag, String description, Class<?> type) {
-        this.index = index;
-        this.tag = tag;
-        this.description = description;
-        this.type = type;
-    }
+	JobColumn(int index, String tag, String description, Class<?> type) {
+		this.index = index;
+		this.tag = tag;
+		this.description = description;
+		this.type = type;
+	}
 
-    public int getIndex() {
-        return index;
-    }
+	public int getIndex() {
+		return index;
+	}
 
-    public String getTag() {
-        return tag;
-    }
+	public String getTag() {
+		return tag;
+	}
 
-    public String getDescription() {
-        return description;
-    }
+	public String getDescription() {
+		return description;
+	}
 
-    public Class<?> getType() {
-        return type;
-    }
+	public Class<?> getType() {
+		return type;
+	}
 
-    // Fast lookups
-    private static final JobColumn[] BY_INDEX;
-    private static final Map<String, JobColumn> BY_TAG = new HashMap<>();
+	// Fast lookups
+	private static final JobColumn[] BY_INDEX;
+	private static final Map<String, JobColumn> BY_TAG = new HashMap<>();
 
-    static {
-        JobColumn[] cols = values();
-        BY_INDEX = new JobColumn[cols.length];
-        for (JobColumn col : cols) {
-            BY_INDEX[col.index] = col;
-            BY_TAG.put(col.tag, col);
-        }
-    }
+	static {
+		JobColumn[] cols = values();
+		BY_INDEX = new JobColumn[cols.length];
+		for (JobColumn col : cols) {
+			BY_INDEX[col.index] = col;
+			BY_TAG.put(col.tag, col);
+		}
+	}
 
-    public static JobColumn fromIndex(int index) {
-        return (index >= 0 && index < BY_INDEX.length) ? BY_INDEX[index] : null;
-    }
+	public static JobColumn fromIndex(int index) {
+		return (index >= 0 && index < BY_INDEX.length) ? BY_INDEX[index] : null;
+	}
 
-    public static JobColumn fromTag(String tag) {
-        return BY_TAG.get(tag);
-    }
+	public static JobColumn fromTag(String tag) {
+		return BY_TAG.get(tag);
+	}
 
-    public static int getColumnCount() {
-        return BY_INDEX.length;
-    }
+	public static int getColumnCount() {
+		return BY_INDEX.length;
+	}
 }

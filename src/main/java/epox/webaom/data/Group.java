@@ -23,19 +23,19 @@
 package epox.webaom.data;
 
 public class Group extends Base {
-    public String name = "none", sname = "";
+	public String name = "none", sname = "";
 
-    public Group(int id) {
-        this.id = id;
-    }
+	public Group(int id) {
+		this.id = id;
+	}
 
-    public String serialize() {
-        return name + S + sname;
-    }
+	public String serialize() {
+		return name + S + sname;
+	}
 
-    public String toString() {
-        return name + "|" + sname;
-    }
+	public String toString() {
+		return name + "|" + sname;
+	}
 
-    public static final Group none = new Group(0);
+	public static final Group none = new Group(0);
 }

@@ -5,7 +5,7 @@
 
 <!--
     Checkstyle configuration for WebAOM
-    Based on Google Java Style with some relaxations for legacy code
+    Based on Google Java Style
 -->
 <module name="Checker">
     <property name="charset" value="UTF-8"/>
@@ -21,20 +21,16 @@
     <!-- File length -->
     <module name="FileLength">
         <property name="max" value="2000"/>
-        <property name="severity" value="warning"/>
     </module>
 
-    <!-- Line length (must be at Checker level in newer Checkstyle) -->
+    <!-- Line length -->
     <module name="LineLength">
         <property name="max" value="120"/>
-        <property name="severity" value="info"/>
     </module>
 
     <module name="TreeWalker">
         <!-- Naming conventions -->
-        <module name="ConstantName">
-            <property name="severity" value="warning"/>
-        </module>
+        <module name="ConstantName"/>
         <module name="LocalFinalVariableName"/>
         <module name="LocalVariableName"/>
         <module name="MemberName"/>
@@ -45,21 +41,17 @@
         <module name="TypeName"/>
 
         <!-- Imports -->
-        <module name="AvoidStarImport">
-            <property name="severity" value="info"/>
-        </module>
+        <module name="AvoidStarImport"/>
         <module name="IllegalImport"/>
         <module name="RedundantImport"/>
         <module name="UnusedImports"/>
 
         <!-- Size violations -->
         <module name="MethodLength">
-            <property name="max" value="200"/>
-            <property name="severity" value="warning"/>
+            <property name="max" value="150"/>
         </module>
         <module name="ParameterNumber">
-            <property name="max" value="10"/>
-            <property name="severity" value="warning"/>
+            <property name="max" value="7"/>
         </module>
 
         <!-- Whitespace -->
@@ -84,34 +76,24 @@
 
         <!-- Blocks -->
         <module name="AvoidNestedBlocks"/>
-        <module name="EmptyBlock">
-            <property name="severity" value="warning"/>
-        </module>
+        <module name="EmptyBlock"/>
         <module name="LeftCurly"/>
-        <module name="NeedBraces">
-            <property name="severity" value="info"/>
-        </module>
+        <module name="NeedBraces"/>
         <module name="RightCurly"/>
 
         <!-- Coding -->
         <module name="EmptyStatement"/>
         <module name="EqualsHashCode"/>
         <module name="IllegalInstantiation"/>
-        <module name="InnerAssignment">
-            <property name="severity" value="info"/>
-        </module>
-        <module name="MissingSwitchDefault">
-            <property name="severity" value="info"/>
-        </module>
+        <module name="InnerAssignment"/>
+        <module name="MissingSwitchDefault"/>
         <module name="MultipleVariableDeclarations"/>
         <module name="SimplifyBooleanExpression"/>
         <module name="SimplifyBooleanReturn"/>
 
         <!-- Design -->
         <module name="FinalClass"/>
-        <module name="HideUtilityClassConstructor">
-            <property name="severity" value="info"/>
-        </module>
+        <module name="HideUtilityClassConstructor"/>
         <module name="InterfaceIsType"/>
 
         <!-- Miscellaneous -->
