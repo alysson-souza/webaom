@@ -150,7 +150,7 @@ public class ACon implements ActionListener {
 	}
 
 	public int enCrypt() throws Exception {
-		if (m_up.key == null || m_up.key.length() < 1) {
+		if (m_up.key == null || m_up.key.isEmpty()) {
 			return ping();
 		}
 		AConR r = send_layer1("ENCRYPT", "user=" + m_up.usr + "&type=1", true);

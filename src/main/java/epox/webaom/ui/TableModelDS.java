@@ -104,13 +104,13 @@ public class TableModelDS extends AbstractTableModel {
 		if (rd != null) {
 			switch (col) {
 				case SEL :
-					if (rd.src.length() > 0) {
+					if (!rd.src.isEmpty()) {
 						rd.sel = (Boolean) obj;
 					}
 					break;
 				case SRC :
 					rd.src = (String) obj;
-					if (rd.src.length() == 0) {
+					if (rd.src.isEmpty()) {
 						data.remove(rd);
 					}
 					break;

@@ -79,7 +79,7 @@ public class Job {
 	}
 
 	public boolean hide(String s) {
-		if (s == null || s.length() < 1) {
+		if (s == null || s.isEmpty()) {
 			return false;
 		}
 		if (s.charAt(0) == '!') {

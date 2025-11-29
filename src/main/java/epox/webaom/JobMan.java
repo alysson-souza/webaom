@@ -59,7 +59,7 @@ public class JobMan {
 			if (job.check(Job.S_DOING)) {
 				return;
 			}
-			if (job.getHealth() < Job.H_DELETED && job.getStatus() == Job.FINISHED && s != null && s.length() > 0) {
+			if (job.getHealth() < Job.H_DELETED && job.getStatus() == Job.FINISHED && s != null && !s.isEmpty()) {
 				File f = new File(job.m_fc.getParent() + File.separatorChar + s);
 				if (job.m_fc.renameTo(f)) {
 					JobMan.setJobFile(job, f);

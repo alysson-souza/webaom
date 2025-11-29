@@ -139,11 +139,11 @@ public class Rules {
 	private String get(Job j, String str) {
 		try {
 			Vector v = build(str, j);
-			if (v.size() < 1) {
+			if (v.isEmpty()) {
 				return null;
 			}
 			String rule = "";
-			while (v.size() > 0) {
+			while (!v.isEmpty()) {
 				rule += v.remove(0);
 			}
 			return rule;
@@ -344,7 +344,7 @@ public class Rules {
 				 * return j.m_fa.getVersion().length()>0;
 				 */
 				String t = (String) mAmap.get(s);
-				return t != null && t.length() > 0;
+				return t != null && !t.isEmpty();
 			}
 			case 'U' : { // scope block for local variable
 				String[] cmp = s.split(":", 2);

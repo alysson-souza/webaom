@@ -196,7 +196,7 @@ public class Parser {
 						Job j = null;
 						while (br.ready()) {
 							line = U.htmldesc(br.readLine());
-							if (line.length() < 1) {
+							if (line.isEmpty()) {
 								continue;
 							}
 							switch (line.charAt(0)) {
