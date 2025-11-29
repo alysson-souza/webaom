@@ -257,7 +257,7 @@ public class Rules {
     private boolean check0(char c, String s, Job j) {
         switch (Character.toUpperCase(c)) {
             case 'A':
-                { // Name
+                { // Name - scope block for local variable
                     try {
                         return j.m_fa.aid == Integer.parseInt(s.trim());
                     } catch (NumberFormatException e) {
@@ -277,12 +277,13 @@ public class Rules {
             case 'T': // Type
                 return j.m_fa.anime.typ.equalsIgnoreCase(s);
             case 'G':
-                { // Group
+                { // Group - scope block for local variable
                     if (j.m_fa.gid == 0) return s.equalsIgnoreCase("unknown");
                     try {
                         return j.m_fa.gid == Integer.parseInt(s.trim());
                     } catch (NumberFormatException e) {
-                        /* part of plan */ }
+                        /* part of plan */
+                    }
                     return j.m_fa.group.name.equalsIgnoreCase(s)
                             || j.m_fa.group.sname.equalsIgnoreCase(s);
                 }
@@ -299,7 +300,7 @@ public class Rules {
             case 'N': // Genre
                 return cont(j.m_fa.anime.cat, s);
             case 'I':
-                { // Is Defined
+                { // Is Defined - scope block for local variable
                     /*
                      * if(s.equals("eng"))//probably most used
                      * return j.m_fa.anime.eng!=null;
@@ -310,7 +311,7 @@ public class Rules {
                     return t != null && t.length() > 0;
                 }
             case 'U':
-                {
+                { // scope block for local variable
                     String[] cmp = s.split(":", 2);
                     if (cmp.length == 2) {
                         return mAmap.containsKey(cmp[0])
@@ -321,7 +322,7 @@ public class Rules {
                     return false;
                 }
             case 'L':
-                {
+                { // scope block for local variable
                     String cmp[] = s.split(":", 2);
                     if (cmp.length == 2) {
                         return mAmap.containsKey(cmp[0])
@@ -332,7 +333,7 @@ public class Rules {
                     return false;
                 }
             case 'Z':
-                {
+                { // scope block for local variable
                     String cmp[] = s.split(":", 2);
                     if (cmp.length == 2)
                         return mAmap.containsKey(cmp[0])
@@ -408,7 +409,7 @@ class Section {
     float w = 1.0f;
     int max = 255;
 
-    public Section(String s) {
+    Section(String s) {
         int i = s.indexOf(" WEIGHT ");
         if (i >= 0) {
             str = s.substring(0, i);

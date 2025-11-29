@@ -125,7 +125,7 @@ public class JEditorPaneLog extends JEditorPane implements Log, Action {
     private class AppendFileStream extends OutputStream {
         RandomAccessFile fd;
 
-        public AppendFileStream(String file) throws IOException {
+        AppendFileStream(String file) throws IOException {
             fd = new RandomAccessFile(file, "rw");
             fd.seek(fd.length());
         }

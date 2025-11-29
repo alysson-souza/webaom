@@ -57,7 +57,7 @@ public class Bits {
 
     public String toString() {
         StringBuffer sb = new StringBuffer(mIlen);
-        for (int i = 0; i < mIlen; i++) sb.append(get(i) == true ? 1 : 0);
+        for (int i = 0; i < mIlen; i++) sb.append(get(i) ? 1 : 0);
         return sb.toString();
     }
 

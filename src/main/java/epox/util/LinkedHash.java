@@ -70,7 +70,7 @@ public class LinkedHash extends java.util.HashMap /* !<Object,Object> */ {
         Node prev, next;
         Object o;
 
-        public Node(Object o, Node prev) {
+        Node(Object o, Node prev) {
             this.o = o;
             this.prev = prev;
         }

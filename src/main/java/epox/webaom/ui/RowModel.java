@@ -25,6 +25,6 @@ import epox.webaom.Job;
 public interface RowModel {
     // public int getSelectedRow();
     // public int[] convertRow(int row);
-    public Job[] getJobs(int row);
+    Job[] getJobs(int row);
     // public void updateRow(Job j);
 }

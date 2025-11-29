@@ -64,7 +64,7 @@ public class ChiiEmu implements CommandModel {
     private class EmuWorker extends Thread {
         private String mScmd;
 
-        public EmuWorker(String c) {
+        EmuWorker(String c) {
             super("ChiiEmu");
             mScmd = c;
         }
@@ -124,7 +124,7 @@ public class ChiiEmu implements CommandModel {
         }
 
         public String stosta(String p, int t) throws AConEx {
-            String a[] = U.split(p, ',');
+            String[] a = U.split(p, ',');
             if (a.length != 4) return getS(t);
             for (int i = 0; i < a.length; i++) {
                 a[i] = a[i].trim();
@@ -192,7 +192,7 @@ public class ChiiEmu implements CommandModel {
         }
 
         public String anime(String str) {
-            String s[] = U.split(str, '|');
+            String[] s = U.split(str, '|');
             if (s.length != 19) return str;
             StringBuffer sb = new StringBuffer(100);
             sb.append("ANIME: ");
@@ -220,7 +220,7 @@ public class ChiiEmu implements CommandModel {
         }
 
         public String group(String str) {
-            String s[] = U.split(str, '|');
+            String[] s = U.split(str, '|');
             if (s.length != 9) return str;
             StringBuffer sb = new StringBuffer(100);
             sb.append("GROUP: ");
@@ -246,8 +246,8 @@ public class ChiiEmu implements CommandModel {
         }
 
         public String top(String str) {
-            String s[] = U.split(str, '\n');
-            String t[];
+            String[] s = U.split(str, '\n');
+            String[] t;
             if (s.length != 11) return str;
 
             StringBuffer sb = new StringBuffer(100);
@@ -265,7 +265,7 @@ public class ChiiEmu implements CommandModel {
         }
 
         public String stats(String str) {
-            String s[] = U.split(str, '|');
+            String[] s = U.split(str, '|');
             if (s.length != 7) return str;
             StringBuffer sb = new StringBuffer(100);
             sb.append("STATS: ");
@@ -277,7 +277,7 @@ public class ChiiEmu implements CommandModel {
         }
 
         public String mystats(String str) {
-            String s[] = U.split(str, '|');
+            String[] s = U.split(str, '|');
             if (s.length != 16) return str;
             StringBuffer sb = new StringBuffer(100);
             sb.append("MYSTATS: ");
@@ -291,7 +291,7 @@ public class ChiiEmu implements CommandModel {
             sb.append("% watched) and ");
             sb.append(s[2]);
             sb.append(" files in mylist (");
-            sb.append(U.sbyte(1048576l * U.i(s[3])));
+            sb.append(U.sbyte(1048576L * U.i(s[3])));
             sb.append(", ");
             sb.append(s[11]);
             sb.append("% of AniDB, ");
@@ -329,7 +329,7 @@ public class ChiiEmu implements CommandModel {
                 String api = "edit=1&viewed=";
                 int j = s.indexOf("ed2k://|file|");
                 if (j >= 0) {
-                    String a[] = U.split(s.substring(13).trim(), '|');
+                    String[] a = U.split(s.substring(13).trim(), '|');
                     api += "&size=" + a[1];
                     api += "&ed2k=" + a[2];
                 } else {
@@ -390,7 +390,7 @@ public class ChiiEmu implements CommandModel {
                 String api = "edit=1&state=" + state;
                 int j = s.indexOf("ed2k://|file|");
                 if (j >= 0) {
-                    String a[] = U.split(s.substring(13, i).trim(), '|');
+                    String[] a = U.split(s.substring(13, i).trim(), '|');
                     api += "&size=" + a[1];
                     api += "&ed2k=" + a[2];
                 } else {

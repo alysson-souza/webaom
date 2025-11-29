@@ -26,7 +26,7 @@ public class JPanelJobs extends JPanel implements ActionListener {
     private JTableJobs m_jtj;
     private JScrollTable m_jst;
     private TableModelJobs m_jlm;
-    private JCheckBox jcbArr[];
+    private JCheckBox[] jcbArr;
 
     private int mIs = 0, mIf = 0; // status, file state
     private boolean mBu = false;
@@ -95,7 +95,7 @@ public class JPanelJobs extends JPanel implements ActionListener {
         StringTokenizer st = new StringTokenizer(s, ";");
         int[] x = new int[st.countTokens()];
         while (st.hasMoreTokens()) {
-            String sa[] = st.nextToken().split(",", 2);
+            String[] sa = st.nextToken().split(",", 2);
             a = U.i(sa[0]);
             b = U.i(sa[1]);
             mask |= 1 << i;

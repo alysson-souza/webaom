@@ -21,5 +21,5 @@
 package epox.swing;
 
 public interface CommandModel {
-    public void handleCommand(String s);
+    void handleCommand(String s);
 }

@@ -58,7 +58,7 @@ tasks.withType(JavaCompile) {
 
 spotless {
 	java {
-		target 'src/**/*.java'
+		target 'src/main/java/epox/**/*.java'
 		removeUnusedImports()
 		googleJavaFormat('1.25.2').aosp()
 		trimTrailingWhitespace()
