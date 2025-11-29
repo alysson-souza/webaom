@@ -51,8 +51,9 @@ public final class Hyper {
 	}
 
 	public static String name(Object o) {
-		if (o != null)
+		if (o != null) {
 			return color(sName, o.toString());
+		}
 		return "null";
 	}
 
@@ -69,19 +70,24 @@ public final class Hyper {
 	}
 
 	public static void dec(String str) {
-		if (str == null)
+		if (str == null) {
 			return;
+		}
 		StringTokenizer st = new StringTokenizer(str, Options.S_SEP);
-		if (st.countTokens() != 3)
+		if (st.countTokens() != 3) {
 			return;
+		}
 		String s = st.nextToken();
-		if (s.length() == 6)
+		if (s.length() == 6) {
 			sWarn = s;
+		}
 		s = st.nextToken();
-		if (s.length() == 6)
+		if (s.length() == 6) {
 			sName = s;
+		}
 		s = st.nextToken();
-		if (s.length() == 6)
+		if (s.length() == 6) {
 			sNumb = s;
+		}
 	}
 }

@@ -67,10 +67,12 @@ public class JPanelDebug extends JPanel {
 			WinStream errstream = new WinStream(os, echo_err, perr);
 			WinStream outstream = new WinStream(os, echo_out, pout);
 
-			if (err)
+			if (err) {
 				System.setErr(errstream);
-			if (out)
+			}
+			if (out) {
 				System.setOut(outstream);
+			}
 		} catch (FileNotFoundException e) {
 			jta.append("Could not openfile" + file);
 		}
@@ -84,8 +86,9 @@ public class JPanelDebug extends JPanel {
 	protected class Updater implements Runnable {
 		@Override
 		public void run() {
-			if (!jsb.getValueIsAdjusting())
+			if (!jsb.getValueIsAdjusting()) {
 				jsb.setValue(jsb.getMaximum());
+			}
 		}
 	}
 
@@ -106,8 +109,9 @@ public class JPanelDebug extends JPanel {
 		private synchronized void append(String str) {
 			t1 = System.currentTimeMillis();
 			if (str == "\n") {
-				if (!newl)
+				if (!newl) {
 					jta.append("\n");
+				}
 				newl = true;
 				t0 = t1;
 
@@ -116,106 +120,131 @@ public class JPanelDebug extends JPanel {
 						+ Thread.currentThread().getName() + ": ";
 
 				if (str.indexOf('\n') < 0) {
-					if (newl)
+					if (newl) {
 						jta.append(pre);
+					}
 					jta.append(str);
 					newl = false;
 				} else {
 					String[] arg = U.split(str, '\n');
 					for (int i = 0; i < arg.length; i++) {
-						if (newl)
+						if (newl) {
 							jta.append(pre);
+						}
 						jta.append(arg[i] + "\n");
 						newl = true;
 					}
 					t0 = t1;
 				}
 			}
-			if (jta.isVisible())
+			if (jta.isVisible()) {
 				javax.swing.SwingUtilities.invokeLater(updater);
+			}
 		}
 
 		public void print(boolean x) {
-			if (echo)
+			if (echo) {
 				pecho.print(x);
-			if (log_file)
+			}
+			if (log_file) {
 				super.print(x);
+			}
 			append(x + "");
 		}
 
 		public void print(char x) {
-			if (echo)
+			if (echo) {
 				pecho.print(x);
-			if (log_file)
+			}
+			if (log_file) {
 				super.print(x);
+			}
 			append(x + "");
 		}
 
 		public void print(int x) {
-			if (echo)
+			if (echo) {
 				pecho.print(x);
-			if (log_file)
+			}
+			if (log_file) {
 				super.print(x);
+			}
 			append(x + "");
 		}
 
 		public void print(long x) {
-			if (echo)
+			if (echo) {
 				pecho.print(x);
-			if (log_file)
+			}
+			if (log_file) {
 				super.print(x);
+			}
 			append(x + "");
 		}
 
 		public void print(float x) {
-			if (echo)
+			if (echo) {
 				pecho.print(x);
-			if (log_file)
+			}
+			if (log_file) {
 				super.print(x);
+			}
 			append(x + "");
 		}
 
 		public void print(double x) {
-			if (echo)
+			if (echo) {
 				pecho.print(x);
-			if (log_file)
+			}
+			if (log_file) {
 				super.print(x);
+			}
 			append(x + "");
 		}
 
 		public void print(char[] x) {
-			if (echo)
+			if (echo) {
 				pecho.print(x);
-			if (log_file)
+			}
+			if (log_file) {
 				super.print(new String(x));
+			}
 			append(new String(x));
 		}
 
 		public void print(String x) {
-			if (x == null)
+			if (x == null) {
 				x = "null";
-			if (echo)
+			}
+			if (echo) {
 				pecho.print(/* Thread.currentThread().getName()+": "+ */ x);
-			if (log_file)
+			}
+			if (log_file) {
 				super.print(x);
-			if (x.endsWith("\n"))
+			}
+			if (x.endsWith("\n")) {
 				newl = true;
+			}
 			append(x);
 		}
 
 		public void print(Object x) {
-			if (echo)
+			if (echo) {
 				pecho.print(x);
-			if (log_file)
+			}
+			if (log_file) {
 				super.print(x.toString());
+			}
 			append("" + x);
 		}
 
 		public void println() {
-			if (echo)
+			if (echo) {
 				pecho.println();
-			if (log_file)
+			}
+			if (log_file) {
 				super.println();
+			}
 			// newl = true;
 			append("\n");
 			// jta.append("\n");

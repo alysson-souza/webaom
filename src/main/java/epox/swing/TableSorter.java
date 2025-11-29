@@ -34,21 +34,25 @@ public class TableSorter {
 	}
 
 	public void sort(int[] array, int col, boolean refresh) {
-		if (array.length < 1)
+		if (array.length < 1) {
 			return;
+		}
 		int num = m_mod.getRowCount();
 		if (refresh) {
 			sort0(array, 0, num - 1);
 			m_desc = m_swit;
-			if (m_desc)
+			if (m_desc) {
 				invert(array);
+			}
 		} else {
-			if (m_cmp0 != col)
+			if (m_cmp0 != col) {
 				m_cmp1 = m_cmp0;
+			}
 			m_cmp0 = col;
 
-			if (col == m_last_col || m_last_n < 0)
+			if (col == m_last_col || m_last_n < 0) {
 				m_swit = !m_swit;
+			}
 
 			if (col != m_last_col || num != m_last_n) {
 				sort0(array, 0, num - 1);
@@ -67,8 +71,9 @@ public class TableSorter {
 
 	private void invert(int[] a) {
 		int x = m_mod.getRowCount() - 1;
-		for (int i = 0; i <= x / 2; i++)
+		for (int i = 0; i <= x / 2; i++) {
 			swap(a, i, x - i);
+		}
 	}
 
 	public void sort0(int[] a, int l, int h) {
@@ -84,26 +89,32 @@ public class TableSorter {
 
 		if ((r - l) > M) {
 			i = (r + l) / 2;
-			if (compare(l, i) > 0)
+			if (compare(l, i) > 0) {
 				swap(a, l, i);
-			if (compare(l, r) > 0)
+			}
+			if (compare(l, r) > 0) {
 				swap(a, l, r);
-			if (compare(i, r) > 0)
+			}
+			if (compare(i, r) > 0) {
 				swap(a, i, r);
+			}
 
 			j = r - 1;
 			swap(a, i, j);
 			i = l;
 			v = j;
 			for (;;) {
-				do
+				do {
 					i++;
+				}
 				while (compare(i, v) < 0);
-				do
+				do {
 					j--;
+				}
 				while (j > 0 && compare(v, j) < 0);
-				if (j < i)
+				if (j < i) {
 					break;
+				}
 				swap(a, i, j);
 			}
 			swap(a, i, r - 1);
@@ -121,15 +132,18 @@ public class TableSorter {
 
 	private void insertionSort(int[] a, int l, int h) {
 		int i, j;
-		for (i = l; i <= h; i++)
-			for (j = i; j > l && compare(j - 1, j) > 0; j--)
+		for (i = l; i <= h; i++) {
+			for (j = i; j > l && compare(j - 1, j) > 0; j--) {
 				swap(a, j, j - 1);
+			}
+		}
 	}
 
 	public int compare(int r, int s) {
 		int x = compare0(m_cmp0, r, s);
-		if (x == 0)
+		if (x == 0) {
 			return compare0(m_cmp1, r, s);
+		}
 		return x;
 	}
 
@@ -141,24 +155,27 @@ public class TableSorter {
 		// else if (o2 == null) return  1;
 		// else{
 		Class type = m_mod.getColumnClass(c);
-		if (type.getSuperclass() == Number.class)
+		if (type.getSuperclass() == Number.class) {
 			return (int) (((Number) o1).floatValue() - ((Number) o2).floatValue()); // compare((Number)o1, (Number)o2);
-		else if (type == String.class)
+		} else if (type == String.class) {
 			return ((String) o1).compareToIgnoreCase((String) o2);
+		}
 		// return ((String)o1).toLowerCase().compareTo(((String)o2).toLowerCase());
-		else
+		else {
 			return (o1.toString()).compareToIgnoreCase(o2.toString());
+		}
 		// }
 	}
 
 	public int compare(Number o1, Number o2) {
 		double n1 = o1.doubleValue();
 		double n2 = o2.doubleValue();
-		if (n1 < n2)
+		if (n1 < n2) {
 			return -1;
-		else if (n1 > n2)
+		} else if (n1 > n2) {
 			return 1;
-		else
+		} else {
 			return 0;
+		}
 	}
 }

@@ -49,9 +49,11 @@ public class HeaderListener extends MouseAdapter {
 				mi.addActionListener(new ColumnAction(m_c, c, mi));
 				m_pop.add(mi);
 			}
-			for (int i = m_c.getColumnCount() - 1; i >= 0; i--)
-				if ((1L << i & mask) != 1L << i)
+			for (int i = m_c.getColumnCount() - 1; i >= 0; i--) {
+				if ((1L << i & mask) != 1L << i) {
 					m_c.removeColumn(m_c.getColumn(i));
+				}
+			}
 		}
 	}
 
@@ -67,12 +69,13 @@ public class HeaderListener extends MouseAdapter {
 		}
 
 		public void actionPerformed(ActionEvent e) {
-			if (b.isSelected())
+			if (b.isSelected()) {
 				m.addColumn(c);
-			else if (m.getColumnCount() > 1)
+			} else if (m.getColumnCount() > 1) {
 				m.removeColumn(c);
-			else
+			} else {
 				b.setSelected(true);
+			}
 		}
 	}
 
@@ -85,8 +88,9 @@ public class HeaderListener extends MouseAdapter {
 			} catch (Exception x) {
 				// don't care
 			}
-		} else if (m_pop != null)
+		} else if (m_pop != null) {
 			m_pop.show(m_h, e.getX(), e.getY());
+		}
 	}
 
 	public void mousePressed(MouseEvent e) {
@@ -95,8 +99,9 @@ public class HeaderListener extends MouseAdapter {
 			m_r.setPressedColumn(col);
 			m_h.repaint();
 
-			if (m_h.getTable().isEditing())
+			if (m_h.getTable().isEditing()) {
 				m_h.getTable().getCellEditor().stopCellEditing();
+			}
 		}
 	}
 

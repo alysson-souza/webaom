@@ -78,15 +78,17 @@ public class NetIO implements Runnable {
 				A.gui.status1(S_TERM);
 			}
 			try {
-				if (ac != null && ac.isLoggedIn() && !btimeout && ac.logout())
+				if (ac != null && ac.isLoggedIn() && !btimeout && ac.logout()) {
 					A.gui.println("Logged out after extra check!");
+				}
 			} catch (Exception e) {
 				e.printStackTrace();
 			}
 		} else {
 			String s = ac.getLastError();
-			if (s.endsWith("Cannot bind"))
+			if (s.endsWith("Cannot bind")) {
 				s = "The local port is already in use. Try another port.";
+			}
 			A.gui.println(Hyper.error(s));
 			A.gui.msg(s);
 		}
@@ -113,13 +115,15 @@ public class NetIO implements Runnable {
 				m_job = A.jobs.getJobNio();
 				if (m_job != null) {
 					// !A.nr_nio = m_job.mIid;
-					if (m_job.getStatus() == Job.REMWAIT)
+					if (m_job.getStatus() == Job.REMWAIT) {
 						remove(m_job);
-					else {
-						if (m_job.getStatus() == Job.IDENTWAIT)
+					} else {
+						if (m_job.getStatus() == Job.IDENTWAIT) {
 							identify(m_job);
-						if (A.gui.nioOK() && m_job.getStatus() == Job.ADDWAIT)
+						}
+						if (A.gui.nioOK() && m_job.getStatus() == Job.ADDWAIT) {
 							mylistAdd(m_job);
+						}
 					}
 				} else {
 					A.gui.status1("Idle");
@@ -143,8 +147,9 @@ public class NetIO implements Runnable {
 				return;
 			}
 			A.gui.println(Hyper.error("Could not remove: " + j.getFile()));
-		} else
+		} else {
 			A.gui.println(Hyper.error("Not in mylist: " + j.getFile()));
+		}
 		j.setError("Was not in mylist");
 		JobMan.updateStatus(j, Job.FAILED);
 	}
@@ -155,25 +160,30 @@ public class NetIO implements Runnable {
 		A.gui.status1("Retrieving file data for " + j.getFile().getName());
 		if (j.m_fa == null) {
 			String[] s = null;
-			if (j.mIfid > 0)
+			if (j.mIfid > 0) {
 				s = A.conn.retrieveFileData(j.mIfid, j.getFile().getName());
-			else
+			} else {
 				s = A.conn.retrieveFileData(j.mLs, j._ed2, j.getFile().getName());
+			}
 			if (s != null && A.cache.parseFile(s, j) != null) {
 				j.mIlid = j.m_fa.lid;
 				j.m_fa.setJob(j);
 				A.gui.println("Found " + Hyper.name(j.m_fa.def) + " " + Hyper.href(j.m_fa.urlAnime(), "a") + " "
 						+ Hyper.href(j.m_fa.urlEp(), "e") + " " + Hyper.href(j.m_fa.urlFile(), "f"));
 				JobMan.updateStatus(j, Job.IDENTIFIED);
-			} else
+			} else {
 				JobMan.updateStatus(j, Job.UNKNOWN);
+			}
 		} else {
-			if (j.m_fa.group == null)
+			if (j.m_fa.group == null) {
 				j.m_fa.group = (Group) A.cache.get(j.m_fa.gid, DB.I_G);
-			if (j.m_fa.ep == null)
+			}
+			if (j.m_fa.ep == null) {
 				j.m_fa.ep = (Ep) A.cache.get(j.m_fa.eid, DB.I_E);
-			if (j.m_fa.group == null)
+			}
+			if (j.m_fa.group == null) {
 				j.m_fa.anime = (Anime) A.cache.get(j.m_fa.aid, DB.I_A);
+			}
 			JobMan.updateStatus(j, Job.IDENTIFIED);
 		}
 	}

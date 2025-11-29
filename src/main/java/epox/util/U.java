@@ -69,12 +69,14 @@ public class U {
 
 	public static String getInTag(String str, String tag) {
 		int x = str.indexOf("<" + tag + ">");
-		if (x < 0)
+		if (x < 0) {
 			return null;
+		}
 		x += tag.length() + 2;
 		int y = str.indexOf("</" + tag + ">", x);
-		if (y < 0)
+		if (y < 0) {
 			return null;
+		}
 		return str.substring(x, y);
 	}
 
@@ -83,24 +85,30 @@ public class U {
 	}
 
 	public static String n(String str) {
-		if (str == null || str.length() < 1 || str.equals("null"))
+		if (str == null || str.length() < 1 || str.equals("null")) {
 			return null;
+		}
 		return str;
 	}
 
 	public static String[] split(String sb, char c) { // includes empty strings (vs String.split())
 		int cnt = 1;
 		// StringBuffer sb = new StringBuffer(src);
-		for (int i = 0; i < sb.length(); i++)
-			if (sb.charAt(i) == c)
+		for (int i = 0; i < sb.length(); i++) {
+			if (sb.charAt(i) == c) {
 				cnt++;
-		if (cnt < 2)
+			}
+		}
+		if (cnt < 2) {
 			return new String[]{sb};
+		}
 		int[] pos = new int[cnt];
 		int j = 0;
-		for (int i = 0; i < sb.length(); i++)
-			if (sb.charAt(i) == c)
+		for (int i = 0; i < sb.length(); i++) {
+			if (sb.charAt(i) == c) {
 				pos[j++] = i;
+			}
+		}
 		pos[cnt - 1] = sb.length();
 		String[] res = new String[cnt];
 		j = 0;
@@ -112,8 +120,9 @@ public class U {
 	}
 
 	public static String dehtmlize(String htm) {
-		if (htm == null)
+		if (htm == null) {
 			return null;
+		}
 		StringBuffer sb0 = new StringBuffer(htm.length());
 		StringBuffer sb1 = new StringBuffer(htm);
 		boolean in = false;
@@ -128,15 +137,17 @@ public class U {
 				in = false;
 				continue;
 			}
-			if (!in)
+			if (!in) {
 				sb0.append(c);
+			}
 		}
 		return sb0.toString();
 	}
 
 	public static String htmldesc(String s) {
-		if (s == null)
+		if (s == null) {
 			return null;
+		}
 		StringBuffer sb0 = new StringBuffer(s);
 		StringBuffer sb1 = new StringBuffer(s.length());
 		StringBuffer sb2 = new StringBuffer(5);
@@ -145,14 +156,15 @@ public class U {
 		int len = sb0.length();
 		for (int i = 0; i < len; i++) {
 			c = sb0.charAt(i);
-			if (c == '&' && i < (len - 2))
+			if (c == '&' && i < (len - 2)) {
 				if (sb0.charAt(i + 1) == '#') {
 					ok = true;
 					i++;
 					sb2.delete(0, sb2.length());
-				} else
+				} else {
 					sb1.append(c);
-			else if (c == ';') {
+				}
+			} else if (c == ';') {
 				if (ok) {
 					try {
 						sb1.append((char) Integer.parseInt(sb2.toString()));
@@ -163,20 +175,22 @@ public class U {
 						sb1.append(c);
 					}
 					ok = false;
-				} else
+				} else {
 					sb1.append(';');
+				}
 			} else if (ok) {
-				if (Character.isDigit(c) && sb2.length() < 11)
+				if (Character.isDigit(c) && sb2.length() < 11) {
 					sb2.append(c);
-				else {
+				} else {
 					ok = false;
 					sb1.append('&');
 					sb1.append('#');
 					sb1.append(sb2);
 					sb1.append(c);
 				}
-			} else
+			} else {
 				sb1.append(c);
+			}
 		}
 		return sb1.toString();
 	}
@@ -184,8 +198,9 @@ public class U {
 	private static final char[] S = {' ', 'K', 'M', 'G', 'T', 'P', 'E'};
 
 	private static String sbyte(double d, int p) {
-		if (d < 1000)
+		if (d < 1000) {
 			return def.format(d) + " " + S[p] + "B";
+		}
 		return sbyte(d / 1024, p + 1);
 	}
 
@@ -203,8 +218,9 @@ public class U {
 	public static String fileToString(String path) {
 		try {
 			File f = new File(path);
-			if (f.length() > 1024 * 1024)
+			if (f.length() > 1024 * 1024) {
 				return null;
+			}
 			BufferedInputStream bis = new BufferedInputStream(new FileInputStream(f), (int) f.length());
 			byte[] buf = new byte[(int) f.length()];
 			bis.read(buf);
@@ -233,8 +249,9 @@ public class U {
 			}
 			sb.append(c);
 		}
-		for (; i < s.length(); i++)
+		for (; i < s.length(); i++) {
 			sb.append(s.charAt(i));
+		}
 		return sb.toString();
 	}
 }

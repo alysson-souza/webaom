@@ -208,10 +208,12 @@ public class TableModelJobs extends TableModelSortable implements RowModel {
 	 */
 	private Object getDefaultValue(JobColumn column) {
 		Class<?> type = column.getType();
-		if (type == Integer.class)
+		if (type == Integer.class) {
 			return Integer.valueOf(0);
-		if (type == Long.class)
+		}
+		if (type == Long.class) {
 			return Long.valueOf(0L);
+		}
 		return "N/A";
 	}
 
@@ -235,9 +237,11 @@ public class TableModelJobs extends TableModelSortable implements RowModel {
 		TableColumnModel m = table.getColumnModel();
 		DefaultTableCellRenderer centerRend = new DefaultTableCellRenderer();
 		centerRend.setHorizontalAlignment(SwingConstants.CENTER);
-		for (int i = 0; i < JobColumn.getColumnCount(); i++)
-			if (i != JobColumn.FILE.getIndex())
+		for (int i = 0; i < JobColumn.getColumnCount(); i++) {
+			if (i != JobColumn.FILE.getIndex()) {
 				m.getColumn(i).setCellRenderer(centerRend);
+			}
+		}
 	}
 
 	public void updateRow(int id) {
@@ -267,7 +271,8 @@ public class TableModelJobs extends TableModelSortable implements RowModel {
 	}
 
 	public void convertRows(int[] rows) {
-		for (int i = 0; i < rows.length; i++)
+		for (int i = 0; i < rows.length; i++) {
 			rows[i] = getRowIndex(rows[i]);
+		}
 	}
 }

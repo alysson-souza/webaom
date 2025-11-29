@@ -45,8 +45,9 @@ public class AVInfo {
 	static {
 		try {
 			System.loadLibrary("avinfo");
-			if (version() == 1)
+			if (version() == 1) {
 				inited = true;
+			}
 		} catch (java.lang.UnsatisfiedLinkError e) {
 			// e.printStackTrace();
 		}
@@ -63,80 +64,96 @@ public class AVInfo {
 
 	// private Vector tracks;
 	public AVInfo(File f) throws IOException {
-		if (!inited)
+		if (!inited) {
 			throw new IOException("Error: dll not found.");
-		if (!f.exists())
+		}
+		if (!f.exists()) {
 			throw new IOException("Error: file not found.");
+		}
 		this.file = f;
 		int type = FILE_VAR;
 
-		if (file.getName().endsWith(".mkv"))
+		if (file.getName().endsWith(".mkv")) {
 			type = FILE_MKV;
-		if (file.getName().endsWith(".ogm"))
+		}
+		if (file.getName().endsWith(".ogm")) {
 			type = FILE_OGM;
+		}
 		address = fileOpen(file.getAbsolutePath(), type);
-		if (address < 1)
+		if (address < 1) {
 			throw new IOException("Error: dll returned null.");
+		}
 		// tracks = new Vector();
 	}
 
 	public void close() throws IOException {
-		if (address < 1)
+		if (address < 1) {
 			throw new IOException(EC);
+		}
 		fileClose(address);
 		address = 0;
 	}
 
 	public float parse() throws IOException {
-		if (address < 1)
+		if (address < 1) {
 			throw new IOException(EC);
+		}
 		float f = fileParse(address);
 		return f;
 	}
 
 	public int trackCount() throws IOException {
-		if (address < 1)
+		if (address < 1) {
 			throw new IOException(EC);
+		}
 		return fileTrackCount(address);
 	}
 
 	public float duration() throws IOException {
-		if (address < 1)
+		if (address < 1) {
 			throw new IOException(EC);
+		}
 		return fileDuration(address);
 	}
 
 	public GenericTrack getGeneric(int n) throws IOException {
-		if (address < 1)
+		if (address < 1) {
 			throw new IOException(EC);
+		}
 		GenericTrack gt = new GenericTrack();
 		gt.num = n;
-		if (trackGetGeneric(address, n, gt))
+		if (trackGetGeneric(address, n, gt)) {
 			return gt;
+		}
 		return null;
 	}
 
 	public VideoTrack getVideo(GenericTrack gt) throws IOException {
-		if (address < 1)
+		if (address < 1) {
 			throw new IOException(EC);
+		}
 		VideoTrack vt = new VideoTrack(gt);
-		if (trackGetVideo(address, gt.num, vt))
+		if (trackGetVideo(address, gt.num, vt)) {
 			return vt;
+		}
 		return null;
 	}
 
 	public AudioTrack getAudio(GenericTrack gt) throws IOException {
-		if (address < 1)
+		if (address < 1) {
 			throw new IOException(EC);
+		}
 		AudioTrack at = new AudioTrack(gt);
-		if (trackGetAudio(address, gt.num, at))
+		if (trackGetAudio(address, gt.num, at)) {
 			return at;
+		}
 		return null;
 	}
 
 	public FileInfo build() throws IOException {
-		if (address < 1)
+		if (address < 1) {
 			throw new IOException(EC);
+		}
 		FileInfo fi = new FileInfo(toXML());
 		/*
 		 * for(int i=0; i<trackCount(); i++){
@@ -153,20 +170,23 @@ public class AVInfo {
 	}
 
 	public String toOld() throws IOException {
-		if (address < 1)
+		if (address < 1) {
 			throw new IOException(EC);
+		}
 		return fileFormatted(address, FORMAT_OLD, BUFFER_SIZE);
 	}
 
 	public String toXML() throws IOException {
-		if (address < 1)
+		if (address < 1) {
 			throw new IOException(EC);
+		}
 		return fileFormatted(address, FORMAT_XML, BUFFER_SIZE);
 	}
 
 	public String toShort() throws IOException {
-		if (address < 1)
+		if (address < 1) {
 			throw new IOException(EC);
+		}
 		return fileFormatted(address, FORMAT_SHORT, BUFFER_SIZE);
 	}
 }

@@ -110,22 +110,24 @@ public class JDialogLogin extends JDialog implements ActionListener {
 		Rectangle r = this.getBounds();
 		setBounds(d.width / 2 - r.width / 2, d.height / 2 - r.height / 2, r.width, r.height);
 
-		if (usr.getText().length() > 0)
+		if (usr.getText().length() > 0) {
 			psw.requestFocus();
+		}
 	}
 
 	public void actionPerformed(ActionEvent e) {
 		pswt = new String(psw.getPassword());
 		usrt = usr.getText().toLowerCase();
 		keyt = key.getText();
-		if (usrt.length() < 3)
+		if (usrt.length() < 3) {
 			ok.setText("Username too short - OK");
-		else if (usrt.length() > 16)
+		} else if (usrt.length() > 16) {
 			ok.setText("Username too long - OK");
-		else if (!U.alfanum(usrt))
+		} else if (!U.alfanum(usrt)) {
 			ok.setText("Only letters and digits - OK");
-		else if (pswt.length() < 4)
+		} else if (pswt.length() < 4) {
 			ok.setText("Password too short - OK");
+		}
 		// else if(pswt.indexOf('&')>=0||pswt.indexOf('=')>=0)
 		//	ok.setText("Password cannot include '&' or '='.");
 		else {
@@ -139,8 +141,9 @@ public class JDialogLogin extends JDialog implements ActionListener {
 
 	public UserPass getPass() {
 		setVisible(true);
-		if (success)
+		if (success) {
 			return new UserPass(usrt, pswt, keyt);
+		}
 		return null;
 	}
 }

@@ -38,19 +38,23 @@ public class DSData {
 
 	public String toString() {
 		String d = dst;
-		if (d.equals(""))
+		if (d.equals("")) {
 			d = "\\0";
-		if (sel.booleanValue())
+		}
+		if (sel.booleanValue()) {
 			return src + Options.S_SEP + d;
+		}
 		return "#" + src + Options.S_SEP + d;
 	}
 
 	public static DSData parse(String s0, String s1) {
 		boolean b = s0.startsWith("#");
-		if (b)
+		if (b) {
 			s0 = s0.substring(1);
-		if (s1.equals("\\0"))
+		}
+		if (s1.equals("\\0")) {
 			s1 = "";
+		}
 		return new DSData(s0, s1, !b);
 	}
 
@@ -59,8 +63,9 @@ public class DSData {
 		DSData ds;
 		for (int i = 0; i < v.size(); i++) {
 			ds = (DSData) v.elementAt(i);
-			if (!ds.src.equals(""))
+			if (!ds.src.equals("")) {
 				s += ds + Options.S_SEP;
+			}
 		}
 		return s;
 	}
@@ -68,8 +73,9 @@ public class DSData {
 	public static String decode(Vector /* !<DSData> */ v, String s) {
 		v.clear();
 		StringTokenizer st = new StringTokenizer(s, Options.S_SEP);
-		while (st.hasMoreTokens())
+		while (st.hasMoreTokens()) {
 			v.add(parse(st.nextToken(), st.nextToken()));
+		}
 		return s;
 	}
 }

@@ -41,8 +41,9 @@ public class WebAOM extends JApplet {
 
 	public void init() {
 		Frame[] frames = Frame.getFrames();
-		if (frames.length > 0)
+		if (frames.length > 0) {
 			A.frame = frames[0];
+		}
 		A.component = this;
 
 		/*
@@ -118,8 +119,9 @@ public class WebAOM extends JApplet {
 		jf.setVisible(true);
 		jf.addWindowListener(new java.awt.event.WindowAdapter() {
 			public void windowClosing(java.awt.event.WindowEvent e) {
-				if (A.shutdown(true))
+				if (A.shutdown(true)) {
 					System.exit(0);
+				}
 			}
 		});
 		A.gui.startup();

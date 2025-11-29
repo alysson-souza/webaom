@@ -114,11 +114,13 @@ public class A {
 		// A.mem1 = A.getUsed();
 		gui = new JPanelMain();
 		fschema = U.fileToString(System.getProperty("user.home") + File.separator + ".webaom.htm");
-		if (fschema == null)
+		if (fschema == null) {
 			fschema = A.getFileString("file.htm");
+		}
 
-		if (font.length() > 0)
+		if (font.length() > 0) {
 			setFont(font);
+		}
 		// A.mem2 = A.getUsed();
 	}
 
@@ -127,10 +129,10 @@ public class A {
 			Options o = new Options();
 			if (o.onDisk()) {
 				gui.opts(o);
-				if (!A.opt.equals(o))
-					if (o.getB(Options.B_AUTOSAV))
+				if (!A.opt.equals(o)) {
+					if (o.getB(Options.B_AUTOSAV)) {
 						o.save();
-					else
+					} else {
 						switch (yes_no_cancel("The options has changed", "Do you want to save them?")) {
 							case 0 :
 								o.save();
@@ -139,6 +141,8 @@ public class A {
 							case 2 :
 								return false;
 						}
+					}
+				}
 			}
 		}
 		gui.reset();
@@ -148,7 +152,7 @@ public class A {
 
 	public static void setFont(String f) {
 		int i = f.lastIndexOf(','), size = 11;
-		if (i > 0)
+		if (i > 0) {
 			try {
 				String s = f.substring(i + 1);
 				f = f.substring(0, i).trim();
@@ -156,6 +160,7 @@ public class A {
 			} catch (NumberFormatException e) {
 				//
 			}
+		}
 		Font fo = new Font(f, Font.PLAIN, size);
 		WebAOM.setMyFont(fo, fo);
 		SwingUtilities.updateComponentTreeUI(gui);
@@ -194,8 +199,9 @@ public class A {
 			int buf_size = 1024;
 			byte[] buffer = new byte[buf_size];
 			int read;
-			while ((read = is.read(buffer, 0, buf_size)) > 0)
+			while ((read = is.read(buffer, 0, buf_size)) > 0) {
 				str += new String(buffer, 0, read);
+			}
 			return str;
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -209,8 +215,9 @@ public class A {
 	}
 
 	public static void deleteFile(File f, String s) {
-		if (f.delete())
+		if (f.delete()) {
 			System.out.println("$ Deleted " + f + " (" + s + ")");
+		}
 	}
 
 	public static void dumpStats() {
@@ -221,14 +228,16 @@ public class A {
 		Base b, c;
 		for (int i = 0; i < A.p.size(); i++) {
 			b = A.p.get(i);
-			if (b == null)
+			if (b == null) {
 				continue;
+			}
 			b.mkArray();
 			sub0 += b.size();
 			for (int j = 0; j < b.size(); j++) {
 				c = b.get(j);
-				if (c != null)
+				if (c != null) {
 					sub1 += c.size();
+				}
 			}
 		}
 		System.out.println("@ Tree: " + A.p.size() + ", " + sub0 + ", " + sub1);

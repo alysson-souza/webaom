@@ -51,15 +51,21 @@ public class Options {
 	}
 
 	public boolean equals(Options o) {
-		for (int i = 0; i < B_LEN; i++)
-			if (mBa[i] != o.mBa[i])
+		for (int i = 0; i < B_LEN; i++) {
+			if (mBa[i] != o.mBa[i]) {
 				return false;
-		for (int i = 0; i < I_LEN; i++)
-			if (mIa[i] != o.mIa[i])
+			}
+		}
+		for (int i = 0; i < I_LEN; i++) {
+			if (mIa[i] != o.mIa[i]) {
 				return false;
-		for (int i = 0; i < S_LEN; i++)
-			if (!strcmp(mSa[i], o.mSa[i]))
+			}
+		}
+		for (int i = 0; i < S_LEN; i++) {
+			if (!strcmp(mSa[i], o.mSa[i])) {
 				return false;
+			}
+		}
 		return true;
 	}
 
@@ -68,8 +74,9 @@ public class Options {
 	}
 
 	public void save() {
-		if (!onDisk() && !A.confirm("Warning", "Options will be stored here:\n" + path(), "Continue", "Cancel"))
+		if (!onDisk() && !A.confirm("Warning", "Options will be stored here:\n" + path(), "Continue", "Cancel")) {
 			return;
+		}
 		try {
 			FileOutputStream fo = new FileOutputStream(m_file);
 			fo.write(enc().getBytes(StandardCharsets.UTF_8));
@@ -81,8 +88,9 @@ public class Options {
 	}
 
 	public boolean load() {
-		if (!onDisk())
+		if (!onDisk()) {
 			return false;
+		}
 		try {
 			FileInputStream fw = new FileInputStream(m_file);
 			int len = (int) m_file.length(), off = 0, read;
@@ -144,44 +152,50 @@ public class Options {
 
 	private String encB() {
 		String bool = "";
-		for (int i = 0; i < B_LEN; i++)
+		for (int i = 0; i < B_LEN; i++) {
 			bool += mBa[i] ? '1' : '0';
+		}
 		return bool;
 	}
 
 	private void decB(String bool) {
 		char[] c = bool.toCharArray();
-		for (int i = 0; i < B_LEN; i++)
+		for (int i = 0; i < B_LEN; i++) {
 			mBa[i] = (c[i] == '1');
+		}
 	}
 
 	private String encI() {
 		String ints = "";
-		for (int i = 0; i < I_LEN; i++)
+		for (int i = 0; i < I_LEN; i++) {
 			ints += mIa[i] + Options.S_SEP;
+		}
 		return ints;
 	}
 
 	private void decI(String str) {
 		StringTokenizer st = new StringTokenizer(str, Options.S_SEP);
-		for (int i = 0; i < I_LEN; i++)
+		for (int i = 0; i < I_LEN; i++) {
 			mIa[i] = Integer.parseInt(st.nextToken());
+		}
 	}
 
 	private String encS() {
 		String s = "";
-		for (int i = 0; i < S_LEN; i++)
+		for (int i = 0; i < S_LEN; i++) {
 			s += ((mSa[i] == null || mSa[i].length() == 0) ? "null" : mSa[i]) + S_SEP2;
+		}
 		return s;
 	}
 
 	private void decS(StringTokenizer st) {
 		String tmp;
 		for (int i = 0; i < S_LEN; i++) {
-			if (st.hasMoreTokens())
+			if (st.hasMoreTokens()) {
 				tmp = st.nextToken();
-			else
+			} else {
 				tmp = null;
+			}
 			mSa[i] = (tmp == null || tmp.equals("null")) ? "" : tmp;
 		}
 	}

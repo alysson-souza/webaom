@@ -69,13 +69,15 @@ public class DB {
 
 	private void _execStr(String s, boolean silent) {
 		String[] a = s.split("\\;");
-		for (int i = 0; i < a.length; i++)
+		for (int i = 0; i < a.length; i++) {
 			exec(a[i], silent);
+		}
 	}
 
 	public boolean _init(String dbstr) {
-		if (mBinitd)
+		if (mBinitd) {
 			return false;
+		}
 		try {
 			if (dbstr.startsWith("!")) {
 				mBallj = true;
@@ -106,14 +108,16 @@ public class DB {
 				}
 			}
 
-			if (!_connect())
+			if (!_connect()) {
 				return false;
+			}
 			if (!_updateDef()) {
 				_shutdown();
 				return false;
 			}
-			if (mBclean)
+			if (mBclean) {
 				_clean();
+			}
 			return true;
 		} catch (Exception e) {
 			A.dialog("Database:", e.toString());
@@ -138,15 +142,17 @@ public class DB {
 
 			String str = dbstr.toLowerCase();
 			int j = str.indexOf("&password=");
-			if (j < 0)
+			if (j < 0) {
 				j = dbstr.length();
-			else
+			} else {
 				mSp = dbstr.substring(j + 10);
+			}
 			int i = str.indexOf("?user=");
-			if (i < 0)
+			if (i < 0) {
 				i = j;
-			else
+			} else {
 				mSu = dbstr.substring(i + 6, j);
+			}
 			mSc = dbstr.substring(0, i);
 
 			return true;
@@ -158,17 +164,19 @@ public class DB {
 
 	private boolean _connect() {
 		mBinitd = false;
-		if (con != null)
+		if (con != null) {
 			try {
 				con.close();
 			} catch (SQLException e) {
 				// don't care
 			}
+		}
 		try {
-			if (mSp != null)
+			if (mSp != null) {
 				con = DriverManager.getConnection(mSc, mSu, mSp);
-			else
+			} else {
 				con = DriverManager.getConnection(mSc + "?user=" + mSu);
+			}
 			stmt = con.createStatement(ResultSet.TYPE_SCROLL_SENSITIVE, ResultSet.CONCUR_UPDATABLE);
 
 			psu = new PreparedStatement[I_L];
@@ -209,18 +217,22 @@ public class DB {
 	public volatile boolean debug = true;
 
 	private void _out(Object o) {
-		if (debug)
+		if (debug) {
 			System.out.println(o);
+		}
 	}
 
 	public void _shutdown() {
-		if (!mBinitd)
+		if (!mBinitd) {
 			return;
+		}
 		try {
-			if (stmt != null)
+			if (stmt != null) {
 				stmt.close();
-			if (con != null)
+			}
+			if (con != null) {
 				con.close();
+			}
 		} catch (SQLException e) {
 			_exception(e);
 		}
@@ -233,40 +245,50 @@ public class DB {
 			ResultSet rs = query("select state from mylist where lid=0", silent);
 			if (rs != null && rs.next()) { // old system
 				int v = rs.getInt(1);
-				if (v < 1)
+				if (v < 1) {
 					_execStr(A.getFileString("db01.sql"), silent);
-				if (v < 2)
+				}
+				if (v < 2) {
 					_execStr(A.getFileString("db02.sql"), silent);
+				}
 			} else { // new system or none db defined
 				rs = query("select ver from vtb;", silent);
 				if (rs != null && rs.next()) {
 					int v = rs.getInt(1);
-					if (v < 4)
+					if (v < 4) {
 						if (!A.confirm("Warning",
 								"The database definition has to be upgraded.\n"
 										+ "This will make it uncompatible with previous versions of" + " WebAOM.\n"
 										+ "Do you want to continue? (Backup now, if needed.)",
-								"Yes", "No"))
+								"Yes", "No")) {
 							return false;
-					if (v < 1)
+						}
+					}
+					if (v < 1) {
 						_execStr(A.getFileString("db03.sql"), silent);
-					if (v < 2)
+					}
+					if (v < 2) {
 						_execStr(A.getFileString("db04.sql"), silent);
-					if (v < 3)
+					}
+					if (v < 3) {
 						_execStr(A.getFileString("db05.sql"), silent);
-					if (v < 4)
+					}
+					if (v < 4) {
 						_execStr(A.getFileString("db06.sql"), silent);
+					}
 					if (v < 5) {
-						if (mBpgre)
+						if (mBpgre) {
 							_execStr(A.getFileString("db07a.sql"), silent);
-						else
+						} else {
 							_execStr(A.getFileString("db07b.sql"), silent);
+						}
 					}
 					if (v < 6) {
-						if (mBpgre)
+						if (mBpgre) {
 							_execStr(A.getFileString("db08a.sql"), silent);
-						else
+						} else {
 							_execStr(A.getFileString("db08b.sql"), silent);
+						}
 					}
 				} else {
 					// Initialize new database with appropriate schema
@@ -305,50 +327,60 @@ public class DB {
 	}
 
 	private boolean exec(String cmd, boolean silent, int ply) {
-		if (!mBinitd)
+		if (!mBinitd) {
 			return false;
+		}
 		try {
-			if (!silent)
+			if (!silent) {
 				_out("} " + cmd);
+			}
 			stmt.execute(cmd);
 			return true;
 		} catch (SQLException e) {
 			if (comex(e.getMessage())) {
 				_out("! CommunicationsException: " + e.getMessage());
-				if (ply > 0 && _connect())
+				if (ply > 0 && _connect()) {
 					return exec(cmd, silent, ply - 1);
+				}
 				return false;
 			}
-			if (!silent)
+			if (!silent) {
 				if (e.getErrorCode() != 1062) {
 					_out("! DB Error Code: " + e.getErrorCode());
 					_exception(e);
-				} else
+				} else {
 					_out("{ DUPE!");
+				}
+			}
 			return false;
 		}
 	}
 
 	private ResultSet query(String cmd, boolean silent, int ply) {
-		if (!mBinitd)
+		if (!mBinitd) {
 			return null;
+		}
 		try {
-			if (!silent)
+			if (!silent) {
 				_out("} " + cmd);
+			}
 			return stmt.executeQuery(cmd);
 		} catch (SQLException e) {
 			if (comex(e.getMessage())) {
 				_out("! CommunicationsException: " + e.getMessage());
-				if (ply > 0 && _connect())
+				if (ply > 0 && _connect()) {
 					return query(cmd, silent, ply - 1);
+				}
 				return null;
 			}
-			if (!silent)
+			if (!silent) {
 				if (e.getErrorCode() != 1062) {
 					_out("! DB Error Code: " + e.getErrorCode());
 					_exception(e);
-				} else
+				} else {
 					_out("{ DUPE!");
+				}
+			}
 			return null;
 		}
 	}
@@ -396,8 +428,9 @@ public class DB {
 			ps.setString(i++, g.sname);
 			ps.setInt(i++, id);
 		} else if (o instanceof Job j) {
-			if (j.mIdid < 1)
+			if (j.mIdid < 1) {
 				j.mIdid = getDid(j.m_fc.getParent());
+			}
 			ps.setString(i++, j.m_fc.getName());
 			ps.setInt(i++, j.mIdid);
 			ps.setInt(i++, j.getStatus());
@@ -408,28 +441,33 @@ public class DB {
 			ps.setInt(i++, j.m_fa != null ? j.m_fa.fid : 0);
 			ps.setInt(i++, j.mIlid);
 			ps.setString(i++, j.m_fi == null ? null : j.m_fi.m_xml);
-			if (j.m_fc.exists())
+			if (j.m_fc.exists()) {
 				ps.setLong(i++, j.m_fc.length());
-			else
+			} else {
 				ps.setLong(i++, j.mLs);
+			}
 			ps.setString(i++, j._ed2);
-			if (u)
+			if (u) {
 				ps.setString(i, j.mSo);
+			}
 		}
 		return i;
 	}
 
 	private int getDid(String path) {
-		if (!mBinitd)
+		if (!mBinitd) {
 			return -1;
-		if (path == null)
+		}
+		if (path == null) {
 			path = "";
+		}
 		try {
 			path = U.replace(path, "\\", "\\\\");
 			path = U.replace(path, "'", "\\'");
 			Object obj = m_hmd.get(path);
-			if (obj != null)
+			if (obj != null) {
 				return ((Integer) obj).intValue();
+			}
 			ResultSet rs = query("select did from dtb where name='" + path + "'", false);
 			if (rs.first()) {
 				int did = rs.getInt(1);
@@ -439,8 +477,9 @@ public class DB {
 			_out("} insert into dtb (name) values ('" + path + "')");
 			if (mBpgre) {
 				stmt.execute("insert into dtb (name) values ('" + path + "');SELECT currval('dtb_did_seq')");
-				if (!stmt.getMoreResults())
+				if (!stmt.getMoreResults()) {
 					return -1;
+				}
 				rs = stmt.getResultSet(); // stmt.getGeneratedKeys();
 				if (rs.first()) {
 					int did = rs.getInt(1);
@@ -463,8 +502,9 @@ public class DB {
 	}
 
 	public synchronized Base getGeneric(int id, int t) {
-		if (!mBinitd)
+		if (!mBinitd) {
 			return null;
+		}
 		try {
 			if (t == I_E) {
 				Ep ae = new Ep(id);
@@ -493,8 +533,9 @@ public class DB {
 					int i = 1;
 					String[] s = new String[9];
 					s[0] = "" + id;
-					for (int j = 1; j < s.length; j++)
+					for (int j = 1; j < s.length; j++) {
 						s[i] = rs.getString(i++);
+					}
 					Anime a = new Anime(s);
 					_out("{ " + a);
 					return a;
@@ -508,13 +549,14 @@ public class DB {
 	}
 
 	public synchronized int getJob(Job j, boolean ed) {
-		if (!mBinitd)
+		if (!mBinitd) {
 			return -1;
+		}
 		try {
 			ResultSet rs;
-			if (ed)
+			if (ed) {
 				rs = query(sqjob + " and j.size=" + j.m_fc.length() + " and j.ed2k=" + s(j._ed2) + ";", false);
-			else {
+			} else {
 				int did = getDid(j.m_fc.getParent());
 				rs = query(sqjob + " and j.size=" + j.m_fc.length() + " and j.name=" + s(j.m_fc.getName())
 						+ " and j.did=" + did + ";", false);
@@ -522,8 +564,9 @@ public class DB {
 			if (rs.first()) {
 				int i = 1;
 				j.m_fn = new File(rs.getString(i++) + File.separatorChar + rs.getString(i++));
-				if (j.m_fc.equals(j.m_fn))
+				if (j.m_fc.equals(j.m_fn)) {
 					j.m_fn = null;
+				}
 				int status = rs.getInt(i++);
 				// j.setStatus(rs.getInt(i++), false);
 				mkJob(rs, i, j);
@@ -538,15 +581,17 @@ public class DB {
 	}
 
 	public synchronized void getJobs() {
-		if (!mBinitd)
+		if (!mBinitd) {
 			return;
+		}
 		try {
 			Job j;
 			ResultSet rs;
-			if (mBallj)
+			if (mBallj) {
 				rs = query(sqjob + " ORDER BY j.time", false);
-			else
+			} else {
 				rs = query(sqjob + " and j.status!=" + Job.FINISHED + " ORDER BY j.time", false);
+			}
 
 			while (rs.next()) {
 				int i = 1;
@@ -554,8 +599,9 @@ public class DB {
 				// if(!f.exists()||f.getParent().startsWith("I:")) continue;
 				j = new Job(f, rs.getInt(i++));
 				mkJob(rs, i, j);
-				if (!A.jobs.add(j))
+				if (!A.jobs.add(j)) {
 					U.err("DB: Dupe: " + j);
+				}
 			}
 		} catch (SQLException e) {
 			_exception(e);
@@ -574,20 +620,23 @@ public class DB {
 		i++; // j.mIuid = rs.getInt(i++);
 		j.mIlid = rs.getInt(i++);
 		String xml = rs.getString(i++);
-		if (xml != null && xml.length() > 0)
+		if (xml != null && xml.length() > 0) {
 			try {
 				j.m_fi = new FileInfo(xml);
 			} catch (Exception e) {
 				j.m_fi = null;
 			}
+		}
 		int fid = rs.getInt(i);
 		if (fid > 0) {
 			String[] s = new String[20];
-			for (int x = 0; x < 20; x++)
+			for (int x = 0; x < 20; x++) {
 				s[x] = rs.getString(i++);
+			}
 
-			if (s[18] == null || s[18].length() < 1)
+			if (s[18] == null || s[18].length() < 1) {
 				s[18] = j.getExtension();
+			}
 
 			String def = s[4];
 			s[4] = "" + j.mIlid;
@@ -597,8 +646,9 @@ public class DB {
 			j.m_fa.def = def;
 			j.m_fa.pack();
 			s = new String[5];
-			for (int x = 0; x < s.length; x++)
+			for (int x = 0; x < s.length; x++) {
 				s[x] = rs.getString(i++);
+			}
 			A.cache.add(new Ep(s), 0, DB.I_E);
 		}
 	}
@@ -608,8 +658,9 @@ public class DB {
 	}
 
 	private String s(String s) {
-		if (s == null)
+		if (s == null) {
 			return "NULL";
+		}
 		return "'" + U.replace(s, "'", "\\'") + "'";
 	}
 
@@ -622,31 +673,37 @@ public class DB {
 			return update1(id, o, typ);
 		} catch (SQLException e) {
 			_out("! CommunicationsException: " + e.getMessage());
-			if (ply > 0 && _connect())
+			if (ply > 0 && _connect()) {
 				return update2(id, o, typ, ply - 1);
+			}
 		}
 		return false;
 	}
 
 	private boolean update1(int id, Object o, int typ) throws SQLException {
-		if (!mBinitd)
+		if (!mBinitd) {
 			return false;
+		}
 		try {
 			fill(1, psu[typ], id, o, false);
-			if (update(psu[typ]) > 0)
+			if (update(psu[typ]) > 0) {
 				return true;
+			}
 		} catch (SQLException e) {
-			if (comex(e.getMessage()))
+			if (comex(e.getMessage())) {
 				throw e;
+			}
 			_exception(e);
 		}
 		try {
 			fill(1, psi[typ], id, o, true);
-			if (update(psi[typ]) > 0)
+			if (update(psi[typ]) > 0) {
 				return true;
+			}
 		} catch (SQLException e) {
-			if (comex(e.getMessage()))
+			if (comex(e.getMessage())) {
 				throw e;
+			}
 			_exception(e);
 		}
 		return false;
@@ -656,12 +713,13 @@ public class DB {
 		String str = ps.toString();
 		if (!mBpgre) {
 			int i = str.indexOf(": ");
-			if (i > 0)
+			if (i > 0) {
 				str = str.substring(i + 2);
-			else {
+			} else {
 				i = str.indexOf(" - ");
-				if (i > 0)
+				if (i > 0) {
 					str = str.substring(i + 3);
+				}
 			}
 		}
 		_out("} " + str);

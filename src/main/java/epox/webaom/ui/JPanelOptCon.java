@@ -69,8 +69,9 @@ public class JPanelOptCon extends JPanel implements ChangeListener {
 
 		KeyAdapter on = new KeyAdapter() {
 			public void keyTyped(KeyEvent e) {
-				if (!Character.isDigit(e.getKeyChar()))
+				if (!Character.isDigit(e.getKeyChar())) {
 					e.consume();
+				}
 			}
 		};
 		tfRPort.addKeyListener(on);
@@ -156,17 +157,19 @@ public class JPanelOptCon extends JPanel implements ChangeListener {
 		tfHost.setText(o.getS(Options.S_HOSTURL));
 
 		int i = o.getI(Options.I_TIMEO);
-		if (i < MIN_PTO)
+		if (i < MIN_PTO) {
 			i = MIN_PTO;
-		else if (i > 60)
+		} else if (i > 60) {
 			i = 60;
+		}
 		jsTime.setValue(i);
 
 		i = o.getI(Options.I_DELAY);
-		if (i < MIN_IPD)
+		if (i < MIN_IPD) {
 			i = MIN_IPD;
-		else if (i > 10)
+		} else if (i > 10) {
 			i = 10;
+		}
 		jsDelay.setValue(i);
 
 		jcbNat.setSelected(o.getB(Options.B_NATKEEP));

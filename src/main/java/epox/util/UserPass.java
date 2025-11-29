@@ -55,14 +55,16 @@ public class UserPass {
 	}
 
 	public String get(boolean sp) {
-		if (!sp)
+		if (!sp) {
 			return usr;
+		}
 		return usr + ":" + nne(psw) + ":" + nne(key);
 	}
 
 	private static String nne(String s) {
-		if (s == null || s.length() < 1)
+		if (s == null || s.length() < 1) {
 			return "";
+		}
 		return enc(s);
 	}
 

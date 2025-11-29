@@ -84,8 +84,9 @@ public class JPanelJobs extends JPanel implements ActionListener {
 		if (jcbArr[I_CRC].isSelected()) {
 			mIf |= AFile.F_CRCERR;
 		}
-		if (jcbArr[I_CEN].isSelected())
+		if (jcbArr[I_CEN].isSelected()) {
 			mIf |= AFile.F_UNC;
+		}
 		mBu = jcbArr[I_UNK].isSelected();
 
 		filter();
@@ -124,12 +125,15 @@ public class JPanelJobs extends JPanel implements ActionListener {
 		// System.out.println(Long.toBinaryString(mask));
 		for (i = 0; i < x.length; i++) {
 			m.moveColumn(x[i], i);
-			for (int j = i + 1; j < x.length; j++)
-				if (x[j] < x[i])
+			for (int j = i + 1; j < x.length; j++) {
+				if (x[j] < x[i]) {
 					x[j]++;
+				}
+			}
 		}
-		if (mask == 0)
+		if (mask == 0) {
 			mask = TableModelJobs.MASK;
+		}
 		m_jtj.m_hl.setMask(mask);
 	}
 
@@ -137,14 +141,15 @@ public class JPanelJobs extends JPanel implements ActionListener {
 
 	public void update() {
 		m_ucnt++;
-		if (m_ucnt % 4 == 0 && jcbArr[I_UPD].isSelected())
+		if (m_ucnt % 4 == 0 && jcbArr[I_UPD].isSelected()) {
 			filter();
-		else {
+		} else {
 			int x = m_jst.getTopVisibleRow();
 			int y = m_jst.getBottomVisibleRow();
 
-			if (x >= 0 || y > x)
+			if (x >= 0 || y > x) {
 				m_jlm.fireTableRowsUpdated(x, y);
+			}
 		}
 	}
 

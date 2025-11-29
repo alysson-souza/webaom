@@ -38,9 +38,11 @@ public class JComboBoxLF extends JComboBox {
 		});
 		String s = UIManager.getLookAndFeel().getClass().getCanonicalName();
 		int i;
-		for (i = 0; i < lf.length; i++)
-			if (s.equals(lf[i].getClassName()))
+		for (i = 0; i < lf.length; i++) {
+			if (s.equals(lf[i].getClassName())) {
 				break;
+			}
+		}
 		setSelectedIndex(i);
 		setToolTipText("Select wanted look and feel here.");
 	}

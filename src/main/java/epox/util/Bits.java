@@ -14,8 +14,9 @@ public class Bits {
 	}
 
 	public boolean get(int i) {
-		if (i >= mIlen)
+		if (i >= mIlen) {
 			return false;
+		}
 		return (1 & (mBuse[i / 8] >> (i % 8))) == 1;
 	}
 
@@ -29,12 +30,14 @@ public class Bits {
 	 * @return false if the index is out of bounds.
 	 */
 	public boolean set(int i, boolean b) {
-		if (i >= mIlen)
+		if (i >= mIlen) {
 			return false;
-		if (b)
+		}
+		if (b) {
 			mBuse[i / 8] |= (byte) (1 << (i % 8));
-		else
+		} else {
 			mBuse[i / 8] &= (byte) ~(1 << (i % 8));
+		}
 		return true;
 	}
 
@@ -47,25 +50,28 @@ public class Bits {
 	 */
 	public boolean fill(boolean b) {
 		if (b) {
-			for (int i = 0; i < mIlen; i++)
+			for (int i = 0; i < mIlen; i++) {
 				if (!get(i)) {
 					set(i, true);
 					return true;
 				}
+			}
 			return false;
 		}
-		for (int i = mIlen - 1; i >= 0; i--)
+		for (int i = mIlen - 1; i >= 0; i--) {
 			if (get(i)) {
 				set(i, false);
 				return true;
 			}
+		}
 		return false;
 	}
 
 	public String toString() {
 		StringBuffer sb = new StringBuffer(mIlen);
-		for (int i = 0; i < mIlen; i++)
+		for (int i = 0; i < mIlen; i++) {
 			sb.append(get(i) ? 1 : 0);
+		}
 		return sb.toString();
 	}
 
@@ -76,9 +82,11 @@ public class Bits {
 	 */
 	public int cnt() {
 		int x = 0;
-		for (int i = 0; i < mIlen; i++)
-			if (get(i))
+		for (int i = 0; i < mIlen; i++) {
+			if (get(i)) {
 				x++;
+			}
+		}
 		return x;
 	}
 
@@ -104,27 +112,32 @@ public class Bits {
 		// if(mIlen<1) return 0;
 		boolean b = get(0);
 		int n = 0;
-		for (int i = 1; i < mIlen; i++)
+		for (int i = 1; i < mIlen; i++) {
 			if (get(i) != b) {
 				n++;
 				b = !b;
 			}
+		}
 		return n;
 	}
 
 	public boolean holex() {
 		boolean f = false;
-		for (int i = mIlen - 1; i >= 0; i--)
+		for (int i = mIlen - 1; i >= 0; i--) {
 			if (f) {
-				if (!get(i))
+				if (!get(i)) {
 					return true;
-			} else if (get(i) && !f)
+				}
+			} else if (get(i) && !f) {
 				f = true;
+			}
+		}
 		return false;
 	}
 
 	public void reset() {
-		for (int i = 0; i < mBuse.length; i++)
+		for (int i = 0; i < mBuse.length; i++) {
 			mBuse[i] = 0;
+		}
 	}
 }
