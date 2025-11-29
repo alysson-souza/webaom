@@ -112,6 +112,7 @@ public class JPopupMenuM extends JPopupMenu implements MouseListener, ActionList
 			start();
 		}
 
+		@SuppressWarnings("checkstyle:NoWhitespaceBefore")
 		public void run() {
 			ie : if (single(cmd)) {
 				try {
