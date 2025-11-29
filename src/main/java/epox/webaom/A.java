@@ -32,6 +32,7 @@ import java.awt.Component;
 import java.awt.Font;
 import java.io.File;
 import java.io.InputStream;
+import java.util.Properties;
 import javax.swing.JOptionPane;
 import javax.swing.SwingUtilities;
 
@@ -50,7 +51,25 @@ public class A {
      * 1048576f+"\t"+(mem5)/1048576f);
      * }
      */
-    public static final String S_WEB = "anidb.net", S_VER = "2.1.0 (2025-11-29)", S_N = "\r\n";
+    public static final String S_WEB = "anidb.net", S_N = "\r\n";
+    public static final String S_VER = loadVersion();
+
+    private static String loadVersion() {
+        try {
+            Properties props = new Properties();
+            InputStream is = A.class.getClassLoader().getResourceAsStream("version.properties");
+            if (is != null) {
+                props.load(is);
+                String version = props.getProperty("version");
+                String buildDate = props.getProperty("buildDate");
+                return version + " (" + buildDate + ")";
+            }
+        } catch (Exception e) {
+            // Fallback if properties file can't be loaded
+        }
+        return "unknown";
+    }
+
     public static String fschema, dir = null, preg = null /* "^.*$" */, font = "";
     public static int ASNO = 99, ASSP = 99;
 
