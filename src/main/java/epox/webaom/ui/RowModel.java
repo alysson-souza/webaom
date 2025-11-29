@@ -23,8 +23,8 @@ package epox.webaom.ui;
 import epox.webaom.Job;
 
 public interface RowModel {
-    // public int getSelectedRow();
-    // public int[] convertRow(int row);
-    Job[] getJobs(int row);
-    // public void updateRow(Job j);
+	// public int getSelectedRow();
+	// public int[] convertRow(int row);
+	Job[] getJobs(int row);
+	// public void updateRow(Job j);
 }

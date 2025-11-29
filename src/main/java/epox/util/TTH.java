@@ -27,25 +27,25 @@ import com.bitzi.util.Base32;
 import com.bitzi.util.TigerTree;
 
 public class TTH extends jonelo.jacksum.algorithm.AbstractChecksum {
-    private final TigerTree tt;
+	private final TigerTree tt;
 
-    public TTH() {
-        tt = new TigerTree();
-    }
+	public TTH() {
+		tt = new TigerTree();
+	}
 
-    public void update(byte[] buffer, int offset, int len) {
-        tt.update(buffer, offset, len);
-    }
+	public void update(byte[] buffer, int offset, int len) {
+		tt.update(buffer, offset, len);
+	}
 
-    public void reset() {
-        tt.reset();
-    }
+	public void reset() {
+		tt.reset();
+	}
 
-    public void update(int b) {
-        tt.update((byte) b);
-    }
+	public void update(int b) {
+		tt.update((byte) b);
+	}
 
-    public String getHexValue() {
-        return Base32.encode(tt.digest()).toLowerCase();
-    }
+	public String getHexValue() {
+		return Base32.encode(tt.digest()).toLowerCase();
+	}
 }

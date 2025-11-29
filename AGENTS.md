@@ -39,8 +39,9 @@ Third-party code in `com/`, `gnu/`, `jonelo/` packages is excluded from formatti
 ## Code Style
 
 ### Formatting
-- Google Java Format (AOSP variant) via Spotless - only applies to `epox/**/*.java`
-- Line length: 120 chars (info-level)
+- Eclipse formatter via Spotless - only applies to `epox/**/*.java`
+- Configuration: `config/eclipse-formatter.xml`
+- Tabs for indentation (size 4), line length 120 chars
 - UTF-8 encoding for all Java files
 - Java 21 toolchain
 - No star imports, unused imports removed automatically

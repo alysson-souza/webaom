@@ -30,55 +30,56 @@ import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
 
 public class JPanelCommand extends JPanel implements ActionListener, Log {
-    private final JTextArea jta;
-    private final JComboBox jcb;
-    private final JScrollPane jsp;
+	private final JTextArea jta;
+	private final JComboBox jcb;
+	private final JScrollPane jsp;
 
-    private final CommandModel cm;
+	private final CommandModel cm;
 
-    public JPanelCommand(CommandModel cm, String str) {
-        this.cm = cm;
+	public JPanelCommand(CommandModel cm, String str) {
+		this.cm = cm;
 
-        jta = new JTextArea(str);
-        jta.setMargin(new java.awt.Insets(2, 2, 2, 2));
-        // jta.setFont(new Font("monospaced", Font.PLAIN, 12));
-        jcb = new JComboBox();
-        jcb.setBackground(Color.white);
+		jta = new JTextArea(str);
+		jta.setMargin(new java.awt.Insets(2, 2, 2, 2));
+		// jta.setFont(new Font("monospaced", Font.PLAIN, 12));
+		jcb = new JComboBox();
+		jcb.setBackground(Color.white);
 
-        jsp = new JScrollPane(jta);
+		jsp = new JScrollPane(jta);
 
-        setLayout(new BorderLayout());
-        add(jsp, BorderLayout.CENTER);
-        add(jcb, BorderLayout.SOUTH);
+		setLayout(new BorderLayout());
+		add(jsp, BorderLayout.CENTER);
+		add(jcb, BorderLayout.SOUTH);
 
-        jcb.addActionListener(this);
-        jcb.setEditable(true);
-    }
+		jcb.addActionListener(this);
+		jcb.setEditable(true);
+	}
 
-    public void actionPerformed(ActionEvent e) {
-        if (e.getActionCommand().equals("comboBoxEdited"))
-            handleCommand(jcb.getSelectedItem().toString().trim());
-    }
+	public void actionPerformed(ActionEvent e) {
+		if (e.getActionCommand().equals("comboBoxEdited"))
+			handleCommand(jcb.getSelectedItem().toString().trim());
+	}
 
-    private void handleCommand(Object o) {
-        jcb.removeItem(o);
-        if (o.toString().length() < 1) return;
-        jcb.insertItemAt(o, 0);
-        jcb.setSelectedItem("");
-        println(o);
-        cm.handleCommand(o.toString());
-    }
+	private void handleCommand(Object o) {
+		jcb.removeItem(o);
+		if (o.toString().length() < 1)
+			return;
+		jcb.insertItemAt(o, 0);
+		jcb.setSelectedItem("");
+		println(o);
+		cm.handleCommand(o.toString());
+	}
 
-    public void println(Object o) {
-        jta.append(o + "\r\n");
-        jta.setCaretPosition(jta.getDocument().getLength());
-    }
+	public void println(Object o) {
+		jta.append(o + "\r\n");
+		jta.setCaretPosition(jta.getDocument().getLength());
+	}
 
-    public void status0(String str) {
-        println(str);
-    }
+	public void status0(String str) {
+		println(str);
+	}
 
-    public void status1(String str) {
-        println(str);
-    }
+	public void status1(String str) {
+		println(str);
+	}
 }

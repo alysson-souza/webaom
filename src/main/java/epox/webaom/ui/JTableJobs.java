@@ -16,81 +16,83 @@ import javax.swing.KeyStroke;
 import javax.swing.table.TableCellRenderer;
 
 public class JTableJobs extends JTableSortable {
-    private final TableModelJobs m_jlm;
+	private final TableModelJobs m_jlm;
 
-    public JTableJobs(TableModelJobs jlm) {
-        super(jlm);
-        m_jlm = jlm;
-        final JPopupMenuM pop = new JPopupMenuM(this, jlm);
-        A.com0 = pop;
-        addMouseListener(pop);
+	public JTableJobs(TableModelJobs jlm) {
+		super(jlm);
+		m_jlm = jlm;
+		final JPopupMenuM pop = new JPopupMenuM(this, jlm);
+		A.com0 = pop;
+		addMouseListener(pop);
 
-        addMouseListener(new MouseAdapterJob(this, jlm, A.jobs));
-        getInputMap().put(KeyStroke.getKeyStroke("ESCAPE"), "stop");
-        getActionMap()
-                .put(
-                        "stop",
-                        new AbstractAction() {
-                            public void actionPerformed(ActionEvent e) {
-                                pop.stop();
-                            }
-                        });
-        addKeyListener(new KeyAdapterJob(this, jlm));
-    }
+		addMouseListener(new MouseAdapterJob(this, jlm, A.jobs));
+		getInputMap().put(KeyStroke.getKeyStroke("ESCAPE"), "stop");
+		getActionMap().put("stop", new AbstractAction() {
+			public void actionPerformed(ActionEvent e) {
+				pop.stop();
+			}
+		});
+		addKeyListener(new KeyAdapterJob(this, jlm));
+	}
 
-    private final Color c_dio = new Color(0, 102, 153);
-    private final Color c_nio = new Color(182, 0, 20);
-    private final Color c_mis = new Color(100, 100, 100);
-    private final Color c_inv = new Color(255, 180, 180);
+	private final Color c_dio = new Color(0, 102, 153);
+	private final Color c_nio = new Color(182, 0, 20);
+	private final Color c_mis = new Color(100, 100, 100);
+	private final Color c_inv = new Color(255, 180, 180);
 
-    public Component prepareRenderer(TableCellRenderer renderer, int row, int col) {
-        Component c = super.prepareRenderer(renderer, row, col);
+	public Component prepareRenderer(TableCellRenderer renderer, int row, int col) {
+		Component c = super.prepareRenderer(renderer, row, col);
 
-        if (isSelected(row)) return c;
+		if (isSelected(row))
+			return c;
 
-        Job j = (Job) m_jlm.getValueAt(row, TableModelJobs.JOB);
+		Job j = (Job) m_jlm.getValueAt(row, TableModelJobs.JOB);
 
-        if (j.isCorrupt()) {
-            c.setBackground(c_inv);
-            c.setForeground(Color.black);
-        } else {
-            c.setBackground(this.getBackground());
+		if (j.isCorrupt()) {
+			c.setBackground(c_inv);
+			c.setForeground(Color.black);
+		} else {
+			c.setBackground(this.getBackground());
 
-            if (j.check(Job.D_DIO | Job.S_DOING)) c.setForeground(c_dio);
-            else if (j.check(Job.D_NIO | Job.S_DOING)) c.setForeground(c_nio);
-            else if (j.check(Job.H_MISSING)) c.setForeground(c_mis);
-            else c.setForeground(Color.black);
-        }
+			if (j.check(Job.D_DIO | Job.S_DOING))
+				c.setForeground(c_dio);
+			else if (j.check(Job.D_NIO | Job.S_DOING))
+				c.setForeground(c_nio);
+			else if (j.check(Job.H_MISSING))
+				c.setForeground(c_mis);
+			else
+				c.setForeground(Color.black);
+		}
 
-        return c;
-    }
+		return c;
+	}
 
-    private boolean isSelected(int row) {
-        int[] a = getSelectedRows();
-        Arrays.sort(a);
-        return Arrays.binarySearch(a, row) >= 0;
-    }
+	private boolean isSelected(int row) {
+		int[] a = getSelectedRows();
+		Arrays.sort(a);
+		return Arrays.binarySearch(a, row) >= 0;
+	}
 
-    public boolean upd = true;
+	public boolean upd = true;
 
-    /*
-     * public void updateUI(){
-     * if(!isEditing()&&upd)
-     * SwingUtilities.invokeLater(new Runnable(){
-     *
-     * @SuppressWarnings("synthetic-access")
-     * public void run(){
-     * JTableJobs.super.updateUI();
-     * }
-     * });
-     * }
-     */
-    /*
-     * protected boolean processKeyBinding(KeyStroke ks, KeyEvent e, int condition, boolean pressed) {
-     * boolean retValue = super.processKeyBinding(ks, e, condition, pressed);
-     * A.dialog("HI","HO");
-     * return retValue;
-     * }
-     */
+	/*
+	 * public void updateUI(){
+	 * if(!isEditing()&&upd)
+	 * SwingUtilities.invokeLater(new Runnable(){
+	 *
+	 * @SuppressWarnings("synthetic-access")
+	 * public void run(){
+	 * JTableJobs.super.updateUI();
+	 * }
+	 * });
+	 * }
+	 */
+	/*
+	 * protected boolean processKeyBinding(KeyStroke ks, KeyEvent e, int condition, boolean pressed) {
+	 * boolean retValue = super.processKeyBinding(ks, e, condition, pressed);
+	 * A.dialog("HI","HO");
+	 * return retValue;
+	 * }
+	 */
 
 }

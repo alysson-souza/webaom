@@ -31,75 +31,76 @@ import java.io.InputStream;
 import java.util.StringTokenizer;
 
 public class FileHandler {
-    public UniqueStringList m_ext;
-    public FileFilter1 m_ff;
+	public UniqueStringList m_ext;
+	public FileFilter1 m_ff;
 
-    public FileHandler() {
-        m_ext = new UniqueStringList(Options.S_SEP);
-        m_ff = new FileFilter1();
-    }
+	public FileHandler() {
+		m_ext = new UniqueStringList(Options.S_SEP);
+		m_ff = new FileFilter1();
+	}
 
-    public synchronized void addExt(String str) {
-        m_ext.add(str);
-    }
+	public synchronized void addExt(String str) {
+		m_ext.add(str);
+	}
 
-    public synchronized void removeExt(int i) {
-        m_ext.removeElementAt(i);
-    }
+	public synchronized void removeExt(int i) {
+		m_ext.removeElementAt(i);
+	}
 
-    public synchronized boolean addFile(File file) {
-        if ((m_ext.includes(getExtension(file)) || m_ext.getSize() == 0)
-                && !A.jobs.has(file)
-                && !locked(file)) {
-            Job j = A.jobs.add(file);
-            if (j != null) {
-                j.updateHealth(Job.H_PAUSED);
-                return true;
-            }
-        }
-        return false;
-    }
+	public synchronized boolean addFile(File file) {
+		if ((m_ext.includes(getExtension(file)) || m_ext.getSize() == 0) && !A.jobs.has(file) && !locked(file)) {
+			Job j = A.jobs.add(file);
+			if (j != null) {
+				j.updateHealth(Job.H_PAUSED);
+				return true;
+			}
+		}
+		return false;
+	}
 
-    protected String getExtension(File file) {
-        int i = file.getName().lastIndexOf(".");
-        if (i < 0) return null;
-        return file.getName().substring(i + 1).toLowerCase();
-    }
+	protected String getExtension(File file) {
+		int i = file.getName().lastIndexOf(".");
+		if (i < 0)
+			return null;
+		return file.getName().substring(i + 1).toLowerCase();
+	}
 
-    private boolean locked(File f) {
-        try {
-            InputStream fis = new FileInputStream(f);
-            fis.close();
-            return false;
-        } catch (FileNotFoundException e) {
-            // e.printStackTrace();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-        return true;
-    }
+	private boolean locked(File f) {
+		try {
+			InputStream fis = new FileInputStream(f);
+			fis.close();
+			return false;
+		} catch (FileNotFoundException e) {
+			// e.printStackTrace();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+		return true;
+	}
 
-    public synchronized void opts(Options o) {
-        String ext = "";
-        Object[] t = m_ext.getStrings();
-        for (int i = 0; i < t.length; i++) ext += t[i] + Options.S_SEP;
-        o.setS(Options.S_EXTENSN, ext);
-    }
+	public synchronized void opts(Options o) {
+		String ext = "";
+		Object[] t = m_ext.getStrings();
+		for (int i = 0; i < t.length; i++)
+			ext += t[i] + Options.S_SEP;
+		o.setS(Options.S_EXTENSN, ext);
+	}
 
-    public synchronized void optl(Options o) {
-        StringTokenizer st = new StringTokenizer(o.getS(Options.S_EXTENSN), Options.S_SEP);
-        while (st.hasMoreTokens()) m_ext.add(st.nextToken());
-    }
+	public synchronized void optl(Options o) {
+		StringTokenizer st = new StringTokenizer(o.getS(Options.S_EXTENSN), Options.S_SEP);
+		while (st.hasMoreTokens())
+			m_ext.add(st.nextToken());
+	}
 
-    protected class FileFilter1 extends javax.swing.filechooser.FileFilter
-            implements java.io.FileFilter {
-        public boolean accept(File file) {
-            if (file.isDirectory()) return true;
-            return m_ext.includes(getExtension(file)) || m_ext.getSize() == 0;
-        }
+	protected class FileFilter1 extends javax.swing.filechooser.FileFilter implements java.io.FileFilter {
+		public boolean accept(File file) {
+			if (file.isDirectory())
+				return true;
+			return m_ext.includes(getExtension(file)) || m_ext.getSize() == 0;
+		}
 
-        public String getDescription() {
-            return "Me WANTS!";
-        }
-    }
+		public String getDescription() {
+			return "Me WANTS!";
+		}
+	}
 }

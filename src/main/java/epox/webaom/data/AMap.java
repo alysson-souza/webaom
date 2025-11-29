@@ -19,28 +19,29 @@ package epox.webaom.data;
 import java.util.HashMap;
 
 public class AMap extends HashMap /* !<String,String> */ {
-    public String put(String key, String value) {
-        if (value == null) return null;
-        return (String) super.put(key, value);
-    }
+	public String put(String key, String value) {
+		if (value == null)
+			return null;
+		return (String) super.put(key, value);
+	}
 
-    public Object put(String key, int value) {
-        return put(key, "" + value);
-    }
+	public Object put(String key, int value) {
+		return put(key, "" + value);
+	}
 
-    public Object put(String key, long value) {
-        return put(key, "" + value);
-    }
+	public Object put(String key, long value) {
+		return put(key, "" + value);
+	}
 
-    public String[][] toArray() {
-        Object[] keys = this.keySet().toArray();
-        Object[] vals = this.values().toArray();
-        int len = keys.length;
-        String[][] res = new String[len][2];
-        for (int i = 0; i < len; i++) {
-            res[i][0] = (String) keys[i];
-            res[i][1] = (String) vals[i];
-        }
-        return res;
-    }
+	public String[][] toArray() {
+		Object[] keys = this.keySet().toArray();
+		Object[] vals = this.values().toArray();
+		int len = keys.length;
+		String[][] res = new String[len][2];
+		for (int i = 0; i < len; i++) {
+			res[i][0] = (String) keys[i];
+			res[i][1] = (String) vals[i];
+		}
+		return res;
+	}
 }

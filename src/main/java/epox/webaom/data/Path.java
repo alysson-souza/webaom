@@ -5,17 +5,17 @@
 package epox.webaom.data;
 
 public class Path extends Base {
-    private final String mSp;
+	private final String mSp;
 
-    public Path(String p) {
-        mSp = p;
-    }
+	public Path(String p) {
+		mSp = p;
+	}
 
-    public Object getKey() {
-        return mSp;
-    }
+	public Object getKey() {
+		return mSp;
+	}
 
-    public String toString() {
-        return mSp;
-    }
+	public String toString() {
+		return mSp;
+	}
 }

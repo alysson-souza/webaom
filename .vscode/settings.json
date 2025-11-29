@@ -1,0 +1,9 @@
+{
+    "java.configuration.updateBuildConfiguration": "automatic",
+    "[java]": {
+        "editor.defaultFormatter": "josevseb.google-java-format-for-vs-code",
+        "editor.formatOnSave": true
+    },
+    "java.format.settings.google.version": "1.32.0",
+    "java.format.settings.google.extra": "--aosp --reflow-long-strings"
+}
