@@ -25,18 +25,18 @@ repositories {
 
 dependencies {
 	runtimeOnly 'org.postgresql:postgresql:42.7.7'
-	runtimeOnly 'com.mysql:mysql-connector-j:9.1.0'
+	runtimeOnly 'com.mysql:mysql-connector-j:9.3.0'
 }
 
-task generateVersionProperties {
-	doLast {
-		def propsFile = file("$buildDir/resources/main/version.properties")
-		propsFile.parentFile.mkdirs()
-		def props = new Properties()
-		props['version'] = project.version.toString()
-		props['buildDate'] = new Date().format('yyyy-MM-dd')
-		propsFile.withWriter { props.store(it, null) }
-	}
+tasks.register('generateVersionProperties') {
+    doLast {
+        def propsFile = file("$buildDir/resources/main/version.properties")
+        propsFile.parentFile.mkdirs()
+        def props = new Properties()
+        props['version'] = project.version.toString()
+        props['buildDate'] = new Date().format('yyyy-MM-dd')
+        propsFile.withWriter { props.store(it, null) }
+    }
 }
 
 processResources.dependsOn generateVersionProperties
