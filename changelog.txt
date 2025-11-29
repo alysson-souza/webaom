@@ -1,11 +1,12 @@
 Please note that this version is marked "unstable", meaning it can be broken from time
 to time. Do at least check the changelog for relevant info before using it.
 
-2.1.0 28.11.2025:
+2.1.0 29.11.2025:
 *Upgraded Java runtime to Java 21 LTS.
 *Updated PostgreSQL JDBC driver to 42.7.7 (fixes CVE-2024-1597 and CVE-2025-49146).
 *Updated MySQL Connector/J to 9.1.0.
 *Regenerated Gradle wrapper for compatibility with Java 21.
+*Jobs table columns now display user-friendly descriptions instead of cryptic tags (e.g., "Mylist ID" instead of "lid").
 
 2.0.0 16.11.2025:
 *Added automatic embedded database support. If PostgreSQL/MySQL is unavailable, WebAOM will now use an embedded database automatically.
