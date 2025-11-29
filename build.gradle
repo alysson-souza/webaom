@@ -30,7 +30,7 @@ dependencies {
 
 tasks.register('generateVersionProperties') {
     doLast {
-        def propsFile = file("$buildDir/resources/main/version.properties")
+        def propsFile = file("${layout.buildDirectory.get()}/resources/main/version.properties")
         propsFile.parentFile.mkdirs()
         def props = new Properties()
         props['version'] = project.version.toString()
