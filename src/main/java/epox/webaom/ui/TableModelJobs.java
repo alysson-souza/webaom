@@ -31,85 +31,11 @@ import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.TableColumnModel;
 
 public class TableModelJobs extends TableModelSortable implements RowModel {
-    public static final int NUMB = 0,
-            LIDN = 1,
-            FIDN = 2,
-            AIDN = 3,
-            EIDN = 4,
-            GIDN = 5,
-            AYEA = 6,
-            AEPS = 7,
-            ALEP = 8,
-            FSIZ = 9,
-            FLEN = 10,
-            FILE = 11,
-            PATH = 12,
-            NAME = 13,
-            STAT = 14,
-            AROM = 15,
-            AKAN = 16,
-            AENG = 17,
-            ATYP = 18,
-            ENUM = 19,
-            EENG = 20,
-            EKAN = 21,
-            EROM = 22,
-            GNAM = 23,
-            GSHO = 24,
-            FDUB = 25,
-            FSUB = 26,
-            FSRC = 27,
-            FQUA = 28,
-            FRES = 29,
-            FVID = 30,
-            FAUD = 31,
-            FMDS = 32,
-            FMDA = 33,
-            AYEN = 34,
-            ccnt = 35,
-            JOB = -1;
-    public static long MASK = 1 << NUMB | 1 << FILE | 1 << STAT;
-
-    private static final String[] STRA;
-
-    static {
-        STRA = new String[ccnt];
-        STRA[NUMB] = "#";
-        STRA[LIDN] = "lid";
-        STRA[FIDN] = "fid";
-        STRA[AIDN] = "aid";
-        STRA[EIDN] = "eid";
-        STRA[GIDN] = "gid";
-        STRA[FSIZ] = "size";
-        STRA[FLEN] = "len";
-        STRA[PATH] = "path";
-        STRA[NAME] = "name";
-        STRA[FILE] = "file";
-        STRA[STAT] = "status";
-        STRA[AKAN] = "kan";
-        STRA[AROM] = "ann";
-        STRA[AENG] = "eng";
-        STRA[AYEA] = "yea";
-        STRA[AYEN] = "yen";
-        STRA[AEPS] = "eps";
-        STRA[ALEP] = "lep";
-        STRA[ATYP] = "typ";
-        STRA[EKAN] = "epk";
-        STRA[EROM] = "epr";
-        STRA[EENG] = "epn";
-        STRA[ENUM] = "enr";
-        STRA[GNAM] = "grn";
-        STRA[GSHO] = "grp";
-        STRA[FDUB] = "dub";
-        STRA[FSUB] = "sub";
-        STRA[FSRC] = "src";
-        STRA[FQUA] = "qua";
-        STRA[FRES] = "res";
-        STRA[FVID] = "vid";
-        STRA[FAUD] = "aud";
-        STRA[FMDS] = "mds";
-        STRA[FMDA] = "mda";
-    }
+    public static final int JOB = JobColumn.JOB;
+    public static final long MASK =
+            (1L << JobColumn.NUMB.getIndex())
+                    | (1L << JobColumn.FILE.getIndex())
+                    | (1L << JobColumn.STAT.getIndex());
 
     private final JobList jl;
     private int m_current_row;
@@ -127,13 +53,12 @@ public class TableModelJobs extends TableModelSortable implements RowModel {
     }
 
     public int getColumnCount() {
-        return ccnt;
+        return JobColumn.getColumnCount();
     }
 
-    public Class /* !<?> */ getColumnClass(int col) {
-        if (col == FSIZ) return Long.class;
-        if (col < FILE) return Integer.class;
-        return String.class;
+    public Class<?> getColumnClass(int col) {
+        JobColumn column = JobColumn.fromIndex(col);
+        return column != null ? column.getType() : String.class;
     }
 
     public int getRowCount() {
@@ -142,129 +67,169 @@ public class TableModelJobs extends TableModelSortable implements RowModel {
 
     public Object getValueAt(int row, int col) {
         row = getRowIndex(row);
-        if (col < 1 || row != m_current_row) { // if col==0 then it is an update
+
+        if (col < 1 || row != m_current_row) {
             m_current_row = row;
             m_current_job = jl.get(row);
         }
-        Job j = m_current_job;
 
-        switch (col) {
-            case NUMB:
-                return Integer.valueOf(row + 1);
-            case FSIZ:
-                return Long.valueOf(j.mLs);
-            case PATH:
-                return j.getFile().getParent();
-            case NAME:
-                return j.getFile().getName();
-            case FILE:
-                return j.getFile().getAbsolutePath();
-            case STAT:
-                return j.getStatusText();
-            case JOB:
-                return j;
+        if (col == JOB) {
+            return m_current_job;
         }
-        if (j.m_fa == null) {
-            // return col<FILE?0:"N/A";
-            if (col < FILE) return Integer.valueOf(0);
-            return "N/A";
+
+        JobColumn column = JobColumn.fromIndex(col);
+        if (column == null) {
+            return null;
         }
-        String s = null;
-        switch (col) {
-            case LIDN:
-                return Integer.valueOf(j.mIlid); // j.m_fa.lid;
-            case FIDN:
-                return Integer.valueOf(j.m_fa.fid);
-            case AIDN:
-                return Integer.valueOf(j.m_fa.aid);
-            case EIDN:
-                return Integer.valueOf(j.m_fa.eid);
-            case GIDN:
-                return Integer.valueOf(j.m_fa.gid);
-            case AYEA:
-                return Integer.valueOf(j.m_fa.anime.yea);
-            case AYEN:
-                return Integer.valueOf(j.m_fa.anime.yen);
-            case AEPS:
-                return Integer.valueOf(j.m_fa.anime.eps);
-            case ALEP:
-                return Integer.valueOf(j.m_fa.anime.lep);
-            case FLEN:
-                return Integer.valueOf(j.m_fa.len);
-            case AKAN:
-                s = j.m_fa.anime.kan;
-                break;
-            case AROM:
-                s = j.m_fa.anime.rom;
-                break;
-            case AENG:
-                s = j.m_fa.anime.eng;
-                break;
-            case ATYP:
-                s = j.m_fa.anime.typ;
-                break;
-            case EKAN:
-                s = j.m_fa.ep.kan;
-                break;
-            case EROM:
-                s = j.m_fa.ep.rom;
-                break;
-            case EENG:
-                s = j.m_fa.ep.eng;
-                break;
-            case ENUM:
-                s = j.m_fa.ep.num;
-                break;
-            case GNAM:
-                s = j.m_fa.group.name;
-                break;
-            case GSHO:
-                s = j.m_fa.group.sname;
-                break;
-            case FDUB:
-                s = j.m_fa.dub;
-                break;
-            case FSUB:
-                s = j.m_fa.sub;
-                break;
-            case FSRC:
-                s = j.m_fa.rip;
-                break;
-            case FQUA:
-                s = j.m_fa.qua;
-                break;
-            case FRES:
-                s = j.m_fa.res;
-                break;
-            case FVID:
-                s = j.m_fa.vid;
-                break;
-            case FAUD:
-                s = j.m_fa.aud;
-                break;
-            case FMDS:
-                s = j.m_fa.mds();
-                break;
-            case FMDA:
-                s = j.m_fa.mda();
-                break;
-        }
-        return s == null ? "" : s;
+
+        return extractValue(column, m_current_job, row);
     }
 
     public boolean isCellEditable(int row, int col) {
         return false;
     }
 
+    /**
+     * Extract column value from Job. Hybrid approach: enum defines metadata, this method handles
+     * extraction. Switch statement is debuggable and clear.
+     */
+    private Object extractValue(JobColumn column, Job job, int rowNumber) {
+        if (column == JobColumn.NUMB) {
+            return Integer.valueOf(rowNumber + 1);
+        }
+
+        switch (column) {
+            case LIDN:
+                return Integer.valueOf(job.mIlid);
+            case FSIZ:
+                return Long.valueOf(job.mLs);
+            case FILE:
+                return job.getFile().getAbsolutePath();
+            case PATH:
+                return job.getFile().getParent();
+            case NAME:
+                return job.getFile().getName();
+            case STAT:
+                return job.getStatusText();
+            default:
+                break;
+        }
+
+        if (job.m_fa == null) {
+            return getDefaultValue(column);
+        }
+
+        switch (column) {
+            case FIDN:
+                return Integer.valueOf(job.m_fa.fid);
+            case AIDN:
+                return Integer.valueOf(job.m_fa.aid);
+            case EIDN:
+                return Integer.valueOf(job.m_fa.eid);
+            case GIDN:
+                return Integer.valueOf(job.m_fa.gid);
+            case FLEN:
+                return Integer.valueOf(job.m_fa.len);
+            case FDUB:
+                return defaultString(job.m_fa.dub);
+            case FSUB:
+                return defaultString(job.m_fa.sub);
+            case FSRC:
+                return defaultString(job.m_fa.rip);
+            case FQUA:
+                return defaultString(job.m_fa.qua);
+            case FRES:
+                return defaultString(job.m_fa.res);
+            case FVID:
+                return defaultString(job.m_fa.vid);
+            case FAUD:
+                return defaultString(job.m_fa.aud);
+            case FMDS:
+                return defaultString(job.m_fa.mds());
+            case FMDA:
+                return defaultString(job.m_fa.mda());
+            default:
+                break;
+        }
+
+        if (job.m_fa.anime != null) {
+            switch (column) {
+                case AYEA:
+                    return Integer.valueOf(job.m_fa.anime.yea);
+                case AEPS:
+                    return Integer.valueOf(job.m_fa.anime.eps);
+                case ALEP:
+                    return Integer.valueOf(job.m_fa.anime.lep);
+                case AROM:
+                    return defaultString(job.m_fa.anime.rom);
+                case AKAN:
+                    return defaultString(job.m_fa.anime.kan);
+                case AENG:
+                    return defaultString(job.m_fa.anime.eng);
+                case ATYP:
+                    return defaultString(job.m_fa.anime.typ);
+                case AYEN:
+                    return Integer.valueOf(job.m_fa.anime.yen);
+                default:
+                    break;
+            }
+        }
+
+        if (job.m_fa.ep != null) {
+            switch (column) {
+                case ENUM:
+                    return defaultString(job.m_fa.ep.num);
+                case EENG:
+                    return defaultString(job.m_fa.ep.eng);
+                case EKAN:
+                    return defaultString(job.m_fa.ep.kan);
+                case EROM:
+                    return defaultString(job.m_fa.ep.rom);
+                default:
+                    break;
+            }
+        }
+
+        if (job.m_fa.group != null) {
+            switch (column) {
+                case GNAM:
+                    return defaultString(job.m_fa.group.name);
+                case GSHO:
+                    return defaultString(job.m_fa.group.sname);
+                default:
+                    break;
+            }
+        }
+
+        return getDefaultValue(column);
+    }
+
+    /**
+     * Return appropriate default value for column type. Defensive approach: never return null, show
+     * empty/zero instead.
+     */
+    private Object getDefaultValue(JobColumn column) {
+        Class<?> type = column.getType();
+        if (type == Integer.class) return Integer.valueOf(0);
+        if (type == Long.class) return Long.valueOf(0L);
+        return "N/A";
+    }
+
+    /** Handle null/empty strings consistently. */
+    private String defaultString(String s) {
+        return (s == null || s.isEmpty()) ? "" : s;
+    }
+
     // public void setValueAt(Object obj, int row, int col){
     // }
     public String getColumnName(int columnIndex) {
-        return STRA[columnIndex];
+        JobColumn column = JobColumn.fromIndex(columnIndex);
+        return column != null ? column.getDescription() : "";
     }
 
-    public int getColumnIndex(String s) {
-        for (int i = 0; i < STRA.length; i++) if (STRA[i].equals(s)) return i;
-        return -1;
+    public int getColumnIndex(String tag) {
+        JobColumn column = JobColumn.fromTag(tag);
+        return column != null ? column.getIndex() : -1;
     }
 
     public static void formatTable(JTable table) {
@@ -272,7 +237,8 @@ public class TableModelJobs extends TableModelSortable implements RowModel {
         TableColumnModel m = table.getColumnModel();
         DefaultTableCellRenderer centerRend = new DefaultTableCellRenderer();
         centerRend.setHorizontalAlignment(SwingConstants.CENTER);
-        for (int i = 0; i < ccnt; i++) if (i != FILE) m.getColumn(i).setCellRenderer(centerRend);
+        for (int i = 0; i < JobColumn.getColumnCount(); i++)
+            if (i != JobColumn.FILE.getIndex()) m.getColumn(i).setCellRenderer(centerRend);
     }
 
     public void updateRow(int id) {
