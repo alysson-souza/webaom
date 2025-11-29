@@ -1,0 +1,10 @@
+# See https://pre-commit.com for more information
+repos:
+  - repo: local
+    hooks:
+      - id: spotless
+        name: spotless (format java & gradle)
+        entry: ./gradlew spotlessApply -q
+        language: system
+        pass_filenames: false
+        files: \.(java|gradle)$

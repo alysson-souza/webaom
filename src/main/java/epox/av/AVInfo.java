@@ -12,15 +12,15 @@ public class AVInfo {
 	private static final int FILE_MKV = 0;
 	private static final int FILE_OGM = 1;
 	private static final int//		FILE_MP4=2, //use VAR
-			FILE_VAR = 3; // mediainfo
+	FILE_VAR = 3; // mediainfo
 
-			//		TRACK_AUDIO=2,
-			//		TRACK_VIDEO=1,
-			//		TRACK_SUBTITLE=17,
+	//		TRACK_AUDIO=2,
+	//		TRACK_VIDEO=1,
+	//		TRACK_SUBTITLE=17,
 
-			//		UNKNOWN=-1,
+	//		UNKNOWN=-1,
 
-			private static final int FORMAT_OLD = 0;
+	private static final int FORMAT_OLD = 0;
 	private static final int FORMAT_XML = 1;
 	private static final int FORMAT_SHORT = 2;
 
