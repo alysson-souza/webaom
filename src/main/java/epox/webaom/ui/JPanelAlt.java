@@ -18,7 +18,10 @@ import javax.swing.KeyStroke;
 
 public class JPanelAlt extends JPanel {
 	public JTreeTableR jttAlt;
-	public JComboBox jcbAm, jcbAs, jcbAt, jcbEt;
+	public JComboBox jcbAm;
+	public JComboBox jcbAs;
+	public JComboBox jcbAt;
+	public JComboBox jcbEt;
 	public JTextField jtfAp;
 
 	public JPanelAlt(ActionListener al) {

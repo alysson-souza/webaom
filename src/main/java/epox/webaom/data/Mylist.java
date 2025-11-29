@@ -21,8 +21,11 @@
 package epox.webaom.data;
 
 public class Mylist {
-	public int stt, vie;
-	public String sto, sou, oth;
+	public int stt;
+	public int vie;
+	public String sto;
+	public String sou;
+	public String oth;
 
 	/*
 	 * public static final int S_UNKNOWN = 0,

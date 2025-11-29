@@ -35,7 +35,13 @@ import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.TableColumnModel;
 
 public class TableModelAlt extends AbstractTreeTableModel implements TreeTableModel {
-	public static final int NAME = 0, PRCT = 1, LAST = 2, TYPE = 3, YEAR = 4, NUMB = 5, SIZE = 6;
+	public static final int NAME = 0;
+	public static final int PRCT = 1;
+	public static final int LAST = 2;
+	public static final int TYPE = 3;
+	public static final int YEAR = 4;
+	public static final int NUMB = 5;
+	public static final int SIZE = 6;
 	protected static String[] cNames = {"Name", "%", "M", "Type", "Year", "Number", "Size"};
 	protected static Class[] cTypes = {TreeTableModel.class, String.class, Character.class, Integer.class,
 			Integer.class, Integer.class, String.class};

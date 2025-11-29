@@ -39,7 +39,11 @@ import javax.swing.JPanel;
 import javax.swing.JTextField;
 
 public class JPanelOptDiv extends JPanel {
-	public static final int H_EDK = 0, H_CRC = 1, H_MD5 = 2, H_SHA = 3, H_TTH = 4;
+	public static final int H_EDK = 0;
+	public static final int H_CRC = 1;
+	public static final int H_MD5 = 2;
+	public static final int H_SHA = 3;
+	public static final int H_TTH = 4;
 	public JCheckBox[] cbHsh = new JCheckBox[5];
 
 	private static String getHashName(int code) {
@@ -59,7 +63,11 @@ public class JPanelOptDiv extends JPanel {
 		}
 	}
 
-	public JTextField tfNewExt, tfHDirs, tfBrows, tfMyDBs, tfLogfl;
+	public JTextField tfNewExt;
+	public JTextField tfHDirs;
+	public JTextField tfBrows;
+	public JTextField tfMyDBs;
+	public JTextField tfLogfl;
 	// private JComboBox jcbModes;
 	private final JCheckBox jcbPpsw;
 	private final JCheckBox jcbAdbc;

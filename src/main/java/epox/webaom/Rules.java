@@ -31,11 +31,15 @@ import java.util.Vector;
 import java.util.regex.PatternSyntaxException;
 
 public class Rules {
-	public static final int M_NOREN = 0, M_RULES = 1, M_ANIDB = 2, M_FALLB = 3;
+	public static final int M_NOREN = 0;
+	public static final int M_RULES = 1;
+	public static final int M_ANIDB = 2;
+	public static final int M_FALLB = 3;
 	public static final String TRUNC = "TRUNCATE<";
 
 	public Vector /* !<DSData> */ mVill;
-	private String mSren, mSmov;
+	private String mSren;
+	private String mSmov;
 	private AMap mAmap = null;
 
 	// private int mItruncate = 0;
@@ -155,7 +159,8 @@ public class Rules {
 
 	private Vector /* !<Section> */ build(String script, Job j) throws Exception {
 		StringTokenizer st = new StringTokenizer(script, "\r\n");
-		String tok, tup;
+		String tok;
+		String tup;
 		Vector /* !<Section> */ schema = new Vector /* !<Section> */();
 		int i;
 		boolean prev = true;
@@ -420,7 +425,10 @@ public class Rules {
 	private static String truncate(String s) {
 		try {
 			String t;
-			int x = s.indexOf(TRUNC), y, z, i;
+			int x = s.indexOf(TRUNC);
+			int y;
+			int z;
+			int i;
 			while (x > 0) {
 				y = s.indexOf('>', x);
 				if (y < x) {

@@ -5,9 +5,13 @@
 package epox.av;
 
 public class GenericTrack {
-	public int num, type_id, codec_id;
-	public String codec, codecExtra;
-	public String lang, name;
+	public int num;
+	public int type_id;
+	public int codec_id;
+	public String codec;
+	public String codecExtra;
+	public String lang;
+	public String name;
 	public double size;
 	public float dur;
 	public boolean def;

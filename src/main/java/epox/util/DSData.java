@@ -27,7 +27,8 @@ import java.util.StringTokenizer;
 import java.util.Vector;
 
 public class DSData {
-	public String src, dst;
+	public String src;
+	public String dst;
 	public Boolean sel;
 
 	public DSData(String s, String d, boolean b) {

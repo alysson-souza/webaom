@@ -18,9 +18,12 @@ package epox.swing;
 
 public class TableSorter {
 	TableModelSortable m_mod;
-	private int m_last_col, m_last_n;
-	private int m_cmp0, m_cmp1;
-	private boolean m_desc, m_swit;
+	private int m_last_col;
+	private int m_last_n;
+	private int m_cmp0;
+	private int m_cmp1;
+	private boolean m_desc;
+	private boolean m_swit;
 
 	public TableSorter(TableModelSortable model) {
 		m_mod = model;
@@ -129,7 +132,8 @@ public class TableSorter {
 	}
 
 	private void insertionSort(int[] a, int l, int h) {
-		int i, j;
+		int i;
+		int j;
 		for (i = l; i <= h; i++) {
 			for (j = i; j > l && compare(j - 1, j) > 0; j--) {
 				swap(a, j, j - 1);

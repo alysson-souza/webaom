@@ -79,6 +79,11 @@ public class JobCnt {
 		mItot = 0;
 	}
 
-	private static final int I_FIN = 0, I_DIO = 1, I_NIO = 2, I_ERR = 3, I_HLT = 4, I_LEN = 5;
+	private static final int I_FIN = 0;
+	private static final int I_DIO = 1;
+	private static final int I_NIO = 2;
+	private static final int I_ERR = 3;
+	private static final int I_HLT = 4;
+	private static final int I_LEN = 5;
 	private static final String[] S_NAM = {"fin", "dio", "nio", "err", "hlt"};
 }

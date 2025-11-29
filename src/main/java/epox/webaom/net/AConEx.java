@@ -23,8 +23,15 @@
 package epox.webaom.net;
 
 public class AConEx extends Exception {
-	public static final int CLIENT_BANNED = 0, CLIENT_OUTDATED = 1, CLIENT_BUG = 2, CLIENT_SYSTEM = 3, CLIENT_USER = 4,
-			ANIDB_UNREACHABLE = 5, ANIDB_OUT_OF_SERVICE = 6, ANIDB_SERVER_ERROR = 7, ENCRYPTION = 8;
+	public static final int CLIENT_BANNED = 0;
+	public static final int CLIENT_OUTDATED = 1;
+	public static final int CLIENT_BUG = 2;
+	public static final int CLIENT_SYSTEM = 3;
+	public static final int CLIENT_USER = 4;
+	public static final int ANIDB_UNREACHABLE = 5;
+	public static final int ANIDB_OUT_OF_SERVICE = 6;
+	public static final int ANIDB_SERVER_ERROR = 7;
+	public static final int ENCRYPTION = 8;
 
 	private final int code;
 

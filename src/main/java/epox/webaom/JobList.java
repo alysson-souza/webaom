@@ -217,5 +217,7 @@ public class JobList {
 		}
 	}
 
-	public static final int I_ERR = 0, DIO = 1, NIO = 2;
+	public static final int I_ERR = 0;
+	public static final int DIO = 1;
+	public static final int NIO = 2;
 }

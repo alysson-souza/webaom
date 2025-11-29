@@ -30,7 +30,8 @@ package epox.util;
  * @version 1
  */
 public class LinkedHash extends java.util.HashMap /* !<Object,Object> */ {
-	private Node head = null, tail = null;
+	private Node head = null;
+	private Node tail = null;
 
 	public LinkedHash() {
 		super();
@@ -74,7 +75,8 @@ public class LinkedHash extends java.util.HashMap /* !<Object,Object> */ {
 	}
 
 	private class Node {
-		Node prev, next;
+		Node prev;
+		Node next;
 		Object o;
 
 		Node(Object o, Node prev) {

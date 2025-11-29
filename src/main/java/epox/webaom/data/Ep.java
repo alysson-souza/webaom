@@ -25,7 +25,10 @@ package epox.webaom.data;
 import epox.util.U;
 
 public class Ep extends Base {
-	public String num, rom, kan, eng;
+	public String num;
+	public String rom;
+	public String kan;
+	public String eng;
 
 	public Ep(int id) {
 		this.id = id;

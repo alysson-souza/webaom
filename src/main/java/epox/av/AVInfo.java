@@ -8,9 +8,11 @@ import java.io.File;
 import java.io.IOException;
 
 public class AVInfo {
-	private static final int BUFFER_SIZE = 4096, FILE_MKV = 0, FILE_OGM = 1,
-			//		FILE_MP4=2, //use VAR
-			FILE_VAR = 3, // mediainfo
+	private static final int BUFFER_SIZE = 4096;
+	private static final int FILE_MKV = 0;
+	private static final int FILE_OGM = 1;
+	private static final int//		FILE_MP4=2, //use VAR
+			FILE_VAR = 3; // mediainfo
 
 			//		TRACK_AUDIO=2,
 			//		TRACK_VIDEO=1,
@@ -18,7 +20,9 @@ public class AVInfo {
 
 			//		UNKNOWN=-1,
 
-			FORMAT_OLD = 0, FORMAT_XML = 1, FORMAT_SHORT = 2;
+			private static final int FORMAT_OLD = 0;
+	private static final int FORMAT_XML = 1;
+	private static final int FORMAT_SHORT = 2;
 
 	private static native int version();
 

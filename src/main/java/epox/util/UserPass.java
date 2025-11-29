@@ -27,7 +27,9 @@ import javax.crypto.Cipher;
 import javax.crypto.spec.SecretKeySpec;
 
 public class UserPass {
-	public String usr, psw, key;
+	public String usr;
+	public String psw;
+	public String key;
 
 	public UserPass(String u, String p, String k) {
 		usr = u;

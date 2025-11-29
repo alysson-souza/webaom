@@ -57,7 +57,8 @@ import javax.xml.parsers.SAXParserFactory;
 
 public class JPanelOptRls extends JPanel implements Action, ActionListener, ItemListener {
 	protected final JTextArea jta;
-	private final JRadioButton jrbRen, jrbMov;
+	private final JRadioButton jrbRen;
+	private final JRadioButton jrbMov;
 	private final JButton jbOK;
 
 	private final Rules rules;
@@ -186,7 +187,8 @@ public class JPanelOptRls extends JPanel implements Action, ActionListener, Item
 		 * matches("^((if|else|else ?if) ?([ageqrtydspnic] ?\\(.*\\))+ ?)?do ?(set|add|finish|return|fail)( .*)$"));//
 		 *
 		 */
-		String text = jta.getText(), line;
+		String text = jta.getText();
+		String line;
 		StringTokenizer st = new StringTokenizer(text, "\r\n");
 		int i = 0;
 		while (st.hasMoreTokens()) {

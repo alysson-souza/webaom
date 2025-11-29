@@ -95,8 +95,10 @@ public class JPanelDebug extends JPanel {
 	private class WinStream extends PrintStream {
 		FileOutputStream fos;
 		PrintStream pecho;
-		boolean echo, newl = true;
-		long t0, t1;
+		boolean echo;
+		boolean newl = true;
+		long t0;
+		long t1;
 
 		public WinStream(FileOutputStream stream, boolean echo, PrintStream pecho) {
 			super(pecho);

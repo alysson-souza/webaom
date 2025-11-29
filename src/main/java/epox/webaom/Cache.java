@@ -314,9 +314,14 @@ public class Cache {
 		}
 	}
 
-	public static final int I_MAF = 0, I_MAEF = 1, I_MAGF = 2, I_MAFF = 3, I_MLEN = 4;
+	public static final int I_MAF = 0;
+	public static final int I_MAEF = 1;
+	public static final int I_MAGF = 2;
+	public static final int I_MAFF = 3;
+	public static final int I_MLEN = 4;
 	public static final String[] S_SM = {"Anime, File", "Anime, Episode, File", "Anime, Group, File",
 			"Anime, Folder, File"};
 	public static int mImode = I_MAEF;
-	public static boolean hideE = false, hideN = false;
+	public static boolean hideE = false;
+	public static boolean hideN = false;
 }

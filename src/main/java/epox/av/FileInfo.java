@@ -16,7 +16,9 @@ import org.xml.sax.helpers.DefaultHandler;
 import org.xml.sax.helpers.XMLReaderFactory;
 
 public class FileInfo {
-	public Vector /* !<String[][]> */ vid, aud, sub;
+	public Vector /* !<String[][]> */ vid;
+	public Vector aud;
+	public Vector sub;
 	public String m_xml = null;
 
 	public FileInfo(String xml) throws IOException {
@@ -42,9 +44,14 @@ public class FileInfo {
 	}
 
 	protected class MyHandler extends DefaultHandler {
-		static final int DUR = 0, VID = 1, AUD = 2, SUB = 3;
-		int ctyp = -1, tcnt = 1;
-		String name = null, id = null;
+		static final int DUR = 0;
+		static final int VID = 1;
+		static final int AUD = 2;
+		static final int SUB = 3;
+		int ctyp = -1;
+		int tcnt = 1;
+		String name = null;
+		String id = null;
 		AMap m;
 
 		/*

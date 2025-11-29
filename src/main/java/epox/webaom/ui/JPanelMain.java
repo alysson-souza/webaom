@@ -106,7 +106,8 @@ public class JPanelMain extends JPanel
 	private JCheckBox jcbMa;
 	private JTabbedPane jtp;
 
-	public JProgressBar jpb0, jpb1;
+	public JProgressBar jpb0;
+	public JProgressBar jpb1;
 	public JPanelOptRls jpOrls;
 	public JPanelOptCon jpOnio;
 	public JPanelOptDiv jpOdiv;
@@ -115,13 +116,20 @@ public class JPanelMain extends JPanel
 	public JPanelAlt jpAlt;
 
 	protected boolean mBcrw; // cancel rec workr
-	private boolean mBkill, mBdio, mBnio;
+	private boolean mBkill;
+	private boolean mBdio;
+	private boolean mBnio;
 	private int mIupds = 0;
 	private String mSmsg;
 	private final Runnable mRjsd;
 	private Border originalJobsBorder;
-	protected Timer mTdio, mTprg, mTunf, mTgui;
-	public Thread mWdio, mWnio, mWdiv;
+	protected Timer mTdio;
+	protected Timer mTprg;
+	protected Timer mTunf;
+	protected Timer mTgui;
+	public Thread mWdio;
+	public Thread mWnio;
+	public Thread mWdiv;
 
 	public JPanelMain() {
 		mBkill = mBdio = mBnio = false;
@@ -1000,9 +1008,19 @@ public class JPanelMain extends JPanel
 		}
 	}
 
-	private static final int B_WIKI = 0, B_SELF = 1, B_SELD = 2, B_HASH = 3, B_CONN = 4, B_SAVE = 5, B_EXPO = 6,
-			B_IMPO = 7, S_IBAL = 8;
-	private static final String S_NIOE = "Login", S_NIOD = "Log out", S_DIOE = "Start", S_DIOD = "Stop";
+	private static final int B_WIKI = 0;
+	private static final int B_SELF = 1;
+	private static final int B_SELD = 2;
+	private static final int B_HASH = 3;
+	private static final int B_CONN = 4;
+	private static final int B_SAVE = 5;
+	private static final int B_EXPO = 6;
+	private static final int B_IMPO = 7;
+	private static final int S_IBAL = 8;
+	private static final String S_NIOE = "Login";
+	private static final String S_NIOD = "Log out";
+	private static final String S_DIOE = "Start";
+	private static final String S_DIOD = "Stop";
 
 	private static String getName(int code) {
 		switch (code) {

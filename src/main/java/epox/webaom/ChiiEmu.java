@@ -449,7 +449,10 @@ public class ChiiEmu implements CommandModel {
 		}
 	}
 
-	protected static final int I_WATCH = 0, I_STATE = 1, I_STAT2 = 2, I_STORA = 3;
+	protected static final int I_WATCH = 0;
+	protected static final int I_STATE = 1;
+	protected static final int I_STAT2 = 2;
+	protected static final int I_STORA = 3;
 
 	protected static String getS(int i) {
 		switch (i) {
