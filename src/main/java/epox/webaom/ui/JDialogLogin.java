@@ -105,8 +105,6 @@ public class JDialogLogin extends JDialog implements ActionListener {
 		c.add(ok, cs);
 
 		setContentPane(c);
-		// setResizable(false);
-		// setPreferredSize(new Dimension(300,200));
 		pack();
 		Dimension d = Toolkit.getDefaultToolkit().getScreenSize();
 		Rectangle r = this.getBounds();

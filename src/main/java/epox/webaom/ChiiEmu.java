@@ -103,8 +103,6 @@ public class ChiiEmu implements CommandModel {
 			if (mScmd.startsWith("!mystats")) {
 				return mystats(m_ac.send("MYLISTSTATS", null, true).data);
 			}
-			// if(mScmd.startsWith("!stats")) return stats(m_ac.send("STATS", null, true).data);
-			// if(mScmd.startsWith("!top")) return top(m_ac.send("TOP", null, true).data);
 			if (mScmd.startsWith("!mylist")) {
 				return idOrName("MYLIST", "aid=", "aname=", s.substring(7).trim());
 			}
@@ -114,8 +112,6 @@ public class ChiiEmu implements CommandModel {
 			if (mScmd.startsWith("!group")) {
 				return group(idOrName("GROUP", "gid=", "gname=", s.substring(6).trim()));
 			}
-			// if(cmd.startsWith("!episode")) return idOrName("EPISODE","eid=", null,
-			// s.substring(8).trim());
 			if (mScmd.startsWith("!randomanime")) {
 				return randomanime(s.substring(12).trim());
 			}

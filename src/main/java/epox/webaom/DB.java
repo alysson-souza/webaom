@@ -544,8 +544,6 @@ public class DB {
 			Job j;
 			ResultSet rs;
 			if (mBallj)
-				// rs = query(sqjob+" order by RAND() LIMIT 100", false);
-				// rs = query(sqjob+" AND f.aid=2165", false);
 				rs = query(sqjob + " ORDER BY j.time", false);
 			else
 				rs = query(sqjob + " and j.status!=" + Job.FINISHED + " ORDER BY j.time", false);

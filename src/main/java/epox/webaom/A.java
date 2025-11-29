@@ -141,8 +141,6 @@ public class A {
 						}
 			}
 		}
-		// if(db!=null)
-		//	db._shutdown();
 		gui.reset();
 		gui.shutdown();
 		return true;

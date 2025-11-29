@@ -220,8 +220,6 @@ public class TableModelJobs extends TableModelSortable implements RowModel {
 		return (s == null || s.isEmpty()) ? "" : s;
 	}
 
-	// public void setValueAt(Object obj, int row, int col){
-	// }
 	public String getColumnName(int columnIndex) {
 		JobColumn column = JobColumn.fromIndex(columnIndex);
 		return column != null ? column.getDescription() : "";

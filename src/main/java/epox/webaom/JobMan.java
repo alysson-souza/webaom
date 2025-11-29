@@ -156,14 +156,9 @@ public class JobMan {
 									}
 									// location, is it the same as
 									// the orig?
-									// if(old!=null&&!job.nfile.equals(old)&&job.getFile().exists())
-									// //if not then delete orig
-									//	A.deleteFileAndFolder(old, "Dupe of "+job.getFile());
 									else {
 										j = Job.FINISHED;
 									}
-									// if(old!=null&&!job.getFile().equals(old)&&job.getFile().exists()) //delete orig file if it exist and does not equal the new
-									//	A.deleteFileAndFolder(old, "Dupe of "+job.getFile());
 								} else {
 									j = Job.FAILED;
 								}
@@ -323,8 +318,6 @@ public class JobMan {
 	}
 
 	public static void showInfo(Job job) {
-		// A.dialog2(job.m_fc.getName(),
-		// job.convert(U.fileToString("d:\\java\\webaom\\src\\file.htm")));
 		A.dialog2(job.m_fc.getName(), job.convert(A.fschema));
 	}
 
