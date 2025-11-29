@@ -184,9 +184,6 @@ public class Job {
 
 		} else
 			mIst = status | H_NORMAL;
-		// if(m_fc.exists())
-		//	mIh = NORMAL;
-		// else mIh = MISSING;
 	}
 
 	private void setHealth(int health) {

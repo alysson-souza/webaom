@@ -188,9 +188,6 @@ public class JPanelOptDiv extends JPanel {
 		jcbAlog.setSelected(o.getB(Options.B_AUTOLOG));
 		jcbAsav.setSelected(o.getB(Options.B_AUTOSAV));
 
-		//		int i = o.getI(Options.I_USMOD);
-		//		jcbModes.setSelectedIndex((i<0||i>2)?0:i);
-
 		tfHDirs.setText(o.getS(Options.S_HASHDIR));
 		tfBrows.setText(o.getS(Options.S_BROWSER));
 		tfMyDBs.setText(o.getS(Options.S_MYDBURL));

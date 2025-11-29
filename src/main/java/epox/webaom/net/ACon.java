@@ -199,8 +199,6 @@ public class ACon implements ActionListener {
 		AConR r = send("AUTH", "user=" + m_up.usr + "&pass=" + m_up.psw + m_ver, true);
 		m_rem_auth_att--;
 		switch (r.code) {
-			// case Reply.ENCODING_NOT_SUPPORTED:
-			//	throw new AudpcEx(AudpcEx.CLIENT_BUG);
 			case AConR.LOGIN_ACCEPTED_NEW_VER :
 				A.dialog("Note", AConEx.defaultMsg(AConEx.CLIENT_OUTDATED));
 			case AConR.LOGIN_ACCEPTED : {

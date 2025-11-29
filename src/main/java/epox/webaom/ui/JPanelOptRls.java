@@ -118,8 +118,6 @@ public class JPanelOptRls extends JPanel implements Action, ActionListener, Item
 		jtDef = new JTableSortable(rmDef);
 		// jtDef.setShowGrid(false);
 		jtDef.setGridColor(Color.lightGray);
-		// jtDef.setRowHeight(25);
-		// jtDef.setFont(new Font("trebuchet ms",Font.PLAIN, 24));
 		jtDef.getInputMap().put(KeyStroke.getKeyStroke("DELETE"), "remove");
 		jtDef.getActionMap().put("remove", this);
 		jtDef.getInputMap().put(KeyStroke.getKeyStroke("control UP"), "moveup");

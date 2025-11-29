@@ -121,8 +121,6 @@ public class NetIO implements Runnable {
 						if (A.gui.nioOK() && m_job.getStatus() == Job.ADDWAIT)
 							mylistAdd(m_job);
 					}
-					// A.gui.updateJobTable(m_job);
-					// !A.nr_nio = -1;
 				} else {
 					A.gui.status1("Idle");
 					Thread.sleep(500);

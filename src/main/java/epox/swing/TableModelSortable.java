@@ -48,8 +48,6 @@ public abstract class TableModelSortable extends AbstractTableModel {
 		if (m_sort_col < 0)
 			return;
 		m_ts.sort(getIndexes(), m_sort_col, refresh);
-		// for(int i=0; i<m_rev.length; i++)
-		//	m_rev[m_idx[i]] = i;
 
 		fireTableDataChanged();
 	}

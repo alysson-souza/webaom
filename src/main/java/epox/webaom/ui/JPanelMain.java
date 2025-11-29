@@ -972,8 +972,6 @@ public class JPanelMain extends JPanel
 			A.db.debug = true;
 			mWdiv = null;
 
-			// A.mem5 = A.getUsed();
-			// A.memstats();
 			mTgui.start();
 		}
 	}

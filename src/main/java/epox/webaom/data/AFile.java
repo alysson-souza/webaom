@@ -82,9 +82,6 @@ public class AFile extends Base {
 
 	public void setJob(Job j) {
 		job = j;
-		// mBs = job.getFile().exists();
-		// if(mBs)
-		//	mLs = job.getFile().length();
 	}
 
 	public String toString() {
