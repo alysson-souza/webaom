@@ -63,7 +63,7 @@ public class RuleMenu extends DefaultHandler {
     private class MyListener /* extends MouseAdapter */ implements ActionListener {
         private final JTextArea jta;
         // private final JMenuItem jmi;
-        private String s;
+        private final String s;
 
         public MyListener(JTextArea ta, /* JMenuItem mi, */ String s) {
             jta = ta;

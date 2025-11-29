@@ -115,7 +115,7 @@ public class Rules {
         } else return null;
 
         String abs = path + File.separator + name;
-        abs = U.replace(abs, "" + File.separator + File.separator, "" + File.separator);
+        abs = U.replace(abs, File.separator + File.separator, File.separator);
 
         if (path.startsWith("\\\\")) abs = "\\" + abs;
 
@@ -323,7 +323,7 @@ public class Rules {
                 }
             case 'L':
                 { // scope block for local variable
-                    String cmp[] = s.split(":", 2);
+                    String[] cmp = s.split(":", 2);
                     if (cmp.length == 2) {
                         return mAmap.containsKey(cmp[0])
                                 && mAmap.containsKey(cmp[1])
@@ -334,7 +334,7 @@ public class Rules {
                 }
             case 'Z':
                 { // scope block for local variable
-                    String cmp[] = s.split(":", 2);
+                    String[] cmp = s.split(":", 2);
                     if (cmp.length == 2)
                         return mAmap.containsKey(cmp[0])
                                 && regtest(mAmap.get(cmp[0]).toString(), cmp[1]);

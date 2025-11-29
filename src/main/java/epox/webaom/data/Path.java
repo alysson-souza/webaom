@@ -5,7 +5,7 @@
 package epox.webaom.data;
 
 public class Path extends Base {
-    private String mSp;
+    private final String mSp;
 
     public Path(String p) {
         mSp = p;

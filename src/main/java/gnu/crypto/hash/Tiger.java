@@ -1143,7 +1143,7 @@ public class Tiger extends BaseHash {
         this.b = that.b;
         this.c = that.c;
         this.count = that.count;
-        this.buffer = (that.buffer != null) ? (byte[]) that.buffer.clone() : null;
+        this.buffer = (that.buffer != null) ? that.buffer.clone() : null;
     }
 
     // Instance methods implementing BaseHash.
@@ -1154,7 +1154,7 @@ public class Tiger extends BaseHash {
     }
 
     public boolean selfTest() {
-        if (valid == null) valid = new Boolean(DIGEST0.equals(toString(new Tiger().digest())));
+        if (valid == null) valid = Boolean.valueOf(DIGEST0.equals(toString(new Tiger().digest())));
         return valid.booleanValue();
     }
 

@@ -148,7 +148,7 @@ public class StartupValidator {
     public static boolean hasErrors(List<StartupIssue> issues) {
         if (issues == null) return false;
         for (StartupIssue issue : issues) {
-            if (issue.getSeverity() == StartupIssue.Severity.ERROR) {
+            if (issue.severity() == StartupIssue.Severity.ERROR) {
                 return true;
             }
         }
@@ -164,7 +164,7 @@ public class StartupValidator {
     public static boolean hasWarningsOrInfo(List<StartupIssue> issues) {
         if (issues == null) return false;
         for (StartupIssue issue : issues) {
-            if (issue.getSeverity() != StartupIssue.Severity.ERROR) {
+            if (issue.severity() != StartupIssue.Severity.ERROR) {
                 return true;
             }
         }

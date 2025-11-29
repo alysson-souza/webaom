@@ -50,7 +50,7 @@ public class DB {
     private boolean mBinitd = false, mBallj = false, mBpgre = true, mBclean = false;
 
     // private PreparedStatement psau, pseu, psgu, psfu, psai, psei, psgi, psfi, psju, psji;
-    private PreparedStatement psu[], psi[];
+    private PreparedStatement[] psu, psi;
     private Statement stmt = null;
 
     private synchronized void _clean() {
@@ -325,8 +325,7 @@ public class DB {
     }
 
     private int fill(int i, PreparedStatement ps, int id, Object o, boolean u) throws SQLException {
-        if (o instanceof Anime) {
-            Anime a = (Anime) o;
+        if (o instanceof Anime a) {
             ps.setString(i++, a.rom);
             ps.setString(i++, a.kan);
             ps.setString(i++, a.eng);
@@ -336,15 +335,13 @@ public class DB {
             ps.setString(i++, a.typ);
             ps.setString(i++, a.cat);
             ps.setInt(i++, id);
-        } else if (o instanceof Ep) {
-            Ep e = (Ep) o;
+        } else if (o instanceof Ep e) {
             ps.setString(i++, e.eng);
             ps.setString(i++, e.kan);
             ps.setString(i++, e.rom);
             ps.setString(i++, e.num);
             ps.setInt(i++, id);
-        } else if (o instanceof AFile) {
-            AFile f = (AFile) o;
+        } else if (o instanceof AFile f) {
             ps.setInt(i++, f.aid);
             ps.setInt(i++, f.eid);
             ps.setInt(i++, f.gid);
@@ -365,13 +362,11 @@ public class DB {
             ps.setString(i++, f.res);
             ps.setString(i++, f.ext);
             ps.setInt(i++, f.fid);
-        } else if (o instanceof Group) {
-            Group g = (Group) o;
+        } else if (o instanceof Group g) {
             ps.setString(i++, g.name);
             ps.setString(i++, g.sname);
             ps.setInt(i++, id);
-        } else if (o instanceof Job) {
-            Job j = (Job) o;
+        } else if (o instanceof Job j) {
             if (j.mIdid < 1) j.mIdid = getDid(j.m_fc.getParent());
             ps.setString(i++, j.m_fc.getName());
             ps.setInt(i++, j.mIdid);
@@ -468,7 +463,7 @@ public class DB {
                                 false);
                 if (rs.first()) {
                     int i = 1;
-                    String s[] = new String[9];
+                    String[] s = new String[9];
                     s[0] = "" + id;
                     for (int j = 1; j < s.length; j++) s[i] = rs.getString(i++);
                     Anime a = new Anime(s);
@@ -572,7 +567,7 @@ public class DB {
             }
         int fid = rs.getInt(i);
         if (fid > 0) {
-            String s[] = new String[20];
+            String[] s = new String[20];
             for (int x = 0; x < 20; x++) s[x] = rs.getString(i++);
 
             if (s[18] == null || s[18].length() < 1) s[18] = j.getExtension();
@@ -602,7 +597,7 @@ public class DB {
 
     private String s(String s) {
         if (s == null) return "NULL";
-        return "\'" + U.replace(s, "\'", "\\\'") + "\'";
+        return "'" + U.replace(s, "'", "\\'") + "'";
     }
 
     public synchronized boolean update(int id, Object o, int typ) {

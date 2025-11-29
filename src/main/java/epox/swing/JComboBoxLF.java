@@ -14,7 +14,7 @@ import javax.swing.UIManager;
 import javax.swing.UIManager.LookAndFeelInfo;
 
 public class JComboBoxLF extends JComboBox {
-    protected static final LookAndFeelInfo lf[] = UIManager.getInstalledLookAndFeels();
+    protected static final LookAndFeelInfo[] lf = UIManager.getInstalledLookAndFeels();
 
     public JComboBoxLF(final Component c) {
         super(

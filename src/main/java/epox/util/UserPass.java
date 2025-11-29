@@ -37,7 +37,7 @@ public class UserPass {
 
     public void set(String s) {
         try {
-            String a[] = U.split(s, ':');
+            String[] a = U.split(s, ':');
             usr = a[0];
             if (a.length >= 2) {
                 psw = dec(a[1]);

@@ -110,9 +110,9 @@ public class Anime extends Base {
             try {
                 setorfill(Integer.parseInt(e.num), b);
             } catch (NumberFormatException x) {
-                String sa[] = e.num.split(",");
+                String[] sa = e.num.split(",");
                 for (int i = 0; i < sa.length; i++) {
-                    String sb[] = sa[0].split("-");
+                    String[] sb = sa[0].split("-");
                     switch (sb.length) {
                         case 2:
                             for (int j = Integer.parseInt(sb[0]); j <= Integer.parseInt(sb[1]); j++)
@@ -183,8 +183,7 @@ public class Anime extends Base {
     }
 
     public int comp(Object obj, int i) {
-        if (obj instanceof Anime) {
-            Anime a = (Anime) obj;
+        if (obj instanceof Anime a) {
             Anime b = this;
             if (i < 0) {
                 b = a;

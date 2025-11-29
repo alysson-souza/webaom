@@ -64,43 +64,39 @@ public class TableModelAlt extends AbstractTreeTableModel implements TreeTableMo
     }
 
     public Object getValueAt(Object node, int c) {
-        if (node instanceof Base) {
-            Base g = (Base) node;
+        if (node instanceof Base g) {
             switch (c) {
                 case SIZE:
                     return U.sbyte(g.mLs);
             }
         }
-        if (node instanceof Anime) {
-            Anime a = (Anime) node;
+        if (node instanceof Anime a) {
             switch (c) {
                 case NAME:
                     return a.rom;
                 case TYPE:
                     return a.typ;
                 case YEAR:
-                    return new Integer(a.yea);
+                    return Integer.valueOf(a.yea);
                 case NUMB:
-                    return new Integer(a.size());
+                    return Integer.valueOf(a.size());
                 case PRCT:
-                    return new Integer(a.getPct()); // return new Integer(a.getPct());
+                    return Integer.valueOf(a.getPct()); // return new Integer(a.getPct());
                 case LAST:
                     return new Character(a.miss());
                 default:
                     return null;
             }
         }
-        if (node instanceof Ep) {
-            Ep e = (Ep) node;
+        if (node instanceof Ep e) {
             switch (c) {
                 case NUMB:
-                    return new Integer(e.size());
+                    return Integer.valueOf(e.size());
                 default:
                     return null;
             }
         }
-        if (node instanceof AFile) {
-            AFile f = (AFile) node;
+        if (node instanceof AFile f) {
             switch (c) {
                 case TYPE:
                     return f.getJob() == null ? null : f.getJob().getStatusText();
@@ -112,22 +108,20 @@ public class TableModelAlt extends AbstractTreeTableModel implements TreeTableMo
                     return null;
             }
         }
-        if (node instanceof AG) {
-            AG g = (AG) node;
+        if (node instanceof AG g) {
             switch (c) {
                 case NUMB:
-                    return new Integer(g.size());
+                    return Integer.valueOf(g.size());
                 case PRCT:
-                    return new Integer(g.getPct());
+                    return Integer.valueOf(g.getPct());
                 default:
                     return null;
             }
         }
-        if (node instanceof Path) {
-            Path p = (Path) node;
+        if (node instanceof Path p) {
             switch (c) {
                 case NUMB:
-                    return new Integer(p.size());
+                    return Integer.valueOf(p.size());
                 // case PRCT: return new Integer(g.getPct());
                 default:
                     return null;
@@ -138,7 +132,7 @@ public class TableModelAlt extends AbstractTreeTableModel implements TreeTableMo
                 case NAME:
                     return A.p.toString();
                 case NUMB:
-                    return new Integer(A.p.size());
+                    return Integer.valueOf(A.p.size());
                 default:
                     return null;
             }
@@ -160,8 +154,7 @@ public class TableModelAlt extends AbstractTreeTableModel implements TreeTableMo
     }
 
     public boolean isLeaf(Object node) {
-        if (node instanceof AFile) return true;
-        return false;
+        return node instanceof AFile;
     }
 
     public void formatTable(TableColumnModel m) {

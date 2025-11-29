@@ -4,7 +4,8 @@ package epox.webaom.startup;
  * Represents an issue encountered during application startup. Includes severity level and
  * user-friendly messaging.
  */
-public class StartupIssue {
+public record StartupIssue(
+        Severity severity, String title, String message, String suggestion, Exception cause) {
 
     /** Severity levels for startup issues */
     public enum Severity {
@@ -23,12 +24,6 @@ public class StartupIssue {
         }
     }
 
-    private final Severity severity;
-    private final String title;
-    private final String message;
-    private final String suggestion;
-    private final Exception cause;
-
     /**
      * Create a startup issue with detailed information.
      *
@@ -38,14 +33,7 @@ public class StartupIssue {
      * @param suggestion a suggestion for fixing the issue
      * @param cause the underlying exception (can be null)
      */
-    public StartupIssue(
-            Severity severity, String title, String message, String suggestion, Exception cause) {
-        this.severity = severity;
-        this.title = title;
-        this.message = message;
-        this.suggestion = suggestion;
-        this.cause = cause;
-    }
+    public StartupIssue {}
 
     /**
      * Create a startup issue with message and suggestion only.
@@ -68,26 +56,6 @@ public class StartupIssue {
      */
     public StartupIssue(Severity severity, String title, String message) {
         this(severity, title, message, null, null);
-    }
-
-    public Severity getSeverity() {
-        return severity;
-    }
-
-    public String getTitle() {
-        return title;
-    }
-
-    public String getMessage() {
-        return message;
-    }
-
-    public String getSuggestion() {
-        return suggestion;
-    }
-
-    public Exception getCause() {
-        return cause;
     }
 
     /**

@@ -41,7 +41,7 @@ public class AFile extends Base {
         ext = null;
     }
 
-    public AFile(String s[]) {
+    public AFile(String[] s) {
         int i = 0;
         fid = U.i(s[i++]);
         aid = U.i(s[i++]);
@@ -141,7 +141,7 @@ public class AFile extends Base {
     }
 
     public Object getKey() {
-        return new Integer(fid);
+        return Integer.valueOf(fid);
     }
 
     public void clear() {

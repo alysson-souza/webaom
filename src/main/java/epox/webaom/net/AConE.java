@@ -66,22 +66,22 @@ public class AConE extends ACon {
     }
 
     public int addFileToMylist(Job j, Mylist m) throws AConEx {
-        StringBuffer sb = new StringBuffer(100);
-        sb.append("fid=");
-        sb.append(j.m_fa.fid);
-        sb.append("&state=");
-        sb.append(m.stt);
-        sb.append("&viewed=");
-        sb.append(m.vie);
-        sb.append("&source=");
-        sb.append(validate(m.sou));
-        sb.append("&storage=");
-        sb.append(validate(m.sto));
-        sb.append("&other=");
-        sb.append(validate(m.oth));
-        sb.append("&edit=0");
+        String sb =
+                "fid="
+                        + j.m_fa.fid
+                        + "&state="
+                        + m.stt
+                        + "&viewed="
+                        + m.vie
+                        + "&source="
+                        + validate(m.sou)
+                        + "&storage="
+                        + validate(m.sto)
+                        + "&other="
+                        + validate(m.oth)
+                        + "&edit=0";
 
-        AConR r = send("MYLISTADD", sb.toString(), true);
+        AConR r = send("MYLISTADD", sb, true);
         if (r == null) return 0;
         switch (r.code) {
             case AConR.MYLIST_ENTRY_ADDED:

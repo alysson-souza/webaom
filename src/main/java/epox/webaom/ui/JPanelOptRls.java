@@ -60,7 +60,7 @@ public class JPanelOptRls extends JPanel implements Action, ActionListener, Item
     private final JRadioButton jrbRen, jrbMov;
     private final JButton jbOK;
 
-    private Rules rules;
+    private final Rules rules;
 
     protected JTable jtDef;
     protected TableModelDS rmDef;
@@ -207,7 +207,7 @@ public class JPanelOptRls extends JPanel implements Action, ActionListener, Item
         else jta.setText(rules.getMov());
     }
 
-    private void removeElements(Vector /* !<DSData> */ v, int rows[]) {
+    private void removeElements(Vector /* !<DSData> */ v, int[] rows) {
         Arrays.sort(rows);
         for (int i = rows.length - 1; i >= 0; i--) {
             if (rows[i] >= v.size()) break;

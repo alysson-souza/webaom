@@ -63,8 +63,7 @@ public class Ep extends Base {
     }
 
     public int compareTo(Object obj) {
-        if (obj instanceof Ep) {
-            Ep e = (Ep) obj;
+        if (obj instanceof Ep e) {
             /* if(mBs==e.mBs) */ try {
                 int a = Integer.parseInt(num);
                 int b = Integer.parseInt(e.num);

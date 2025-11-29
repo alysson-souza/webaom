@@ -78,8 +78,7 @@ public class JTreeTableR extends JTreeTable implements RowModel, MouseListener {
      */
     public Job[] getJobs(int row) {
         Object o = tree.getPathForRow(row).getLastPathComponent();
-        if (o instanceof AFile) {
-            AFile f = (AFile) o;
+        if (o instanceof AFile f) {
             if (f.getJob() != null) return new Job[] {f.getJob()}; // new int[]{f.getJob().mIid};
         } else {
             ArrayList /* !<Job> */ al = new ArrayList /* !<Job> */();
@@ -123,8 +122,7 @@ public class JTreeTableR extends JTreeTable implements RowModel, MouseListener {
     public void mouseClicked(MouseEvent e) {
         if (e.getClickCount() == 2) {
             Object o = tree.getPathForRow(getSelectedRow()).getLastPathComponent();
-            if (o instanceof AFile) {
-                AFile f = (AFile) o;
+            if (o instanceof AFile f) {
                 if (f.getJob() != null)
                     if ((e.getModifiers() & InputEvent.ALT_MASK) == InputEvent.ALT_MASK)
                         JobMan.c_watch(f.getJob());

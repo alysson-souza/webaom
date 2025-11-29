@@ -79,7 +79,7 @@ package com.twmacinta.util;
  */
 public class MD5 extends jonelo.jacksum.algorithm.AbstractChecksum {
     /** added by epox */
-    public void update(byte buffer[], int offset, int len) {
+    public void update(byte[] buffer, int offset, int len) {
         Update(this.state, buffer, offset, len);
     }
 
@@ -105,7 +105,7 @@ public class MD5 extends jonelo.jacksum.algorithm.AbstractChecksum {
     MD5State finals;
 
     /** Padding for Final() */
-    static byte padding[] = {
+    static byte[] padding = {
         (byte) 0x80,
         0,
         0,
@@ -202,7 +202,7 @@ public class MD5 extends jonelo.jacksum.algorithm.AbstractChecksum {
      * }
      */
 
-    private void Decode(byte buffer[], int shift, int[] out) {
+    private void Decode(byte[] buffer, int shift, int[] out) {
         /*
          * len += shift;
          * for (int i = 0; shift < len; i++, shift += 4) {
@@ -299,12 +299,12 @@ public class MD5 extends jonelo.jacksum.algorithm.AbstractChecksum {
 
     // private native void Transform_native (int[] state, byte buffer[], int shift, int length);
 
-    private void Transform(MD5State mstate, byte buffer[], int shift, int[] decode_buf) {
-        int a = mstate.state[0],
-                b = mstate.state[1],
-                c = mstate.state[2],
-                d = mstate.state[3],
-                x[] = decode_buf;
+    private void Transform(MD5State mstate, byte[] buffer, int shift, int[] decode_buf) {
+        int a = mstate.state[0];
+        int b = mstate.state[1];
+        int c = mstate.state[2];
+        int d = mstate.state[3];
+        int[] x = decode_buf;
 
         Decode(buffer, shift, decode_buf);
 
@@ -470,7 +470,7 @@ public class MD5 extends jonelo.jacksum.algorithm.AbstractChecksum {
      * @param offset Offset to buffer array
      * @param len Use at maximum `length' bytes (absolute maximum is buffer.length)
      */
-    public void Update(MD5State stat, byte buffer[], int offset, int len) {
+    public void Update(MD5State stat, byte[] buffer, int offset, int len) {
         int index, partlen, i, start;
         finals = null;
 
@@ -529,11 +529,11 @@ public class MD5 extends jonelo.jacksum.algorithm.AbstractChecksum {
      */
 
     /** Plain update, updates this object */
-    public void Update(byte buffer[], int offset, int len) {
+    public void Update(byte[] buffer, int offset, int len) {
         Update(this.state, buffer, offset, len);
     }
 
-    public void Update(byte buffer[], int len) {
+    public void Update(byte[] buffer, int len) {
         Update(this.state, buffer, 0, len);
     }
 
@@ -542,7 +542,7 @@ public class MD5 extends jonelo.jacksum.algorithm.AbstractChecksum {
      *
      * @param buffer Array of bytes to use for updating the hash
      */
-    public void Update(byte buffer[]) {
+    public void Update(byte[] buffer) {
         Update(buffer, 0, buffer.length);
     }
 
@@ -552,7 +552,7 @@ public class MD5 extends jonelo.jacksum.algorithm.AbstractChecksum {
      * @param b Single byte to update the hash
      */
     public void Update(byte b) {
-        byte buffer[] = new byte[1];
+        byte[] buffer = new byte[1];
         buffer[0] = b;
 
         Update(buffer, 1);
@@ -570,7 +570,7 @@ public class MD5 extends jonelo.jacksum.algorithm.AbstractChecksum {
      * @param s String to be update to hash (is used as s.getBytes())
      */
     public void Update(String s) {
-        byte chars[] = s.getBytes();
+        byte[] chars = s.getBytes();
         Update(chars, chars.length);
     }
 
@@ -585,7 +585,7 @@ public class MD5 extends jonelo.jacksum.algorithm.AbstractChecksum {
      */
     public void Update(String s, String charset_name) throws java.io.UnsupportedEncodingException {
         if (charset_name == null) charset_name = "ISO8859_1";
-        byte chars[] = s.getBytes(charset_name);
+        byte[] chars = s.getBytes(charset_name);
         Update(chars, chars.length);
     }
 
@@ -598,9 +598,9 @@ public class MD5 extends jonelo.jacksum.algorithm.AbstractChecksum {
         Update((byte) (i & 0xff));
     }
 
-    private byte[] Encode(int input[], int len) {
+    private byte[] Encode(int[] input, int len) {
         int i, j;
-        byte out[];
+        byte[] out;
 
         out = new byte[len];
 
@@ -622,7 +622,7 @@ public class MD5 extends jonelo.jacksum.algorithm.AbstractChecksum {
      * @return Array of 16 bytes, the hash of all updated bytes
      */
     public synchronized byte[] Final() {
-        byte bits[];
+        byte[] bits;
         int index, padlen;
         MD5State fin;
 
@@ -651,7 +651,7 @@ public class MD5 extends jonelo.jacksum.algorithm.AbstractChecksum {
      * @param hash Array of bytes to convert to hex-string
      * @return Generated hex string
      */
-    public static String asHex(byte hash[]) {
+    public static String asHex(byte[] hash) {
         StringBuffer buf = new StringBuffer(hash.length * 2);
         int i;
 

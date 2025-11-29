@@ -34,7 +34,7 @@ public class TigerTree extends MessageDigest {
 
     /** Internal Tiger MD instance */
     // private MessageDigest tiger;
-    private Tiger tiger;
+    private final Tiger tiger;
 
     /** Interim tree node hash values */
     private Vector /* !<byte[]> */ nodes;

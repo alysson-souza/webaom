@@ -150,7 +150,7 @@ public class DiskIO implements Runnable {
             A.gui.jpb0.setValue((int) (1000 * prog));
         }
         in.close();
-        m_hc.finalize();
+        m_hc.finalizeHashes();
         long t1 = System.currentTimeMillis();
         A.gui.jpb0.setValue(0);
 

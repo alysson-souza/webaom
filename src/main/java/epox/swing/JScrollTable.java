@@ -11,7 +11,7 @@ import javax.swing.JScrollPane;
 import javax.swing.JTable;
 
 public class JScrollTable extends JScrollPane implements MouseListener {
-    private JTable m_jt;
+    private final JTable m_jt;
 
     public JScrollTable(JTable jt) {
         super(jt);

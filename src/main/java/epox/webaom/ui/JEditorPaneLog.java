@@ -36,6 +36,7 @@ import java.io.PrintStream;
 import java.io.RandomAccessFile;
 import java.io.Reader;
 import java.io.StringReader;
+import java.nio.charset.StandardCharsets;
 import javax.swing.Action;
 import javax.swing.JEditorPane;
 import javax.swing.KeyStroke;
@@ -78,7 +79,7 @@ public class JEditorPaneLog extends JEditorPane implements Log, Action {
         append(line.toString());
 
         try {
-            ps.print(line.toString());
+            ps.print(line);
         } catch (NullPointerException e) {
             // don't care
         }
@@ -98,7 +99,7 @@ public class JEditorPaneLog extends JEditorPane implements Log, Action {
                 return false;
             }
 
-            ps = new PrintStream(new AppendFileStream(path), true, "utf8");
+            ps = new PrintStream(new AppendFileStream(path), true, StandardCharsets.UTF_8);
             return true;
         } catch (IOException e) {
             A.dialog("Log Error", e.getMessage());

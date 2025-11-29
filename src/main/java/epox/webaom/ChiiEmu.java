@@ -62,7 +62,7 @@ public class ChiiEmu implements CommandModel {
     }
 
     private class EmuWorker extends Thread {
-        private String mScmd;
+        private final String mScmd;
 
         EmuWorker(String c) {
             super("ChiiEmu");
@@ -194,55 +194,56 @@ public class ChiiEmu implements CommandModel {
         public String anime(String str) {
             String[] s = U.split(str, '|');
             if (s.length != 19) return str;
-            StringBuffer sb = new StringBuffer(100);
-            sb.append("ANIME: ");
-            sb.append(s[12]);
-            sb.append(" (");
-            sb.append(s[0]);
-            sb.append("), also known as ");
-            sb.append(s[14]);
-            sb.append(", ");
-            sb.append(s[1]);
-            sb.append(" eps, Year: ");
-            sb.append(s[10]);
-            sb.append(", Rating: ");
-            sb.append(((float) Integer.parseInt(s[4]) / 100));
-            sb.append(" (");
-            sb.append(s[4]);
-            sb.append(" votes), Reviews: ");
-            sb.append(s[9]);
-            sb.append(" (avg: ");
-            sb.append(((float) Integer.parseInt(s[8]) / 100));
-            sb.append(")");
-            sb.append(", Cat: ");
-            sb.append(s[18]);
-            return sb.toString();
+            String sb =
+                    "ANIME: "
+                            + s[12]
+                            + " ("
+                            + s[0]
+                            + "), also known as "
+                            + s[14]
+                            + ", "
+                            + s[1]
+                            + " eps, Year: "
+                            + s[10]
+                            + ", Rating: "
+                            + ((float) Integer.parseInt(s[4]) / 100)
+                            + " ("
+                            + s[4]
+                            + " votes), Reviews: "
+                            + s[9]
+                            + " (avg: "
+                            + ((float) Integer.parseInt(s[8]) / 100)
+                            + ")"
+                            + ", Cat: "
+                            + s[18];
+            return sb;
         }
 
         public String group(String str) {
             String[] s = U.split(str, '|');
             if (s.length != 9) return str;
-            StringBuffer sb = new StringBuffer(100);
-            sb.append("GROUP: ");
-            sb.append(s[5]);
-            sb.append(" [");
-            sb.append(s[6]);
-            sb.append("] (");
-            sb.append(s[0]);
-            sb.append("), irc: ");
-            sb.append(s[7]);
-            sb.append(", rating: ");
-            sb.append(((float) Integer.parseInt(s[1]) / 100));
-            sb.append(" (");
-            sb.append(s[2]);
-            sb.append(" votes), db: ");
-            sb.append(s[3]);
-            sb.append(" animes/");
-            sb.append(s[4]);
-            sb.append(" files, url: ");
-            sb.append(s[8]);
-            sb.append(", http://anidb.net/g" + s[0]);
-            return sb.toString();
+            String sb =
+                    "GROUP: "
+                            + s[5]
+                            + " ["
+                            + s[6]
+                            + "] ("
+                            + s[0]
+                            + "), irc: "
+                            + s[7]
+                            + ", rating: "
+                            + ((float) Integer.parseInt(s[1]) / 100)
+                            + " ("
+                            + s[2]
+                            + " votes), db: "
+                            + s[3]
+                            + " animes/"
+                            + s[4]
+                            + " files, url: "
+                            + s[8]
+                            + ", http://anidb.net/g"
+                            + s[0];
+            return sb;
         }
 
         public String top(String str) {
@@ -279,41 +280,41 @@ public class ChiiEmu implements CommandModel {
         public String mystats(String str) {
             String[] s = U.split(str, '|');
             if (s.length != 16) return str;
-            StringBuffer sb = new StringBuffer(100);
-            sb.append("MYSTATS: ");
-            sb.append(s[0]);
-            sb.append(" animes, ");
-            sb.append(s[1]);
-            sb.append(" eps (");
-            sb.append(s[13]);
-            sb.append(" / ");
-            sb.append(s[12]);
-            sb.append("% watched) and ");
-            sb.append(s[2]);
-            sb.append(" files in mylist (");
-            sb.append(U.sbyte(1048576L * U.i(s[3])));
-            sb.append(", ");
-            sb.append(s[11]);
-            sb.append("% of AniDB, ");
-            sb.append(s[10]);
-            sb.append("% watched). ");
-            sb.append(s[4]);
-            sb.append(" animes, ");
-            sb.append(s[5]);
-            sb.append(" eps, ");
-            sb.append(s[6]);
-            sb.append(" files, ");
-            sb.append(s[7]);
-            sb.append(" groups, ");
-            sb.append(s[14]);
-            sb.append(" votes, ");
-            sb.append(s[15]);
-            sb.append(" reviews added to DB. Leech factor: ");
-            sb.append(s[8]);
-            sb.append("%, Lameness: ");
-            sb.append(s[9]);
-            sb.append("%.");
-            return sb.toString();
+            String sb =
+                    "MYSTATS: "
+                            + s[0]
+                            + " animes, "
+                            + s[1]
+                            + " eps ("
+                            + s[13]
+                            + " / "
+                            + s[12]
+                            + "% watched) and "
+                            + s[2]
+                            + " files in mylist ("
+                            + U.sbyte(1048576L * U.i(s[3]))
+                            + ", "
+                            + s[11]
+                            + "% of AniDB, "
+                            + s[10]
+                            + "% watched). "
+                            + s[4]
+                            + " animes, "
+                            + s[5]
+                            + " eps, "
+                            + s[6]
+                            + " files, "
+                            + s[7]
+                            + " groups, "
+                            + s[14]
+                            + " votes, "
+                            + s[15]
+                            + " reviews added to DB. Leech factor: "
+                            + s[8]
+                            + "%, Lameness: "
+                            + s[9]
+                            + "%.";
+            return sb;
         }
 
         /**

@@ -66,12 +66,12 @@ public class TableSorter {
         for (int i = 0; i <= x / 2; i++) swap(a, i, x - i);
     }
 
-    public void sort0(int a[], int l, int h) {
+    public void sort0(int[] a, int l, int h) {
         quickSort(a, l, h);
         insertionSort(a, l, h);
     }
 
-    private void quickSort(int a[], int l, int r) {
+    private void quickSort(int[] a, int l, int r) {
         int M = 4;
         int i;
         int j;
@@ -101,14 +101,14 @@ public class TableSorter {
         }
     }
 
-    private void swap(int a[], int i, int j) {
+    private void swap(int[] a, int i, int j) {
         int t;
         t = a[i];
         a[i] = a[j];
         a[j] = t;
     }
 
-    private void insertionSort(int a[], int l, int h) {
+    private void insertionSort(int[] a, int l, int h) {
         int i, j;
         for (i = l; i <= h; i++) for (j = i; j > l && compare(j - 1, j) > 0; j--) swap(a, j, j - 1);
     }

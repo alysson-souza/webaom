@@ -33,7 +33,7 @@ public class AConEx extends Exception {
             ANIDB_SERVER_ERROR = 7,
             ENCRYPTION = 8;
 
-    private int code;
+    private final int code;
 
     public AConEx(int code) {
         this(code, defaultMsg(code));

@@ -70,7 +70,7 @@ public class TableModelJobs extends TableModelSortable implements RowModel {
             JOB = -1;
     public static long MASK = 1 << NUMB | 1 << FILE | 1 << STAT;
 
-    private static String STRA[];
+    private static final String[] STRA;
 
     static {
         STRA = new String[ccnt];
@@ -111,7 +111,7 @@ public class TableModelJobs extends TableModelSortable implements RowModel {
         STRA[FMDA] = "mda";
     }
 
-    private JobList jl;
+    private final JobList jl;
     private int m_current_row;
     private Job m_current_job;
 
@@ -150,9 +150,9 @@ public class TableModelJobs extends TableModelSortable implements RowModel {
 
         switch (col) {
             case NUMB:
-                return new Integer(row + 1);
+                return Integer.valueOf(row + 1);
             case FSIZ:
-                return new Long(j.mLs);
+                return Long.valueOf(j.mLs);
             case PATH:
                 return j.getFile().getParent();
             case NAME:
@@ -166,31 +166,31 @@ public class TableModelJobs extends TableModelSortable implements RowModel {
         }
         if (j.m_fa == null) {
             // return col<FILE?0:"N/A";
-            if (col < FILE) return new Integer(0);
+            if (col < FILE) return Integer.valueOf(0);
             return "N/A";
         }
         String s = null;
         switch (col) {
             case LIDN:
-                return new Integer(j.mIlid); // j.m_fa.lid;
+                return Integer.valueOf(j.mIlid); // j.m_fa.lid;
             case FIDN:
-                return new Integer(j.m_fa.fid);
+                return Integer.valueOf(j.m_fa.fid);
             case AIDN:
-                return new Integer(j.m_fa.aid);
+                return Integer.valueOf(j.m_fa.aid);
             case EIDN:
-                return new Integer(j.m_fa.eid);
+                return Integer.valueOf(j.m_fa.eid);
             case GIDN:
-                return new Integer(j.m_fa.gid);
+                return Integer.valueOf(j.m_fa.gid);
             case AYEA:
-                return new Integer(j.m_fa.anime.yea);
+                return Integer.valueOf(j.m_fa.anime.yea);
             case AYEN:
-                return new Integer(j.m_fa.anime.yen);
+                return Integer.valueOf(j.m_fa.anime.yen);
             case AEPS:
-                return new Integer(j.m_fa.anime.eps);
+                return Integer.valueOf(j.m_fa.anime.eps);
             case ALEP:
-                return new Integer(j.m_fa.anime.lep);
+                return Integer.valueOf(j.m_fa.anime.lep);
             case FLEN:
-                return new Integer(j.m_fa.len);
+                return Integer.valueOf(j.m_fa.len);
             case AKAN:
                 s = j.m_fa.anime.kan;
                 break;
@@ -301,7 +301,7 @@ public class TableModelJobs extends TableModelSortable implements RowModel {
         return new Job[] {(Job) getValueAt(row, JOB)};
     }
 
-    public void convertRows(int rows[]) {
+    public void convertRows(int[] rows) {
         for (int i = 0; i < rows.length; i++) rows[i] = getRowIndex(rows[i]);
     }
 }

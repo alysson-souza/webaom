@@ -110,7 +110,7 @@ public class MD4 extends BaseHash {
         this.c = that.c;
         this.d = that.d;
         this.count = that.count;
-        this.buffer = (byte[]) that.buffer.clone();
+        this.buffer = that.buffer.clone();
     }
 
     // Class methods
@@ -157,7 +157,7 @@ public class MD4 extends BaseHash {
     }
 
     public boolean selfTest() {
-        if (valid == null) valid = new Boolean(DIGEST0.equals(toString(new MD4().digest())));
+        if (valid == null) valid = Boolean.valueOf(DIGEST0.equals(toString(new MD4().digest())));
         return valid.booleanValue();
     }
 

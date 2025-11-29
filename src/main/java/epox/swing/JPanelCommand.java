@@ -30,11 +30,11 @@ import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
 
 public class JPanelCommand extends JPanel implements ActionListener, Log {
-    private JTextArea jta;
-    private JComboBox jcb;
-    private JScrollPane jsp;
+    private final JTextArea jta;
+    private final JComboBox jcb;
+    private final JScrollPane jsp;
 
-    private CommandModel cm;
+    private final CommandModel cm;
 
     public JPanelCommand(CommandModel cm, String str) {
         this.cm = cm;

@@ -61,7 +61,10 @@ public class JPanelOptDiv extends JPanel {
 
     public JTextField tfNewExt, tfHDirs, tfBrows, tfMyDBs, tfLogfl;
     // private JComboBox jcbModes;
-    private JCheckBox jcbPpsw, jcbAdbc, jcbAlog, jcbAsav;
+    private final JCheckBox jcbPpsw;
+    private final JCheckBox jcbAdbc;
+    private final JCheckBox jcbAlog;
+    private final JCheckBox jcbAsav;
 
     public JPanelOptDiv() {
         super(new GridBagLayout());
@@ -143,7 +146,7 @@ public class JPanelOptDiv extends JPanel {
 
     public File[] getDirs() {
         StringTokenizer st = new StringTokenizer(tfHDirs.getText(), ";");
-        File dirs[] = new File[st.countTokens()];
+        File[] dirs = new File[st.countTokens()];
         for (int i = 0; i < dirs.length; i++) dirs[i] = new File(st.nextToken());
         return dirs;
     }

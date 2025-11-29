@@ -12,9 +12,9 @@ import java.awt.event.KeyEvent;
 import javax.swing.JTable;
 
 public class KeyAdapterJob extends KeyAdapter {
-    private JTable m_jt;
-    private JTreeTableR m_tt;
-    private RowModel m_rm;
+    private final JTable m_jt;
+    private final JTreeTableR m_tt;
+    private final RowModel m_rm;
 
     public KeyAdapterJob(JTable jt, RowModel rm) {
         m_jt = jt;

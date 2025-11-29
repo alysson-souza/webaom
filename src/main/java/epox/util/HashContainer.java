@@ -26,9 +26,10 @@ package epox.util;
 import jonelo.jacksum.algorithm.AbstractChecksum;
 
 public class HashContainer {
-    private String[] na, ha;
-    private AbstractChecksum[] ca;
-    private int size;
+    private final String[] na;
+    private final String[] ha;
+    private final AbstractChecksum[] ca;
+    private final int size;
 
     public HashContainer(int s) {
         size = s;
@@ -47,11 +48,15 @@ public class HashContainer {
         for (int i = 0; i < size; i++) ca[i].update(buffer, offset, length);
     }
 
-    public void finalize() {
+    public void finalizeHashes() {
         for (int i = 0; i < size; i++) {
             ha[i] = ca[i].getHexValue();
             ca[i].reset();
         }
+    }
+
+    protected void finalize() {
+        finalizeHashes();
     }
 
     public String toString() {

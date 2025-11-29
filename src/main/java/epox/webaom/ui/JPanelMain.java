@@ -102,7 +102,7 @@ public class JPanelMain extends JPanel
     private boolean mBkill, mBdio, mBnio;
     private int mIupds = 0;
     private String mSmsg;
-    private Runnable mRjsd;
+    private final Runnable mRjsd;
     protected Timer mTdio, mTprg, mTunf, mTgui;
     public Thread mWdio, mWnio, mWdiv;
 
@@ -167,9 +167,9 @@ public class JPanelMain extends JPanel
                     StartupValidator.validateLogging(true, jpOdiv.tfLogfl.getText());
             if (validatedLogPath != null) {
                 // Use the validated path (which may be a default if original was empty)
-                if (!jepM.openLogFile(validatedLogPath))
-                    jpOdiv.tfLogfl.setEnabled(true); // Re-enable if failed
-                else jpOdiv.tfLogfl.setEnabled(false); // Disable if successful
+                // Disable if successful
+                jpOdiv.tfLogfl.setEnabled(
+                        !jepM.openLogFile(validatedLogPath)); // Re-enable if failed
             }
             // If validatedLogPath is null, logging was disabled due to validation failure
         }
@@ -198,11 +198,11 @@ public class JPanelMain extends JPanel
         message.append("The following startup issues were detected:\n\n");
 
         for (StartupIssue issue : issues) {
-            message.append("[").append(issue.getSeverity().getDisplayName()).append("] ");
-            message.append(issue.getTitle()).append("\n");
-            message.append(issue.getMessage());
-            if (issue.getSuggestion() != null && !issue.getSuggestion().isEmpty()) {
-                message.append("\n").append("Suggestion: ").append(issue.getSuggestion());
+            message.append("[").append(issue.severity().getDisplayName()).append("] ");
+            message.append(issue.title()).append("\n");
+            message.append(issue.message());
+            if (issue.suggestion() != null && !issue.suggestion().isEmpty()) {
+                message.append("\n").append("Suggestion: ").append(issue.suggestion());
             }
             message.append("\n\n");
         }
@@ -778,9 +778,9 @@ public class JPanelMain extends JPanel
     }
 
     private class RecDir extends Thread {
-        private File[] dirs;
+        private final File[] dirs;
         private int nd = 0;
-        private boolean print;
+        private final boolean print;
 
         public RecDir(File[] d, boolean hdir) {
             super("RecDir");
@@ -829,7 +829,7 @@ public class JPanelMain extends JPanel
     }
 
     private class InitDB extends Thread {
-        private JTextField jt;
+        private final JTextField jt;
 
         public InitDB(JTextField jt) {
             super("InitDB");
