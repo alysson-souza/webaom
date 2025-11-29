@@ -12,7 +12,6 @@ import epox.webaom.Options;
 import epox.webaom.data.AFile;
 import java.awt.BorderLayout;
 import java.awt.GridLayout;
-import java.awt.dnd.DropTarget;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.Enumeration;
@@ -47,9 +46,6 @@ public class JPanelJobs extends JPanel implements ActionListener {
 
         add(m_jst, BorderLayout.CENTER);
         add(south, BorderLayout.SOUTH);
-
-        new DropTarget(this, m_jtj);
-        m_jst.addKeyListener(m_jtj);
     }
 
     public void actionPerformed(ActionEvent e) {

@@ -43,11 +43,20 @@ import epox.webaom.net.Pinger;
 import epox.webaom.startup.StartupIssue;
 import epox.webaom.startup.StartupValidator;
 import java.awt.BorderLayout;
+import java.awt.Color;
 import java.awt.DefaultKeyboardFocusManager;
 import java.awt.Dimension;
 import java.awt.GridLayout;
 import java.awt.Insets;
 import java.awt.KeyboardFocusManager;
+import java.awt.datatransfer.DataFlavor;
+import java.awt.datatransfer.Transferable;
+import java.awt.dnd.DnDConstants;
+import java.awt.dnd.DropTarget;
+import java.awt.dnd.DropTargetDragEvent;
+import java.awt.dnd.DropTargetDropEvent;
+import java.awt.dnd.DropTargetEvent;
+import java.awt.dnd.DropTargetListener;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
@@ -69,8 +78,10 @@ import javax.swing.JTextField;
 import javax.swing.KeyStroke;
 import javax.swing.SwingConstants;
 import javax.swing.Timer;
+import javax.swing.border.Border;
 import javax.swing.border.EmptyBorder;
 import javax.swing.border.EtchedBorder;
+import javax.swing.border.LineBorder;
 import javax.swing.border.TitledBorder;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
@@ -78,7 +89,7 @@ import javax.swing.event.HyperlinkEvent;
 import javax.swing.event.HyperlinkListener;
 
 public class JPanelMain extends JPanel
-        implements Log, ActionListener, HyperlinkListener, ChangeListener {
+        implements Log, ActionListener, HyperlinkListener, ChangeListener, DropTargetListener {
     protected JTableJobs jtJobs;
     protected JScrollBar jsbJobs;
     protected TableModelJobs jlmJobs;
@@ -103,6 +114,7 @@ public class JPanelMain extends JPanel
     private int mIupds = 0;
     private String mSmsg;
     private final Runnable mRjsd;
+    private Border originalJobsBorder;
     protected Timer mTdio, mTprg, mTunf, mTgui;
     public Thread mWdio, mWnio, mWdiv;
 
@@ -406,6 +418,9 @@ public class JPanelMain extends JPanel
         add(pProgress, BorderLayout.SOUTH);
         ////////////////////////////////// END///////////////////////////////////
 
+        // Enable drag-and-drop for the entire panel
+        new DropTarget(this, this);
+
         KeyboardFocusManager kbfm = KeyboardFocusManager.getCurrentKeyboardFocusManager();
         kbfm.addKeyEventDispatcher(
                 new DefaultKeyboardFocusManager() {
@@ -463,6 +478,12 @@ public class JPanelMain extends JPanel
         }
     }
 
+    public void switchToJobsTab() {
+        if (jtp != null) {
+            jtp.setSelectedIndex(2);
+        }
+    }
+
     public String getHost() {
         return jpOnio.tfHost.getText();
     }
@@ -512,6 +533,7 @@ public class JPanelMain extends JPanel
             fatal(false);
         } else if (source == mTgui) {
             if (jtp.getSelectedComponent() == jpJob) jpJob.update();
+
         } else if (source == jpOnio.jbPing) new Pinger(this);
         else if (source == jpOdiv.tfMyDBs) startDB();
         else if (source == jtfNewExt) {
@@ -954,6 +976,75 @@ public class JPanelMain extends JPanel
                 return "Import exported data";
             default:
                 return "No help!";
+        }
+    }
+
+    private void clearHighlight() {
+        if (jpJob != null) {
+            if (originalJobsBorder != null) {
+                jpJob.setBorder(originalJobsBorder);
+            } else {
+                jpJob.setBorder(new EtchedBorder());
+            }
+            jpJob.repaint();
+        }
+    }
+
+    @Override
+    public void dragEnter(DropTargetDragEvent dtde) {
+        if (dtde.getTransferable().isDataFlavorSupported(DataFlavor.javaFileListFlavor)) {
+            dtde.acceptDrag(DnDConstants.ACTION_COPY);
+            switchToJobsTab();
+
+            if (jpJob != null) {
+                if (originalJobsBorder == null) {
+                    originalJobsBorder = jpJob.getBorder();
+                }
+                jpJob.setBorder(new LineBorder(Color.BLUE, 1));
+            }
+        } else {
+            dtde.rejectDrag();
+        }
+    }
+
+    @Override
+    public void dragOver(DropTargetDragEvent dtde) {
+        // No action needed
+    }
+
+    @Override
+    public void dropActionChanged(DropTargetDragEvent dtde) {
+        // No action needed
+    }
+
+    @Override
+    public void dragExit(DropTargetEvent dte) {
+        clearHighlight();
+    }
+
+    @Override
+    public void drop(DropTargetDropEvent dtde) {
+        try {
+            Transferable t = dtde.getTransferable();
+            if (t.isDataFlavorSupported(DataFlavor.javaFileListFlavor)) {
+                dtde.acceptDrop(DnDConstants.ACTION_COPY);
+                @SuppressWarnings("unchecked")
+                java.util.List<File> fileList =
+                        (java.util.List<File>) t.getTransferData(DataFlavor.javaFileListFlavor);
+                File[] files = fileList.toArray(new File[0]);
+                java.util.Arrays.sort(files);
+                select(files);
+                dtde.dropComplete(true);
+                clearHighlight();
+                if (jpJob != null) {
+                    jpJob.repaint();
+                }
+            } else {
+                dtde.rejectDrop();
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            dtde.rejectDrop();
         }
     }
 }
