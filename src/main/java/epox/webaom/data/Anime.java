@@ -28,7 +28,8 @@ import epox.util.U;
 import epox.webaom.ui.TableModelAlt;
 
 public class Anime extends Base {
-	private static int s0 = 1, s1 = 1;
+	private static int s0 = 1;
+	private static int s1 = 1;
 
 	public static void setCol(int i) {
 		if (Math.abs(i) != Math.abs(s0)) {
@@ -37,8 +38,16 @@ public class Anime extends Base {
 		s0 = i;
 	}
 
-	public int yea, yen, eps, lep, pct;
-	public String typ, rom, kan, eng, cat;
+	public int yea;
+	public int yen;
+	public int eps;
+	public int lep;
+	public int pct;
+	public String typ;
+	public String rom;
+	public String kan;
+	public String eng;
+	public String cat;
 	public Bits pro = null;
 
 	public Anime(int id) {

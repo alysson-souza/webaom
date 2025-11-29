@@ -40,12 +40,15 @@ import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 
 public class JPanelOptCon extends JPanel implements ChangeListener {
-	private final int MIN_IPD = 3, MIN_PTO = 10;
+	private final int MIN_IPD = 3;
+	private final int MIN_PTO = 10;
 	private final JSlider jsTime;
 	private final JSlider jsDelay;
 	private final JCheckBox jcbNat;
 	public JButton jbPing;
-	public JTextField tfHost, tfRPort, tfLPort;
+	public JTextField tfHost;
+	public JTextField tfRPort;
+	public JTextField tfLPort;
 
 	public JPanelOptCon() {
 		super(new GridBagLayout());

@@ -5,7 +5,11 @@
 package epox.av;
 
 public class VideoTrack extends GenericTrack {
-	public int pixel_width, pixel_height, display_width, display_height, fps;
+	public int pixel_width;
+	public int pixel_height;
+	public int display_width;
+	public int display_height;
+	public int fps;
 	public boolean vfr;
 
 	public VideoTrack(GenericTrack gt) {

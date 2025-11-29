@@ -26,7 +26,8 @@ import java.net.SocketTimeoutException;
 public class AConR {
 	public int code = -1;
 	public String message = null;
-	public String data = null, tag;
+	public String data = null;
+	public String tag;
 
 	public AConR(String sTag, int tag_len, String raw) throws AConEx, TagEx, SocketTimeoutException {
 		if (sTag != null && !raw.isEmpty() && raw.charAt(0) == 't') {
@@ -95,32 +96,32 @@ public class AConR {
 	}
 
 	///////////////////////////////// REPLY CODES////////////////////////////////
-	public static final int LOGIN_ACCEPTED = 200, // C
-			LOGIN_ACCEPTED_NEW_VER = 201, // C
-			LOGGED_OUT = 203, // C
-			//	STATS							=206, //N
+	public static final int LOGIN_ACCEPTED = 200; // C
+			public static final int LOGIN_ACCEPTED_NEW_VER = 201; // C
+			public static final int LOGGED_OUT = 203; // C
+			public static final int//	STATS							=206, //N
 			//	TOP								=207, //N
 			//	UPTIME							=208, //N
-			ENCRYPTION_ENABLED = 209, // N
-			MYLIST_ENTRY_ADDED = 210, // C
-			MYLIST_ENTRY_DELETED = 211, // C
-			FILE = 220, // C
+			ENCRYPTION_ENABLED = 209; // N
+			public static final int MYLIST_ENTRY_ADDED = 210; // C
+			public static final int MYLIST_ENTRY_DELETED = 211; // C
+			public static final int FILE = 220; // C
 			//	MYLIST							=221, //C
 			//	MYLIST_STATS					=222, //N
 
-			ANIME = 230, // N
+			public static final int ANIME = 230; // N
 			//	ANIME_BEST_MATCH				=231, //N
 			//	RANDOMANIME						=232, //N
 
-			EPISODE = 240, // N
-			GROUP = 250, // N
+			public static final int EPISODE = 240; // N
+			public static final int GROUP = 250; // N
 
 			//	VOTED							=260, //N
 			//	VOTE_FOUND						=261, //N
 			//	VOTE_UPDATED					=262, //N
 			//	VOTE_REVOKED					=263, //N
 
-			/*
+			public static final int/*
 			 * NOTIFICATION_ENABLED =270, //C
 			 * PUSHACK_CONFIRMED =280, //C
 			 * NOTIFYACK_SUCCESSFUL_M =281, //C
@@ -135,10 +136,11 @@ public class AConR {
 			 * AFFIRMATIVE/NEGATIVE 3XX
 			 */
 			//	PONG							=300, //C
-			API_PASSWORD_NOT_DEFINED = 309, FILE_ALREADY_IN_MYLIST = 310, // C
-			MYLIST_ENTRY_EDITED = 311, // C
-			NO_SUCH_FILE = 320, // C
-			/*
+			API_PASSWORD_NOT_DEFINED = 309;
+	public static final int FILE_ALREADY_IN_MYLIST = 310; // C
+			public static final int MYLIST_ENTRY_EDITED = 311; // C
+			public static final int NO_SUCH_FILE = 320; // C
+			public static final int/*
 			 * NO_SUCH_ENTRY =321, //C
 			 * MULTIPLE_FILES_FOUND =322, //N
 			 *
@@ -160,7 +162,7 @@ public class AConR {
 			 * NO_SUCH_MESSAGE =392, //C
 			 * NO_SUCH_NOTIFY =393, //C
 			 */
-			NO_SUCH_USER = 394, // C
+			NO_SUCH_USER = 394; // C
 
 			//	NO_SUCH_DATA_ENTRY				=396, //N
 
@@ -168,31 +170,31 @@ public class AConR {
 			 * NEGATIVE 4XX
 			 */
 
-			NOT_LOGGED_IN = 403, // C
-			NO_SUCH_MYLIST_FILE = 410, // C
-			NO_SUCH_MYLIST_ENTRY = 411, // C
+			public static final int NOT_LOGGED_IN = 403; // C
+			public static final int NO_SUCH_MYLIST_FILE = 410; // C
+			public static final int NO_SUCH_MYLIST_ENTRY = 411; // C
 
 			/*
 			 * CLIENT SIDE FAILURE 5XX
 			 */
 
-			LOGIN_FAILED = 500, // C
-			LOGIN_FIRST = 501, // C
-			ACCESS_DENIED = 502, // C
-			CLIENT_VERSION_OUTDATED = 503, // C
-			CLIENT_BANNED = 504, // C
-			ILLEGAL_INPUT_OR_ACCESS_DENIED = 505, // C
-			INVALID_SESSION = 506, // C
-			ENCODING_NOT_SUPPORTED = 510, // M
-			BANNED = 555, // C
+			public static final int LOGIN_FAILED = 500; // C
+			public static final int LOGIN_FIRST = 501; // C
+			public static final int ACCESS_DENIED = 502; // C
+			public static final int CLIENT_VERSION_OUTDATED = 503; // C
+			public static final int CLIENT_BANNED = 504; // C
+			public static final int ILLEGAL_INPUT_OR_ACCESS_DENIED = 505; // C
+			public static final int INVALID_SESSION = 506; // C
+			public static final int ENCODING_NOT_SUPPORTED = 510; // M
+			public static final int BANNED = 555; // C
 			//	UNKNOWN_COMMAND					=598, //C
 
 			/*
 			 * SERVER SIDE FAILURE 6XX
 			 */
 
-			INTERNAL_SERVER_ERROR = 600, // C
-			SERVER_BUSY = 602;
+			public static final int INTERNAL_SERVER_ERROR = 600; // C
+			public static final int SERVER_BUSY = 602;
 	//	ANIDB_OUT_OF_SERVICE			=601, //C
 	//	API_VIOLATION					=666; //C
 }

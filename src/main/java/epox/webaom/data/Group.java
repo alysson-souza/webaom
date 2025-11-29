@@ -23,7 +23,8 @@
 package epox.webaom.data;
 
 public class Group extends Base {
-	public String name = "none", sname = "";
+	public String name = "none";
+	public String sname = "";
 
 	public Group(int id) {
 		this.id = id;

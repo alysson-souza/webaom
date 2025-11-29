@@ -246,10 +246,29 @@ public class JPopupMenuM extends JPopupMenu implements MouseListener, ActionList
 		return null;
 	}
 
-	private static final int PAUSE = 0, SEPARATOR_0 = 1, SHOW_INFO = 2, WATCH_NOW = 3, EXPLORER = 4, SEPARATOR_1 = 5,
-			REHASH = 6, REID = 7, READD = 8, REMOVE = 9, APPLY_RULES = 10, SEPARATOR_2 = 11, SET_FINISHED = 12,
-			RESTORE_NAME = 13, SET_FOLDER = 14, SET_PAR_FLD = 15, EDIT_PATH = 16, EDIT_NAME = 17, SEPARATOR_3 = 18,
-			PARSE = 19, SET_FID = 20, REMOVE_DB = 21, iCommands = 22;
+	private static final int PAUSE = 0;
+	private static final int SEPARATOR_0 = 1;
+	private static final int SHOW_INFO = 2;
+	private static final int WATCH_NOW = 3;
+	private static final int EXPLORER = 4;
+	private static final int SEPARATOR_1 = 5;
+	private static final int REHASH = 6;
+	private static final int REID = 7;
+	private static final int READD = 8;
+	private static final int REMOVE = 9;
+	private static final int APPLY_RULES = 10;
+	private static final int SEPARATOR_2 = 11;
+	private static final int SET_FINISHED = 12;
+	private static final int RESTORE_NAME = 13;
+	private static final int SET_FOLDER = 14;
+	private static final int SET_PAR_FLD = 15;
+	private static final int EDIT_PATH = 16;
+	private static final int EDIT_NAME = 17;
+	private static final int SEPARATOR_3 = 18;
+	private static final int PARSE = 19;
+	private static final int SET_FID = 20;
+	private static final int REMOVE_DB = 21;
+	private static final int iCommands = 22;
 
 	public static String commandText(int i) {
 		switch (i) {

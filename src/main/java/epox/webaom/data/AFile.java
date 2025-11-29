@@ -27,8 +27,26 @@ import epox.webaom.A;
 import epox.webaom.Job;
 
 public class AFile extends Base {
-	public int fid, aid, eid, gid, lid, stt, len;
-	public String ed2, md5, sha, crc, dub, sub, qua, rip, res, vid, aud, def, ext;
+	public int fid;
+	public int aid;
+	public int eid;
+	public int gid;
+	public int lid;
+	public int stt;
+	public int len;
+	public String ed2;
+	public String md5;
+	public String sha;
+	public String crc;
+	public String dub;
+	public String sub;
+	public String qua;
+	public String rip;
+	public String res;
+	public String vid;
+	public String aud;
+	public String def;
+	public String ext;
 
 	public Ep ep;
 	public AG ag;
@@ -189,8 +207,14 @@ public class AFile extends Base {
 		}
 	}
 
-	public static final int F_CRCOK = 1, F_CRCERR = 2, F_ISV2 = 4, F_ISV3 = 8, F_ISV4 = 16, F_ISV5 = 32, F_UNC = 64,
-			F_CEN = 128;
+	public static final int F_CRCOK = 1;
+	public static final int F_CRCERR = 2;
+	public static final int F_ISV2 = 4;
+	public static final int F_ISV3 = 8;
+	public static final int F_ISV4 = 16;
+	public static final int F_ISV5 = 32;
+	public static final int F_UNC = 64;
+	public static final int F_CEN = 128;
 
 	public boolean inYear(String s) {
 		s.replaceAll(" ", "");

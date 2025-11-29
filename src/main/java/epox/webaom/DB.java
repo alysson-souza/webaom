@@ -41,17 +41,28 @@ import java.util.HashMap;
 
 public class DB {
 	public static final int PLY = 1;
-	public static final int I_A = 0, I_E = 1, I_G = 2, I_F = 3, I_J = 4, I_L = 5;
+	public static final int I_A = 0;
+	public static final int I_E = 1;
+	public static final int I_G = 2;
+	public static final int I_F = 3;
+	public static final int I_J = 4;
+	public static final int I_L = 5;
 	private static final String sqjob = "select"
 			+ " d.name,j.name,j.status,j.orig,j.ed2k,j.md5,j.sha1,j.tth,j.crc32,j.size,j.did,j.uid,j.lid,j.avxml,f.fid,f.aid,f.eid,f.gid,f.def_name,f.state,f.size,f.ed2k,f.md5,f.sha1,f.crc32,f.dublang,f.sublang,f.quality,f.ripsource,f.audio,f.video,f.resolution,f.ext,f.len,e.eid,e.number,e.english,e.romaji,e.kanji"
 			+ " from dtb d,jtb j,ftb f,etb e where d.did=j.did and j.fid=f.fid and f.eid=e.eid";
 	private Connection con = null;
 	private final HashMap<String, Integer> m_hmd = new HashMap<String, Integer>();
-	private String mSc = null, mSu = null, mSp = null;
-	private boolean mBinitd = false, mBallj = false, mBpgre = true, mBclean = false;
+	private String mSc = null;
+	private String mSu = null;
+	private String mSp = null;
+	private boolean mBinitd = false;
+	private boolean mBallj = false;
+	private boolean mBpgre = true;
+	private boolean mBclean = false;
 
 	// private PreparedStatement psau, pseu, psgu, psfu, psai, psei, psgi, psfi, psju, psji;
-	private PreparedStatement[] psu, psi;
+	private PreparedStatement[] psu;
+	private PreparedStatement[] psi;
 	private Statement stmt = null;
 
 	private synchronized void _clean() {

@@ -31,7 +31,9 @@ import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.TableColumnModel;
 
 public class TableModelDS extends AbstractTableModel {
-	public static final int SEL = 0, SRC = 1, DST = 2;
+	public static final int SEL = 0;
+	public static final int SRC = 1;
+	public static final int DST = 2;
 
 	private Vector /* !<DSData> */ data;
 	private final String stitle0;

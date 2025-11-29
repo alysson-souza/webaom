@@ -38,7 +38,9 @@ public class DiskIO implements Runnable {
 	private static final DecimalFormat _DF = new DecimalFormat("0.00");
 	private static final int I_BSIZ = 1048576 * 3;
 	private static final byte[] m_buf = new byte[I_BSIZ];
-	private static String mSfail, mSabrt, mSsucc;
+	private static String mSfail;
+	private static String mSabrt;
+	private static String mSsucc;
 
 	private HashContainer m_hc;
 
@@ -138,7 +140,8 @@ public class DiskIO implements Runnable {
 			return;
 		}
 		int last_read;
-		long tot_read = 0, len = file.length();
+		long tot_read = 0;
+		long len = file.length();
 		float prog = 0;
 
 		JobMan.updateStatus(j, Job.HASHING);
@@ -259,7 +262,8 @@ public class DiskIO implements Runnable {
 
 	private boolean fileCopy(File a, File b) throws IOException {
 		int num_read;
-		long tot_read = 0, len = a.length();
+		long tot_read = 0;
+		long len = a.length();
 		float prog = 0;
 
 		InputStream fi = new FileInputStream(a);
@@ -294,7 +298,8 @@ public class DiskIO implements Runnable {
 			return null;
 		}
 		int num_read;
-		long tot_read = 0, len = f.length();
+		long tot_read = 0;
+		long len = f.length();
 		float prog = 0;
 		InputStream in = new FileInputStream(f);
 		A.gui.jpb0.setValue(0);

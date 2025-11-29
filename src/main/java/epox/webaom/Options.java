@@ -31,7 +31,8 @@ import java.util.StringTokenizer;
 
 public class Options {
 	public static final String S_SEP = "\1";
-	private static final String S_VER = "001", S_SEP2 = "\2";
+	private static final String S_VER = "001";
+	private static final String S_SEP2 = "\2";
 	private final File m_file;
 	public int[] mIa = new int[I_LEN];
 	public String[] mSa = new String[S_LEN];
@@ -93,7 +94,9 @@ public class Options {
 		}
 		try {
 			FileInputStream fw = new FileInputStream(m_file);
-			int len = (int) m_file.length(), off = 0, read;
+			int len = (int) m_file.length();
+			int off = 0;
+			int read;
 			byte[] buffer = new byte[len];
 			do {
 				read = fw.read(buffer, off, len - off);
@@ -200,14 +203,44 @@ public class Options {
 		}
 	}
 
-	public static final int B_UNUSED0 = 0, //
-			B_HASHCRC = 1, B_HASHMD5 = 2, B_HASHSHA = 3, B_HASHTTH = 4, B_ADDFILE = 5, B_WATCHED = 6, B_UNUSED1 = 7, //
-			B_NATKEEP = 8, B_STORPSW = 9, B_ALOADDB = 10, B_AUTOLOG = 11, B_AUTOSAV = 12, //
-			B_LEN = 13, I_RPORT = 0, I_LPORT = 1, I_STATE = 2, // file state on mylist add
-			I_TIMEO = 3, // timeout
-			I_DELAY = 4, // datagram delay
-			I_USMOD = 5, // rename mode
-			I_LEN = 6, S_USRNAME = 0, S_HOSTURL = 1, S_MYDBURL = 2, S_HASHDIR = 3, S_BROWSER = 4, S_EXTENSN = 5,
-			S_SOURCEF = 6, S_STORAGE = 7, S_OTHERIN = 8, S_VRLSREN = 9, S_VRLSMOV = 10, S_REPLSYS = 11, S_HTMLCOL = 12,
-			S_LOGFILE = 13, S_PATHREG = 14, S_FONTSTR = 15, S_LOGHEAD = 16, S_JOBCOLS = 17, S_LEN = 18;
+	public static final int B_UNUSED0 = 0; //
+			public static final int B_HASHCRC = 1;
+	public static final int B_HASHMD5 = 2;
+	public static final int B_HASHSHA = 3;
+	public static final int B_HASHTTH = 4;
+	public static final int B_ADDFILE = 5;
+	public static final int B_WATCHED = 6;
+	public static final int B_UNUSED1 = 7; //
+			public static final int B_NATKEEP = 8;
+	public static final int B_STORPSW = 9;
+	public static final int B_ALOADDB = 10;
+	public static final int B_AUTOLOG = 11;
+	public static final int B_AUTOSAV = 12; //
+			public static final int B_LEN = 13;
+	public static final int I_RPORT = 0;
+	public static final int I_LPORT = 1;
+	public static final int I_STATE = 2; // file state on mylist add
+			public static final int I_TIMEO = 3; // timeout
+			public static final int I_DELAY = 4; // datagram delay
+			public static final int I_USMOD = 5; // rename mode
+			public static final int I_LEN = 6;
+	public static final int S_USRNAME = 0;
+	public static final int S_HOSTURL = 1;
+	public static final int S_MYDBURL = 2;
+	public static final int S_HASHDIR = 3;
+	public static final int S_BROWSER = 4;
+	public static final int S_EXTENSN = 5;
+	public static final int S_SOURCEF = 6;
+	public static final int S_STORAGE = 7;
+	public static final int S_OTHERIN = 8;
+	public static final int S_VRLSREN = 9;
+	public static final int S_VRLSMOV = 10;
+	public static final int S_REPLSYS = 11;
+	public static final int S_HTMLCOL = 12;
+	public static final int S_LOGFILE = 13;
+	public static final int S_PATHREG = 14;
+	public static final int S_FONTSTR = 15;
+	public static final int S_LOGHEAD = 16;
+	public static final int S_JOBCOLS = 17;
+	public static final int S_LEN = 18;
 }

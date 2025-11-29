@@ -6,7 +6,11 @@ package epox.webaom.net;
 
 public class AConS {
 	public String host;
-	public int rport, lport, tout, max_tout, delay;
+	public int rport;
+	public int lport;
+	public int tout;
+	public int max_tout;
+	public int delay;
 	public boolean nat;
 
 	/**

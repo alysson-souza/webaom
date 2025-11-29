@@ -43,10 +43,13 @@ import javax.swing.border.EmptyBorder;
 
 public class JDialogLogin extends JDialog implements ActionListener {
 	private boolean success = false;
-	private JTextField usr, key;
+	private JTextField usr;
+	private JTextField key;
 	private JPasswordField psw;
 	private JButton ok;
-	private String usrt, pswt, keyt;
+	private String usrt;
+	private String pswt;
+	private String keyt;
 
 	public JDialogLogin() {
 		super(A.frame, "Enter your AniDB username and password.", true);

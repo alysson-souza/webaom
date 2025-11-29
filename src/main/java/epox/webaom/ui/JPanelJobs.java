@@ -27,7 +27,8 @@ public class JPanelJobs extends JPanel implements ActionListener {
 	private final TableModelJobs m_jlm;
 	private final JCheckBox[] jcbArr;
 
-	private int mIs = 0, mIf = 0; // status, file state
+	private int mIs = 0;
+	private int mIf = 0; // status, file state
 	private boolean mBu = false;
 
 	public JPanelJobs(JTableJobs j, TableModelJobs s) {
@@ -111,7 +112,9 @@ public class JPanelJobs extends JPanel implements ActionListener {
 		}
 		TableColumnModel m = m_jtj.getColumnModel();
 		long mask = 0;
-		int a, b, i = 0;
+		int a;
+		int b;
+		int i = 0;
 		StringTokenizer st = new StringTokenizer(s, ";");
 		int[] x = new int[st.countTokens()];
 		while (st.hasMoreTokens()) {
@@ -195,6 +198,19 @@ public class JPanelJobs extends JPanel implements ActionListener {
 		}
 	}
 
-	private static final int I_NOR = 0, I_PAU = 1, I_WAI = 2, I_DOI = 3, I_DIS = 4, I_CRC = 5, I_UPD = 6, I_MIS = 7,
-			I_DEL = 8, I_DON = 9, I_FAI = 10, I_NET = 11, I_CEN = 12, I_UNK = 13, I_LEN = 14;
+	private static final int I_NOR = 0;
+	private static final int I_PAU = 1;
+	private static final int I_WAI = 2;
+	private static final int I_DOI = 3;
+	private static final int I_DIS = 4;
+	private static final int I_CRC = 5;
+	private static final int I_UPD = 6;
+	private static final int I_MIS = 7;
+	private static final int I_DEL = 8;
+	private static final int I_DON = 9;
+	private static final int I_FAI = 10;
+	private static final int I_NET = 11;
+	private static final int I_CEN = 12;
+	private static final int I_UNK = 13;
+	private static final int I_LEN = 14;
 }

@@ -32,13 +32,22 @@ public class Job {
 	// Size, int=4, long=1, pointer=4, string=7 -> 4*4+1*8+4*8+7*8= 112 bytes / calc = 108 bytes
 	private static final char S = '|';
 	private int mIst;
-	public int mIdid, mIlid = 0, mIfid = 0; // TODO remove rIlid
+	public int mIdid;
+	public int mIlid = 0;
+	public int mIfid = 0; // TODO remove rIlid
 	public boolean mBf = true; // fresh
 	public long mLs;
-	public File m_fc, m_fn;
+	public File m_fc;
+	public File m_fn;
 	public AFile m_fa;
 	public FileInfo m_fi;
-	public String mSo, mSe, _ed2, _md5, _sha, _tth, _crc;
+	public String mSo;
+	public String mSe;
+	public String _ed2;
+	public String _md5;
+	public String _sha;
+	public String _tth;
+	public String _crc;
 
 	public String serialize() {
 		return "" + getStatus() + S + m_fc + S + mLs + S + _ed2 + S + _md5 + S + _sha + S + _tth + S + _crc + S + mSo;
@@ -258,42 +267,53 @@ public class Job {
 	}
 
 	/// STATIC
-	public static final int S_DONE = 0x00000001, // status
-			S_DO = 0x00000002, S_DOING = 0x00000014, S_FAILED = 0x00000008, U_2 = 0x00000020, // sub status
-			H_NORMAL = 0x00000100, // health
-			H_PAUSED = 0x00000200, H_MISSING = 0x00000400, H_DELETED = 0x00000800, D_DIO = 0x00010000, // mode
-			D_NIO = 0x00020000,
-			//	M_USR		= 0x00040000,
-			T_1 = 0x00100000, // type
-			T_2 = 0x00200000, T_4 = 0x00400000,
-			//	T_8			= 0x00800000,
-			F_DB = 0x01000000, // flag
-			F_UNK = 0x02000000, F_PD = 0x00000000, // pardoned
-			M_H = 0x0000ff00, // mask
-			M_S = 0x0fff00ff, M_SS = 0x0000001f, M_D = 0x000f0000, M_R = 0x0f0f001f;
-	public static final int FAILED = S_FAILED | F_DB, // 0x00,0   -> 16777224
-			UNKNOWN = S_DONE | F_UNK | F_DB, // 0x10,16  -> 50331649
-			FINISHED = S_DONE | F_DB | F_PD, // 0xf0,240 -> 16777217
-			HASHWAIT = D_DIO | T_1 | S_DO | F_DB, // 0x30,48  -> 17891330
-			HASHING = D_DIO | T_1 | S_DOING, // 0x32,
-			HASHED = D_DIO | T_1 | S_DONE, // 0x3f,
-			IDENTWAIT = D_NIO | T_1 | S_DO | F_DB, // 0x50,80  -> 17956866
-			IDENTIFYING = D_NIO | T_1 | S_DOING, // 0x52,
-			IDENTIFIED = D_NIO | T_1 | S_DONE, // 0x5f,
-			ADDWAIT = D_NIO | T_2 | S_DO | F_DB | F_PD, // 0x70,112 -> 19005442
-			ADDING = D_NIO | T_2 | S_DOING, // 0x72,
-			ADDED = D_NIO | T_2 | S_DONE, // 0x7f,
-			MOVEWAIT = D_DIO | T_2 | S_DO | F_DB, // 0x90,144 -> 18939906
-			MOVING = D_DIO | T_2 | S_DOING, // 0x92,
-			MOVECHECK = D_DIO | T_2 | U_2 | S_DOING, // 0x94,
-			MOVED = D_DIO | T_2 | S_DONE, // 0x9f,
+	public static final int S_DONE = 0x00000001; // status
+			public static final int S_DO = 0x00000002;
+	public static final int S_DOING = 0x00000014;
+	public static final int S_FAILED = 0x00000008;
+	public static final int U_2 = 0x00000020; // sub status
+			public static final int H_NORMAL = 0x00000100; // health
+			public static final int H_PAUSED = 0x00000200;
+	public static final int H_MISSING = 0x00000400;
+	public static final int H_DELETED = 0x00000800;
+	public static final int D_DIO = 0x00010000; // mode
+			public static final int D_NIO = 0x00020000;
+	public static final int//	M_USR		= 0x00040000,
+			T_1 = 0x00100000; // type
+			public static final int T_2 = 0x00200000;
+	public static final int T_4 = 0x00400000;
+	public static final int//	T_8			= 0x00800000,
+			F_DB = 0x01000000; // flag
+			public static final int F_UNK = 0x02000000;
+	public static final int F_PD = 0x00000000; // pardoned
+			public static final int M_H = 0x0000ff00; // mask
+			public static final int M_S = 0x0fff00ff;
+	public static final int M_SS = 0x0000001f;
+	public static final int M_D = 0x000f0000;
+	public static final int M_R = 0x0f0f001f;
+	public static final int FAILED = S_FAILED | F_DB; // 0x00,0   -> 16777224
+			public static final int UNKNOWN = S_DONE | F_UNK | F_DB; // 0x10,16  -> 50331649
+			public static final int FINISHED = S_DONE | F_DB | F_PD; // 0xf0,240 -> 16777217
+			public static final int HASHWAIT = D_DIO | T_1 | S_DO | F_DB; // 0x30,48  -> 17891330
+			public static final int HASHING = D_DIO | T_1 | S_DOING; // 0x32,
+			public static final int HASHED = D_DIO | T_1 | S_DONE; // 0x3f,
+			public static final int IDENTWAIT = D_NIO | T_1 | S_DO | F_DB; // 0x50,80  -> 17956866
+			public static final int IDENTIFYING = D_NIO | T_1 | S_DOING; // 0x52,
+			public static final int IDENTIFIED = D_NIO | T_1 | S_DONE; // 0x5f,
+			public static final int ADDWAIT = D_NIO | T_2 | S_DO | F_DB | F_PD; // 0x70,112 -> 19005442
+			public static final int ADDING = D_NIO | T_2 | S_DOING; // 0x72,
+			public static final int ADDED = D_NIO | T_2 | S_DONE; // 0x7f,
+			public static final int MOVEWAIT = D_DIO | T_2 | S_DO | F_DB; // 0x90,144 -> 18939906
+			public static final int MOVING = D_DIO | T_2 | S_DOING; // 0x92,
+			public static final int MOVECHECK = D_DIO | T_2 | U_2 | S_DOING; // 0x94,
+			public static final int MOVED = D_DIO | T_2 | S_DONE; // 0x9f,
 
 			//	INPUTWAIT	= M_USR|U_1|S_DO|F_DB,	//0xb0,
 
-			REMWAIT = D_NIO | T_4 | S_DO | F_DB | F_PD, // 0xc0,
-			REMING = D_NIO | T_4 | S_DOING, // 0xc2,
-			PARSEWAIT = D_DIO | T_4 | S_DO | F_DB | F_PD, // 0xd0,
-			PARSING = D_DIO | T_4 | S_DOING; // 0xd2,
+			public static final int REMWAIT = D_NIO | T_4 | S_DO | F_DB | F_PD; // 0xc0,
+			public static final int REMING = D_NIO | T_4 | S_DOING; // 0xc2,
+			public static final int PARSEWAIT = D_DIO | T_4 | S_DO | F_DB | F_PD; // 0xd0,
+			public static final int PARSING = D_DIO | T_4 | S_DOING; // 0xd2,
 
 	private static String statusStr(int i) {
 		switch (i) {

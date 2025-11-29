@@ -51,7 +51,8 @@ public class A {
 	 * 1048576f+"\t"+(mem5)/1048576f);
 	 * }
 	 */
-	public static final String S_WEB = "anidb.net", S_N = "\r\n";
+	public static final String S_WEB = "anidb.net";
+	public static final String S_N = "\r\n";
 	public static final String S_VER = loadVersion();
 
 	private static String loadVersion() {
@@ -70,8 +71,12 @@ public class A {
 		return "unknown";
 	}
 
-	public static String fschema, dir = null, preg = null /* "^.*$" */, font = "";
-	public static int ASNO = 99, ASSP = 99;
+	public static String fschema;
+	public static String dir = null;
+	public static String preg = null /* "^.*$" */;
+	public static String font = "";
+	public static int ASNO = 99;
+	public static int ASSP = 99;
 
 	public static java.awt.Component component = null;
 	public static java.awt.Frame frame = null;
@@ -89,11 +94,13 @@ public class A {
 	public static JPanelMain gui;
 	public static FileHandler fha;
 
-	public static Component com0, com1;
+	public static Component com0;
+	public static Component com1;
 
 	public static Base p = new Base();
 
-	public static boolean autoadd = false, opt_change = false;
+	public static boolean autoadd = false;
+	public static boolean opt_change = false;
 
 	// public static volatile int nr_dio=-1, nr_nio = -1, nr_menu = -1;
 
@@ -151,7 +158,8 @@ public class A {
 	}
 
 	public static void setFont(String f) {
-		int i = f.lastIndexOf(','), size = 11;
+		int i = f.lastIndexOf(',');
+		int size = 11;
 		if (i > 0) {
 			try {
 				String s = f.substring(i + 1);
@@ -224,8 +232,10 @@ public class A {
 		System.out.println("@ JobList: " + A.jobs);
 		System.out.println("@ Cache: " + A.cache);
 
-		int sub0 = 0, sub1 = 0;
-		Base b, c;
+		int sub0 = 0;
+		int sub1 = 0;
+		Base b;
+		Base c;
 		for (int i = 0; i < A.p.size(); i++) {
 			b = A.p.get(i);
 			if (b == null) {

@@ -44,7 +44,8 @@ import javax.swing.Timer;
 
 public class ACon implements ActionListener {
 	public static final String DEF_HOST = "api.anidb.net";
-	public static final int DEF_RPORT = 9000, DEF_LPORT = 45678;
+	public static final int DEF_RPORT = 9000;
+	public static final int DEF_LPORT = 45678;
 
 	public static boolean shutdown = false;
 	public boolean m_authed = false;
@@ -59,7 +60,8 @@ public class ACon implements ActionListener {
 	private UserPass m_up = null;
 
 	private static int m_rem_login_att = 2;
-	private long m_tused = 0, m_tstamp = 0;
+	private long m_tused = 0;
+	private long m_tstamp = 0;
 	private int m_rem_auth_att = 3;
 	private String m_err = "Not Initialized.";
 
@@ -72,7 +74,8 @@ public class ACon implements ActionListener {
 
 	private final AConS m_s;
 
-	protected String m_session = null, m_tag = null;
+	protected String m_session = null;
+	protected String m_tag = null;
 
 	private String m_enc = "ascii";
 
