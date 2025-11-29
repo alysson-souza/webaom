@@ -8,13 +8,14 @@ WebAOM (Web Anime-o-Matic) is a Java application that automatically identifies a
 - **MyList Integration**: Automatically add identified files to your AniDB MyList with metadata
 - **Automated Organization**: Rename and move files based on customizable rules and templates
 - **Concurrent Processing**: Hash and process multiple files simultaneously
+- **Drag-and-Drop Support**: Visual feedback with border highlighting when dragging files to the jobs table
 - **Local Database**: Optional MySQL or PostgreSQL backend for caching metadata and job tracking
 - **Alternative Views**: Tree view display for organized file browsing
 - **Import/Export**: Manage your collection data
 
 ## Requirements
 
-- **Java Development Kit (JDK)**: Java 8 or later (for building) or Java 8+ (for running)
+- **Java Development Kit (JDK)**: Java 21 or later (for building) or Java 21+ (for running)
 - **Gradle**: Included via Gradle Wrapper (no separate installation needed)
 - **Swing Support**: Required for the GUI
 - **AniDB Account**: Needed to use MyList functionality
@@ -24,7 +25,7 @@ WebAOM (Web Anime-o-Matic) is a Java application that automatically identifies a
 
 ### Using Gradle (Recommended)
 
-1. Ensure you have Java 8+ installed
+1. Ensure you have Java 21+ installed
 2. Clone or download this repository
 3. Build the project:
    ```bash
@@ -36,9 +37,9 @@ WebAOM (Web Anime-o-Matic) is a Java application that automatically identifies a
    ```
 
 Or run the JAR directly:
-   ```bash
-   java -jar build/libs/webaom-2.0.0.jar
-   ```
+     ```bash
+     java -jar build/libs/webaom-2.1.1.jar
+     ```
 
 ### Gradle Commands
 
@@ -46,6 +47,8 @@ Or run the JAR directly:
 - **Run**: `./gradlew run` - Runs the application from the built classes
 - **Clean**: `./gradlew clean` - Removes build artifacts
 - **Check**: `./gradlew check` - Runs build and tests (if any)
+- **Format**: `./gradlew spotlessApply` - Applies code formatting (Google Java Style)
+- **Style Check**: `./gradlew spotlessCheck` - Checks code formatting without applying changes
 
 ### Manual Compilation (Legacy)
 
@@ -65,7 +68,7 @@ java -jar webaom.jar
 If you have a pre-built JAR file:
 
 ```bash
-java -jar webaom-2.0.0.jar
+java -jar webaom-2.1.1.jar
 ```
 
 ## Usage
@@ -73,7 +76,7 @@ java -jar webaom-2.0.0.jar
 ### Basic Workflow
 
 1. **Configure Settings**: Set up your AniDB username, hash algorithms, and file organization rules
-2. **Select Files**: Choose files or folders to process
+2. **Add Files**: Drag and drop files/folders onto the application or use the file browser
 3. **Login**: WebAOM will connect to AniDB's UDP API with your credentials
 4. **Process**: Files are hashed, identified, and added to your MyList
 5. **Organize**: Files can be automatically renamed and moved based on your rules

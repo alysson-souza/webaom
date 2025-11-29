@@ -1,5 +1,8 @@
 WebAOM!
 
+2.1.1 2025.11.29
+*Fixed drag-and-drop operations.
+
 2.1.0 2025.11.28
 *Upgraded Java runtime to Java 21 LTS.
 *Updated PostgreSQL JDBC driver to 42.7.7 (fixes CVE-2024-1597 and CVE-2025-49146).
