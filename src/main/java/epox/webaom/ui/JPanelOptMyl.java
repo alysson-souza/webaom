@@ -37,10 +37,11 @@ import javax.swing.JTextField;
 
 public class JPanelOptMyl extends JPanel {
     private final String[] states = {"Unknown", "On HDD", "On CD", "Deleted"};
-    private JTextField tfSto, tfSou;
-    private JComboBox coStt;
-    private JTextArea taOth;
-    private JCheckBox cbWat;
+    private final JTextField tfSto;
+    private final JTextField tfSou;
+    private final JComboBox coStt;
+    private final JTextArea taOth;
+    private final JCheckBox cbWat;
 
     public JPanelOptMyl() {
 

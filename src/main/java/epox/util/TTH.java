@@ -27,13 +27,13 @@ import com.bitzi.util.Base32;
 import com.bitzi.util.TigerTree;
 
 public class TTH extends jonelo.jacksum.algorithm.AbstractChecksum {
-    private TigerTree tt;
+    private final TigerTree tt;
 
     public TTH() {
         tt = new TigerTree();
     }
 
-    public void update(byte buffer[], int offset, int len) {
+    public void update(byte[] buffer, int offset, int len) {
         tt.update(buffer, offset, len);
     }
 

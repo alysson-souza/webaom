@@ -42,7 +42,7 @@ public class JPopupMenuM extends JPopupMenu implements MouseListener, ActionList
     protected final RowModel jlm;
     protected MenuWorker worker = null;
     private String dir = null;
-    private JMenuItem[] items;
+    private final JMenuItem[] items;
 
     public JPopupMenuM(final JTable jt, final RowModel jlm) {
         this.jt = jt;
@@ -120,7 +120,7 @@ public class JPopupMenuM extends JPopupMenu implements MouseListener, ActionList
                     arg = getFolder();
                     if (arg == null) break ie;
                 }
-                int rows[] = jt.getSelectedRows();
+                int[] rows = jt.getSelectedRows();
 
                 jt.clearSelection();
                 for (int i = 0; i < rows.length && run; i++)

@@ -47,19 +47,19 @@ public class HeaderListener extends MouseAdapter {
                 TableColumn c = m_c.getColumn(i);
                 JCheckBoxMenuItem mi =
                         new JCheckBoxMenuItem(
-                                c.getHeaderValue().toString(), (1L << i & mask) == 1 << i);
+                                c.getHeaderValue().toString(), (1L << i & mask) == 1L << i);
                 mi.addActionListener(new ColumnAction(m_c, c, mi));
                 m_pop.add(mi);
             }
             for (int i = m_c.getColumnCount() - 1; i >= 0; i--)
-                if ((1L << i & mask) != 1 << i) m_c.removeColumn(m_c.getColumn(i));
+                if ((1L << i & mask) != 1L << i) m_c.removeColumn(m_c.getColumn(i));
         }
     }
 
     private class ColumnAction implements ActionListener {
-        private TableColumnModel m;
-        private TableColumn c;
-        private JCheckBoxMenuItem b;
+        private final TableColumnModel m;
+        private final TableColumn c;
+        private final JCheckBoxMenuItem b;
 
         ColumnAction(TableColumnModel m, TableColumn c, JCheckBoxMenuItem b) {
             this.m = m;

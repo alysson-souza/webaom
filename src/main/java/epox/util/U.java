@@ -91,11 +91,11 @@ public class U {
         // StringBuffer sb = new StringBuffer(src);
         for (int i = 0; i < sb.length(); i++) if (sb.charAt(i) == c) cnt++;
         if (cnt < 2) return new String[] {sb};
-        int pos[] = new int[cnt];
+        int[] pos = new int[cnt];
         int j = 0;
         for (int i = 0; i < sb.length(); i++) if (sb.charAt(i) == c) pos[j++] = i;
         pos[cnt - 1] = sb.length();
-        String res[] = new String[cnt];
+        String[] res = new String[cnt];
         j = 0;
         for (int i = 0; i < cnt; i++) {
             res[i] = sb.substring(j, pos[i]);
@@ -191,7 +191,7 @@ public class U {
             if (f.length() > 1024 * 1024) return null;
             BufferedInputStream bis =
                     new BufferedInputStream(new FileInputStream(f), (int) f.length());
-            byte buf[] = new byte[(int) f.length()];
+            byte[] buf = new byte[(int) f.length()];
             bis.read(buf);
             bis.close();
             return new String(buf);

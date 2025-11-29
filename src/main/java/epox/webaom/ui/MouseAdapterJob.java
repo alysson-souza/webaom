@@ -32,9 +32,9 @@ import java.awt.event.MouseEvent;
 import javax.swing.JTable;
 
 public class MouseAdapterJob extends MouseAdapter {
-    private JTable jt;
-    private JobList jl;
-    private TableModelJobs jm;
+    private final JTable jt;
+    private final JobList jl;
+    private final TableModelJobs jm;
 
     public MouseAdapterJob(JTable jt, TableModelJobs jm, JobList jl) {
         this.jt = jt;

@@ -29,7 +29,7 @@ import javax.swing.KeyStroke;
 import javax.swing.table.TableCellRenderer;
 
 public class JTableJobs extends JTableSortable implements DropTargetListener, KeyListener {
-    private TableModelJobs m_jlm;
+    private final TableModelJobs m_jlm;
 
     public JTableJobs(TableModelJobs jlm) {
         super(jlm);

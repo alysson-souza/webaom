@@ -32,8 +32,9 @@ import javax.swing.JPanel;
 import javax.swing.JTextField;
 
 public class JTextInputDialog extends JDialog implements ActionListener {
-    private JTextField jtf;
-    private JButton ok, cl;
+    private final JTextField jtf;
+    private final JButton ok;
+    private final JButton cl;
     private String val = null;
     private int num = -1;
 

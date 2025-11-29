@@ -29,8 +29,8 @@ import javax.swing.event.ListDataListener;
 
 public class UniqueStringList implements ListModel {
     private ListDataListener ldl;
-    private Vector /* !<String> */ table;
-    private String sep;
+    private final Vector /* !<String> */ table;
+    private final String sep;
 
     public UniqueStringList(String s) {
         sep = s;
@@ -71,8 +71,8 @@ public class UniqueStringList implements ListModel {
 
     public String toString() {
         String tmp = "";
-        Object o[] = getStrings();
-        for (int i = 0; i < o.length; i++) tmp += (String) o[i] + sep;
+        Object[] o = getStrings();
+        for (int i = 0; i < o.length; i++) tmp += o[i] + sep;
         return tmp.trim();
     }
 

@@ -36,6 +36,7 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.io.Writer;
+import java.nio.charset.StandardCharsets;
 import javax.swing.JFileChooser;
 
 public class Parser {
@@ -118,7 +119,7 @@ public class Parser {
                         File file = fc.getSelectedFile();
                         A.dir = file.getParentFile().getAbsolutePath();
                         FileOutputStream fos = new FileOutputStream(file);
-                        Writer fw = new OutputStreamWriter(fos, "UTF-8");
+                        Writer fw = new OutputStreamWriter(fos, StandardCharsets.UTF_8);
                         fw.write("a0\r\n");
                         A.p.mkArray();
                         for (int i = 0; i < A.p.size(); i++) {
@@ -157,7 +158,9 @@ public class Parser {
                         File file = fc.getSelectedFile();
                         A.dir = file.getParentFile().getAbsolutePath();
                         FileInputStream fos = new FileInputStream(file);
-                        BufferedReader br = new BufferedReader(new InputStreamReader(fos, "UTF-8"));
+                        BufferedReader br =
+                                new BufferedReader(
+                                        new InputStreamReader(fos, StandardCharsets.UTF_8));
                         String v = br.readLine();
                         boolean froms = false;
                         if (v.equals("s0")) froms = true;

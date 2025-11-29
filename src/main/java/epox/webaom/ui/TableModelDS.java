@@ -34,8 +34,9 @@ public class TableModelDS extends AbstractTableModel {
     public static final int SEL = 0, SRC = 1, DST = 2;
 
     private Vector /* !<DSData> */ data;
-    private String stitle0, stitle1;
-    private DSData dummy;
+    private final String stitle0;
+    private final String stitle1;
+    private final DSData dummy;
 
     public TableModelDS(Vector /* <DSData> */ d, String s0, String s1) {
         setData(d);

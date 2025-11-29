@@ -26,12 +26,13 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.util.StringTokenizer;
 
 public class Options {
     public static final String S_SEP = "\1";
     private static final String S_VER = "001", S_SEP2 = "\2";
-    private File m_file;
+    private final File m_file;
     public int[] mIa = new int[I_LEN];
     public String[] mSa = new String[S_LEN];
     public boolean[] mBa = new boolean[B_LEN];
@@ -57,9 +58,7 @@ public class Options {
     }
 
     private boolean strcmp(String a, String b) {
-        return a == null && b == null
-                || a != null && b != null && a.equals(b)
-                || a.length() == 0 && b == null;
+        return a == null && b == null || a != null && a.equals(b) || a.length() == 0 && b == null;
     }
 
     public void save() {
@@ -69,7 +68,7 @@ public class Options {
             return;
         try {
             FileOutputStream fo = new FileOutputStream(m_file);
-            fo.write(enc().getBytes("utf8"));
+            fo.write(enc().getBytes(StandardCharsets.UTF_8));
             fo.close();
             System.out.println("$ File written:" + m_file);
         } catch (IOException e) {
@@ -89,7 +88,7 @@ public class Options {
             } while (read > 0);
             fw.close();
             System.out.println("$ File read:" + m_file);
-            return dec(new String(buffer, "utf8"));
+            return dec(new String(buffer, StandardCharsets.UTF_8));
         }
         // catch(IOException e){e.printStackTrace();}
         catch (Exception e) {

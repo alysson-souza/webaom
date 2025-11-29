@@ -5,8 +5,8 @@
 package epox.util;
 
 public class Bits {
-    private int mIlen;
-    private byte[] mBuse;
+    private final int mIlen;
+    private final byte[] mBuse;
 
     public Bits(int len) {
         mIlen = len;

@@ -154,8 +154,7 @@ public class JTreeTable extends JTable {
             // Make the tree's cell renderer use the table's cell selection
             // colors.
             TreeCellRenderer tcr = getCellRenderer();
-            if (tcr instanceof DefaultTreeCellRenderer) {
-                DefaultTreeCellRenderer dtcr = ((DefaultTreeCellRenderer) tcr);
+            if (tcr instanceof DefaultTreeCellRenderer dtcr) {
                 // For 1.1 uncomment this, 1.2 has a bug that will cause an
                 // exception to be thrown if the border selection color is
                 // null.
@@ -227,10 +226,9 @@ public class JTreeTable extends JTable {
          * editable (at least by a key sequence).
          */
         public boolean isCellEditable(EventObject e) {
-            if (e instanceof MouseEvent)
+            if (e instanceof MouseEvent me)
                 for (int counter = getColumnCount() - 1; counter >= 0; counter--)
                     if (getColumnClass(counter) == TreeTableModel.class) {
-                        MouseEvent me = (MouseEvent) e;
                         MouseEvent newME =
                                 new MouseEvent(
                                         tree,

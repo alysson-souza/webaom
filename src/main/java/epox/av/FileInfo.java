@@ -91,7 +91,6 @@ public class FileInfo {
                 sub.add(m);
                 m = null;
                 ctyp = -1;
-                return;
             }
         }
 

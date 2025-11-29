@@ -31,13 +31,13 @@ package com.twmacinta.util;
  */
 class MD5State {
     /** 128-bit state */
-    int state[];
+    int[] state;
 
     /** 64-bit character count */
     long count;
 
     /** 64-byte buffer (512 bits) for storing to-be-hashed characters */
-    byte buffer[];
+    byte[] buffer;
 
     public MD5State() {
         buffer = new byte[64];

@@ -125,7 +125,7 @@ public class JPanelDebug extends JPanel {
                     jta.append(str);
                     newl = false;
                 } else {
-                    String arg[] = U.split(str, '\n');
+                    String[] arg = U.split(str, '\n');
                     for (int i = 0; i < arg.length; i++) {
                         if (newl) jta.append(pre);
                         jta.append(arg[i] + "\n");
@@ -173,7 +173,7 @@ public class JPanelDebug extends JPanel {
             append(x + "");
         }
 
-        public void print(char x[]) {
+        public void print(char[] x) {
             if (echo) pecho.print(x);
             if (log_file) super.print(new String(x));
             append(new String(x));
@@ -231,7 +231,7 @@ public class JPanelDebug extends JPanel {
             println();
         }
 
-        public void println(char x[]) {
+        public void println(char[] x) {
             print(x);
             println();
         }

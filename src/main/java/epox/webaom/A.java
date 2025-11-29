@@ -50,7 +50,7 @@ public class A {
      * 1048576f+"\t"+(mem5)/1048576f);
      * }
      */
-    public static final String S_WEB = "anidb.net", S_VER = "2.0.0 (2025-11-15)", S_N = "\r\n";
+    public static final String S_WEB = "anidb.net", S_VER = "2.1.0 (2025-11-29)", S_N = "\r\n";
     public static String fschema, dir = null, preg = null /* "^.*$" */, font = "";
     public static int ASNO = 99, ASSP = 99;
 
@@ -188,7 +188,7 @@ public class A {
             InputStream is = WebAOM.class.getClassLoader().getResourceAsStream(name);
             String str = "";
             int buf_size = 1024;
-            byte buffer[] = new byte[buf_size];
+            byte[] buffer = new byte[buf_size];
             int read;
             while ((read = is.read(buffer, 0, buf_size)) > 0) str += new String(buffer, 0, read);
             return str;

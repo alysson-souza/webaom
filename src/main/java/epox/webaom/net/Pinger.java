@@ -26,7 +26,7 @@ import epox.webaom.Hyper;
 import epox.webaom.ui.JPanelMain;
 
 public class Pinger extends Thread {
-    private JPanelMain web;
+    private final JPanelMain web;
 
     public Pinger(JPanelMain w) {
         super("Pinger");

@@ -76,7 +76,7 @@ public class Base implements Comparable {
     }
 
     public void dump(String pre) {
-        System.out.println(pre + toString());
+        System.out.println(pre + this);
         Iterator it = m_hm.values().iterator();
         while (it.hasNext()) ((Base) it.next()).dump(pre + ".");
     }
@@ -99,7 +99,7 @@ public class Base implements Comparable {
     }
 
     public Object getKey() {
-        return new Integer(id);
+        return Integer.valueOf(id);
     }
 
     public String serialize() {

@@ -5,8 +5,8 @@
 package epox.webaom.data;
 
 public class AG extends Base {
-    private Group m_g;
-    private Anime m_a;
+    private final Group m_g;
+    private final Anime m_a;
 
     public AG(Anime a, Group g) {
         this.id = g.id;

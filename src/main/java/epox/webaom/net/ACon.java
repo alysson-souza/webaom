@@ -68,15 +68,15 @@ public class ACon implements ActionListener {
 
     private DatagramSocket m_ds;
     private InetAddress m_ia;
-    private Timer m_tm;
+    private final Timer m_tm;
 
-    private AConS m_s;
+    private final AConS m_s;
 
     protected String m_session = null, m_tag = null;
 
     private String m_enc = "ascii";
 
-    private Log m_log;
+    private final Log m_log;
 
     public ACon(Log l, AConS s) {
         m_log = l;
@@ -289,7 +289,7 @@ public class ACon implements ActionListener {
     public synchronized String send(String command, boolean wait) throws AConEx {
         if (command == null) throw new AConEx(AConEx.CLIENT_BUG);
 
-        String arg[] = command.split(" ", 2);
+        String[] arg = command.split(" ", 2);
         AConR r = send_layer2(arg[0], arg.length > 1 ? arg[1] : null, wait);
         return r.code + " " + r.message + (r.data != null ? "\n" + r.data : "");
     }
@@ -318,8 +318,7 @@ public class ACon implements ActionListener {
         throw new AConEx(AConEx.ANIDB_UNREACHABLE, getLastError());
     }
 
-    private AConR send_layer1(String op, String param, boolean wait)
-            throws IOException, SocketTimeoutException, AConEx {
+    private AConR send_layer1(String op, String param, boolean wait) throws IOException, AConEx {
         if (param != null) {
             if (m_session != null) param += "&s=" + m_session;
         } else if (m_session != null) param = "s=" + m_session;
@@ -329,8 +328,7 @@ public class ACon implements ActionListener {
         return send_layer0(op + " " + param, wait);
     }
 
-    private AConR send_layer0(String s, boolean wait)
-            throws SocketTimeoutException, IOException, AConEx {
+    private AConR send_layer0(String s, boolean wait) throws IOException, AConEx {
         m_tm.stop();
         if (wait)
             try {
@@ -382,7 +380,7 @@ public class ACon implements ActionListener {
         return null;
     }
 
-    private AConR receive() throws SocketTimeoutException, IOException, AConEx {
+    private AConR receive() throws IOException, AConEx {
         if (shutdown) return null;
         byte[] buf = new byte[m_buf_siz];
         DatagramPacket pckt_in = new DatagramPacket(buf, m_buf_siz);

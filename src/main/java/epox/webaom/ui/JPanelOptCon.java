@@ -41,8 +41,9 @@ import javax.swing.event.ChangeListener;
 
 public class JPanelOptCon extends JPanel implements ChangeListener {
     private final int MIN_IPD = 3, MIN_PTO = 10;
-    private JSlider jsTime, jsDelay;
-    private JCheckBox jcbNat;
+    private final JSlider jsTime;
+    private final JSlider jsDelay;
+    private final JCheckBox jcbNat;
     public JButton jbPing;
     public JTextField tfHost, tfRPort, tfLPort;
 

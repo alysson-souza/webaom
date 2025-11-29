@@ -29,10 +29,10 @@ import java.util.ArrayList;
 import java.util.HashSet;
 
 public class JobList {
-    private ArrayList /* !<Job> */ m_al;
+    private final ArrayList /* !<Job> */ m_al;
     private Job[] m_fl = null;
-    private HashSet /* !<String> */ m_hs;
-    private LinkedHash[] m_lh;
+    private final HashSet /* !<String> */ m_hs;
+    private final LinkedHash[] m_lh;
 
     // private int mIid = 0;
 

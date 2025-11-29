@@ -23,10 +23,10 @@ import javax.swing.table.TableColumn;
 import javax.swing.table.TableColumnModel;
 
 public class JPanelJobs extends JPanel implements ActionListener {
-    private JTableJobs m_jtj;
-    private JScrollTable m_jst;
-    private TableModelJobs m_jlm;
-    private JCheckBox[] jcbArr;
+    private final JTableJobs m_jtj;
+    private final JScrollTable m_jst;
+    private final TableModelJobs m_jlm;
+    private final JCheckBox[] jcbArr;
 
     private int mIs = 0, mIf = 0; // status, file state
     private boolean mBu = false;
@@ -98,7 +98,7 @@ public class JPanelJobs extends JPanel implements ActionListener {
             String[] sa = st.nextToken().split(",", 2);
             a = U.i(sa[0]);
             b = U.i(sa[1]);
-            mask |= 1 << i;
+            mask |= 1L << i;
             x[i++] = a;
             m.getColumn(a).setPreferredWidth(b);
         }

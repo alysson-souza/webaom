@@ -61,7 +61,7 @@ public class AVInfo {
 
     private static final String EC = "Error: instance is closed.";
 
-    private File file;
+    private final File file;
     private long address;
 
     // private Vector tracks;

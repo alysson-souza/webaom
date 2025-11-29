@@ -33,7 +33,7 @@ public class DSData {
     public DSData(String s, String d, boolean b) {
         src = s;
         dst = d;
-        sel = new Boolean(b);
+        sel = Boolean.valueOf(b);
     }
 
     public String toString() {

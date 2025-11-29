@@ -38,7 +38,7 @@ public class Cache {
         //
     }
 
-    private MyMap[] m_hm;
+    private final MyMap[] m_hm;
 
     public Cache() {
         m_hm = new MyMap[3];
@@ -59,7 +59,7 @@ public class Cache {
     }
 
     public void add(Base b, int db, int typ) {
-        Integer id = new Integer(b.id);
+        Integer id = Integer.valueOf(b.id);
         if (!m_hm[typ].containsKey(id)) {
             m_hm[typ].put(id, b);
             if (db == 1) A.db.update(b.id, b, typ);
@@ -68,10 +68,10 @@ public class Cache {
     }
 
     public Base get(int id, int t) {
-        Base b = (Base) m_hm[t].get(new Integer(id)); // !
+        Base b = (Base) m_hm[t].get(Integer.valueOf(id)); // !
         if (b == null) {
             b = A.db.getGeneric(id, t);
-            if (b != null) m_hm[t].put(new Integer(id), b);
+            if (b != null) m_hm[t].put(Integer.valueOf(id), b);
         }
         return b;
     }
@@ -105,14 +105,14 @@ public class Cache {
         AFile f = new AFile(s);
         int i = 20;
         // create/retrieve data objects
-        f.anime = (Anime) m_hm[DB.I_A].get(new Integer(f.aid));
+        f.anime = (Anime) m_hm[DB.I_A].get(Integer.valueOf(f.aid));
         if (f.anime == null) f.anime = new Anime(f.aid);
         else A.p.remove(f.anime);
 
-        f.ep = (Ep) m_hm[DB.I_E].get(new Integer(f.eid));
+        f.ep = (Ep) m_hm[DB.I_E].get(Integer.valueOf(f.eid));
         if (f.ep == null) f.ep = new Ep(f.eid);
 
-        f.group = (Group) m_hm[DB.I_G].get(new Integer(f.gid));
+        f.group = (Group) m_hm[DB.I_G].get(Integer.valueOf(f.gid));
         if (f.group == null) f.group = new Group(f.gid);
 
         // set group data

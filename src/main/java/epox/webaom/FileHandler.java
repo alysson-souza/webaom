@@ -81,8 +81,8 @@ public class FileHandler {
 
     public synchronized void opts(Options o) {
         String ext = "";
-        Object t[] = m_ext.getStrings();
-        for (int i = 0; i < t.length; i++) ext += (String) t[i] + Options.S_SEP;
+        Object[] t = m_ext.getStrings();
+        for (int i = 0; i < t.length; i++) ext += t[i] + Options.S_SEP;
         o.setS(Options.S_EXTENSN, ext);
     }
 
@@ -95,8 +95,7 @@ public class FileHandler {
             implements java.io.FileFilter {
         public boolean accept(File file) {
             if (file.isDirectory()) return true;
-            if (m_ext.includes(getExtension(file)) || m_ext.getSize() == 0) return true;
-            return false;
+            return m_ext.includes(getExtension(file)) || m_ext.getSize() == 0;
         }
 
         public String getDescription() {
