@@ -48,7 +48,7 @@ jar {
 	duplicatesStrategy = DuplicatesStrategy.EXCLUDE
 }
 
-tasks.withType(JavaCompile) {
+tasks.withType(JavaCompile).configureEach {
 	options.encoding = 'UTF-8'
 	options.compilerArgs.addAll([
 		'-Xlint:unchecked',
@@ -79,7 +79,7 @@ checkstyle {
 	maxErrors = 0
 }
 
-tasks.withType(Checkstyle) {
+tasks.withType(Checkstyle).configureEach {
 	reports {
 		xml.required = true
 		html.required = true
