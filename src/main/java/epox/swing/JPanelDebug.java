@@ -83,6 +83,7 @@ public class JPanelDebug extends JPanel {
     }
 
     protected class Updater implements Runnable {
+        @Override
         public void run() {
             if (!jsb.getValueIsAdjusting()) jsb.setValue(jsb.getMaximum());
         }

@@ -32,7 +32,7 @@ public class JobList {
     private ArrayList /* !<Job> */ m_al;
     private Job[] m_fl = null;
     private HashSet /* !<String> */ m_hs;
-    private LinkedHash m_lh[];
+    private LinkedHash[] m_lh;
 
     // private int mIid = 0;
 

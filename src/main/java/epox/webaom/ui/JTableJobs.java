@@ -157,7 +157,7 @@ public class JTableJobs extends JTableSortable implements DropTargetListener, Ke
         if (t.isDataFlavorSupported(DataFlavor.javaFileListFlavor))
             try {
                 List l = (List) t.getTransferData(DataFlavor.javaFileListFlavor);
-                File f[] = (File[]) l.toArray();
+                File[] f = (File[]) l.toArray();
                 Arrays.sort(f);
                 A.gui.select(f);
                 return true;

@@ -42,7 +42,7 @@ public class JPopupMenuM extends JPopupMenu implements MouseListener, ActionList
     protected final RowModel jlm;
     protected MenuWorker worker = null;
     private String dir = null;
-    private JMenuItem items[];
+    private JMenuItem[] items;
 
     public JPopupMenuM(final JTable jt, final RowModel jlm) {
         this.jt = jt;

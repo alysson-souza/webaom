@@ -39,7 +39,7 @@ import java.io.Writer;
 import javax.swing.JFileChooser;
 
 public class Parser {
-    public static Group parseGroup(String s[]) {
+    public static Group parseGroup(String[] s) {
         if (s == null) return null;
         Group g = new Group(Integer.parseInt(s[0]));
         g.name = s[5];
@@ -47,7 +47,7 @@ public class Parser {
         return g;
     }
 
-    public static Ep parseEpisode(String s[]) {
+    public static Ep parseEpisode(String[] s) {
         if (s == null) return null;
         Ep e = new Ep(Integer.parseInt(s[0]));
         e.num = s[5];
@@ -57,7 +57,7 @@ public class Parser {
         return e;
     }
 
-    public static Anime parseAnime(String s[]) {
+    public static Anime parseAnime(String[] s) {
         if (s == null) return null;
         Anime a = new Anime(Integer.parseInt(s[0]));
         a.eps = Integer.parseInt(s[1]);
@@ -72,7 +72,7 @@ public class Parser {
         return a;
     }
 
-    private static final String n[] = {"", "0", "00", "000", "0000"};
+    private static final String[] n = {"", "0", "00", "000", "0000"};
 
     public static String pad(String s, int tot) {
         int x = s.indexOf('-');
@@ -182,7 +182,7 @@ public class Parser {
                                     A.cache.add(e, 2, DB.I_E);
                                     break;
                                 case 'f':
-                                    String s[] = U.split(line.substring(1), '|');
+                                    String[] s = U.split(line.substring(1), '|');
                                     f = new AFile(s);
                                     Group g = new Group(f.gid);
                                     g.name = s[20];

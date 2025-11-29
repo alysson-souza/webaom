@@ -25,7 +25,7 @@ package epox.webaom;
 
 public class JobCnt {
     private int mItot = 0;
-    private final int mIcnt[] = new int[I_LEN];
+    private final int[] mIcnt = new int[I_LEN];
 
     public synchronized int getProgress() {
         int div = mItot - mIcnt[I_HLT] - mIcnt[I_ERR];

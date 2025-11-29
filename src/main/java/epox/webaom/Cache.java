@@ -38,7 +38,7 @@ public class Cache {
         //
     }
 
-    private MyMap m_hm[];
+    private MyMap[] m_hm;
 
     public Cache() {
         m_hm = new MyMap[3];
@@ -96,7 +96,7 @@ public class Cache {
         }
     }
 
-    public AFile parseFile(String s[], Job j) {
+    public AFile parseFile(String[] s, Job j) {
         if (s.length != 34) {
             System.out.println("Unexpected response! len=" + s.length);
             j.setError("Unexpected response from server.");

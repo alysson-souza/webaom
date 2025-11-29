@@ -148,12 +148,13 @@ public class JPanelMain extends JPanel
             jpJob.optl(A.opt); // default hack
         }
         try {
-            Thread t[] = new Thread[Thread.activeCount()];
+            Thread[] t = new Thread[Thread.activeCount()];
             Thread.enumerate(t);
             for (int i = 0; i < t.length; i++)
                 if (t[i].getName().equals("AWT-EventQueue-0")) t[i].setName("GUI");
         } catch (Exception e) {
-            /* don't care */ }
+            /* don't care */
+        }
     }
 
     public void startup() {
@@ -286,8 +287,9 @@ public class JPanelMain extends JPanel
                 .put(
                         "pressed",
                         new AbstractAction() {
+                            @Override
                             public void actionPerformed(ActionEvent e) {
-                                int i[] = jlExt.getSelectedIndices();
+                                int[] i = jlExt.getSelectedIndices();
                                 java.util.Arrays.sort(i);
                                 for (int j = i.length - 1; j >= 0; j--) A.fha.removeExt(i[j]);
                                 jlExt.clearSelection();
@@ -636,6 +638,7 @@ public class JPanelMain extends JPanel
     }
 
     protected class JobScrollDown implements Runnable {
+        @Override
         public void run() {
             if (!jsbJobs.getValueIsAdjusting()) jsbJobs.setValue(jsbJobs.getMaximum());
         }
@@ -786,6 +789,7 @@ public class JPanelMain extends JPanel
             print = !hdir && mWdio == null;
         }
 
+        @Override
         public void run() {
             long t0 = System.currentTimeMillis();
             setEnabled(false);
@@ -832,6 +836,7 @@ public class JPanelMain extends JPanel
             this.jt = jt;
         }
 
+        @Override
         public void run() {
             mTgui.stop();
             jt.setEnabled(false);
@@ -878,6 +883,7 @@ public class JPanelMain extends JPanel
             imp = b;
         }
 
+        @Override
         public void run() {
             try {
                 if (imp) {

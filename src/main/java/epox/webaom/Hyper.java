@@ -24,9 +24,11 @@ package epox.webaom;
 
 import java.util.StringTokenizer;
 
-public class Hyper {
+public final class Hyper {
 
-    public static String S_WARN = "F00000", S_NAME = "006699", S_NUMB = "000080";
+    public static String sWarn = "F00000";
+    public static String sName = "006699";
+    public static String sNumb = "000080";
 
     private Hyper() {
         // static only
@@ -41,28 +43,28 @@ public class Hyper {
     }
 
     public static String error(String str) {
-        return color(S_WARN, str);
+        return color(sWarn, str);
     }
 
     public static String name(String str) {
-        return color(S_NAME, str);
+        return color(sName, str);
     }
 
     public static String name(Object o) {
-        if (o != null) return color(S_NAME, o.toString());
+        if (o != null) return color(sName, o.toString());
         return "null";
     }
 
     public static String number(int i) {
-        return color(S_NUMB, "" + i);
+        return color(sNumb, "" + i);
     }
 
     public static String number(String str) {
-        return color(S_NUMB, str);
+        return color(sNumb, str);
     }
 
     public static String enc() {
-        return S_WARN + Options.S_SEP + S_NAME + Options.S_SEP + S_NUMB;
+        return sWarn + Options.S_SEP + sName + Options.S_SEP + sNumb;
     }
 
     public static void dec(String str) {
@@ -70,10 +72,10 @@ public class Hyper {
         StringTokenizer st = new StringTokenizer(str, Options.S_SEP);
         if (st.countTokens() != 3) return;
         String s = st.nextToken();
-        if (s.length() == 6) S_WARN = s;
+        if (s.length() == 6) sWarn = s;
         s = st.nextToken();
-        if (s.length() == 6) S_NAME = s;
+        if (s.length() == 6) sName = s;
         s = st.nextToken();
-        if (s.length() == 6) S_NUMB = s;
+        if (s.length() == 6) sNumb = s;
     }
 }
