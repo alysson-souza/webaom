@@ -69,8 +69,9 @@ public class AConE extends ACon {
 				+ "&storage=" + validate(m.sto) + "&other=" + validate(m.oth) + "&edit=0";
 
 		AConR r = send("MYLISTADD", sb, true);
-		if (r == null)
+		if (r == null) {
 			return 0;
+		}
 		switch (r.code) {
 			case AConR.MYLIST_ENTRY_ADDED :
 				return Integer.parseInt(r.data);

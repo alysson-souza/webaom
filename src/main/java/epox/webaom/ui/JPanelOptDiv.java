@@ -147,15 +147,17 @@ public class JPanelOptDiv extends JPanel {
 	public File[] getDirs() {
 		StringTokenizer st = new StringTokenizer(tfHDirs.getText(), ";");
 		File[] dirs = new File[st.countTokens()];
-		for (int i = 0; i < dirs.length; i++)
+		for (int i = 0; i < dirs.length; i++) {
 			dirs[i] = new File(st.nextToken());
+		}
 		return dirs;
 	}
 
 	public void setEnabled(boolean b) {
 		tfHDirs.setEnabled(b);
-		for (int i = 1; i < cbHsh.length; i++)
+		for (int i = 1; i < cbHsh.length; i++) {
 			cbHsh[i].setEnabled(b);
+		}
 	}
 
 	public void opts(Options o) {
@@ -198,22 +200,29 @@ public class JPanelOptDiv extends JPanel {
 	public HashContainer getHashContainer() {
 		try {
 			int nr = 0;
-			for (int i = 0; i < cbHsh.length; i++)
-				if (cbHsh[i].isSelected())
+			for (int i = 0; i < cbHsh.length; i++) {
+				if (cbHsh[i].isSelected()) {
 					nr++;
+				}
+			}
 			HashContainer hc = new HashContainer(nr);
 			nr = 0;
 
-			if (cbHsh[H_EDK].isSelected())
+			if (cbHsh[H_EDK].isSelected()) {
 				hc.add(nr++, "ed2k", new jonelo.jacksum.algorithm.Edonkey());
-			if (cbHsh[H_CRC].isSelected())
+			}
+			if (cbHsh[H_CRC].isSelected()) {
 				hc.add(nr++, "crc32", new jonelo.jacksum.algorithm.Crc32());
-			if (cbHsh[H_MD5].isSelected())
+			}
+			if (cbHsh[H_MD5].isSelected()) {
 				hc.add(nr++, "md5", new com.twmacinta.util.MD5());
-			if (cbHsh[H_SHA].isSelected())
+			}
+			if (cbHsh[H_SHA].isSelected()) {
 				hc.add(nr++, "sha1", new jonelo.jacksum.algorithm.MD("SHA-1"));
-			if (cbHsh[H_TTH].isSelected())
+			}
+			if (cbHsh[H_TTH].isSelected()) {
 				hc.add(nr++, "tth", new TTH());
+			}
 			return hc;
 		} catch (java.security.NoSuchAlgorithmException e) {
 			e.printStackTrace();

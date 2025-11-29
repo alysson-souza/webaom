@@ -35,8 +35,9 @@ public class HeaderListenerAlt extends HeaderListener {
 		jttr = tree;
 		m_r = new SortButtonRenderer();
 		TableColumnModel model = jttr.getColumnModel();
-		for (int i = 0; i < model.getColumnCount(); i++)
+		for (int i = 0; i < model.getColumnCount(); i++) {
 			model.getColumn(i).setHeaderRenderer(m_r);
+		}
 
 		m_h = jttr.getTableHeader();
 		m_h.addMouseListener(this);
@@ -45,8 +46,9 @@ public class HeaderListenerAlt extends HeaderListener {
 	public void mouseClicked(MouseEvent e) {
 		int col = m_h.columnAtPoint(e.getPoint());
 		int sortCol = m_h.getTable().convertColumnIndexToModel(col) + 1;
-		if (cur == sortCol)
+		if (cur == sortCol) {
 			sortCol *= -1;
+		}
 		cur = sortCol;
 		synchronized (jttr) {
 			Anime.setCol(sortCol);

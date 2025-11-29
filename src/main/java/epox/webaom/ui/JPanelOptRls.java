@@ -99,8 +99,9 @@ public class JPanelOptRls extends JPanel implements Action, ActionListener, Item
 			jta.addMouseListener(new MouseAdapter() {
 				public void mouseClicked(MouseEvent e) {
 					super.mouseClicked(e);
-					if (e.getButton() == MouseEvent.BUTTON3)
+					if (e.getButton() == MouseEvent.BUTTON3) {
 						handler.getMenu().show(jta, e.getX(), e.getY());
+					}
 				}
 			});
 			jta.setToolTipText("Right click for menu");
@@ -155,24 +156,29 @@ public class JPanelOptRls extends JPanel implements Action, ActionListener, Item
 
 	public void actionPerformed(ActionEvent e) {
 		Object obj = e.getSource();
-		if (obj == jtDef)
+		if (obj == jtDef) {
 			removeElements(rmDef.getData(), jtDef.getSelectedRows());
-		else if (obj == jbOK)
+		} else if (obj == jbOK) {
 			testAndApplyRules();
+		}
 		jtDef.updateUI();
 	}
 
 	public void itemStateChanged(ItemEvent e) {
 		Object obj = e.getSource();
 		if (e.getStateChange() == ItemEvent.DESELECTED) {
-			if (obj == jrbMov)
+			if (obj == jrbMov) {
 				rules.setMov(jta.getText());
-			else // if(obj == jrbRen)
+			} else // if(obj == jrbRen)
+			{
 				rules.setRen(jta.getText());
-		} else if (obj == jrbMov)
+			}
+		} else if (obj == jrbMov) {
 			jta.setText(rules.getMov());
-		else // if(obj == jrbRen)
+		} else // if(obj == jrbRen)
+		{
 			jta.setText(rules.getRen());
+		}
 	}
 
 	public void testAndApplyRules() {
@@ -188,42 +194,48 @@ public class JPanelOptRls extends JPanel implements Action, ActionListener, Item
 		while (st.hasMoreTokens()) {
 			i++;
 			line = st.nextToken().toUpperCase();
-			if (line.charAt(0) == '#')
+			if (line.charAt(0) == '#') {
 				continue;
+			}
 			if (line.indexOf("DO ") < 0) {
 				A.dialog("Error in script @ line" + i, "All lines must include ' DO '.");
 				return;
 			}
 		}
-		if (jrbRen.isSelected())
+		if (jrbRen.isSelected()) {
 			rules.setRen(text);
-		else
+		} else {
 			rules.setMov(text);
+		}
 	}
 
 	public void updateRules() {
-		if (jrbRen.isSelected())
+		if (jrbRen.isSelected()) {
 			jta.setText(rules.getRen());
-		else
+		} else {
 			jta.setText(rules.getMov());
+		}
 	}
 
 	private void removeElements(Vector /* !<DSData> */ v, int[] rows) {
 		Arrays.sort(rows);
 		for (int i = rows.length - 1; i >= 0; i--) {
-			if (rows[i] >= v.size())
+			if (rows[i] >= v.size()) {
 				break;
+			}
 			v.removeElementAt(rows[i]);
 		}
-		if (v.size() <= 0)
+		if (v.size() <= 0) {
 			v.add(new DSData("", "", false));
+		}
 	}
 
 	protected void moveElement(JTable jt, Vector /* !<DSData> */ v, int r) {
 		int i = jt.getSelectedRow();
 		r += i;
-		if (r >= v.size() || r < 0)
+		if (r >= v.size() || r < 0) {
 			return;
+		}
 		try {
 			DSData o = (DSData) v.remove(i);
 			v.insertElementAt(o, r);

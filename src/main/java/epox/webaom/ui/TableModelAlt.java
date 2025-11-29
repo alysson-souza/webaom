@@ -120,7 +120,7 @@ public class TableModelAlt extends AbstractTreeTableModel implements TreeTableMo
 					return null;
 			}
 		}
-		if (node == A.p)
+		if (node == A.p) {
 			switch (c) {
 				case NAME :
 					return A.p.toString();
@@ -129,13 +129,15 @@ public class TableModelAlt extends AbstractTreeTableModel implements TreeTableMo
 				default :
 					return null;
 			}
+		}
 		U.err("AnimeModel: Unknown object: " + node);
 		return null;
 	}
 
 	public Object getChild(Object parent, int index) {
-		if (parent instanceof Base)
+		if (parent instanceof Base) {
 			return ((Base) parent).get(index);
+		}
 		U.err(parent);
 		return null;
 	}

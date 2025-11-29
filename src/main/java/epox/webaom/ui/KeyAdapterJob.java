@@ -19,10 +19,11 @@ public class KeyAdapterJob extends KeyAdapter {
 	public KeyAdapterJob(JTable jt, RowModel rm) {
 		m_jt = jt;
 		m_rm = rm;
-		if (jt instanceof JTreeTableR)
+		if (jt instanceof JTreeTableR) {
 			m_tt = (JTreeTableR) jt;
-		else
+		} else {
 			m_tt = null;
+		}
 	}
 
 	public void keyPressed(KeyEvent e) {
@@ -44,11 +45,13 @@ public class KeyAdapterJob extends KeyAdapter {
 					return;
 			}
 			int i = m_jt.getSelectedRow();
-			if (i < 0)
+			if (i < 0) {
 				return;
+			}
 			Job[] a = m_rm.getJobs(i);
-			if (a == null || a.length < 1)
+			if (a == null || a.length < 1) {
 				return;
+			}
 			Job j = a[0]; // A.jobs.get(m_rm.convertRow(i)[0]);
 			boolean con = true;
 			switch (code) {
@@ -98,18 +101,21 @@ public class KeyAdapterJob extends KeyAdapter {
 					JobMan.showInfo(j);
 					break;
 				case 39 :
-					if (m_tt != null)
+					if (m_tt != null) {
 						m_tt.expandRow();
+					}
 					break;
 				case 37 :
-					if (m_tt != null)
+					if (m_tt != null) {
 						m_tt.collapseRow();
+					}
 					break;
 				default :
 					con = false;
 			}
-			if (con)
+			if (con) {
 				e.consume();
+			}
 		} catch (Exception x) {
 			x.printStackTrace();
 		}

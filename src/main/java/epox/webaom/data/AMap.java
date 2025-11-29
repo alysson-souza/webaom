@@ -20,8 +20,9 @@ import java.util.HashMap;
 
 public class AMap extends HashMap /* !<String,String> */ {
 	public String put(String key, String value) {
-		if (value == null)
+		if (value == null) {
 			return null;
+		}
 		return (String) super.put(key, value);
 	}
 

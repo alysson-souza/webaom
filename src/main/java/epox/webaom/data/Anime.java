@@ -31,8 +31,9 @@ public class Anime extends Base {
 	private static int s0 = 1, s1 = 1;
 
 	public static void setCol(int i) {
-		if (Math.abs(i) != Math.abs(s0))
+		if (Math.abs(i) != Math.abs(s0)) {
 			s1 = s0;
+		}
 		s0 = i;
 	}
 
@@ -51,11 +52,15 @@ public class Anime extends Base {
 		lep = U.i(s[i++]);
 		yea = U.i(s[i++].substring(0, 4));
 		if (s[i - 1].length() == 9) // Data is From AniDB and is in XXXX-YYYY Format
+		{
 			yen = U.i(s[i - 1].substring(5, 9));
-		else if (s.length == 10) // Data is From the serialize File
+		} else if (s.length == 10) // Data is From the serialize File
+		{
 			yen = U.i(s[9].substring(0, 4));
-		else // Data is From AniDB and is in XXXX Format
+		} else // Data is From AniDB and is in XXXX Format
+		{
 			yen = yea;
+		}
 		typ = s[i++];
 		rom = s[i++];
 		kan = U.n(s[i++]);
@@ -66,8 +71,9 @@ public class Anime extends Base {
 	}
 
 	public void init() {
-		if (pro == null)
+		if (pro == null) {
 			pro = new Bits(eps > 0 ? eps : lep);
+		}
 	}
 
 	public int getTotal() {
@@ -92,15 +98,18 @@ public class Anime extends Base {
 	}
 
 	private void setorfill(int no, boolean b) {
-		if (!pro.set(no - 1, b))
-			if (no > (eps > 0 ? eps : lep))
-				if (!pro.fill(b))
+		if (!pro.set(no - 1, b)) {
+			if (no > (eps > 0 ? eps : lep)) {
+				if (!pro.fill(b)) {
 					System.out.println(
 							"@ Completion " + (b ? "over" : "under") + "flow: " + this + " [" + typ + "] epno=" + no);
+				}
+			}
+		}
 	}
 
 	public void regEp(Ep e, boolean b) {
-		if (Character.isDigit(e.num.charAt(0)))
+		if (Character.isDigit(e.num.charAt(0))) {
 			try {
 				setorfill(Integer.parseInt(e.num), b);
 			} catch (NumberFormatException x) {
@@ -109,8 +118,9 @@ public class Anime extends Base {
 					String[] sb = sa[0].split("-");
 					switch (sb.length) {
 						case 2 :
-							for (int j = Integer.parseInt(sb[0]); j <= Integer.parseInt(sb[1]); j++)
+							for (int j = Integer.parseInt(sb[0]); j <= Integer.parseInt(sb[1]); j++) {
 								setorfill(j, b);
+							}
 							break;
 						case 1 :
 							setorfill(Integer.parseInt(sb[0]), b);
@@ -120,7 +130,7 @@ public class Anime extends Base {
 					}
 				}
 			}
-		else if (e.num.charAt(0) == 'O')
+		} else if (e.num.charAt(0) == 'O') {
 			try {
 				if (e.eng.startsWith("Episodes ")) {
 					int i = e.eng.indexOf('-');
@@ -128,26 +138,31 @@ public class Anime extends Base {
 					if (i > 0) {
 						int x = U.i(e.eng.substring(9, i));
 						int j = e.eng.indexOf(' ', i);
-						if (j < i)
+						if (j < i) {
 							j = e.eng.length();
+						}
 						int y = U.i(e.eng.substring(i + 1, j));
-						for (i = x - 1; i < y; i++)
+						for (i = x - 1; i < y; i++) {
 							pro.set(i, b);
+						}
 					}
 				}
 			} catch (Exception x) {
 				//
 			}
+		}
 	}
 
 	public void updatePct() {
 		int max = eps;
-		if (max == 0)
+		if (max == 0) {
 			max = -lep;
-		if (max == 0)
+		}
+		if (max == 0) {
 			pct = 0;
-		else
+		} else {
 			pct = (pro.cnt() * 100) / max;
+		}
 	}
 
 	public int getPct() {
@@ -169,19 +184,23 @@ public class Anime extends Base {
 		 */
 		int x = pro.switchCount();
 		// return (""+x).charAt(0);
-		if (x < 1)
+		if (x < 1) {
 			return ' ';
-		if (x < 2)
+		}
+		if (x < 2) {
 			return pro.last() ? 'f' : ' ';
-		if (x < 3)
+		}
+		if (x < 3) {
 			return pro.first() ? 'l' : 'e';
+		}
 		return (char) (62 + x); // (""+x).charAt(0);
 	}
 
 	public int compareTo(Object o) {
 		int i = comp(o, s0);
-		if (i == 0 && s0 != s1)
+		if (i == 0 && s0 != s1) {
 			return comp(o, s1);
+		}
 		return i;
 	}
 

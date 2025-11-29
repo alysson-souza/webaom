@@ -72,10 +72,11 @@ public class TableModelDS extends AbstractTableModel {
 
 	public Object getValueAt(int row, int col) {
 		DSData rd;
-		if (row == data.size())
+		if (row == data.size()) {
 			rd = dummy;
-		else
+		} else {
 			rd = (DSData) data.elementAt(row); // !
+		}
 		switch (col) {
 			case SEL :
 				return rd.sel;
@@ -97,23 +98,27 @@ public class TableModelDS extends AbstractTableModel {
 			rd = new DSData("", "", false);
 			data.add(rd);
 			fireTableRowsInserted(row, row);
-		} else
+		} else {
 			rd = (DSData) data.elementAt(row); // !
-		if (rd != null)
+		}
+		if (rd != null) {
 			switch (col) {
 				case SEL :
-					if (rd.src.length() > 0)
+					if (rd.src.length() > 0) {
 						rd.sel = (Boolean) obj;
+					}
 					break;
 				case SRC :
 					rd.src = (String) obj;
-					if (rd.src.length() == 0)
+					if (rd.src.length() == 0) {
 						data.remove(rd);
+					}
 					break;
 				case DST :
 					rd.dst = getString(obj);
 					break;
 			}
+		}
 	}
 
 	private String getString(Object o) {
@@ -121,8 +126,9 @@ public class TableModelDS extends AbstractTableModel {
 		DSData rd;
 		for (int i = 0; i < data.size(); i++) {
 			rd = (DSData) data.elementAt(i); // !
-			if (rd.src.equals(str))
+			if (rd.src.equals(str)) {
 				return "";
+			}
 		}
 		return str;
 	}

@@ -59,8 +59,9 @@ public class JEditorPaneLog extends JEditorPane implements Log, Action {
 		try {
 			Document doc = getDocument();
 			int len = doc.getLength();
-			if (t == null || t.equals(""))
+			if (t == null || t.equals("")) {
 				return;
+			}
 			Reader r = new StringReader(t);
 			EditorKit kit = getEditorKit();
 			kit.read(r, doc, len);
@@ -162,8 +163,9 @@ public class JEditorPaneLog extends JEditorPane implements Log, Action {
 	}
 
 	public void setHeader(String h) {
-		if (h == null || h.length() < 1)
+		if (h == null || h.length() < 1) {
 			return;
+		}
 		synchronized (this) {
 			HEAD = h;
 			setText(HEAD);

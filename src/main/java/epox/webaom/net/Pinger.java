@@ -44,8 +44,9 @@ public class Pinger extends Thread {
 				String str = "PONG (in " + (ani.ping() / 1000f) + " seconds).";
 				web.println(str);
 				web.msg(str);
-			} else
+			} else {
 				web.msg(ani.getLastError() + ".");
+			}
 		} catch (java.net.SocketTimeoutException e) {
 			String str = "AniDB is not reachable";
 			web.println(Hyper.error(str + "."));
@@ -57,8 +58,9 @@ public class Pinger extends Thread {
 			web.println(Hyper.error(e.getMessage() + "."));
 			web.msg(e.getMessage() + ".");
 		}
-		if (ani != null)
+		if (ani != null) {
 			ani.disconnect();
+		}
 		web.fatal(false);
 	}
 }

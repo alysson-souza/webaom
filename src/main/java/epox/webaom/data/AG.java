@@ -25,10 +25,12 @@ public class AG extends Base {
 
 	public int getPct() {
 		int max = m_a.eps;
-		if (max == 0)
+		if (max == 0) {
 			max = -m_a.lep;
-		if (max == 0)
+		}
+		if (max == 0) {
 			return 0;
+		}
 		return (size() * 100) / max;
 	}
 }

@@ -51,28 +51,39 @@ public class JPanelJobs extends JPanel implements ActionListener {
 	public void actionPerformed(ActionEvent e) {
 		mIs = 0;
 		mIf = 0;
-		if (jcbArr[I_NOR].isSelected())
+		if (jcbArr[I_NOR].isSelected()) {
 			mIs |= Job.H_NORMAL;
-		if (jcbArr[I_PAU].isSelected())
+		}
+		if (jcbArr[I_PAU].isSelected()) {
 			mIs |= Job.H_PAUSED;
-		if (jcbArr[I_DEL].isSelected())
+		}
+		if (jcbArr[I_DEL].isSelected()) {
 			mIs |= Job.H_DELETED;
-		if (jcbArr[I_MIS].isSelected())
+		}
+		if (jcbArr[I_MIS].isSelected()) {
 			mIs |= Job.H_MISSING;
-		if (jcbArr[I_WAI].isSelected())
+		}
+		if (jcbArr[I_WAI].isSelected()) {
 			mIs |= Job.S_DO;
-		if (jcbArr[I_DOI].isSelected())
+		}
+		if (jcbArr[I_DOI].isSelected()) {
 			mIs |= Job.S_DOING;
-		if (jcbArr[I_DON].isSelected())
+		}
+		if (jcbArr[I_DON].isSelected()) {
 			mIs |= Job.S_DONE;
-		if (jcbArr[I_FAI].isSelected())
+		}
+		if (jcbArr[I_FAI].isSelected()) {
 			mIs |= Job.S_FAILED;
-		if (jcbArr[I_NET].isSelected())
+		}
+		if (jcbArr[I_NET].isSelected()) {
 			mIs |= Job.D_NIO;
-		if (jcbArr[I_DIS].isSelected())
+		}
+		if (jcbArr[I_DIS].isSelected()) {
 			mIs |= Job.D_DIO;
-		if (jcbArr[I_CRC].isSelected())
+		}
+		if (jcbArr[I_CRC].isSelected()) {
 			mIf |= AFile.F_CRCERR;
+		}
 		if (jcbArr[I_CEN].isSelected())
 			mIf |= AFile.F_UNC;
 		mBu = jcbArr[I_UNK].isSelected();
