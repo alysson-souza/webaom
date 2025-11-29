@@ -7,7 +7,7 @@ WebAOM (Web Anime-o-Matic) is a legacy Java Swing desktop application for identi
 ```bash
 ./gradlew build          # Compile + create fat JAR with dependencies
 ./gradlew run            # Run application
-./gradlew spotlessApply  # Format code (Google Java Style, AOSP variant)
+./gradlew spotlessApply  # Format code (Eclipse formatter)
 ./gradlew spotlessCheck  # Check formatting without applying changes
 ./gradlew checkstyleMain # Check code style
 ```
