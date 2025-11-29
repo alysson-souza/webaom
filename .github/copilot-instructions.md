@@ -35,7 +35,7 @@ Third-party code in `com/`, `gnu/`, `jonelo/` packages is excluded from formatti
 ./gradlew build          # Compile + create fat JAR with dependencies
 ./gradlew run            # Run application
 ./gradlew spotlessApply  # Format code (Google Java Style, AOSP variant)
-./gradlew checkstyleMain # Check code style (warnings only, non-blocking)
+./gradlew checkstyleMain # Check code style
 ```
 
 The JAR bundles PostgreSQL and MySQL drivers for optional database caching.
