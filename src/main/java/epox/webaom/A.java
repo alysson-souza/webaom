@@ -118,7 +118,7 @@ public class A {
 			fschema = A.getFileString("file.htm");
 		}
 
-		if (font.length() > 0) {
+		if (!font.isEmpty()) {
 			setFont(font);
 		}
 		// A.mem2 = A.getUsed();

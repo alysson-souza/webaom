@@ -105,7 +105,7 @@ public class JPanelJobs extends JPanel implements ActionListener {
 
 	public void optl(Options o) {
 		String s = o.getS(Options.S_JOBCOLS);
-		if (s == null || s.length() < 1) {
+		if (s == null || s.isEmpty()) {
 			// default hack
 			s = "0,55;11,973;14,132";
 		}

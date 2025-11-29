@@ -66,7 +66,7 @@ public class HashContainer {
 		for (int i = 1; i < size; i++) {
 			res += na[i] + ": " + ha[i] + "\n";
 		}
-		if (res.length() < 1) {
+		if (res.isEmpty()) {
 			return "";
 		}
 		// return res;

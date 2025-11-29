@@ -70,7 +70,7 @@ public class Options {
 	}
 
 	private boolean strcmp(String a, String b) {
-		return a == null && b == null || a != null && a.equals(b) || a.length() == 0 && b == null;
+		return a == null && b == null || a != null && a.equals(b) || a.isEmpty() && b == null;
 	}
 
 	public void save() {
@@ -183,7 +183,7 @@ public class Options {
 	private String encS() {
 		String s = "";
 		for (int i = 0; i < S_LEN; i++) {
-			s += ((mSa[i] == null || mSa[i].length() == 0) ? "null" : mSa[i]) + S_SEP2;
+			s += ((mSa[i] == null || mSa[i].isEmpty()) ? "null" : mSa[i]) + S_SEP2;
 		}
 		return s;
 	}

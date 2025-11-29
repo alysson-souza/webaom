@@ -160,7 +160,7 @@ public class ChiiEmu implements CommandModel {
 			}
 			for (int i = 0; i < a.length; i++) {
 				a[i] = a[i].trim();
-				if (i < (a.length - 1) && a[i].length() < 1) {
+				if (i < (a.length - 1) && a[i].isEmpty()) {
 					return getS(t);
 				}
 			}
@@ -219,7 +219,7 @@ public class ChiiEmu implements CommandModel {
 			}
 
 			AConR r = m_ac.send("MYLISTADD", sb.toString(), true);
-			if (r.code != AConR.MYLIST_ENTRY_EDITED || r.data == null || r.data.length() < 1) {
+			if (r.code != AConR.MYLIST_ENTRY_EDITED || r.data == null || r.data.isEmpty()) {
 				return cmd + ": no such entry";
 			}
 			if (r.data.equals("1")) {
@@ -354,7 +354,7 @@ public class ChiiEmu implements CommandModel {
 						api += "0";
 					}
 					String anime = s.substring(0, j).trim();
-					if (anime.length() < 1) {
+					if (anime.isEmpty()) {
 						if (epno < 1) {
 							return getS(I_WATCH);
 						}
@@ -420,7 +420,7 @@ public class ChiiEmu implements CommandModel {
 						}
 					}
 					String anime = s.substring(0, j).trim();
-					if (anime.length() < 1) {
+					if (anime.isEmpty()) {
 						if (epno < 1) {
 							return getS(I_STATE);
 						}

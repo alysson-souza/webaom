@@ -29,7 +29,7 @@ public class AConR {
 	public String data = null, tag;
 
 	public AConR(String sTag, int tag_len, String raw) throws AConEx, TagEx, SocketTimeoutException {
-		if (sTag != null && raw.length() > 0 && raw.charAt(0) == 't') {
+		if (sTag != null && !raw.isEmpty() && raw.charAt(0) == 't') {
 			tag = raw.substring(0, tag_len + 1);
 			if (!tag.equals(sTag)) {
 				throw new TagEx();

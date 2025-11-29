@@ -63,7 +63,7 @@ public class JPanelCommand extends JPanel implements ActionListener, Log {
 
 	private void handleCommand(Object o) {
 		jcb.removeItem(o);
-		if (o.toString().length() < 1) {
+		if (o.toString().isEmpty()) {
 			return;
 		}
 		jcb.insertItemAt(o, 0);

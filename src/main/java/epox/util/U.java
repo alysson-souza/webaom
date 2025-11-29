@@ -85,7 +85,7 @@ public class U {
 	}
 
 	public static String n(String str) {
-		if (str == null || str.length() < 1 || str.equals("null")) {
+		if (str == null || str.isEmpty() || str.equals("null")) {
 			return null;
 		}
 		return str;

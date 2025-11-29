@@ -46,7 +46,7 @@ public class AFile extends Base {
 		fid = U.i(s[i++]);
 		aid = U.i(s[i++]);
 		eid = U.i(s[i++]);
-		if (s[i].length() < 1) {
+		if (s[i].isEmpty()) {
 			gid = 0;
 		} else {
 			gid = U.i(s[i]);
@@ -54,7 +54,7 @@ public class AFile extends Base {
 		i++;
 		lid = U.i(s[i++]);
 		stt = U.i(s[i++]);
-		if (s[i].length() < 1) {
+		if (s[i].isEmpty()) {
 			mLs = 0;
 		} else {
 			mLs = Long.parseLong(s[i]);
@@ -258,10 +258,10 @@ public class AFile extends Base {
 		}
 		String x = "";
 
-		if (crc == null || crc.length() < 1) {
+		if (crc == null || crc.isEmpty()) {
 			x += 'c';
 		}
-		if (md5 == null || md5.length() < 1 || sha == null || sha.length() < 1) {
+		if (md5 == null || md5.isEmpty() || sha == null || sha.isEmpty()) {
 			x += 'h';
 		}
 		if (len < 1) {
@@ -299,13 +299,13 @@ public class AFile extends Base {
 			x += 'o';
 		}
 
-		if (ep.eng == null || ep.eng.length() < 1) {
+		if (ep.eng == null || ep.eng.isEmpty()) {
 			x += 'e';
 		}
-		if (ep.kan == null || ep.kan.length() < 1) {
+		if (ep.kan == null || ep.kan.isEmpty()) {
 			x += 'k';
 		}
-		if (ep.rom == null || ep.rom.length() < 1) {
+		if (ep.rom == null || ep.rom.isEmpty()) {
 			x += 'r';
 		}
 

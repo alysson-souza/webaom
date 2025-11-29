@@ -178,11 +178,11 @@ public class JobList {
 	}
 
 	public boolean workForDio() {
-		return m_lh[DIO].size() > 0;
+		return !m_lh[DIO].isEmpty();
 	}
 
 	public boolean workForNio() {
-		return m_lh[NIO].size() > 0;
+		return !m_lh[NIO].isEmpty();
 	}
 
 	public void updateQueues(Job j, int os, int ns) {

@@ -56,7 +56,7 @@ public class RuleMenu extends DefaultHandler {
 	public void characters(char[] ch, int start, int length) throws SAXException {
 		super.characters(ch, start, length);
 		String str = new String(ch, start, length).trim();
-		if (m_item != null && str.length() > 0) {
+		if (m_item != null && !str.isEmpty()) {
 			m_item.setToolTipText(str);
 		}
 	}

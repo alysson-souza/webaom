@@ -110,7 +110,7 @@ public class JDialogLogin extends JDialog implements ActionListener {
 		Rectangle r = this.getBounds();
 		setBounds(d.width / 2 - r.width / 2, d.height / 2 - r.height / 2, r.width, r.height);
 
-		if (usr.getText().length() > 0) {
+		if (!usr.getText().isEmpty()) {
 			psw.requestFocus();
 		}
 	}

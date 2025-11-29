@@ -163,7 +163,7 @@ public class JEditorPaneLog extends JEditorPane implements Log, Action {
 	}
 
 	public void setHeader(String h) {
-		if (h == null || h.length() < 1) {
+		if (h == null || h.isEmpty()) {
 			return;
 		}
 		synchronized (this) {

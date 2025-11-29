@@ -582,7 +582,7 @@ public class JPanelMain extends JPanel
 			jpAlt.updateAlt(true);
 		} else if (source == jpAlt.jtfAp) {
 			String s = jpAlt.jtfAp.getText();
-			if (s.length() < 1) {
+			if (s.isEmpty()) {
 				A.preg = null;
 			} else {
 				A.preg = s;
@@ -747,7 +747,7 @@ public class JPanelMain extends JPanel
 		try {
 			U.out(url);
 			String path = jpOdiv.tfBrows.getText();
-			if (path.length() > 0) {
+			if (!path.isEmpty()) {
 				rt.exec(new String[]{path, url});
 			} else {
 				rt.exec(new String[]{"rundll32", "url.dll,FileProtocolHandler", url});
@@ -796,7 +796,7 @@ public class JPanelMain extends JPanel
 			jpOrls.updateRules();
 
 			String preg = o.getS(Options.S_PATHREG);
-			if (preg.length() > 0) {
+			if (!preg.isEmpty()) {
 				A.preg = preg;
 				jpAlt.jtfAp.setText(preg);
 			}
@@ -898,7 +898,7 @@ public class JPanelMain extends JPanel
 					s = "Added " + nr + " files in " + (System.currentTimeMillis() - t0) + " ms.";
 				}
 				status0(s);
-				if (s.length() > 0) {
+				if (!s.isEmpty()) {
 					println(s);
 				}
 			}

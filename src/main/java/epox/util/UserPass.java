@@ -62,7 +62,7 @@ public class UserPass {
 	}
 
 	private static String nne(String s) {
-		if (s == null || s.length() < 1) {
+		if (s == null || s.isEmpty()) {
 			return "";
 		}
 		return enc(s);

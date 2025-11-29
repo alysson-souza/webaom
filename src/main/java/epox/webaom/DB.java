@@ -620,7 +620,7 @@ public class DB {
 		i++; // j.mIuid = rs.getInt(i++);
 		j.mIlid = rs.getInt(i++);
 		String xml = rs.getString(i++);
-		if (xml != null && xml.length() > 0) {
+		if (xml != null && !xml.isEmpty()) {
 			try {
 				j.m_fi = new FileInfo(xml);
 			} catch (Exception e) {
@@ -634,7 +634,7 @@ public class DB {
 				s[x] = rs.getString(i++);
 			}
 
-			if (s[18] == null || s[18].length() < 1) {
+			if (s[18] == null || s[18].isEmpty()) {
 				s[18] = j.getExtension();
 			}
 

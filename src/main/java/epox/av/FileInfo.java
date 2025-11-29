@@ -103,7 +103,7 @@ public class FileInfo {
 
 		public void characters(char[] ch, int start, int len) {
 			String text = new String(ch, start, len).trim();
-			if (text.length() < 1) {
+			if (text.isEmpty()) {
 				return;
 			}
 			if (m != null)
