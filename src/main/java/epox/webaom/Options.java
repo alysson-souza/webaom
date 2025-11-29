@@ -204,26 +204,26 @@ public class Options {
 	}
 
 	public static final int B_UNUSED0 = 0; //
-			public static final int B_HASHCRC = 1;
+	public static final int B_HASHCRC = 1;
 	public static final int B_HASHMD5 = 2;
 	public static final int B_HASHSHA = 3;
 	public static final int B_HASHTTH = 4;
 	public static final int B_ADDFILE = 5;
 	public static final int B_WATCHED = 6;
 	public static final int B_UNUSED1 = 7; //
-			public static final int B_NATKEEP = 8;
+	public static final int B_NATKEEP = 8;
 	public static final int B_STORPSW = 9;
 	public static final int B_ALOADDB = 10;
 	public static final int B_AUTOLOG = 11;
 	public static final int B_AUTOSAV = 12; //
-			public static final int B_LEN = 13;
+	public static final int B_LEN = 13;
 	public static final int I_RPORT = 0;
 	public static final int I_LPORT = 1;
 	public static final int I_STATE = 2; // file state on mylist add
-			public static final int I_TIMEO = 3; // timeout
-			public static final int I_DELAY = 4; // datagram delay
-			public static final int I_USMOD = 5; // rename mode
-			public static final int I_LEN = 6;
+	public static final int I_TIMEO = 3; // timeout
+	public static final int I_DELAY = 4; // datagram delay
+	public static final int I_USMOD = 5; // rename mode
+	public static final int I_LEN = 6;
 	public static final int S_USRNAME = 0;
 	public static final int S_HOSTURL = 1;
 	public static final int S_MYDBURL = 2;
