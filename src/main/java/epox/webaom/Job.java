@@ -66,10 +66,11 @@ public class Job {
 		mLs = f.length();
 		mSo = f.getName();
 
-		if (!m_fc.exists())
+		if (!m_fc.exists()) {
 			mIst |= H_MISSING;
-		else
+		} else {
 			mIst |= H_PAUSED;
+		}
 		A.jobc.register(-1, -1, mIst & M_R, getHealth());
 	}
 
@@ -78,10 +79,12 @@ public class Job {
 	}
 
 	public boolean hide(String s) {
-		if (s == null || s.length() < 1)
+		if (s == null || s.length() < 1) {
 			return false;
-		if (s.charAt(0) == '!')
+		}
+		if (s.charAt(0) == '!') {
 			return m_fc.getAbsolutePath().matches(s.substring(1));
+		}
 		return !m_fc.getAbsolutePath().matches(s);
 	}
 
@@ -127,22 +130,25 @@ public class Job {
 		// System.err.println(Integer.toHexString(mIst&Job.M_SS)+"
 		// "+Integer.toHexString(s&Job.M_SS));
 		boolean b = (mIst & M_SS & s) > 0 && (mIst & M_H & s) > 0 && ((s & M_D) < 1 || (mIst & M_D & s) > 0);
-		if (u)
+		if (u) {
 			return m_fa == null && b;
+		}
 		return b && (f < 1 || (m_fa != null && (m_fa.stt & f) > 0));
 	}
 
 	public boolean isLocked(int s) {
 		int h = getHealth();
-		if (h < H_MISSING)
+		if (h < H_MISSING) {
 			return false;
-		if (h == H_MISSING)
+		}
+		if (h == H_MISSING) {
 			switch (s) {
 				case FINISHED :
 				case ADDWAIT :
 				case REMWAIT :
 					return false;
 			}
+		}
 		return true;
 	}
 
@@ -155,8 +161,9 @@ public class Job {
 	}
 
 	public String getStatusText() {
-		if (check(H_NORMAL))
+		if (check(H_NORMAL)) {
 			return statusStr(getStatus());
+		}
 		return statusStr(getStatus()) + " [" + statusStr(getHealth()) + "]";
 	}
 
@@ -166,32 +173,38 @@ public class Job {
 			// if(health>H_PAUSED&&!(status==FINISHED||status==REMWAIT||status==ADDWAIT))
 			// &&(status&F_PD)==0)//extra check, could be removed maybe
 			//	return;
-			if (isLocked(status))
+			if (isLocked(status)) {
 				return;
-			if (health == H_PAUSED || health == H_MISSING)
+			}
+			if (health == H_PAUSED || health == H_MISSING) {
 				setHealth(H_NORMAL);
+			}
 			health = getHealth();
 		}
 		if ((status & F_DB) == F_DB) { // only for main status
-			if (test && health == H_NORMAL)
+			if (test && health == H_NORMAL) {
 				A.jobs.updateQueues(this, getStatus(), status & M_S); // TODO pause off fix
+			}
 			// A.jobc.register(getRegVal(), (status|H_NORMAL)&M_R);
 			health = H_NORMAL;
-			if (status == FINISHED && !m_fc.exists())
+			if (status == FINISHED && !m_fc.exists()) {
 				health = H_MISSING;
+			}
 			A.jobc.register(mIst & M_R, getHealth(), status & M_R, health);
 			mIst = status | health;
 
-		} else
+		} else {
 			mIst = status | H_NORMAL;
+		}
 	}
 
 	private void setHealth(int health) {
 		int s = getStatus();
-		if (!check(H_NORMAL) && health == H_NORMAL)
+		if (!check(H_NORMAL) && health == H_NORMAL) {
 			A.jobs.updateQueues(this, 0, s);
-		else if (check(H_NORMAL) && health != H_NORMAL)
+		} else if (check(H_NORMAL) && health != H_NORMAL) {
 			A.jobs.updateQueues(this, s, -1);
+		}
 
 		// A.jobc.register(getRegVal(), s|health);
 		A.jobc.register(mIst & M_R, getHealth(), mIst & M_R, health);
@@ -207,15 +220,17 @@ public class Job {
 	}
 
 	public void updateHealth(int i) {
-		if (i != H_DELETED && checkOr(H_MISSING | H_DELETED))
+		if (i != H_DELETED && checkOr(H_MISSING | H_DELETED)) {
 			return;
+		}
 		int health = getHealth();
 		switch (i) {
 			case H_PAUSED :
-				if (health == H_NORMAL)
+				if (health == H_NORMAL) {
 					health = H_PAUSED; // turn pause on
-				else if (health == H_PAUSED)
+				} else if (health == H_PAUSED) {
 					health = H_NORMAL; // turn pause off
+				}
 				break;
 			case H_DELETED :
 				if (health == H_DELETED) {
@@ -234,8 +249,9 @@ public class Job {
 	}
 
 	public void find(File f) {
-		if (!check(H_MISSING))
+		if (!check(H_MISSING)) {
 			return;
+		}
 		JobMan.setJobFile(this, f);
 		setHealth0(f.exists() ? H_PAUSED : H_MISSING);
 		mIdid = -1;
@@ -343,13 +359,15 @@ public class Job {
 				String[] t = new String[]{"vid", "aud", "sub"};
 				for (int i = 0; i < 3; i++) {
 					String s0 = U.getInTag(avi1, t[i]);
-					if (s0 == null)
+					if (s0 == null) {
 						continue;
+					}
 					String s1 = m_fi.convert(s0, i);
 					avi1 = U.replace(avi1, s0, s1);
 				}
-			} else
+			} else {
 				avi1 = "";
+			}
 			s = U.replace(s, avi0, avi1);
 		}
 		return U.replaceCCCode(s, genMap());
@@ -364,8 +382,9 @@ public class Job {
 		am.put("ori", mSo);
 		am.put("siz", mLs);
 		String stat = getStatusText();
-		if (check(Job.FAILED) && mSe != null)
+		if (check(Job.FAILED) && mSe != null) {
 			stat += ". " + mSe;
+		}
 		am.put("sta", stat);
 
 		if (m_fa != null) {
@@ -422,8 +441,9 @@ public class Job {
 				am.put("epk", m_fa.ep.kan);
 				am.put("epr", m_fa.ep.rom);
 			}
-			if (m_fa.anime != null && m_fa.ep != null)
+			if (m_fa.anime != null && m_fa.ep != null) {
 				am.put("enr", Parser.pad(m_fa.ep.num, m_fa.anime.getTotal()));
+			}
 			if (m_fa.group != null && m_fa.gid > 0) {
 				am.put("grp", m_fa.group.sname);
 				am.put("grn", m_fa.group.name);

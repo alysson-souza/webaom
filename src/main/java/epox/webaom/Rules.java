@@ -95,8 +95,9 @@ public class Rules {
 	}
 
 	public File apply(Job j) {
-		if (j == null || j.m_fa == null)
+		if (j == null || j.m_fa == null) {
 			return null;
+		}
 
 		String path = j.m_fc.getParent();
 		String name = j.m_fc.getName();
@@ -109,21 +110,25 @@ public class Rules {
 
 			if (smov != null) {
 				String p = fin(j, smov);
-				if (p.startsWith("." + File.separator))
+				if (p.startsWith("." + File.separator)) {
 					path += p.substring(1);
-				else
+				} else {
 					path = p;
+				}
 			}
-			if (sren != null)
+			if (sren != null) {
 				name = fin(j, sren) + "." + j.getExtension();
-		} else
+			}
+		} else {
 			return null;
+		}
 
 		String abs = path + File.separator + name;
 		abs = U.replace(abs, File.separator + File.separator, File.separator);
 
-		if (path.startsWith("\\\\"))
+		if (path.startsWith("\\\\")) {
 			abs = "\\" + abs;
+		}
 
 		File f = new File(abs);
 
@@ -134,11 +139,13 @@ public class Rules {
 	private String get(Job j, String str) {
 		try {
 			Vector v = build(str, j);
-			if (v.size() < 1)
+			if (v.size() < 1) {
 				return null;
+			}
 			String rule = "";
-			while (v.size() > 0)
+			while (v.size() > 0) {
 				rule += v.remove(0);
+			}
 			return rule;
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -155,19 +162,21 @@ public class Rules {
 		while (st.hasMoreTokens()) {
 			tok = st.nextToken();
 			tup = tok.toUpperCase();
-			if (tup.startsWith("#"))
+			if (tup.startsWith("#")) {
 				continue;
-			if (tup.startsWith("DO ") && handle(schema, tok.substring(3)))
+			}
+			if (tup.startsWith("DO ") && handle(schema, tok.substring(3))) {
 				break;
-			else if (tup.startsWith("IF ") && (prev = check(tok.substring(3, (i = tup.indexOf(" DO "))), j))
-					&& handle(schema, tok.substring(i + 4)))
+			} else if (tup.startsWith("IF ") && (prev = check(tok.substring(3, (i = tup.indexOf(" DO "))), j))
+					&& handle(schema, tok.substring(i + 4))) {
 				break;
-			else if (tup.startsWith("ELSE IF ") && !prev
+			} else if (tup.startsWith("ELSE IF ") && !prev
 					&& (prev = check(tok.substring(8, (i = tup.indexOf(" DO "))), j))
-					&& handle(schema, tok.substring(i + 4)))
+					&& handle(schema, tok.substring(i + 4))) {
 				break;
-			else if (tup.startsWith("ELSE DO ") && !prev && handle(schema, tok.substring(8)))
+			} else if (tup.startsWith("ELSE DO ") && !prev && handle(schema, tok.substring(8))) {
 				break;
+			}
 		}
 		return schema;
 	}
@@ -187,8 +196,9 @@ public class Rules {
 			sch.clear();
 			return true;
 		}
-		if (up.equals("FINISH"))
+		if (up.equals("FINISH")) {
 			return true;
+		}
 		if (up.startsWith("FINISH ")) {
 			sch.add(new Section(op.substring(7)));
 			return true;
@@ -200,10 +210,11 @@ public class Rules {
 		}
 		if (up.startsWith("ASSUME ")) {
 			try {
-				if (up.startsWith("ASSUME SPECIAL "))
+				if (up.startsWith("ASSUME SPECIAL ")) {
 					A.ASSP = U.i(up.substring(15).trim());
-				else
+				} else {
 					A.ASNO = U.i(up.substring(7).trim());
+				}
 			} catch (NumberFormatException e) {
 				A.dialog("NumberFormatException", "Parsing '" + op + "' failed.");
 			}
@@ -212,10 +223,11 @@ public class Rules {
 		if (up.startsWith(TRUNC)) {
 			int x = up.indexOf('>');
 			int y = up.indexOf(',');
-			if (x > 0 && y > 0 && y < x)
+			if (x > 0 && y > 0 && y < x) {
 				sch.add(new Section(up.substring(0, x + 1)));
-			else
+			} else {
 				A.gui.println(Hyper.error("Invalid rule element: " + op));
+			}
 			return false;
 		}
 		sch.clear();
@@ -224,16 +236,18 @@ public class Rules {
 
 	private boolean check(String s, Job j) throws Exception {
 		StringTokenizer st = new StringTokenizer(s, ";");
-		if (st.countTokens() < 1)
+		if (st.countTokens() < 1) {
 			return false;
+		}
 		boolean b = true;
-		while (st.hasMoreTokens() && b)
+		while (st.hasMoreTokens() && b) {
 			try {
 				b &= check1(st.nextToken().trim(), j);
 			} catch (Exception e) {
 				e.printStackTrace();
 				return false;
 			}
+		}
 		return b;
 	}
 
@@ -242,11 +256,12 @@ public class Rules {
 		char c;
 		for (int i = start; i < s.length(); i++) {
 			c = s.charAt(i);
-			if (c == '(')
+			if (c == '(') {
 				level++;
-			else if (c == ')') {
-				if (level == 0)
+			} else if (c == ')') {
+				if (level == 0) {
 					return i;
+				}
 				level--;
 			}
 		}
@@ -257,21 +272,25 @@ public class Rules {
 		char c = Character.toUpperCase(s.charAt(0));
 		int x = s.indexOf('(') + 1;
 		int y = findEndPar(s, x); // s.indexOf(')', x);
-		if (x < 1 || y < 0)
+		if (x < 1 || y < 0) {
 			throw new Exception("Missing ( or ): " + s);
+		}
 
 		StringTokenizer st = new StringTokenizer(s.substring(x, y), ",");
-		while (st.hasMoreTokens())
+		while (st.hasMoreTokens()) {
 			try {
 				String test = st.nextToken().trim();
 				boolean not = test.startsWith("!");
-				if (not)
+				if (not) {
 					test = test.substring(1);
-				if (not ^ check0(c, test, j))
+				}
+				if (not ^ check0(c, test, j)) {
 					return true;
+				}
 			} catch (Exception ex) {
 				ex.printStackTrace();
 			}
+		}
 		return false;
 	}
 
@@ -295,8 +314,9 @@ public class Rules {
 			case 'T' : // Type
 				return j.m_fa.anime.typ.equalsIgnoreCase(s);
 			case 'G' : { // Group - scope block for local variable
-				if (j.m_fa.gid == 0)
+				if (j.m_fa.gid == 0) {
 					return s.equalsIgnoreCase("unknown");
+				}
 				try {
 					return j.m_fa.gid == Integer.parseInt(s.trim());
 				} catch (NumberFormatException e) {
@@ -346,8 +366,9 @@ public class Rules {
 			}
 			case 'Z' : { // scope block for local variable
 				String[] cmp = s.split(":", 2);
-				if (cmp.length == 2)
+				if (cmp.length == 2) {
 					return mAmap.containsKey(cmp[0]) && regtest(mAmap.get(cmp[0]).toString(), cmp[1]);
+				}
 				System.out.println("ERROR: Invalid data in test: R(" + s + ")");
 				return false;
 			}
@@ -358,8 +379,9 @@ public class Rules {
 	}
 
 	private static boolean regtest(String s, String t) {
-		if (s == null)
+		if (s == null) {
 			return false;
+		}
 		try {
 			return s.matches(t);
 		} catch (PatternSyntaxException e) {
@@ -388,8 +410,9 @@ public class Rules {
 		DSData ds;
 		for (int i = 0; i < v.size(); i++) {
 			ds = (DSData) v.elementAt(i);
-			if (ds.sel.booleanValue())
+			if (ds.sel.booleanValue()) {
 				s = U.replace(s, ds.src, ds.dst);
+			}
 		}
 		return s;
 	}
@@ -400,17 +423,20 @@ public class Rules {
 			int x = s.indexOf(TRUNC), y, z, i;
 			while (x > 0) {
 				y = s.indexOf('>', x);
-				if (y < x)
+				if (y < x) {
 					break;
+				}
 				z = s.indexOf(',', x);
-				if (z < x || z > y)
+				if (z < x || z > y) {
 					break;
+				}
 				i = U.i(s.substring(x + TRUNC.length(), z));
 				t = s.substring(z + 1, y);
-				if (x > i + t.length())
+				if (x > i + t.length()) {
 					s = s.substring(0, i - t.length()) + t + s.substring(y + 1);
-				else
+				} else {
 					s = s.substring(0, x) + s.substring(y + 1);
+				}
 				x = s.indexOf(TRUNC);
 			}
 		} catch (NumberFormatException e) {
@@ -435,15 +461,18 @@ class Section {
 				w = Float.parseFloat(s.substring(0, i));
 				max = Integer.parseInt(s.substring(i + 1));
 			}
-		} else
+		} else {
 			str = s;
+		}
 		i = str.indexOf('\'');
 		int j = str.lastIndexOf('\'');
-		if (i >= 0 && j > i)
+		if (i >= 0 && j > i) {
 			str = str.substring(i + 1, j);
+		}
 		i = str.indexOf("//");
-		if (i > 0)
+		if (i > 0) {
 			str = str.substring(0, i);
+		}
 		// System.out.println(str);
 	}
 

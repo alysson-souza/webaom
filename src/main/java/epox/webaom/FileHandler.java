@@ -60,8 +60,9 @@ public class FileHandler {
 
 	protected String getExtension(File file) {
 		int i = file.getName().lastIndexOf(".");
-		if (i < 0)
+		if (i < 0) {
 			return null;
+		}
 		return file.getName().substring(i + 1).toLowerCase();
 	}
 
@@ -81,21 +82,24 @@ public class FileHandler {
 	public synchronized void opts(Options o) {
 		String ext = "";
 		Object[] t = m_ext.getStrings();
-		for (int i = 0; i < t.length; i++)
+		for (int i = 0; i < t.length; i++) {
 			ext += t[i] + Options.S_SEP;
+		}
 		o.setS(Options.S_EXTENSN, ext);
 	}
 
 	public synchronized void optl(Options o) {
 		StringTokenizer st = new StringTokenizer(o.getS(Options.S_EXTENSN), Options.S_SEP);
-		while (st.hasMoreTokens())
+		while (st.hasMoreTokens()) {
 			m_ext.add(st.nextToken());
+		}
 	}
 
 	protected class FileFilter1 extends javax.swing.filechooser.FileFilter implements java.io.FileFilter {
 		public boolean accept(File file) {
-			if (file.isDirectory())
+			if (file.isDirectory()) {
 				return true;
+			}
 			return m_ext.includes(getExtension(file)) || m_ext.getSize() == 0;
 		}
 

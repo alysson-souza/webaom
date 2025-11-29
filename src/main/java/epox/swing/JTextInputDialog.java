@@ -70,14 +70,17 @@ public class JTextInputDialog extends JDialog implements ActionListener {
 					// don't care
 					num = 0;
 				}
-				if (num > 0)
+				if (num > 0) {
 					dispose();
-				else
+				} else {
 					setTitle("Only positive integers allowed.");
-			} else
+				}
+			} else {
 				dispose();
-		} else
+			}
+		} else {
 			dispose();
+		}
 	}
 
 	public String getStr() {

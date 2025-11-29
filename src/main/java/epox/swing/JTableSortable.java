@@ -33,8 +33,9 @@ public class JTableSortable extends JTable {
 		SortButtonRenderer r = new SortButtonRenderer();
 
 		TableColumnModel m = this.getColumnModel();
-		for (int i = 0; i < m.getColumnCount(); i++)
+		for (int i = 0; i < m.getColumnCount(); i++) {
 			m.getColumn(i).setHeaderRenderer(r);
+		}
 
 		JTableHeader h = getTableHeader();
 		m_hl = new HeaderListener(h, m, r);

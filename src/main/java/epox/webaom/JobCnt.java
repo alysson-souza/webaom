@@ -29,15 +29,17 @@ public class JobCnt {
 
 	public synchronized int getProgress() {
 		int div = mItot - mIcnt[I_HLT] - mIcnt[I_ERR];
-		if (div == 0)
+		if (div == 0) {
 			return 0;
+		}
 		return 1000 * (mIcnt[I_FIN]) / div;
 	}
 
 	public synchronized String getStatus() {
 		String s = "";
-		for (int i = 0; i < I_LEN; i++)
+		for (int i = 0; i < I_LEN; i++) {
 			s += S_NAM[i] + "=" + mIcnt[i] + " ";
+		}
 		return s + " tot=" + mItot;
 	}
 
@@ -53,23 +55,27 @@ public class JobCnt {
 		}
 		int type = I_HLT;
 		if (A.bitcmp(health, Job.H_NORMAL) && (A.bitcmp(status, Job.S_DO) || A.bitcmp(status, Job.S_DOING))) {
-			if (A.bitcmp(status, Job.D_DIO))
+			if (A.bitcmp(status, Job.D_DIO)) {
 				type = I_DIO;
-			else if (A.bitcmp(status, Job.D_NIO))
+			} else if (A.bitcmp(status, Job.D_NIO)) {
 				type = I_NIO;
-		} else if (A.bitcmp(health, Job.H_NORMAL) && A.bitcmp(status, Job.FINISHED))
+			}
+		} else if (A.bitcmp(health, Job.H_NORMAL) && A.bitcmp(status, Job.FINISHED)) {
 			type = I_FIN;
-		else if (A.bitcmp(status, Job.FAILED) || A.bitcmp(status, Job.UNKNOWN))
+		} else if (A.bitcmp(status, Job.FAILED) || A.bitcmp(status, Job.UNKNOWN)) {
 			type = I_ERR;
-		if (inc)
+		}
+		if (inc) {
 			mIcnt[type]++;
-		else
+		} else {
 			mIcnt[type]--;
+		}
 	}
 
 	public synchronized void reset() {
-		for (int i = 0; i < I_LEN; i++)
+		for (int i = 0; i < I_LEN; i++) {
 			mIcnt[i] = 0;
+		}
 		mItot = 0;
 	}
 

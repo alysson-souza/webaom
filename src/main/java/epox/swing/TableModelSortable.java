@@ -45,8 +45,9 @@ public abstract class TableModelSortable extends AbstractTableModel {
 	}
 
 	public void sort(boolean refresh) {
-		if (m_sort_col < 0)
+		if (m_sort_col < 0) {
 			return;
+		}
 		m_ts.sort(getIndexes(), m_sort_col, refresh);
 
 		fireTableDataChanged();
@@ -54,13 +55,15 @@ public abstract class TableModelSortable extends AbstractTableModel {
 
 	private int[] getIndexes() {
 		int n = getRowCount();
-		if (m_idx != null && m_idx.length == n)
+		if (m_idx != null && m_idx.length == n) {
 			return m_idx;
+		}
 
 		m_idx = new int[n];
 		// m_rev = new int[n];
-		for (int i = 0; i < n; i++)
+		for (int i = 0; i < n; i++) {
 			m_idx[i] = i;
+		}
 
 		return m_idx;
 	}

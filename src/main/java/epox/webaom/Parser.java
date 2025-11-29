@@ -41,8 +41,9 @@ import javax.swing.JFileChooser;
 
 public class Parser {
 	public static Group parseGroup(String[] s) {
-		if (s == null)
+		if (s == null) {
 			return null;
+		}
 		Group g = new Group(Integer.parseInt(s[0]));
 		g.name = s[5];
 		g.sname = s[6];
@@ -50,8 +51,9 @@ public class Parser {
 	}
 
 	public static Ep parseEpisode(String[] s) {
-		if (s == null)
+		if (s == null) {
 			return null;
+		}
 		Ep e = new Ep(Integer.parseInt(s[0]));
 		e.num = s[5];
 		e.eng = s[6];
@@ -61,8 +63,9 @@ public class Parser {
 	}
 
 	public static Anime parseAnime(String[] s) {
-		if (s == null)
+		if (s == null) {
 			return null;
+		}
 		Anime a = new Anime(Integer.parseInt(s[0]));
 		a.eps = Integer.parseInt(s[1]);
 		a.lep = Integer.parseInt(s[2]);
@@ -82,33 +85,39 @@ public class Parser {
 		int x = s.indexOf('-');
 		int y = s.indexOf(',');
 		char c = '-';
-		if (y >= 0)
+		if (y >= 0) {
 			if (x < 0 || (y < x && x >= 0)) {
 				c = ',';
 				x = y;
 			}
+		}
 		String num = s;
-		if (x >= 0)
+		if (x >= 0) {
 			num = s.substring(0, x);
-		if (tot == 0)
+		}
+		if (tot == 0) {
 			tot = A.ASNO; // presume this
+		}
 		int nr;
 		String pre = "";
 		char a = num.charAt(0);
-		if (Character.isDigit(a))
+		if (Character.isDigit(a)) {
 			nr = U.i(num);
-		else {
+		} else {
 			nr = U.i(num.substring(1));
 			pre += a;
 			// !tot = nr; //no total specials
 			tot = A.ASSP;
 		}
-		if (tot < nr)
+		if (tot < nr) {
 			tot = nr; // just in case...
+		}
 		String sp = pre + n[log10(tot) - log10(nr > 0 ? nr : 1)] + nr;
 		if (x >= 0)
 			// return sp+c+pad(s.substring(x+1), tot);
+		{
 			return sp + c + s.substring(x + 1);
+		}
 		return sp;
 	}
 
@@ -117,12 +126,13 @@ public class Parser {
 	}
 
 	public static void exportDB() {
-		if (A.p != null)
+		if (A.p != null) {
 			try {
 				synchronized (A.p) {
 					JFileChooser fc = new JFileChooser();
-					if (A.dir != null)
+					if (A.dir != null) {
 						fc.setCurrentDirectory(new File(A.dir));
+					}
 					if (fc.showDialog(A.component, "Select File") == JFileChooser.APPROVE_OPTION) {
 						File file = fc.getSelectedFile();
 						A.dir = file.getParentFile().getAbsolutePath();
@@ -141,8 +151,9 @@ public class Parser {
 								for (int k = 0; k < p1.size(); k++) {
 									AFile f = (AFile) p1.get(k);
 									fw.write("f" + f.serialize() + A.S_N);
-									if (f.getJob() != null)
+									if (f.getJob() != null) {
 										fw.write("j" + f.getJob().serialize() + A.S_N);
+									}
 								}
 							}
 						}
@@ -153,16 +164,18 @@ public class Parser {
 			} catch (IOException e) {
 				e.printStackTrace();
 			}
+		}
 	}
 
 	public static void importDB() throws Exception {
 		A.db.debug = false;
-		if (A.p != null)
+		if (A.p != null) {
 			try {
 				synchronized (A.p) {
 					JFileChooser fc = new JFileChooser();
-					if (A.dir != null)
+					if (A.dir != null) {
 						fc.setCurrentDirectory(new File(A.dir));
+					}
 					if (fc.showDialog(A.component, "Select File") == JFileChooser.APPROVE_OPTION) {
 						File file = fc.getSelectedFile();
 						A.dir = file.getParentFile().getAbsolutePath();
@@ -170,10 +183,11 @@ public class Parser {
 						BufferedReader br = new BufferedReader(new InputStreamReader(fos, StandardCharsets.UTF_8));
 						String v = br.readLine();
 						boolean froms = false;
-						if (v.equals("s0"))
+						if (v.equals("s0")) {
 							froms = true;
-						else if (!v.equals("a0"))
+						} else if (!v.equals("a0")) {
 							throw new Exception("format not supported");
+						}
 						// A.p.mkArray();
 						String line;
 						Anime a = null;
@@ -182,8 +196,9 @@ public class Parser {
 						Job j = null;
 						while (br.ready()) {
 							line = U.htmldesc(br.readLine());
-							if (line.length() < 1)
+							if (line.length() < 1) {
 								continue;
+							}
 							switch (line.charAt(0)) {
 								case 'a' :
 									a = new Anime(U.split(line.substring(1), '|'));
@@ -216,8 +231,9 @@ public class Parser {
 										j.mSo = line;
 										j._ed2 = f.ed2;
 										j.mLs = f.mLs;
-									} else
+									} else {
 										j = new Job(U.split(line, '|'));
+									}
 									j.m_fa = f;
 									f.setJob(j);
 									A.jobs.add(j);
@@ -231,6 +247,7 @@ public class Parser {
 			} catch (IOException e) {
 				e.printStackTrace();
 			}
+		}
 		A.db.debug = true;
 	}
 }

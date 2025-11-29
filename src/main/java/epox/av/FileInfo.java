@@ -29,8 +29,9 @@ public class FileInfo {
 	private static void dump(Vector v) {
 		for (int i = 0; i < v.size(); i++) {
 			String[][] a = (String[][]) v.get(i);
-			for (int j = 0; j < a.length; j++)
+			for (int j = 0; j < a.length; j++) {
 				System.out.println(a[j][0] + ": " + a[j][1]);
+			}
 		}
 	}
 
@@ -56,17 +57,19 @@ public class FileInfo {
 			name = type;
 			id = attributes.getValue("id");
 			// o("> "+type);
-			if (ctyp > 0)
+			if (ctyp > 0) {
 				return;
+			}
 			// if(type.equals("duration"))	ctyp = DUR;
-			if (type.equals("vid"))
+			if (type.equals("vid")) {
 				ctyp = VID;
-			else if (type.equals("aud"))
+			} else if (type.equals("aud")) {
 				ctyp = AUD;
-			else if (type.equals("sub"))
+			} else if (type.equals("sub")) {
 				ctyp = SUB;
-			else
+			} else {
 				ctyp = -1;
+			}
 
 			if (ctyp > 0) {
 				m = new AMap();
@@ -100,11 +103,14 @@ public class FileInfo {
 
 		public void characters(char[] ch, int start, int len) {
 			String text = new String(ch, start, len).trim();
-			if (text.length() < 1)
+			if (text.length() < 1) {
 				return;
+			}
 			if (m != null)
 				// o("put("+name+", "+text+") "+(id==null?"":id));
+			{
 				m.put(name, text);
+			}
 		}
 	}
 
@@ -164,8 +170,9 @@ public class FileInfo {
 	 * }
 	 */
 	public String convert(String schema, int type) {
-		if (schema == null)
+		if (schema == null) {
 			return null;
+		}
 		Vector /* !<String[][]> */ v = null;
 		switch (type) {
 			case 0 :
@@ -183,8 +190,9 @@ public class FileInfo {
 		StringBuffer sb = new StringBuffer(schema.length() * v.size());
 		for (int j = 0; j < v.size(); j++) {
 			String s = U.replaceCCCode(schema, (AMap) v.get(j));
-			if (j > 0)
+			if (j > 0) {
 				sb.append('\n');
+			}
 			sb.append(s);
 		}
 		return sb.toString();

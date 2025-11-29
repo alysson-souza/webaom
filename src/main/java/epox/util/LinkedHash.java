@@ -48,13 +48,15 @@ public class LinkedHash extends java.util.HashMap /* !<Object,Object> */ {
 
 	public Object remove(Object o) {
 		Node n = (Node) super.remove(o);
-		if (n == null)
+		if (n == null) {
 			System.out.println("! LinkedHash: Tried to remove non existing entry: " + o);
+		}
 		n.prev.next = n.next;
-		if (n.next != null)
+		if (n.next != null) {
 			n.next.prev = n.prev;
-		else
+		} else {
 			tail = n.prev;
+		}
 		return null;
 	}
 
@@ -65,8 +67,9 @@ public class LinkedHash extends java.util.HashMap /* !<Object,Object> */ {
 	}
 
 	public Object getFirst() {
-		if (head.next == null)
+		if (head.next == null) {
 			return null;
+		}
 		return head.next.o;
 	}
 

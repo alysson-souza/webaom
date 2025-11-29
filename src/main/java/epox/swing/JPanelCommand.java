@@ -56,14 +56,16 @@ public class JPanelCommand extends JPanel implements ActionListener, Log {
 	}
 
 	public void actionPerformed(ActionEvent e) {
-		if (e.getActionCommand().equals("comboBoxEdited"))
+		if (e.getActionCommand().equals("comboBoxEdited")) {
 			handleCommand(jcb.getSelectedItem().toString().trim());
+		}
 	}
 
 	private void handleCommand(Object o) {
 		jcb.removeItem(o);
-		if (o.toString().length() < 1)
+		if (o.toString().length() < 1) {
 			return;
+		}
 		jcb.insertItemAt(o, 0);
 		jcb.setSelectedItem("");
 		println(o);

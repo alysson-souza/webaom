@@ -72,8 +72,9 @@ public class UniqueStringList implements ListModel {
 	public String toString() {
 		String tmp = "";
 		Object[] o = getStrings();
-		for (int i = 0; i < o.length; i++)
+		for (int i = 0; i < o.length; i++) {
 			tmp += o[i] + sep;
+		}
 		return tmp.trim();
 	}
 

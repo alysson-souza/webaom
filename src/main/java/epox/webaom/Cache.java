@@ -42,8 +42,9 @@ public class Cache {
 
 	public Cache() {
 		m_hm = new MyMap[3];
-		for (int i = 0; i < m_hm.length; i++)
+		for (int i = 0; i < m_hm.length; i++) {
 			m_hm[i] = new MyMap();
+		}
 	}
 
 	public String toString() {
@@ -52,47 +53,54 @@ public class Cache {
 	}
 
 	public void clear() {
-		for (int i = 0; i < m_hm.length; i++)
+		for (int i = 0; i < m_hm.length; i++) {
 			m_hm[i].clear();
+		}
 	}
 
 	public void add(Base b, int db, int typ) {
 		Integer id = Integer.valueOf(b.id);
 		if (!m_hm[typ].containsKey(id)) {
 			m_hm[typ].put(id, b);
-			if (db == 1)
+			if (db == 1) {
 				A.db.update(b.id, b, typ);
+			}
 		}
-		if (db == 2)
+		if (db == 2) {
 			A.db.update(b.id, b, typ);
+		}
 	}
 
 	public Base get(int id, int t) {
 		Base b = (Base) m_hm[t].get(Integer.valueOf(id)); // !
 		if (b == null) {
 			b = A.db.getGeneric(id, t);
-			if (b != null)
+			if (b != null) {
 				m_hm[t].put(Integer.valueOf(id), b);
+			}
 		}
 		return b;
 	}
 
 	/////////////// OTHER///////////////
 	public synchronized String gatherInfo(Job j, boolean tree) { // for new files
-		if (j == null || j.m_fa == null)
+		if (j == null || j.m_fa == null) {
 			return null; // nasty?
+		}
 		AFile f = j.m_fa;
 		try {
 			// if(fresh) A.db.updateGeneric(f.fid, f, DB.I_F);
 			f.anime = (Anime) get(f.aid, DB.I_A);
-			if (f.gid != 0)
+			if (f.gid != 0) {
 				f.group = (Group) get(f.gid, DB.I_G);
-			else
+			} else {
 				f.group = Group.none;
+			}
 			f.ep = (Ep) get(f.eid, DB.I_E);
 			// f.anime.regEp(f.ep);
-			if (tree)
+			if (tree) {
 				treeAdd(j);
+			}
 			return null;
 		} catch (Exception e) {
 			U.err(f);
@@ -111,18 +119,21 @@ public class Cache {
 		int i = 20;
 		// create/retrieve data objects
 		f.anime = (Anime) m_hm[DB.I_A].get(Integer.valueOf(f.aid));
-		if (f.anime == null)
+		if (f.anime == null) {
 			f.anime = new Anime(f.aid);
-		else
+		} else {
 			A.p.remove(f.anime);
+		}
 
 		f.ep = (Ep) m_hm[DB.I_E].get(Integer.valueOf(f.eid));
-		if (f.ep == null)
+		if (f.ep == null) {
 			f.ep = new Ep(f.eid);
+		}
 
 		f.group = (Group) m_hm[DB.I_G].get(Integer.valueOf(f.gid));
-		if (f.group == null)
+		if (f.group == null) {
 			f.group = new Group(f.gid);
+		}
 
 		// set group data
 		f.group.name = s[i++];
@@ -177,43 +188,51 @@ public class Cache {
 		long t = System.currentTimeMillis();
 		A.p.clear();
 		Job[] j = A.jobs.array();
-		for (int i = 0; i < j.length; i++)
+		for (int i = 0; i < j.length; i++) {
 			treeAdd(j[i]);
+		}
 		U.out("@ Rebuilt tree in " + (System.currentTimeMillis() - t) + " ms.");
 	}
 
 	public void treeAdd(Job j) {
 		boolean m = j.checkOr(Job.H_MISSING | Job.H_DELETED);
-		if (j.incompl() || (hideE && !m) || (hideN && m) || (j.hide(A.preg)))
+		if (j.incompl() || (hideE && !m) || (hideN && m) || (j.hide(A.preg))) {
 			return;
+		}
 		AFile f = j.m_fa;
 		Anime a = f.anime;
-		if (A.p.has(a))
+		if (A.p.has(a)) {
 			A.p.remove(a);
+		}
 		switch (mImode) {
 			case I_MAF : {
 				a.add(f);
 			}
 				break;
 			case I_MAEF : {
-				if (a.has(f.ep))
+				if (a.has(f.ep)) {
 					a.remove(f.ep);
-				if (f.ep.has(f))
+				}
+				if (f.ep.has(f)) {
 					f.ep.remove(f);
+				}
 				f.ep.add(f);
 				a.add(f.ep);
 			}
 				break;
 			case I_MAGF : {
-				if (f.gid < 1)
+				if (f.gid < 1) {
 					f.group = Group.none;
+				}
 				Base b = a.get(f.group.getKey());
-				if (b != null)
+				if (b != null) {
 					a.remove(b);
-				else
+				} else {
 					b = new AG(a, f.group);
-				if (b.has(f))
+				}
+				if (b.has(f)) {
 					b.remove(f);
+				}
 				b.add(f);
 				a.add(b);
 			}
@@ -221,12 +240,14 @@ public class Cache {
 			case I_MAFF : {
 				String p = j.getFile().getParent();
 				Base b = a.get(p);
-				if (b != null)
+				if (b != null) {
 					a.remove(b);
-				else
+				} else {
 					b = new Path(p);
-				if (b.has(f))
+				}
+				if (b.has(f)) {
 					b.remove(f);
+				}
 				b.add(f);
 				a.add(b);
 			}
@@ -238,12 +259,14 @@ public class Cache {
 	}
 
 	public void treeRemove(Job j) {
-		if (j.incompl())
+		if (j.incompl()) {
 			return;
+		}
 		AFile f = j.m_fa;
 		Anime a = f.anime;
-		if (A.p.has(a))
+		if (A.p.has(a)) {
 			A.p.remove(a);
+		}
 		switch (mImode) {
 			case I_MAF : {
 				a.remove(f);
@@ -252,19 +275,22 @@ public class Cache {
 			case I_MAEF : {
 				a.remove(f.ep);
 				f.ep.remove(f);
-				if (f.ep.size() > 0)
+				if (f.ep.size() > 0) {
 					a.add(f.ep);
+				}
 			}
 				break;
 			case I_MAGF : {
-				if (f.gid < 1)
+				if (f.gid < 1) {
 					f.group = Group.none;
+				}
 				Base b = a.get(f.group.getKey());
 				if (b != null) {
 					a.remove(b);
 					b.remove(f);
-					if (b.size() > 0)
+					if (b.size() > 0) {
 						a.add(b);
+					}
 				}
 			}
 				break;
@@ -274,16 +300,18 @@ public class Cache {
 				if (b != null) {
 					a.remove(b);
 					b.remove(f);
-					if (b.size() > 0)
+					if (b.size() > 0) {
 						a.add(b);
+					}
 				}
 			}
 				break;
 		}
 		a.regEp(f.ep, f.ep.size() > 0);
 		a.updatePct();
-		if (a.size() > 0)
+		if (a.size() > 0) {
 			A.p.add(a);
+		}
 	}
 
 	public static final int I_MAF = 0, I_MAEF = 1, I_MAGF = 2, I_MAFF = 3, I_MLEN = 4;

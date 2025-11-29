@@ -45,8 +45,9 @@ public class HashContainer {
 	}
 
 	public void update(byte[] buffer, int offset, int length) {
-		for (int i = 0; i < size; i++)
+		for (int i = 0; i < size; i++) {
 			ca[i].update(buffer, offset, length);
+		}
 	}
 
 	public void finalizeHashes() {
@@ -62,18 +63,22 @@ public class HashContainer {
 
 	public String toString() {
 		String res = "";
-		for (int i = 1; i < size; i++)
+		for (int i = 1; i < size; i++) {
 			res += na[i] + ": " + ha[i] + "\n";
-		if (res.length() < 1)
+		}
+		if (res.length() < 1) {
 			return "";
+		}
 		// return res;
 		return res.substring(0, res.length() - 1);
 	}
 
 	public String getHex(String name) {
-		for (int i = 0; i < size; i++)
-			if (na[i].equalsIgnoreCase(name))
+		for (int i = 0; i < size; i++) {
+			if (na[i].equalsIgnoreCase(name)) {
 				return ha[i];
+			}
+		}
 		return null;
 	} /*
 		 * private void reset(){

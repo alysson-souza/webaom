@@ -79,8 +79,9 @@ public class DiskIO implements Runnable {
 		} catch (IOException e) {
 			e.printStackTrace();
 			if (j != null) {
-				if (j.m_fn != null)
+				if (j.m_fn != null) {
 					A.deleteFileAndFolder(j.m_fn, mSfail);
+				}
 				JobMan.updateStatus(j, Job.FAILED);
 				j.setError(e.getMessage());
 				// A.gui.updateJobTable(j);
@@ -89,8 +90,9 @@ public class DiskIO implements Runnable {
 			String msg = e.getMessage();
 			A.gui.println(Hyper.error(msg));
 			A.gui.status0(msg);
-			if (A.gui.dioOK())
+			if (A.gui.dioOK()) {
 				A.gui.dioToggle();
+			}
 		}
 		// !A.nr_dio = -1;
 		A.gui.mWdio = null;
@@ -115,8 +117,9 @@ public class DiskIO implements Runnable {
 			A.gui.jpb0.setValue((int) (10 * p));
 			p = av.parse();
 		}
-		if (p < 0)
+		if (p < 0) {
 			j.m_fi = av.build();
+		}
 		av.close();
 		long t1 = System.currentTimeMillis();
 		A.gui.jpb0.setValue(1000);
@@ -170,8 +173,9 @@ public class DiskIO implements Runnable {
 
 			A.gui.println("Hashed " + Hyper.name(file) + " @ " + stats(file.length(), (t1 - t0) / 1000f));
 			JobMan.updateStatus(j, Job.HASHED);
-		} else
+		} else {
 			JobMan.updateStatus(j, Job.HASHWAIT);
+		}
 		// A.gui.updateJobTable(j);
 	}
 
@@ -219,10 +223,12 @@ public class DiskIO implements Runnable {
 		A.gui.status0("Checking " + j.m_fc.getName());
 		String sum = fileCheck(j.m_fn);
 		if (sum == null) { // canceled
-			if (copy)
+			if (copy) {
 				A.deleteFileAndFolder(j.m_fn, mSabrt);
-			if (!A.gui.dioOK())
+			}
+			if (!A.gui.dioOK()) {
 				JobMan.updateStatus(j, Job.MOVEWAIT);
+			}
 		} else if (j._ed2.equalsIgnoreCase(sum)) {
 			A.gui.println("Moved " + Hyper.name(j.m_fc) + " to " + Hyper.name(j.m_fn) + " @ "
 					+ stats(j.m_fc.length(), (System.currentTimeMillis() - t0) / 1000f));
@@ -270,10 +276,11 @@ public class DiskIO implements Runnable {
 			fo.close();
 			fi.close();
 		} catch (IOException e) {
-			if (e.getMessage().equals(S_OUTS))
+			if (e.getMessage().equals(S_OUTS)) {
 				A.dialog("IOException", S_OUTS + ":\n" + b);
-			else
+			} else {
 				throw e;
+			}
 		}
 		return prog == 1;
 	}
@@ -298,8 +305,9 @@ public class DiskIO implements Runnable {
 			A.gui.jpb0.setValue((int) (1000 * prog));
 		}
 		in.close();
-		if (prog < 1)
+		if (prog < 1) {
 			return null;
+		}
 		// return crc.getHexValue();
 		return ed.getHexValue();
 	}
