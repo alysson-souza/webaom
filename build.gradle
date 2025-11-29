@@ -29,14 +29,14 @@ dependencies {
 }
 
 tasks.register('generateVersionProperties') {
-    doLast {
-        def propsFile = file("${layout.buildDirectory.get()}/resources/main/version.properties")
-        propsFile.parentFile.mkdirs()
-        def props = new Properties()
-        props['version'] = project.version.toString()
-        props['buildDate'] = new Date().format('yyyy-MM-dd')
-        propsFile.withWriter { props.store(it, null) }
-    }
+	doLast {
+		def propsFile = file("${layout.buildDirectory.get()}/resources/main/version.properties")
+		propsFile.parentFile.mkdirs()
+		def props = new Properties()
+		props['version'] = project.version.toString()
+		props['buildDate'] = new Date().format('yyyy-MM-dd')
+		propsFile.withWriter { props.store(it, null) }
+	}
 }
 
 processResources.dependsOn generateVersionProperties
