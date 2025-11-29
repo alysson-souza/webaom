@@ -553,7 +553,7 @@ public class JPanelMain extends JPanel
 		} else if (source == mTdio) {
 			dioStart();
 		} else if (source == mTprg)
-			// System.err.println(A.frame.getFocusOwner());
+		// System.err.println(A.frame.getFocusOwner());
 		{
 			updateProgressbar();
 		} else if (source == mTunf) {
