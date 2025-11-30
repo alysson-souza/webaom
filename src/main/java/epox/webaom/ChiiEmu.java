@@ -310,41 +310,6 @@ public class ChiiEmu implements CommandModel {
 			return result;
 		}
 
-		public String formatTop(String response) {
-			String[] lines = U.split(response, '\n');
-			String[] fields;
-			if (lines.length != 11) {
-				return response;
-			}
-
-			StringBuffer resultBuilder = new StringBuffer(100);
-			resultBuilder.append("TOP: ");
-			for (int i = 0; i < lines.length; i++) {
-				resultBuilder.append(TOP_CATEGORY_LABELS[i]);
-				fields = U.split(lines[i], '|');
-				resultBuilder.append(fields[0]);
-				resultBuilder.append(" (");
-				resultBuilder.append(fields[1]);
-				resultBuilder.append("), ");
-			}
-			resultBuilder.deleteCharAt(resultBuilder.length() - 1);
-			return resultBuilder.toString();
-		}
-
-		public String formatStats(String response) {
-			String[] fields = U.split(response, '|');
-			if (fields.length != 7) {
-				return response;
-			}
-			StringBuffer resultBuilder = new StringBuffer(100);
-			resultBuilder.append("STATS: ");
-			for (int i = 0; i < fields.length; i++) {
-				resultBuilder.append(fields[i]);
-				resultBuilder.append(STATS_LABEL_SUFFIXES[i]);
-			}
-			return resultBuilder.toString();
-		}
-
 		public String formatMyStats(String response) {
 			String[] fields = U.split(response, '|');
 			if (fields.length < 16) {
@@ -525,11 +490,4 @@ public class ChiiEmu implements CommandModel {
 				return "NOO!";
 		}
 	}
-
-	protected static final String[] STATS_LABEL_SUFFIXES = {" animes, ", " eps, ", " files, ", " groups, ", " users, ",
-			" KB, ", " open change requests in DB"};
-	protected static final String[] TOP_CATEGORY_LABELS = {"Longest MyList: ", "Largest MyList: ", "Most Lame Files: ",
-			"Most Indep. User: ", "Big. Leech0r: ", "Most Anime Added: ", "Most Eps Added: ", "Most Files Added: ",
-			"Most Groups Added: ", "Most Votes: ", "Most Reviews: "};
-
 }
