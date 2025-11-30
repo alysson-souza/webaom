@@ -365,8 +365,7 @@ public class MainPanel extends JPanel
         newExtensionTextField = new JTextField();
         newExtensionTextField.addActionListener(this);
 
-        @SuppressWarnings("unchecked") // UniqueStringList doesn't have generics
-        final JList<String> extensionList = new JList<String>(AppContext.fileHandler.allowedExtensions);
+        final JList<String> extensionList = new JList<>(AppContext.fileHandler.allowedExtensions);
         extensionList.getInputMap().put(KeyStroke.getKeyStroke("DELETE"), "pressed");
         extensionList.getActionMap().put("pressed", new AbstractAction() {
             @Override
