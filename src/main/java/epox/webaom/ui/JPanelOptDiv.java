@@ -209,8 +209,8 @@ public class JPanelOptDiv extends JPanel {
 	public HashContainer getHashContainer() {
 		try {
 			int selectedCount = 0;
-			for (int i = 0; i < hashCheckBoxes.length; i++) {
-				if (hashCheckBoxes[i].isSelected()) {
+			for (JCheckBox hashCheckBox : hashCheckBoxes) {
+				if (hashCheckBox.isSelected()) {
 					selectedCount++;
 				}
 			}

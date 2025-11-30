@@ -37,7 +37,7 @@ public class TigerTree extends MessageDigest {
     private final Tiger tiger;
 
     /** Interim tree node hash values */
-    private Vector /* !<byte[]> */ nodes;
+    private Vector<byte[]> nodes;
 
     /** Constructor */
     public TigerTree() {
@@ -47,7 +47,7 @@ public class TigerTree extends MessageDigest {
         byteCount = 0;
 
         tiger = new Tiger();
-        nodes = new Vector /* !<byte[]> */();
+        nodes = new Vector<byte[]>();
     }
 
     protected int engineGetDigestLength() {
@@ -98,12 +98,12 @@ public class TigerTree extends MessageDigest {
         blockUpdate();
         // composite neighboring nodes together up to top value
         while (nodes.size() > 1) {
-            Vector /* !<byte[]> */ newNodes = new Vector /* !<byte[]> */();
-            Enumeration iter = nodes.elements();
+            Vector<byte[]> newNodes = new Vector<byte[]>();
+            Enumeration<byte[]> iter = nodes.elements();
             while (iter.hasMoreElements()) {
-                byte[] left = (byte[]) iter.nextElement();
+                byte[] left = iter.nextElement();
                 if (iter.hasMoreElements()) {
-                    byte[] right = (byte[]) iter.nextElement();
+                    byte[] right = iter.nextElement();
                     tiger.reset();
                     tiger.update((byte) 1); // node prefix
                     tiger.update(left, 0, left.length);
@@ -121,7 +121,7 @@ public class TigerTree extends MessageDigest {
     protected void engineReset() {
         bufferOffset = 0;
         byteCount = 0;
-        nodes = new Vector /* !<byte[]> */();
+        nodes = new Vector<byte[]>();
         tiger.reset();
     }
 

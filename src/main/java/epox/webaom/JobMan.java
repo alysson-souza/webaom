@@ -22,7 +22,9 @@
  */
 package epox.webaom;
 
+import java.awt.Desktop;
 import java.io.File;
+import java.io.IOException;
 
 public class JobMan {
 	public static void setPath(Job job, String path, boolean includeParent) {
@@ -78,10 +80,11 @@ public class JobMan {
 		if (!job.getFile().exists()) {
 			return;
 		}
-		Runtime runtime = Runtime.getRuntime();
 		try {
-			runtime.exec("rundll32 url.dll,FileProtocolHandler \"" + job.getFile() + "\"");
-		} catch (java.io.IOException ex) {
+			if (Desktop.isDesktopSupported()) {
+				Desktop.getDesktop().open(job.getFile());
+			}
+		} catch (IOException ex) {
 			ex.printStackTrace();
 		}
 	}
@@ -90,10 +93,11 @@ public class JobMan {
 		if (!job.getFile().exists()) {
 			return;
 		}
-		Runtime runtime = Runtime.getRuntime();
 		try {
-			runtime.exec("explorer \"" + job.getFile().getParent() + "\"");
-		} catch (java.io.IOException ex) {
+			if (Desktop.isDesktopSupported()) {
+				Desktop.getDesktop().open(job.getFile().getParentFile());
+			}
+		} catch (IOException ex) {
 			ex.printStackTrace();
 		}
 	}
@@ -102,10 +106,9 @@ public class JobMan {
 		if (!job.getFile().exists()) {
 			return;
 		}
-		Runtime runtime = Runtime.getRuntime();
 		try {
-			runtime.exec("cmd /C start avdump -ps \"" + job.getFile().getAbsolutePath() + "\"");
-		} catch (java.io.IOException ex) {
+			new ProcessBuilder("cmd", "/C", "start", "avdump", "-ps", job.getFile().getAbsolutePath()).start();
+		} catch (IOException ex) {
 			ex.printStackTrace();
 		}
 	}

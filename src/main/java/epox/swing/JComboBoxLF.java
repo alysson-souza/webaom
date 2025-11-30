@@ -4,27 +4,25 @@
  */
 package epox.swing;
 
-import java.awt.Component;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import javax.swing.DefaultComboBoxModel;
 import javax.swing.JComboBox;
 import javax.swing.SwingUtilities;
 import javax.swing.UIManager;
 import javax.swing.UIManager.LookAndFeelInfo;
+import java.awt.Component;
 
 /**
  * JComboBox for selecting the application's Look and Feel. Displays installed L&F options and applies selection
  * immediately.
  */
-public class JComboBoxLF extends JComboBox {
+public class JComboBoxLF extends JComboBox<String> {
 	/** Array of installed look and feel options */
 	protected static final LookAndFeelInfo[] LOOK_AND_FEELS = UIManager.getInstalledLookAndFeels();
 
 	public JComboBoxLF(final Component rootComponent) {
-		super(new DefaultComboBoxModel() {
+		super(new DefaultComboBoxModel<>() {
 			@Override
-			public Object getElementAt(int index) {
+			public String getElementAt(int index) {
 				return LOOK_AND_FEELS[index].getName();
 			}
 
@@ -33,16 +31,13 @@ public class JComboBoxLF extends JComboBox {
 				return LOOK_AND_FEELS.length;
 			}
 		});
-		addActionListener(new ActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent event) {
-				try {
-					UIManager.setLookAndFeel(LOOK_AND_FEELS[getSelectedIndex()].getClassName());
-				} catch (Exception ex) {
-					ex.printStackTrace();
-				}
-				SwingUtilities.updateComponentTreeUI(rootComponent);
+		addActionListener(event -> {
+			try {
+				UIManager.setLookAndFeel(LOOK_AND_FEELS[getSelectedIndex()].getClassName());
+			} catch (Exception ex) {
+				ex.printStackTrace();
 			}
+			SwingUtilities.updateComponentTreeUI(rootComponent);
 		});
 		String currentLookAndFeel = UIManager.getLookAndFeel().getClass().getCanonicalName();
 		int selectedIndex;

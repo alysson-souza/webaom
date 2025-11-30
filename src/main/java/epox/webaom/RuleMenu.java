@@ -1,53 +1,54 @@
 package epox.webaom;
 
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-import java.util.Stack;
-import javax.swing.JMenu;
-import javax.swing.JMenuItem;
-import javax.swing.JPopupMenu;
-import javax.swing.JTextArea;
 import org.xml.sax.Attributes;
 import org.xml.sax.SAXException;
 import org.xml.sax.helpers.DefaultHandler;
 
+import javax.swing.JMenu;
+import javax.swing.JMenuItem;
+import javax.swing.JPopupMenu;
+import javax.swing.JTextArea;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.util.Stack;
+
 public class RuleMenu extends DefaultHandler {
 	private JMenuItem m_item = null;
-	private final Stack m_subs;
+	private final Stack<JMenu> m_subs;
 	private final JTextArea m_jta;
 
 	public RuleMenu(JTextArea jta) {
 		m_jta = jta;
-		m_subs = new Stack();
+		m_subs = new Stack<>();
 	}
 
 	public JPopupMenu getMenu() {
-		return ((JMenu) m_subs.peek()).getPopupMenu();
+		return m_subs.peek().getPopupMenu();
 	}
 
 	public void startElement(String uri, String localName, String qName, final Attributes attributes)
 			throws SAXException {
 		super.startElement(uri, localName, qName, attributes);
 
-		if (qName.equals("elem")) {
-			m_item = new JMenuItem(attributes.getValue("title"));
-			// m_item.setToolTipText(attributes.getValue("tip"));
-			MyListener my = new MyListener(m_jta, attributes.getValue("value"));
-			m_item.addActionListener(my);
-			// m_item.addMouseListener(my);
-			((JMenu) m_subs.peek()).add(m_item);
-		} else if (qName.equals("item")) {
-			m_subs.push(new JMenu(attributes.getValue("title")));
-		} else if (qName.equals("menu")) {
-			m_subs.add(new JMenu());
+		switch (qName) {
+			case "elem" -> {
+				m_item = new JMenuItem(attributes.getValue("title"));
+				// m_item.setToolTipText(attributes.getValue("tip"));
+				MyListener my = new MyListener(m_jta, attributes.getValue("value"));
+				m_item.addActionListener(my);
+				// m_item.addMouseListener(my);
+				m_subs.peek().add(m_item);
+			}
+			case "item" -> m_subs.push(new JMenu(attributes.getValue("title")));
+			case "menu" -> m_subs.add(new JMenu());
 		}
 	}
 
 	public void endElement(String uri, String localName, String qName) throws SAXException {
 		super.endElement(uri, localName, qName);
 		if (qName.equals("item")) {
-			JMenu sub = (JMenu) m_subs.pop();
-			((JMenu) m_subs.peek()).add(sub);
+			JMenu sub = m_subs.pop();
+			m_subs.peek().add(sub);
 			// System.out.println("pop  "+sub.getText());
 		}
 		m_item = null;

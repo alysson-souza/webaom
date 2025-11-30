@@ -102,8 +102,7 @@ public class AVInfo {
 		if (address < 1) {
 			throw new IOException(EC);
 		}
-		float f = fileParse(address);
-		return f;
+		return fileParse(address);
 	}
 
 	public int trackCount() throws IOException {
@@ -158,7 +157,6 @@ public class AVInfo {
 		if (address < 1) {
 			throw new IOException(EC);
 		}
-		FileInfo fi = new FileInfo(toXML());
 		/*
 		 * for(int i=0; i<trackCount(); i++){
 		 * GenericTrack gt = getGeneric(i);
@@ -170,7 +168,7 @@ public class AVInfo {
 		 * }
 		 * }
 		 */
-		return fi;
+		return new FileInfo(toXML());
 	}
 
 	public String toOld() throws IOException {

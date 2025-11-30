@@ -6,33 +6,35 @@ package epox.av;
 
 import epox.util.U;
 import epox.webaom.data.AMap;
-import java.io.IOException;
-import java.io.StringReader;
-import java.util.Vector;
 import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
 import org.xml.sax.XMLReader;
 import org.xml.sax.helpers.DefaultHandler;
-import org.xml.sax.helpers.XMLReaderFactory;
+
+import javax.xml.parsers.SAXParser;
+import javax.xml.parsers.SAXParserFactory;
+import java.io.IOException;
+import java.io.StringReader;
+import java.util.Vector;
 
 public class FileInfo {
-	public Vector /* !<String[][]> */ vid;
-	public Vector aud;
-	public Vector sub;
+	public Vector<AMap> vid;
+	public Vector<AMap> aud;
+	public Vector<AMap> sub;
 	public String m_xml = null;
 
 	public FileInfo(String xml) throws IOException {
-		vid = new Vector /* !<String[][]> */();
-		aud = new Vector /* !<String[][]> */();
-		sub = new Vector /* !<String[][]> */();
+		vid = new Vector<>();
+		aud = new Vector<>();
+		sub = new Vector<>();
 		byXml(xml);
 	}
 
-	private static void dump(Vector v) {
-		for (int i = 0; i < v.size(); i++) {
-			String[][] a = (String[][]) v.get(i);
-			for (int j = 0; j < a.length; j++) {
-				System.out.println(a[j][0] + ": " + a[j][1]);
+	private static void dump(Vector<AMap> v) {
+		for (AMap aMap : v) {
+			String[][] a = aMap.toArray();
+			for (String[] strings : a) {
+				System.out.println(strings[0] + ": " + strings[1]);
 			}
 		}
 	}
@@ -68,14 +70,11 @@ public class FileInfo {
 				return;
 			}
 			// if(type.equals("duration"))	ctyp = DUR;
-			if (type.equals("vid")) {
-				ctyp = VID;
-			} else if (type.equals("aud")) {
-				ctyp = AUD;
-			} else if (type.equals("sub")) {
-				ctyp = SUB;
-			} else {
-				ctyp = -1;
+			switch (type) {
+				case "vid" -> ctyp = VID;
+				case "aud" -> ctyp = AUD;
+				case "sub" -> ctyp = SUB;
+				default -> ctyp = -1;
 			}
 
 			if (ctyp > 0) {
@@ -124,19 +123,18 @@ public class FileInfo {
 	public void byXml(String str) throws IOException {
 		try {
 			MyHandler myh = new MyHandler();
-			XMLReader xml = XMLReaderFactory.createXMLReader();
+			SAXParserFactory factory = SAXParserFactory.newInstance();
+			SAXParser parser = factory.newSAXParser();
+			XMLReader xml = parser.getXMLReader();
 			xml.setContentHandler(myh);
 			xml.parse(new InputSource(new StringReader(str)));
-			m_xml = str.replaceAll("[\r\n\t]", "").replaceAll("  ", " ");
+			m_xml = str.replaceAll("[\r\n\t]", "").replaceAll(" {2}", " ");
 		} catch (SAXException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
-		} /*
-			 * catch (IOException e) {
-			 * // TODO Auto-generated catch block
-			 * e.printStackTrace();
-			 * }
-			 */
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
 	}
 
 	/*
@@ -180,7 +178,7 @@ public class FileInfo {
 		if (schema == null) {
 			return null;
 		}
-		Vector /* !<String[][]> */ v = null;
+		Vector<AMap> v = null;
 		switch (type) {
 			case 0 :
 				v = vid;
@@ -194,9 +192,9 @@ public class FileInfo {
 			default :
 				return null;
 		}
-		StringBuffer sb = new StringBuffer(schema.length() * v.size());
+		StringBuilder sb = new StringBuilder(schema.length() * v.size());
 		for (int j = 0; j < v.size(); j++) {
-			String s = U.replaceCCCode(schema, (AMap) v.get(j));
+			String s = U.replaceCCCode(schema, v.get(j));
 			if (j > 0) {
 				sb.append('\n');
 			}

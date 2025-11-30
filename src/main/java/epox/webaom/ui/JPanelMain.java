@@ -176,9 +176,9 @@ public class JPanelMain extends JPanel
 		try {
 			Thread[] threads = new Thread[Thread.activeCount()];
 			Thread.enumerate(threads);
-			for (int threadIndex = 0; threadIndex < threads.length; threadIndex++) {
-				if (threads[threadIndex].getName().equals("AWT-EventQueue-0")) {
-					threads[threadIndex].setName("GUI");
+			for (Thread thread : threads) {
+				if (thread.getName().equals("AWT-EventQueue-0")) {
+					thread.setName("GUI");
 				}
 			}
 		} catch (Exception ex) {
@@ -913,12 +913,12 @@ public class JPanelMain extends JPanel
 			long startTime = System.currentTimeMillis();
 			setEnabled(false);
 			int fileCount = 0;
-			for (int i = 0; i < directories.length; i++) {
-				String parent = directories[i].getParent();
+			for (File directory : directories) {
+				String parent = directory.getParent();
 				if (parent != null && parent.startsWith("\\\\")) {
-					showMessage("Windows network paths not supported: " + directories[i]);
+					showMessage("Windows network paths not supported: " + directory);
 				} else {
-					fileCount += addFileRecursive(directories[i]);
+					fileCount += addFileRecursive(directory);
 				}
 			}
 			if (shouldPrintStatus) {
@@ -952,8 +952,8 @@ public class JPanelMain extends JPanel
 				if (files == null) {
 					return 0;
 				}
-				for (int i = 0; i < files.length; i++) {
-					fileCount += addFileRecursive(files[i]);
+				for (File value : files) {
+					fileCount += addFileRecursive(value);
 				}
 				return fileCount;
 			}
@@ -987,8 +987,8 @@ public class JPanelMain extends JPanel
 				// A.mem4 = A.getUsed();
 
 				A.db.debug = false;
-				for (int i = 0; i < jobArray.length; i++) {
-					job = (Job) jobArray[i];
+				for (Object o : jobArray) {
+					job = (Job) o;
 					job.isFresh = false;
 					A.cache.gatherInfo(job, false);
 					if (job.getStatus() == Job.MOVEWAIT) {

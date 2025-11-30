@@ -83,8 +83,8 @@ public class FileHandler {
 	public synchronized void saveOptions(Options options) {
 		String extensionList = "";
 		Object[] extensions = allowedExtensions.getStrings();
-		for (int i = 0; i < extensions.length; i++) {
-			extensionList += extensions[i] + Options.FIELD_SEPARATOR;
+		for (Object extension : extensions) {
+			extensionList += extension + Options.FIELD_SEPARATOR;
 		}
 		options.setString(Options.STR_EXTENSIONS, extensionList);
 	}

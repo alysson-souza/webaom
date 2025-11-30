@@ -267,10 +267,9 @@ public class ChiiEmu implements CommandModel {
 			String ratingText = ((float) Integer.parseInt(fields[4]) / 100) + " (" + fields[5] + " votes)";
 			String reviewsText = fields[9] + " reviews (avg: " + ((float) Integer.parseInt(fields[8]) / 100) + ")";
 			String englishName = fields.length > 14 && !fields[14].isEmpty() ? fields[14] : fields[12];
-			String animeDescription = "ANIME: " + fields[12] + " (" + fields[0] + "), " + englishName + ", " + fields[1]
-					+ " eps, Year: " + fields[10] + ", Type: " + fields[11] + ", Rating: " + ratingText + ", "
-					+ reviewsText + " https://anidb.net/a" + fields[0];
-			return animeDescription;
+			return "ANIME: " + fields[12] + " (" + fields[0] + "), " + englishName + ", " + fields[1] + " eps, Year: "
+					+ fields[10] + ", Type: " + fields[11] + ", Rating: " + ratingText + ", " + reviewsText
+					+ " https://anidb.net/a" + fields[0];
 		}
 
 		public String formatGroup(String response) {
@@ -283,10 +282,9 @@ public class ChiiEmu implements CommandModel {
 			String databaseText = fields[3] + " animes/" + fields[4] + " files";
 			String ircInfo = !fields[7].isEmpty() ? fields[7] + "@" + fields[8] : "";
 			String urlInfo = fields.length > 9 && !fields[9].isEmpty() ? fields[9] : "";
-			String groupDescription = "GROUP: " + fields[5] + " [" + fields[6] + "] (" + fields[0] + "), " + "rating: "
-					+ ratingText + ", db: " + databaseText + (!ircInfo.isEmpty() ? ", irc: " + ircInfo : "")
+			return "GROUP: " + fields[5] + " [" + fields[6] + "] (" + fields[0] + "), " + "rating: " + ratingText
+					+ ", db: " + databaseText + (!ircInfo.isEmpty() ? ", irc: " + ircInfo : "")
 					+ (!urlInfo.isEmpty() ? ", url: " + urlInfo : "") + " https://anidb.net/g" + fields[0];
-			return groupDescription;
 		}
 
 		public String formatMyList(String response) {
@@ -323,10 +321,9 @@ public class ChiiEmu implements CommandModel {
 			String votesReviewsText = fields[14] + " votes, " + fields[15] + " reviews added to DB";
 			String leechLameText = "Leech factor: " + fields[8] + "%, Lameness: " + fields[9] + "%";
 			String viewedTime = fields.length > 16 ? " Viewed: " + formatMinutes(U.i(fields[16])) + "." : "";
-			String description = "MYSTATS: " + fields[0] + " animes, " + fields[1] + " eps (" + watchedEpsText
-					+ ") and " + fields[2] + " files in mylist (" + mylistSizeText + "). " + contributionText + ". "
-					+ votesReviewsText + ". " + leechLameText + "." + viewedTime;
-			return description;
+			return "MYSTATS: " + fields[0] + " animes, " + fields[1] + " eps (" + watchedEpsText + ") and " + fields[2]
+					+ " files in mylist (" + mylistSizeText + "). " + contributionText + ". " + votesReviewsText + ". "
+					+ leechLameText + "." + viewedTime;
 		}
 	}
 

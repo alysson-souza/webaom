@@ -72,8 +72,8 @@ public class JobList {
 		filteredJobs = null;
 		jobsList.clear();
 		filePathSet.clear();
-		for (int i = 0; i < jobQueues.length; i++) {
-			jobQueues[i].clear();
+		for (LinkedHash jobQueue : jobQueues) {
+			jobQueue.clear();
 		}
 	}
 
@@ -92,8 +92,7 @@ public class JobList {
 		}
 		long startTime = System.currentTimeMillis();
 		ArrayList<Job> matchingJobs = new ArrayList<>(jobsList.size());
-		for (int i = 0; i < jobsList.size(); i++) {
-			Job job = jobsList.get(i);
+		for (Job job : jobsList) {
 			if (job.checkSep(status, state, includeUnknown)) {
 				matchingJobs.add(job);
 			}

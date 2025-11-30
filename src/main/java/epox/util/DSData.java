@@ -49,7 +49,7 @@ public class DSData {
 		if (destValue.equals("")) {
 			destValue = "\\0";
 		}
-		if (enabled.booleanValue()) {
+		if (enabled) {
 			return source + Options.FIELD_SEPARATOR + destValue;
 		}
 		return "#" + source + Options.FIELD_SEPARATOR + destValue;
@@ -73,11 +73,11 @@ public class DSData {
 	/**
 	 * Encodes a vector of DSData rules into a single delimited string.
 	 */
-	public static String encode(Vector rulesList) {
+	public static String encode(Vector<DSData> rulesList) {
 		String encodedResult = "";
 		DSData currentRule;
 		for (int i = 0; i < rulesList.size(); i++) {
-			currentRule = (DSData) rulesList.elementAt(i);
+			currentRule = rulesList.elementAt(i);
 			if (!currentRule.source.equals("")) {
 				encodedResult += currentRule + Options.FIELD_SEPARATOR;
 			}
@@ -88,7 +88,7 @@ public class DSData {
 	/**
 	 * Decodes an encoded string into a vector of DSData rules.
 	 */
-	public static String decode(Vector /* !<DSData> */ rulesList, String encodedString) {
+	public static String decode(Vector<DSData> rulesList, String encodedString) {
 		rulesList.clear();
 		StringTokenizer tokenizer = new StringTokenizer(encodedString, Options.FIELD_SEPARATOR);
 		while (tokenizer.hasMoreTokens()) {

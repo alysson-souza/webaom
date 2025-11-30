@@ -101,8 +101,8 @@ public class DB {
 	/** Executes a semicolon-delimited batch of SQL statements. */
 	private void executeStatements(String sqlBatch, boolean silent) {
 		String[] statements = sqlBatch.split("\\;");
-		for (int i = 0; i < statements.length; i++) {
-			exec(statements[i], silent);
+		for (String s : statements) {
+			exec(s, silent);
 		}
 	}
 
@@ -356,7 +356,7 @@ public class DB {
 
 	/** Checks if an error message indicates a communication exception. */
 	private static boolean isCommunicationException(String message) {
-		return message.toLowerCase().indexOf("communication") >= 0;
+		return message.toLowerCase().contains("communication");
 	}
 
 	private boolean exec(String command, boolean silent) {
@@ -534,7 +534,7 @@ public class DB {
 			path = U.replace(path, "'", "\\'");
 			Object cachedId = directoryIdCache.get(path);
 			if (cachedId != null) {
-				return ((Integer) cachedId).intValue();
+				return (Integer) cachedId;
 			}
 			ResultSet rs = query("select did from dtb where name='" + path + "'", false);
 			if (rs.first()) {

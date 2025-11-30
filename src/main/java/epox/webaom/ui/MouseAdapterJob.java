@@ -26,10 +26,10 @@ package epox.webaom.ui;
 import epox.webaom.Job;
 import epox.webaom.JobList;
 import epox.webaom.JobMan;
-import java.awt.event.InputEvent;
+
+import javax.swing.JTable;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
-import javax.swing.JTable;
 
 public class MouseAdapterJob extends MouseAdapter {
 	private final JTable table;
@@ -47,7 +47,7 @@ public class MouseAdapterJob extends MouseAdapter {
 			int rowIndex = tableModel.convertRow(table.getSelectedRow())[0];
 			if (rowIndex >= 0 && rowIndex < jobList.size()) {
 				Job job = jobList.get(rowIndex);
-				if ((event.getModifiers() & InputEvent.ALT_MASK) == InputEvent.ALT_MASK) {
+				if (event.isAltDown()) {
 					JobMan.openInDefaultPlayer(job);
 				} else {
 					JobMan.showInfo(job);

@@ -319,16 +319,16 @@ public class AFile extends Base {
 		if (lengthInSeconds < 1) {
 			missingFlags += 'l';
 		}
-		if (dubLanguage.indexOf("unknown") >= 0) {
+		if (dubLanguage.contains("unknown")) {
 			missingFlags += 'd';
 		}
-		if (subLanguage.indexOf("unknown") >= 0) {
+		if (subLanguage.contains("unknown")) {
 			missingFlags += 's';
 		}
-		if (audioCodec.indexOf("unknown") >= 0) {
+		if (audioCodec.contains("unknown")) {
 			missingFlags += 'a';
 		}
-		if (videoCodec.indexOf("unknown") >= 0) {
+		if (videoCodec.contains("unknown")) {
 			missingFlags += 'v';
 		}
 		if (resolution.equals("0x0") || resolution.equals("unknown")) {
@@ -349,10 +349,10 @@ public class AFile extends Base {
 		}
 		String missingFlags = "";
 
-		if (quality.indexOf("unknown") >= 0) {
+		if (quality.contains("unknown")) {
 			missingFlags += 'q';
 		}
-		if (ripSource.indexOf("unknown") >= 0) {
+		if (ripSource.contains("unknown")) {
 			missingFlags += 'o';
 		}
 

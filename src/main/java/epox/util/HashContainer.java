@@ -89,15 +89,10 @@ public class HashContainer {
 	}
 
 	@Override
-	protected void finalize() {
-		finalizeHashes();
-	}
-
-	@Override
 	public String toString() {
-		String result = "";
+		StringBuilder result = new StringBuilder();
 		for (int index = 1; index < size; index++) {
-			result += hashNames[index] + ": " + hashValues[index] + "\n";
+			result.append(hashNames[index]).append(": ").append(hashValues[index]).append("\n");
 		}
 		if (result.isEmpty()) {
 			return "";
@@ -119,11 +114,5 @@ public class HashContainer {
 			}
 		}
 		return null;
-	} /*
-		 * private void reset(){
-		 * for(int i=0; i<size; i++){
-		 * hasht[i].reset();
-		 * }
-		 * }
-		 */
+	}
 }

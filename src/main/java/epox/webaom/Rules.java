@@ -38,7 +38,7 @@ public class Rules {
 	public static final String TRUNC = "TRUNCATE<";
 
 	/** Characters to replace in filenames (illegal filesystem characters) */
-	public Vector /* !<DSData> */ illegalCharReplacements;
+	public Vector<DSData> illegalCharReplacements;
 	private String renameRulesScript;
 	private String moveRulesScript;
 	private AMap tagValueMap = null;
@@ -46,7 +46,7 @@ public class Rules {
 	// private int mItruncate = 0;
 
 	public Rules() {
-		illegalCharReplacements = new Vector /* !<DSData> */();
+		illegalCharReplacements = new Vector<>();
 		illegalCharReplacements.add(new DSData("`", "'", true));
 		illegalCharReplacements.add(new DSData("\"", "", true));
 		illegalCharReplacements.add(new DSData("<", "", true));
@@ -158,11 +158,11 @@ public class Rules {
 		return null;
 	}
 
-	private Vector /* !<Section> */ buildSections(String script, Job job) throws Exception {
+	private Vector<Section> buildSections(String script, Job job) throws Exception {
 		StringTokenizer tokenizer = new StringTokenizer(script, "\r\n");
 		String token;
 		String upperToken;
-		Vector /* !<Section> */ sections = new Vector /* !<Section> */();
+		Vector<Section> sections = new Vector<>();
 		int doIndex;
 		boolean previousConditionPassed = true;
 		while (tokenizer.hasMoreTokens()) {
@@ -191,7 +191,7 @@ public class Rules {
 		return sections;
 	}
 
-	private boolean handleOperation(Vector /* !<Section> */ sections, String operation) throws Exception {
+	private boolean handleOperation(Vector<Section> sections, String operation) throws Exception {
 		String upperOp = operation.toUpperCase();
 		if (upperOp.startsWith("ADD ")) {
 			sections.add(new Section(operation.substring(4)));
@@ -244,7 +244,7 @@ public class Rules {
 		throw new Exception("Error after DO: Expected SET/ADD/FAIL/FINISH/TRUNCATE<int,str>: " + operation);
 	}
 
-	private boolean evaluateConditions(String conditionString, Job job) throws Exception {
+	private boolean evaluateConditions(String conditionString, Job job) {
 		StringTokenizer tokenizer = new StringTokenizer(conditionString, ";");
 		if (tokenizer.countTokens() < 1) {
 			return false;
@@ -352,7 +352,7 @@ public class Rules {
 			case 'N' : // Genre/category
 				return containsIgnoreCase(job.anidbFile.anime.categories, testValue);
 			case 'I' : { // Is tag defined
-				String tagValue = (String) tagValueMap.get(testValue);
+				String tagValue = tagValueMap.get(testValue);
 				return tagValue != null && !tagValue.isEmpty();
 			}
 			case 'U' : { // Tags are unequal
@@ -377,7 +377,7 @@ public class Rules {
 				String[] comparison = testValue.split(":", 2);
 				if (comparison.length == 2) {
 					return tagValueMap.containsKey(comparison[0])
-							&& matchesPattern(tagValueMap.get(comparison[0]).toString(), comparison[1]);
+							&& matchesPattern(tagValueMap.get(comparison[0]), comparison[1]);
 				}
 				System.out.println("ERROR: Invalid data in test: Z(" + testValue + ")");
 				return false;
@@ -401,7 +401,7 @@ public class Rules {
 	}
 
 	private static boolean containsIgnoreCase(String text, String searchTerm) {
-		return text.toLowerCase().indexOf(searchTerm.toLowerCase()) >= 0;
+		return text.toLowerCase().contains(searchTerm.toLowerCase());
 	}
 
 	private String finalizeFilename(Job job, String filename) {
@@ -420,7 +420,7 @@ public class Rules {
 		DSData replacement;
 		for (int index = 0; index < replacements.size(); index++) {
 			replacement = (DSData) replacements.elementAt(index);
-			if (replacement.enabled.booleanValue()) {
+			if (replacement.enabled) {
 				text = U.replace(text, replacement.source, replacement.destination);
 			}
 		}

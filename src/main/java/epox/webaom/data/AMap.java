@@ -17,31 +17,32 @@
 package epox.webaom.data;
 
 import java.util.HashMap;
+import java.util.Map;
 
-public class AMap extends HashMap /* !<String,String> */ {
+public class AMap extends HashMap<String, String> {
 	public String put(String key, String value) {
 		if (value == null) {
 			return null;
 		}
-		return (String) super.put(key, value);
+		return super.put(key, value);
 	}
 
-	public Object put(String key, int value) {
-		return put(key, "" + value);
+	public String put(String key, int value) {
+		return put(key, Integer.toString(value));
 	}
 
-	public Object put(String key, long value) {
-		return put(key, "" + value);
+	public String put(String key, long value) {
+		return put(key, Long.toString(value));
 	}
 
 	public String[][] toArray() {
-		Object[] keys = this.keySet().toArray();
-		Object[] vals = this.values().toArray();
-		int len = keys.length;
+		int len = size();
 		String[][] res = new String[len][2];
-		for (int i = 0; i < len; i++) {
-			res[i][0] = (String) keys[i];
-			res[i][1] = (String) vals[i];
+		int i = 0;
+		for (Map.Entry<String, String> e : entrySet()) {
+			res[i][0] = e.getKey();
+			res[i][1] = e.getValue();
+			i++;
 		}
 		return res;
 	}
