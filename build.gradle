@@ -2,9 +2,8 @@ plugins {
     id 'java'
     id 'application'
     id('com.diffplug.spotless') version '8.1.0'
-    id('com.palantir.java-format-spotless') version '2.83.0'  // For VSCode/Spotless
-    id('com.palantir.java-format') version '2.83.0'           // For IntelliJ configuration
-    id('com.palantir.baseline-idea') version '6.75.0'
+    id('com.palantir.java-format-spotless') version '2.83.0'
+    id('com.palantir.java-format') version '2.83.0'
 }
 
 group = 'epox'
