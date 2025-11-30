@@ -25,6 +25,8 @@ package epox.swing;
 
 import epox.util.StringUtilities;
 import epox.webaom.AppContext;
+import java.awt.dnd.DropTarget;
+import java.awt.dnd.DropTargetListener;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
@@ -86,6 +88,14 @@ public class JPanelDebug extends JPanel {
 
     public JPanelDebug(String file) {
         this(file, true, true, false, true);
+    }
+
+    /**
+     * Enables file drag-and-drop on the text area by setting a DropTarget that delegates to the specified listener.
+     * This is needed because JTextArea has its own TransferHandler that blocks file drops.
+     */
+    public void setFileDropListener(DropTargetListener dropListener) {
+        new DropTarget(textArea, dropListener);
     }
 
     protected class Updater implements Runnable {
