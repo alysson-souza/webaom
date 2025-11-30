@@ -35,9 +35,9 @@ public class AniDBFileClient extends AniDBConnection {
 
     /** Escapes special characters for XML/HTML encoding and converts newlines to BR tags. */
     public static String escapeForXml(String input) {
-        String escaped = StringUtilities.replace(input, "&", "&amp;");
-        escaped = StringUtilities.replace(escaped, "\r", "");
-        escaped = StringUtilities.replace(escaped, "\n", "<br />");
+        String escaped = input.replace("&", "&amp;");
+        escaped = escaped.replace("\r", "");
+        escaped = escaped.replace("\n", "<br />");
         return escaped;
     }
 

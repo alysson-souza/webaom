@@ -90,7 +90,7 @@ public class Rules {
     private static String applyReplacements(String text, List<ReplacementRule> replacements) {
         for (ReplacementRule replacement : replacements) {
             if (replacement.isEnabled()) {
-                text = StringUtilities.replace(text, replacement.getSource(), replacement.getDestination());
+                text = text.replace(replacement.getSource(), replacement.getDestination());
             }
         }
         return text;
@@ -144,10 +144,10 @@ public class Rules {
     }
 
     private String replaceOldTags(String script) {
-        script = StringUtilities.replace(script, "%year", "%yea");
-        script = StringUtilities.replace(script, "%type", "%typ");
-        script = StringUtilities.replace(script, "%qual", "%qua");
-        script = StringUtilities.replace(script, "%ed2k", "%ed2");
+        script = script.replace("%year", "%yea");
+        script = script.replace("%type", "%typ");
+        script = script.replace("%qual", "%qua");
+        script = script.replace("%ed2k", "%ed2");
         return script;
     }
 
@@ -193,7 +193,7 @@ public class Rules {
         }
 
         String abs = path + File.separator + name;
-        abs = StringUtilities.replace(abs, File.separator + File.separator, File.separator);
+        abs = abs.replace(File.separator + File.separator, File.separator);
 
         if (path.startsWith("\\\\")) {
             abs = "\\" + abs;
