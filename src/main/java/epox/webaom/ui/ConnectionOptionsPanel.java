@@ -24,12 +24,7 @@ package epox.webaom.ui;
 
 import epox.webaom.Options;
 import epox.webaom.net.AniDBConnection;
-import java.awt.Component;
-import java.awt.GridBagConstraints;
-import java.awt.GridBagLayout;
-import java.awt.Insets;
-import java.awt.event.KeyAdapter;
-import java.awt.event.KeyEvent;
+
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
 import javax.swing.JLabel;
@@ -38,8 +33,14 @@ import javax.swing.JSlider;
 import javax.swing.JTextField;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
+import java.awt.Component;
+import java.awt.GridBagConstraints;
+import java.awt.GridBagLayout;
+import java.awt.Insets;
+import java.awt.event.KeyAdapter;
+import java.awt.event.KeyEvent;
 
-public class JPanelOptCon extends JPanel implements ChangeListener {
+public class ConnectionOptionsPanel extends JPanel implements ChangeListener {
 	private static final int MIN_INTER_PACKET_DELAY = 3;
 	private static final int MIN_PACKET_TIMEOUT = 10;
 	private final JSlider timeoutSlider;
@@ -50,7 +51,7 @@ public class JPanelOptCon extends JPanel implements ChangeListener {
 	public JTextField remotePortTextField;
 	public JTextField localPortTextField;
 
-	public JPanelOptCon() {
+	public ConnectionOptionsPanel() {
 		super(new GridBagLayout());
 
 		timeoutSlider = new JSlider(MIN_PACKET_TIMEOUT, 60, 20);

@@ -29,7 +29,7 @@ import epox.webaom.net.AniDBConnection;
 import epox.webaom.net.AniDBFileClient;
 import epox.webaom.net.AniDBException;
 
-public class NetIO implements Runnable {
+public class NetworkIOManager implements Runnable {
 	private static final String THREAD_TERMINATED_MESSAGE = "NetIO thread terminated.";
 
 	private Job currentJob;
@@ -102,7 +102,7 @@ public class NetIO implements Runnable {
 	private void cleanCurrentJob(String err) {
 		if (currentJob != null) {
 			currentJob.errorMessage = err;
-			JobMan.updateStatus(currentJob, Job.FAILED);
+			JobManager.updateStatus(currentJob, Job.FAILED);
 			currentJob = null;
 		}
 		// !A.nr_nio = -1;
@@ -137,14 +137,14 @@ public class NetIO implements Runnable {
 	}
 
 	private void remove(Job job) throws AniDBException {
-		JobMan.updateStatus(job, Job.REMING);
+		JobManager.updateStatus(job, Job.REMING);
 		// A.gui.updateJobTable(job);
 		AppContext.gui.status1("Removing from mylist: " + job.getFile());
 		if (job.mylistId > 0) {
 			if (AppContext.conn.removeFromMylist(job.mylistId, job.getFile().getName())) {
 				job.mylistId = 0;
 				AppContext.gui.println("Removed " + HyperlinkBuilder.formatAsName(job.getFile()));
-				JobMan.updateStatus(job, Job.FINISHED);
+				JobManager.updateStatus(job, Job.FINISHED);
 				return;
 			}
 			AppContext.gui.println(HyperlinkBuilder.formatAsError("Could not remove: " + job.getFile()));
@@ -152,11 +152,11 @@ public class NetIO implements Runnable {
 			AppContext.gui.println(HyperlinkBuilder.formatAsError("Not in mylist: " + job.getFile()));
 		}
 		job.setError("Was not in mylist");
-		JobMan.updateStatus(job, Job.FAILED);
+		JobManager.updateStatus(job, Job.FAILED);
 	}
 
 	private void identify(Job job) throws AniDBException {
-		JobMan.updateStatus(job, Job.IDENTIFYING);
+		JobManager.updateStatus(job, Job.IDENTIFYING);
 		// A.gui.updateJobTable(job);
 		AppContext.gui.status1("Retrieving file data for " + job.getFile().getName());
 		if (job.anidbFile == null) {
@@ -174,9 +174,9 @@ public class NetIO implements Runnable {
 				String epLink = HyperlinkBuilder.createHyperlink(job.anidbFile.urlEp(), "e");
 				String fileLink = HyperlinkBuilder.createHyperlink(job.anidbFile.urlFile(), "f");
 				AppContext.gui.println("Found " + fileName + " " + animeLink + " " + epLink + " " + fileLink);
-				JobMan.updateStatus(job, Job.IDENTIFIED);
+				JobManager.updateStatus(job, Job.IDENTIFIED);
 			} else {
-				JobMan.updateStatus(job, Job.UNKNOWN);
+				JobManager.updateStatus(job, Job.UNKNOWN);
 			}
 		} else {
 			if (job.anidbFile.group == null) {
@@ -189,12 +189,12 @@ public class NetIO implements Runnable {
 			if (job.anidbFile.group == null) {
 				job.anidbFile.anime = (Anime) AppContext.cache.get(job.anidbFile.animeId, DatabaseManager.INDEX_ANIME);
 			}
-			JobMan.updateStatus(job, Job.IDENTIFIED);
+			JobManager.updateStatus(job, Job.IDENTIFIED);
 		}
 	}
 
 	private void mylistAdd(Job job) throws AniDBException {
-		JobMan.updateStatus(job, Job.ADDING);
+		JobManager.updateStatus(job, Job.ADDING);
 		// A.gui.updateJobTable(job);
 		AppContext.gui.status1("Adding " + job.getFile() + " to your list...");
 		int listId = AppContext.conn.addFileToMylist(job, AppContext.gui.mylistOptionsPanel.getMylistData());
@@ -202,7 +202,7 @@ public class NetIO implements Runnable {
 			job.mylistId = listId;
 			AppContext.gui.println("Added " + HyperlinkBuilder.formatAsName(job.getFile()) + " to mylist");
 		}
-		JobMan.updateStatus(job, Job.ADDED);
+		JobManager.updateStatus(job, Job.ADDED);
 	}
 
 	public boolean ping(AniDBConnection ac) {

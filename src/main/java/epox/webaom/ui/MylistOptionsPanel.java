@@ -36,7 +36,7 @@ import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.Insets;
 
-public class JPanelOptMyl extends JPanel {
+public class MylistOptionsPanel extends JPanel {
 	private static final String[] FILE_STATES = {"Unknown", "On HDD", "On CD", "Deleted"};
 	private final JTextField storageField;
 	private final JTextField sourceField;
@@ -44,7 +44,7 @@ public class JPanelOptMyl extends JPanel {
 	private final JTextArea otherInfoArea;
 	private final JCheckBox watchedCheckBox;
 
-	public JPanelOptMyl() {
+	public MylistOptionsPanel() {
 
 		storageField = new JTextField();
 		sourceField = new JTextField();

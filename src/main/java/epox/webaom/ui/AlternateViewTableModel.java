@@ -24,7 +24,7 @@ import com.sun.swing.AbstractTreeTableModel;
 import com.sun.swing.TreeTableModel;
 import epox.util.StringUtilities;
 import epox.webaom.AppContext;
-import epox.webaom.data.AFile;
+import epox.webaom.data.AniDBFile;
 import epox.webaom.data.AnimeGroup;
 import epox.webaom.data.Anime;
 import epox.webaom.data.Base;
@@ -34,7 +34,7 @@ import javax.swing.SwingConstants;
 import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.TableColumnModel;
 
-public class TableModelAlt extends AbstractTreeTableModel implements TreeTableModel {
+public class AlternateViewTableModel extends AbstractTreeTableModel implements TreeTableModel {
 	public static final int NAME = 0;
 	public static final int PRCT = 1;
 	public static final int LAST = 2;
@@ -46,7 +46,7 @@ public class TableModelAlt extends AbstractTreeTableModel implements TreeTableMo
 	protected static Class[] cTypes = {TreeTableModel.class, String.class, Character.class, Integer.class,
 			Integer.class, Integer.class, String.class};
 
-	public TableModelAlt() {
+	public AlternateViewTableModel() {
 		super(AppContext.p);
 	}
 
@@ -95,7 +95,7 @@ public class TableModelAlt extends AbstractTreeTableModel implements TreeTableMo
 					return null;
 			}
 		}
-		if (node instanceof AFile f) {
+		if (node instanceof AniDBFile f) {
 			switch (c) {
 				case TYPE :
 					return f.getJob() == null ? null : f.getJob().getStatusText();
@@ -156,27 +156,27 @@ public class TableModelAlt extends AbstractTreeTableModel implements TreeTableMo
 	}
 
 	public boolean isLeaf(Object node) {
-		return node instanceof AFile;
+		return node instanceof AniDBFile;
 	}
 
 	public void formatTable(TableColumnModel m) {
-		m.getColumn(TableModelAlt.NAME).setPreferredWidth(1200);
-		m.getColumn(TableModelAlt.TYPE).setPreferredWidth(200);
-		m.getColumn(TableModelAlt.YEAR).setPreferredWidth(100);
-		m.getColumn(TableModelAlt.NUMB).setPreferredWidth(100);
-		m.getColumn(TableModelAlt.SIZE).setPreferredWidth(140);
-		m.getColumn(TableModelAlt.PRCT).setPreferredWidth(60);
-		m.getColumn(TableModelAlt.LAST).setPreferredWidth(30);
+		m.getColumn(AlternateViewTableModel.NAME).setPreferredWidth(1200);
+		m.getColumn(AlternateViewTableModel.TYPE).setPreferredWidth(200);
+		m.getColumn(AlternateViewTableModel.YEAR).setPreferredWidth(100);
+		m.getColumn(AlternateViewTableModel.NUMB).setPreferredWidth(100);
+		m.getColumn(AlternateViewTableModel.SIZE).setPreferredWidth(140);
+		m.getColumn(AlternateViewTableModel.PRCT).setPreferredWidth(60);
+		m.getColumn(AlternateViewTableModel.LAST).setPreferredWidth(30);
 		DefaultTableCellRenderer r0 = new DefaultTableCellRenderer();
 		r0.setHorizontalAlignment(SwingConstants.CENTER);
 		// m.getColumn(AnimeModel.NAME).setCellRenderer(centerRend);
-		m.getColumn(TableModelAlt.TYPE).setCellRenderer(r0);
-		m.getColumn(TableModelAlt.YEAR).setCellRenderer(r0);
-		m.getColumn(TableModelAlt.NUMB).setCellRenderer(r0);
-		m.getColumn(TableModelAlt.PRCT).setCellRenderer(r0);
-		m.getColumn(TableModelAlt.LAST).setCellRenderer(r0);
+		m.getColumn(AlternateViewTableModel.TYPE).setCellRenderer(r0);
+		m.getColumn(AlternateViewTableModel.YEAR).setCellRenderer(r0);
+		m.getColumn(AlternateViewTableModel.NUMB).setCellRenderer(r0);
+		m.getColumn(AlternateViewTableModel.PRCT).setCellRenderer(r0);
+		m.getColumn(AlternateViewTableModel.LAST).setCellRenderer(r0);
 		DefaultTableCellRenderer r1 = new DefaultTableCellRenderer();
 		r1.setHorizontalAlignment(SwingConstants.RIGHT);
-		m.getColumn(TableModelAlt.SIZE).setCellRenderer(r1);
+		m.getColumn(AlternateViewTableModel.SIZE).setCellRenderer(r1);
 	}
 }

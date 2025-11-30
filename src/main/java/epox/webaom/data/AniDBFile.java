@@ -26,7 +26,7 @@ import epox.util.StringUtilities;
 import epox.webaom.AppContext;
 import epox.webaom.Job;
 
-public class AFile extends Base {
+public class AniDBFile extends Base {
 	/** AniDB file ID. */
 	public int fileId;
 	/** AniDB anime ID. */
@@ -74,12 +74,12 @@ public class AFile extends Base {
 	public Anime anime;
 	private Job job = null;
 
-	public AFile(int id) {
+	public AniDBFile(int id) {
 		fileId = id;
 		extension = null;
 	}
 
-	public AFile(String[] fields) {
+	public AniDBFile(String[] fields) {
 		int index = 0;
 		fileId = StringUtilities.i(fields[index++]);
 		animeId = StringUtilities.i(fields[index++]);
@@ -144,7 +144,7 @@ public class AFile extends Base {
 	}
 
 	public static Base getInst(String[] s) {
-		return new AFile(s);
+		return new AniDBFile(s);
 	}
 
 	public Object getKey() {

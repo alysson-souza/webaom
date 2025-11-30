@@ -27,7 +27,7 @@ import epox.util.UserPass;
 import epox.webaom.data.Base;
 import epox.webaom.net.AniDBFileClient;
 import epox.webaom.net.AniDBConnectionSettings;
-import epox.webaom.ui.JPanelMain;
+import epox.webaom.ui.MainPanel;
 
 import javax.swing.JOptionPane;
 import javax.swing.SwingUtilities;
@@ -79,16 +79,16 @@ public final class AppContext {
 	public static java.awt.Frame frame = null;
 
 	public static DatabaseManager databaseManager;
-	public static NetIO nio;
-	public static DiskIO dio;
+	public static NetworkIOManager nio;
+	public static DiskIOManager dio;
 	public static Options opt;
 	public static Rules rules;
 	public static Cache cache;
 	public static AniDBFileClient conn;
-	public static JobCnt jobc;
+	public static JobCounter jobc;
 	public static JobList jobs;
 	public static AniDBConnectionSettings usetup;
-	public static JPanelMain gui;
+	public static MainPanel gui;
 	public static FileHandler fha;
 
 	public static Component com0;
@@ -105,16 +105,16 @@ public final class AppContext {
 		// A.mem0 = A.getUsed();
 		Thread.currentThread().setName("Main");
 		jobs = new JobList();
-		jobc = new JobCnt();
+		jobc = new JobCounter();
 		rules = new Rules();
 		cache = new Cache();
 		databaseManager = new DatabaseManager();
 		fha = new FileHandler();
 		opt = new Options();
-		dio = new DiskIO();
-		nio = new NetIO();
+		dio = new DiskIOManager();
+		nio = new NetworkIOManager();
 		// A.mem1 = A.getUsed();
-		gui = new JPanelMain();
+		gui = new MainPanel();
 		fschema = StringUtilities.fileToString(System.getProperty("user.home") + File.separator + ".webaom.htm");
 		if (fschema == null) {
 			fschema = AppContext.getFileString("file.htm");

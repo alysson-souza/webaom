@@ -31,37 +31,18 @@ import epox.webaom.Cache;
 import epox.webaom.ChiiEmu;
 import epox.webaom.HyperlinkBuilder;
 import epox.webaom.Job;
-import epox.webaom.JobMan;
+import epox.webaom.JobManager;
 import epox.webaom.Options;
 import epox.webaom.Parser;
 import epox.webaom.data.Anime;
 import epox.webaom.data.Episode;
 import epox.webaom.net.AniDBConnection;
-import epox.webaom.net.AniDBFileClient;
 import epox.webaom.net.AniDBConnectionSettings;
+import epox.webaom.net.AniDBFileClient;
 import epox.webaom.net.Pinger;
 import epox.webaom.startup.StartupIssue;
 import epox.webaom.startup.StartupValidator;
-import java.awt.BorderLayout;
-import java.awt.Color;
-import java.awt.DefaultKeyboardFocusManager;
-import java.awt.Dimension;
-import java.awt.GridLayout;
-import java.awt.Insets;
-import java.awt.KeyboardFocusManager;
-import java.awt.datatransfer.DataFlavor;
-import java.awt.datatransfer.Transferable;
-import java.awt.dnd.DnDConstants;
-import java.awt.dnd.DropTarget;
-import java.awt.dnd.DropTargetDragEvent;
-import java.awt.dnd.DropTargetDropEvent;
-import java.awt.dnd.DropTargetEvent;
-import java.awt.dnd.DropTargetListener;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-import java.awt.event.KeyEvent;
-import java.io.File;
-import java.util.List;
+
 import javax.swing.AbstractAction;
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
@@ -87,8 +68,28 @@ import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 import javax.swing.event.HyperlinkEvent;
 import javax.swing.event.HyperlinkListener;
+import java.awt.BorderLayout;
+import java.awt.Color;
+import java.awt.DefaultKeyboardFocusManager;
+import java.awt.Dimension;
+import java.awt.GridLayout;
+import java.awt.Insets;
+import java.awt.KeyboardFocusManager;
+import java.awt.datatransfer.DataFlavor;
+import java.awt.datatransfer.Transferable;
+import java.awt.dnd.DnDConstants;
+import java.awt.dnd.DropTarget;
+import java.awt.dnd.DropTargetDragEvent;
+import java.awt.dnd.DropTargetDropEvent;
+import java.awt.dnd.DropTargetEvent;
+import java.awt.dnd.DropTargetListener;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.KeyEvent;
+import java.io.File;
+import java.util.List;
 
-public class JPanelMain extends JPanel
+public class MainPanel extends JPanel
 		implements
 			Log,
 			ActionListener,
@@ -108,12 +109,12 @@ public class JPanelMain extends JPanel
 
 	public JProgressBar statusProgressBar;
 	public JProgressBar jobProgressBar;
-	public JPanelOptRls rulesOptionsPanel;
-	public JPanelOptCon connectionOptionsPanel;
-	public JPanelOptDiv miscOptionsPanel;
-	public JPanelOptMyl mylistOptionsPanel;
-	public JPanelJobs jobsPanel;
-	public JPanelAlt altViewPanel;
+	public RulesOptionsPanel rulesOptionsPanel;
+	public ConnectionOptionsPanel connectionOptionsPanel;
+	public MiscOptionsPanel miscOptionsPanel;
+	public MylistOptionsPanel mylistOptionsPanel;
+	public JobsPanel jobsPanel;
+	public AlternateViewPanel altViewPanel;
 
 	protected boolean cancelRecursiveWorker;
 	private boolean isKilled;
@@ -131,7 +132,7 @@ public class JPanelMain extends JPanel
 	public Thread networkIoThread;
 	public Thread workerThread;
 
-	public JPanelMain() {
+	public MainPanel() {
 		isKilled = isDiskIoRunning = isNetworkIoRunning = false;
 		initializeComponents();
 
@@ -305,7 +306,7 @@ public class JPanelMain extends JPanel
 		}
 		//////////////////////////////// OPTIONS/////////////////////////////////
 		// FILE OPTION PANEL
-		mylistOptionsPanel = new JPanelOptMyl();
+		mylistOptionsPanel = new MylistOptionsPanel();
 
 		// EXTENSIONs PANEL
 		newExtensionTextField = new JTextField();
@@ -332,7 +333,7 @@ public class JPanelMain extends JPanel
 		extensionsPanel.setBorder(new TitledBorder("Extensions"));
 
 		// OTHER PANEL
-		miscOptionsPanel = new JPanelOptDiv();
+		miscOptionsPanel = new MiscOptionsPanel();
 		miscOptionsPanel.databaseUrlField.addActionListener(this);
 		miscOptionsPanel.logFilePathField.addActionListener(this);
 		JPanel otherPanel = new JPanel(new BorderLayout());
@@ -340,7 +341,7 @@ public class JPanelMain extends JPanel
 		otherPanel.add(miscOptionsPanel, BorderLayout.CENTER);
 
 		// CONNECTION OPTIONS PANEL
-		connectionOptionsPanel = new JPanelOptCon();
+		connectionOptionsPanel = new ConnectionOptionsPanel();
 		connectionOptionsPanel.pingButton.addActionListener(this);
 		JPanel connectionPanel = new JPanel(new BorderLayout());
 		connectionPanel.setBorder(new TitledBorder("Connection"));
@@ -386,17 +387,17 @@ public class JPanelMain extends JPanel
 		hashTextArea = new JTextArea();
 
 		/////////////////////////////// RULES PANE///////////////////////////////
-		rulesOptionsPanel = new JPanelOptRls(AppContext.rules);
+		rulesOptionsPanel = new RulesOptionsPanel(AppContext.rules);
 
 		//////////////////////////////// JOBS PANE///////////////////////////////
 		jobsTableModel = new TableModelJobs(AppContext.jobs);
 		AppContext.jobs.tableModel = jobsTableModel;
 		jobsTable = new JTableJobs(jobsTableModel);
 		TableModelJobs.formatTable(jobsTable);
-		jobsPanel = new JPanelJobs(jobsTable, jobsTableModel);
+		jobsPanel = new JobsPanel(jobsTable, jobsTableModel);
 
 		//////////////////////////////// ALT VIEW////////////////////////////////
-		altViewPanel = new JPanelAlt(this);
+		altViewPanel = new AlternateViewPanel(this);
 
 		////////////////////////////// CHII EMULATOR/////////////////////////////
 		ChiiEmu chiiEmulator = new ChiiEmu(AppContext.conn);
@@ -993,7 +994,7 @@ public class JPanelMain extends JPanel
 					job.isFresh = false;
 					AppContext.cache.gatherInfo(job, false);
 					if (job.getStatus() == Job.MOVEWAIT) {
-						JobMan.updatePath(job);
+						JobManager.updatePath(job);
 					}
 					// updateJobTable(job);
 				}

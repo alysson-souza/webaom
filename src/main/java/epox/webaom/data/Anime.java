@@ -25,7 +25,7 @@ package epox.webaom.data;
 
 import epox.util.Bits;
 import epox.util.StringUtilities;
-import epox.webaom.ui.TableModelAlt;
+import epox.webaom.ui.AlternateViewTableModel;
 
 /**
  * Represents an anime entry from AniDB with metadata and episode tracking.
@@ -257,19 +257,19 @@ public class Anime extends Base {
 				a = this;
 			}
 			switch (Math.abs(column) - 1) {
-				case TableModelAlt.NAME :
+				case AlternateViewTableModel.NAME :
 					return b.romajiTitle.compareTo(a.romajiTitle);
-				case TableModelAlt.TYPE :
+				case AlternateViewTableModel.TYPE :
 					return b.type.compareTo(a.type);
-				case TableModelAlt.YEAR :
+				case AlternateViewTableModel.YEAR :
 					return b.year - a.year;
-				case TableModelAlt.NUMB :
+				case AlternateViewTableModel.NUMB :
 					return b.size() - a.size();
-				case TableModelAlt.SIZE :
+				case AlternateViewTableModel.SIZE :
 					return (int) ((b.totalSize - a.totalSize) / 100000);
-				case TableModelAlt.PRCT :
+				case AlternateViewTableModel.PRCT :
 					return a.getCompletionPercent() - b.getCompletionPercent();
-				case TableModelAlt.LAST :
+				case AlternateViewTableModel.LAST :
 					return a.getMissingPattern() - b.getMissingPattern();
 			}
 		}

@@ -23,7 +23,7 @@
 package epox.webaom;
 
 import epox.util.StringUtilities;
-import epox.webaom.data.AFile;
+import epox.webaom.data.AniDBFile;
 import epox.webaom.data.Anime;
 import epox.webaom.data.Base;
 import epox.webaom.data.Episode;
@@ -161,7 +161,7 @@ public class Parser {
 								episodeEntry.buildSortedChildArray();
 								writer.write("e" + episodeEntry.serialize() + AppContext.S_N);
 								for (int fileIndex = 0; fileIndex < episodeEntry.size(); fileIndex++) {
-									AFile anidbFile = (AFile) episodeEntry.get(fileIndex);
+									AniDBFile anidbFile = (AniDBFile) episodeEntry.get(fileIndex);
 									writer.write("f" + anidbFile.serialize() + AppContext.S_N);
 									if (anidbFile.getJob() != null) {
 										writer.write("j" + anidbFile.getJob().serialize() + AppContext.S_N);
@@ -205,7 +205,7 @@ public class Parser {
 						String line;
 						Anime currentAnime = null;
 						Episode currentEpisode = null;
-						AFile currentFile = null;
+						AniDBFile currentFile = null;
 						Job currentJob = null;
 						while (reader.ready()) {
 							line = StringUtilities.htmldesc(reader.readLine());
@@ -224,7 +224,7 @@ public class Parser {
 									break;
 								case 'f' :
 									String[] fields = StringUtilities.split(line.substring(1), '|');
-									currentFile = new AFile(fields);
+									currentFile = new AniDBFile(fields);
 									Group group = new Group(currentFile.groupId);
 									group.name = fields[20];
 									group.shortName = fields[21];

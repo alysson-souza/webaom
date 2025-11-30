@@ -26,7 +26,7 @@ import epox.av.AVInfo;
 import epox.swing.JTextInputDialog;
 import epox.webaom.AppContext;
 import epox.webaom.Job;
-import epox.webaom.JobMan;
+import epox.webaom.JobManager;
 
 import javax.swing.JFileChooser;
 import javax.swing.JMenuItem;
@@ -224,45 +224,45 @@ public class JobContextMenu extends JPopupMenu implements MouseListener, ActionL
 	void executeCommand(int commandId, Job job, String folderPath) {
 		switch (commandId) {
 			case PAUSE :
-				JobMan.updateStatus(job, Job.H_PAUSED, true);
+				JobManager.updateStatus(job, Job.H_PAUSED, true);
 				break;
 			case REHASH :
-				JobMan.updateStatus(job, Job.HASHWAIT, true);
+				JobManager.updateStatus(job, Job.HASHWAIT, true);
 				break;
 			case REID :
 				job.anidbFile = null;
-				JobMan.updateStatus(job, Job.HASHED, true);
+				JobManager.updateStatus(job, Job.HASHED, true);
 				break;
 			case READD :
-				JobMan.updateStatus(job, Job.ADDWAIT, true);
+				JobManager.updateStatus(job, Job.ADDWAIT, true);
 				break;
 			case REMOVE :
-				JobMan.updateStatus(job, Job.REMWAIT, true);
+				JobManager.updateStatus(job, Job.REMWAIT, true);
 				break;
 			case APPLY_RULES :
-				JobMan.updateStatus(job, Job.IDENTIFIED, true);
+				JobManager.updateStatus(job, Job.IDENTIFIED, true);
 				break;
 			case SET_FINISHED :
-				JobMan.updateStatus(job, Job.FINISHED, true);
+				JobManager.updateStatus(job, Job.FINISHED, true);
 				break;
 			case SET_FOLDER, EDIT_PATH :
 				if (folderPath != null) {
-					JobMan.setPath(job, folderPath, false);
+					JobManager.setPath(job, folderPath, false);
 				}
 				break;
 			case SET_PAR_FLD :
 				if (folderPath != null) {
-					JobMan.setPath(job, folderPath, true);
+					JobManager.setPath(job, folderPath, true);
 				}
 				break;
 			case REMOVE_DB :
-				JobMan.updateStatus(job, Job.H_DELETED, true);
+				JobManager.updateStatus(job, Job.H_DELETED, true);
 				break;
 			case RESTORE_NAME :
-				JobMan.restoreName(job);
+				JobManager.restoreName(job);
 				break;
 			case PARSE :
-				JobMan.updateStatus(job, Job.PARSEWAIT, true);
+				JobManager.updateStatus(job, Job.PARSEWAIT, true);
 				break;
 			default :
 				// Unknown command - no action needed
@@ -273,23 +273,23 @@ public class JobContextMenu extends JPopupMenu implements MouseListener, ActionL
 	void commandSingle(int commandId, Job job) {
 		switch (commandId) {
 			case SHOW_INFO :
-				JobMan.showInfo(job);
+				JobManager.showInfo(job);
 				break;
 			case WATCH_NOW :
-				JobMan.openInDefaultPlayer(job);
+				JobManager.openInDefaultPlayer(job);
 				break;
 			case EXPLORER :
-				JobMan.openInExplorer(job);
+				JobManager.openInExplorer(job);
 				break;
 			case EDIT_NAME :
 				String currentName = job.getFile().getName();
-				JobMan.setName(job, new JTextInputDialog(AppContext.frame, "Edit name", currentName).getStr());
+				JobManager.setName(job, new JTextInputDialog(AppContext.frame, "Edit name", currentName).getStr());
 				break;
 			case SET_FID :
 				job.fileIdOverride = new JTextInputDialog(AppContext.frame, "Insert fid", "").getInt();
 				if (job.fileIdOverride > 0) {
 					job.anidbFile = null;
-					JobMan.updateStatus(job, Job.HASHED);
+					JobManager.updateStatus(job, Job.HASHED);
 				}
 				break;
 			default :

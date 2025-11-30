@@ -24,7 +24,7 @@ package epox.webaom;
 
 import epox.av.FileInfo;
 import epox.util.StringUtilities;
-import epox.webaom.data.AFile;
+import epox.webaom.data.AniDBFile;
 import epox.webaom.data.AttributeMap;
 import java.io.File;
 
@@ -39,7 +39,7 @@ public class Job {
 	public long fileSize;
 	public File currentFile;
 	public File targetFile;
-	public AFile anidbFile;
+	public AniDBFile anidbFile;
 	public FileInfo avFileInfo;
 	public String originalName;
 	public String errorMessage;
@@ -158,7 +158,7 @@ public class Job {
 	}
 
 	public boolean isCorrupt() {
-		return anidbFile != null && ((anidbFile.state & AFile.F_CRCERR) == AFile.F_CRCERR);
+		return anidbFile != null && ((anidbFile.state & AniDBFile.F_CRCERR) == AniDBFile.F_CRCERR);
 	}
 
 	public boolean incompl() {
@@ -257,7 +257,7 @@ public class Job {
 		if (!check(H_MISSING)) {
 			return;
 		}
-		JobMan.setJobFile(this, file);
+		JobManager.setJobFile(this, file);
 		setHealth0(file.exists() ? H_PAUSED : H_MISSING);
 		directoryId = -1;
 	}
