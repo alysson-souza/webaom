@@ -37,10 +37,12 @@ public class Group extends AniDBEntity {
         this.id = id;
     }
 
+    @Override
     public String serialize() {
         return name + S + shortName;
     }
 
+    @Override
     public String toString() {
         return name + "|" + shortName;
     }
