@@ -1,5 +1,8 @@
 {
     "recommendations": [
-        "josevseb.google-java-format-for-vs-code"
+        "redhat.java",
+        "vscjava.vscode-gradle",
+        "richardwillis.vscode-spotless-gradle",
+        "sonarsource.sonarlint-vscode"
     ]
 }

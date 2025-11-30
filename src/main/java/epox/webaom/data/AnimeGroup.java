@@ -9,37 +9,37 @@ package epox.webaom.data;
  * Used for organizing files by which group released them.
  */
 public class AnimeGroup extends Base {
-	private final Group group;
-	private final Anime anime;
+    private final Group group;
+    private final Anime anime;
 
-	public AnimeGroup(Anime anime, Group group) {
-		this.id = group.id;
-		this.group = group;
-		this.anime = anime;
-	}
+    public AnimeGroup(Anime anime, Group group) {
+        this.id = group.id;
+        this.group = group;
+        this.anime = anime;
+    }
 
-	/*
-	 * public Object getKey(){
-	 * return group.getKey();
-	 * }
-	 */
-	public String toString() {
-		return group.name + " (" + group.shortName + ")";
-	}
+    /*
+     * public Object getKey(){
+     * return group.getKey();
+     * }
+     */
+    public String toString() {
+        return group.name + " (" + group.shortName + ")";
+    }
 
-	/**
-	 * Calculate completion percentage for this group's releases.
-	 *
-	 * @return percentage of episodes available from this group
-	 */
-	public int getCompletionPercent() {
-		int maxEpisodes = anime.episodeCount;
-		if (maxEpisodes == 0) {
-			maxEpisodes = -anime.latestEpisode;
-		}
-		if (maxEpisodes == 0) {
-			return 0;
-		}
-		return (size() * 100) / maxEpisodes;
-	}
+    /**
+     * Calculate completion percentage for this group's releases.
+     *
+     * @return percentage of episodes available from this group
+     */
+    public int getCompletionPercent() {
+        int maxEpisodes = anime.episodeCount;
+        if (maxEpisodes == 0) {
+            maxEpisodes = -anime.latestEpisode;
+        }
+        if (maxEpisodes == 0) {
+            return 0;
+        }
+        return (size() * 100) / maxEpisodes;
+    }
 }

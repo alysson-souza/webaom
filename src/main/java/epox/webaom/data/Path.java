@@ -9,17 +9,17 @@ package epox.webaom.data;
  * Used for organizing files by their parent directory.
  */
 public class Path extends Base {
-	private final String pathString;
+    private final String pathString;
 
-	public Path(String path) {
-		pathString = path;
-	}
+    public Path(String path) {
+        pathString = path;
+    }
 
-	public Object getKey() {
-		return pathString;
-	}
+    public Object getKey() {
+        return pathString;
+    }
 
-	public String toString() {
-		return pathString;
-	}
+    public String toString() {
+        return pathString;
+    }
 }

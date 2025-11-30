@@ -1,15 +1,14 @@
 # WebAOM Agent Instructions
 
 ## Project Overview
-WebAOM (Web Anime-o-Matic) is a legacy Java Swing desktop application for identifying anime files via AniDB's UDP API. Originally developed 2005-2010, revived in 2025 for maintenance.
+WebAOM (Web Anime-o-Matic) is a Java Swing desktop application for identifying anime files via AniDB's UDP API. Originally developed 2005-2010, revived in 2025 for modernization.
 
 ## Build Commands
 ```bash
 ./gradlew build          # Compile + create fat JAR with dependencies
 ./gradlew run            # Run application
-./gradlew spotlessApply  # Format code (Eclipse formatter)
+./gradlew spotlessApply  # Format code (Palantir Java Format)
 ./gradlew spotlessCheck  # Check formatting without applying changes
-./gradlew checkstyleMain # Check code style
 ```
 
 ## Architecture
@@ -39,13 +38,19 @@ Third-party code in `com/`, `gnu/`, `jonelo/` packages is excluded from formatti
 ## Code Style
 
 ### Formatting
-- Eclipse formatter via Spotless - only applies to `epox/**/*.java`
-- Configuration: `config/eclipse-formatter.xml`
-- Tabs for indentation (size 4), line length 120 chars
+- Palantir Java Format via Spotless - only applies to `epox/**/*.java`
+- 120 character line length, lambda-friendly formatting
+- 4-space indentation
 - UTF-8 encoding for all Java files
 - Java 21 toolchain
 - No star imports, unused imports removed automatically
 - Run `./gradlew spotlessApply` before committing
+- IntelliJ IDEA: auto-configured via `com.palantir.java-format` Gradle plugin (install the Palantir Java Format plugin when prompted)
+- VS Code: uses `richardwillis.vscode-spotless-gradle` extension for format-on-save via Spotless
+
+### Linting
+- SonarLint for IDE-based code quality analysis (VS Code and IntelliJ IDEA)
+- No CI-based linting - rely on IDE integration
 
 ### Legacy Patterns (To be improved as you go)
 - Global state via `AppContext` static fields (historically `A`)
@@ -96,8 +101,8 @@ Optional body explaining the change in detail.
 
 Examples from this repo:
 - `fix(ci): remove Azul vendor requirement from toolchain`
-- `chore(spotless): update Eclipse formatter configuration`
-- `style: fix checkstyle warnings`
+- `chore(spotless): migrate to Palantir Java Format`
+- `style: reformat code with Palantir formatter`
 
 ### Git Commands
 - If you need to see the git log history, use `git log --format=full` or similar

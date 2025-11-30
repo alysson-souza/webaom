@@ -29,42 +29,42 @@ import epox.webaom.ui.MainPanel;
  * Thread that performs a ping test to the AniDB server and reports the result.
  */
 public class Pinger extends Thread {
-	private final MainPanel mainPanel;
+    private final MainPanel mainPanel;
 
-	public Pinger(MainPanel mainPanel) {
-		super("Pinger");
-		this.mainPanel = mainPanel;
-		this.mainPanel.handleFatalError(true);
-		start();
-	}
+    public Pinger(MainPanel mainPanel) {
+        super("Pinger");
+        this.mainPanel = mainPanel;
+        this.mainPanel.handleFatalError(true);
+        start();
+    }
 
-	@Override
-	public void run() {
-		AniDBConnection connection = null;
-		try {
-			connection = mainPanel.createConnection();
-			if (connection.connect()) {
-				mainPanel.println("PING...");
-				String pingResultMessage = "PONG (in " + (connection.ping() / 1000f) + " seconds).";
-				mainPanel.println(pingResultMessage);
-				mainPanel.showMessage(pingResultMessage);
-			} else {
-				mainPanel.showMessage(connection.getLastError() + ".");
-			}
-		} catch (java.net.SocketTimeoutException e) {
-			String errorMessage = "AniDB is not reachable";
-			mainPanel.println(HyperlinkBuilder.formatAsError(errorMessage + "."));
-			mainPanel.showMessage(errorMessage);
-		} catch (NumberFormatException e) {
-			mainPanel.showMessage("Invalid number." + e.getMessage());
-		} catch (Exception e) {
-			e.printStackTrace();
-			mainPanel.println(HyperlinkBuilder.formatAsError(e.getMessage() + "."));
-			mainPanel.showMessage(e.getMessage() + ".");
-		}
-		if (connection != null) {
-			connection.disconnect();
-		}
-		mainPanel.handleFatalError(false);
-	}
+    @Override
+    public void run() {
+        AniDBConnection connection = null;
+        try {
+            connection = mainPanel.createConnection();
+            if (connection.connect()) {
+                mainPanel.println("PING...");
+                String pingResultMessage = "PONG (in " + (connection.ping() / 1000f) + " seconds).";
+                mainPanel.println(pingResultMessage);
+                mainPanel.showMessage(pingResultMessage);
+            } else {
+                mainPanel.showMessage(connection.getLastError() + ".");
+            }
+        } catch (java.net.SocketTimeoutException e) {
+            String errorMessage = "AniDB is not reachable";
+            mainPanel.println(HyperlinkBuilder.formatAsError(errorMessage + "."));
+            mainPanel.showMessage(errorMessage);
+        } catch (NumberFormatException e) {
+            mainPanel.showMessage("Invalid number." + e.getMessage());
+        } catch (Exception e) {
+            e.printStackTrace();
+            mainPanel.println(HyperlinkBuilder.formatAsError(e.getMessage() + "."));
+            mainPanel.showMessage(e.getMessage() + ".");
+        }
+        if (connection != null) {
+            connection.disconnect();
+        }
+        mainPanel.handleFatalError(false);
+    }
 }

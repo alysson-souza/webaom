@@ -5,31 +5,31 @@
 package epox.av;
 
 public class GenericTrack {
-	public int num;
-	public int type_id;
-	public int codec_id;
-	public String codec;
-	public String codecExtra;
-	public String lang;
-	public String name;
-	public double size;
-	public float dur;
-	public boolean def;
+    public int num;
+    public int type_id;
+    public int codec_id;
+    public String codec;
+    public String codecExtra;
+    public String lang;
+    public String name;
+    public double size;
+    public float dur;
+    public boolean def;
 
-	public GenericTrack() {
-		//
-	}
+    public GenericTrack() {
+        //
+    }
 
-	public GenericTrack(GenericTrack gt) {
-		this.num = gt.num;
-		this.type_id = gt.type_id;
-		this.codec_id = gt.codec_id;
-		this.codec = gt.codec;
-		this.codecExtra = gt.codecExtra;
-		this.lang = gt.lang;
-		this.name = gt.name;
-		this.size = gt.size;
-		this.dur = gt.dur;
-		this.def = gt.def;
-	}
+    public GenericTrack(GenericTrack gt) {
+        this.num = gt.num;
+        this.type_id = gt.type_id;
+        this.codec_id = gt.codec_id;
+        this.codec = gt.codec;
+        this.codecExtra = gt.codecExtra;
+        this.lang = gt.lang;
+        this.name = gt.name;
+        this.size = gt.size;
+        this.dur = gt.dur;
+        this.def = gt.def;
+    }
 }

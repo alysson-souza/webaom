@@ -31,30 +31,30 @@ import com.bitzi.util.TigerTree;
  * Computes the TTH hash used by various P2P networks.
  */
 public class TTH extends jonelo.jacksum.algorithm.AbstractChecksum {
-	/** The underlying Tiger Tree hash algorithm */
-	private final TigerTree tigerTree;
+    /** The underlying Tiger Tree hash algorithm */
+    private final TigerTree tigerTree;
 
-	public TTH() {
-		tigerTree = new TigerTree();
-	}
+    public TTH() {
+        tigerTree = new TigerTree();
+    }
 
-	@Override
-	public void update(byte[] buffer, int offset, int length) {
-		tigerTree.update(buffer, offset, length);
-	}
+    @Override
+    public void update(byte[] buffer, int offset, int length) {
+        tigerTree.update(buffer, offset, length);
+    }
 
-	@Override
-	public void reset() {
-		tigerTree.reset();
-	}
+    @Override
+    public void reset() {
+        tigerTree.reset();
+    }
 
-	@Override
-	public void update(int byteValue) {
-		tigerTree.update((byte) byteValue);
-	}
+    @Override
+    public void update(int byteValue) {
+        tigerTree.update((byte) byteValue);
+    }
 
-	@Override
-	public String getHexValue() {
-		return Base32.encode(tigerTree.digest()).toLowerCase();
-	}
+    @Override
+    public String getHexValue() {
+        return Base32.encode(tigerTree.digest()).toLowerCase();
+    }
 }

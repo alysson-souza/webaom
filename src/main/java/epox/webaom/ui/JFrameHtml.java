@@ -39,56 +39,59 @@ import javax.swing.event.HyperlinkEvent;
 import javax.swing.event.HyperlinkListener;
 
 public class JFrameHtml extends JFrame implements HyperlinkListener, KeyListener {
-	public JFrameHtml(String title, String text) {
-		super(title);
+    public JFrameHtml(String title, String text) {
+        super(title);
 
-		JEditorPane htmlEditorPane = new JEditorPane("text/html", text) {
-			protected void paintComponent(Graphics graphics) {
-				Graphics2D graphics2D = (Graphics2D) graphics;
-				graphics2D.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+        JEditorPane htmlEditorPane = new JEditorPane("text/html", text) {
+            protected void paintComponent(Graphics graphics) {
+                Graphics2D graphics2D = (Graphics2D) graphics;
+                graphics2D.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
 
-				super.paintComponent(graphics2D);
-			}
-		};
-		htmlEditorPane.setEditable(false);
-		htmlEditorPane.addHyperlinkListener(this);
+                super.paintComponent(graphics2D);
+            }
+        };
+        htmlEditorPane.setEditable(false);
+        htmlEditorPane.addHyperlinkListener(this);
 
-		getContentPane().add(new JScrollPane(htmlEditorPane));
-		setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
-		pack();
-		Dimension screenSize = java.awt.Toolkit.getDefaultToolkit().getScreenSize();
-		Rectangle frameBounds = getBounds();
-		int maxWidth = (int) (0.95 * screenSize.width);
-		int maxHeight = (int) (0.95 * screenSize.height);
-		if (frameBounds.width > maxWidth) {
-			frameBounds.width = maxWidth;
-		}
-		if (frameBounds.height > maxHeight) {
-			frameBounds.height = maxHeight;
-		}
-		setBounds(screenSize.width / 2 - frameBounds.width / 2, screenSize.height / 2 - frameBounds.height / 2,
-				frameBounds.width, frameBounds.height);
-		setVisible(true);
-		htmlEditorPane.addKeyListener(this);
-	}
+        getContentPane().add(new JScrollPane(htmlEditorPane));
+        setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
+        pack();
+        Dimension screenSize = java.awt.Toolkit.getDefaultToolkit().getScreenSize();
+        Rectangle frameBounds = getBounds();
+        int maxWidth = (int) (0.95 * screenSize.width);
+        int maxHeight = (int) (0.95 * screenSize.height);
+        if (frameBounds.width > maxWidth) {
+            frameBounds.width = maxWidth;
+        }
+        if (frameBounds.height > maxHeight) {
+            frameBounds.height = maxHeight;
+        }
+        setBounds(
+                screenSize.width / 2 - frameBounds.width / 2,
+                screenSize.height / 2 - frameBounds.height / 2,
+                frameBounds.width,
+                frameBounds.height);
+        setVisible(true);
+        htmlEditorPane.addKeyListener(this);
+    }
 
-	public void hyperlinkUpdate(HyperlinkEvent event) {
-		if (event.getEventType() == HyperlinkEvent.EventType.ACTIVATED) {
-			AppContext.gui.openHyperlink(event.getDescription());
-		}
-	}
+    public void hyperlinkUpdate(HyperlinkEvent event) {
+        if (event.getEventType() == HyperlinkEvent.EventType.ACTIVATED) {
+            AppContext.gui.openHyperlink(event.getDescription());
+        }
+    }
 
-	public void keyTyped(KeyEvent event) {
-		if (event.getKeyChar() == 'q') {
-			dispose();
-		}
-	}
+    public void keyTyped(KeyEvent event) {
+        if (event.getKeyChar() == 'q') {
+            dispose();
+        }
+    }
 
-	public void keyPressed(KeyEvent event) {
-		// No action needed on key press
-	}
+    public void keyPressed(KeyEvent event) {
+        // No action needed on key press
+    }
 
-	public void keyReleased(KeyEvent event) {
-		// No action needed on key release
-	}
+    public void keyReleased(KeyEvent event) {
+        // No action needed on key release
+    }
 }

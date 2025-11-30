@@ -26,33 +26,32 @@ package epox.webaom.ui;
 import epox.webaom.Job;
 import epox.webaom.JobList;
 import epox.webaom.JobManager;
-
-import javax.swing.JTable;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import javax.swing.JTable;
 
 public class MouseAdapterJob extends MouseAdapter {
-	private final JTable table;
-	private final JobList jobList;
-	private final TableModelJobs tableModel;
+    private final JTable table;
+    private final JobList jobList;
+    private final TableModelJobs tableModel;
 
-	public MouseAdapterJob(JTable table, TableModelJobs tableModel, JobList jobList) {
-		this.table = table;
-		this.tableModel = tableModel;
-		this.jobList = jobList;
-	}
+    public MouseAdapterJob(JTable table, TableModelJobs tableModel, JobList jobList) {
+        this.table = table;
+        this.tableModel = tableModel;
+        this.jobList = jobList;
+    }
 
-	public void mouseClicked(MouseEvent event) {
-		if (event.getClickCount() == 2) {
-			int rowIndex = tableModel.convertRow(table.getSelectedRow())[0];
-			if (rowIndex >= 0 && rowIndex < jobList.size()) {
-				Job job = jobList.get(rowIndex);
-				if (event.isAltDown()) {
-					JobManager.openInDefaultPlayer(job);
-				} else {
-					JobManager.showInfo(job);
-				}
-			}
-		}
-	}
+    public void mouseClicked(MouseEvent event) {
+        if (event.getClickCount() == 2) {
+            int rowIndex = tableModel.convertRow(table.getSelectedRow())[0];
+            if (rowIndex >= 0 && rowIndex < jobList.size()) {
+                Job job = jobList.get(rowIndex);
+                if (event.isAltDown()) {
+                    JobManager.openInDefaultPlayer(job);
+                } else {
+                    JobManager.showInfo(job);
+                }
+            }
+        }
+    }
 }

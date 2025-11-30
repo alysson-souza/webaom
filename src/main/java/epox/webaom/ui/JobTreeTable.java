@@ -35,94 +35,94 @@ import java.awt.event.MouseListener;
 import java.util.ArrayList;
 
 public class JobTreeTable extends JTreeTable implements RowModel, MouseListener {
-	public JobTreeTable(TreeTableModel treeTableModel) {
-		super(treeTableModel);
-		addMouseListener(this);
-	}
+    public JobTreeTable(TreeTableModel treeTableModel) {
+        super(treeTableModel);
+        addMouseListener(this);
+    }
 
-	public void updateUI() {
-		long elapsedTime = System.currentTimeMillis();
-		super.updateUI();
-		elapsedTime = System.currentTimeMillis() - elapsedTime;
-		System.out.println("@ Alt.updateUI() in " + elapsedTime + " ms. (" + AppContext.cache.stats() + ")");
-	}
+    public void updateUI() {
+        long elapsedTime = System.currentTimeMillis();
+        super.updateUI();
+        elapsedTime = System.currentTimeMillis() - elapsedTime;
+        System.out.println("@ Alt.updateUI() in " + elapsedTime + " ms. (" + AppContext.cache.stats() + ")");
+    }
 
-	public Job[] getJobs(int row) {
-		Object treeNode = tree.getPathForRow(row).getLastPathComponent();
-		if (treeNode instanceof AniDBFile file) {
-			if (file.getJob() != null) {
-				return new Job[]{file.getJob()};
-			}
-		} else {
-			ArrayList<Job> jobsList = new ArrayList<>();
-			collectJobsRecursively(jobsList, (Base) treeNode);
-			return jobsList.toArray(new Job[0]);
-		}
-		return null;
-	}
+    public Job[] getJobs(int row) {
+        Object treeNode = tree.getPathForRow(row).getLastPathComponent();
+        if (treeNode instanceof AniDBFile file) {
+            if (file.getJob() != null) {
+                return new Job[] {file.getJob()};
+            }
+        } else {
+            ArrayList<Job> jobsList = new ArrayList<>();
+            collectJobsRecursively(jobsList, (Base) treeNode);
+            return jobsList.toArray(new Job[0]);
+        }
+        return null;
+    }
 
-	private void collectJobsRecursively(ArrayList<Job> jobsList, Base parent) {
-		if (parent.size() < 1) {
-			if (parent instanceof AniDBFile) {
-				jobsList.add(((AniDBFile) parent).getJob());
-			}
-			return;
-		}
-		parent.buildSortedChildArray();
-		for (int index = 0; index < parent.size(); index++) {
-			collectJobsRecursively(jobsList, parent.get(index));
-		}
-	}
+    private void collectJobsRecursively(ArrayList<Job> jobsList, Base parent) {
+        if (parent.size() < 1) {
+            if (parent instanceof AniDBFile) {
+                jobsList.add(((AniDBFile) parent).getJob());
+            }
+            return;
+        }
+        parent.buildSortedChildArray();
+        for (int index = 0; index < parent.size(); index++) {
+            collectJobsRecursively(jobsList, parent.get(index));
+        }
+    }
 
-	public void mouseClicked(MouseEvent event) {
-		if (event.getClickCount() == 2) {
-			Object treeNode = tree.getPathForRow(getSelectedRow()).getLastPathComponent();
-			if (treeNode instanceof AniDBFile file) {
-				if (file.getJob() != null) {
-					if (event.isAltDown()) {
-						JobManager.openInDefaultPlayer(file.getJob());
-					} else {
-						JobManager.showInfo(file.getJob());
-					}
-				}
-			}
-		}
-	}
+    public void mouseClicked(MouseEvent event) {
+        if (event.getClickCount() == 2) {
+            Object treeNode = tree.getPathForRow(getSelectedRow()).getLastPathComponent();
+            if (treeNode instanceof AniDBFile file) {
+                if (file.getJob() != null) {
+                    if (event.isAltDown()) {
+                        JobManager.openInDefaultPlayer(file.getJob());
+                    } else {
+                        JobManager.showInfo(file.getJob());
+                    }
+                }
+            }
+        }
+    }
 
-	public void mousePressed(MouseEvent event) {
-		// No action required
-	}
+    public void mousePressed(MouseEvent event) {
+        // No action required
+    }
 
-	public void mouseReleased(MouseEvent event) {
-		// No action required
-	}
+    public void mouseReleased(MouseEvent event) {
+        // No action required
+    }
 
-	public void mouseEntered(MouseEvent event) {
-		// No action required
-	}
+    public void mouseEntered(MouseEvent event) {
+        // No action required
+    }
 
-	public void mouseExited(MouseEvent event) {
-		// No action required
-	}
+    public void mouseExited(MouseEvent event) {
+        // No action required
+    }
 
-	private void calculateRowHeight(Graphics graphics) {
-		Font font = getFont();
-		FontMetrics fontMetrics = graphics.getFontMetrics(font);
-		setRowHeight(fontMetrics.getHeight() + 3);
-	}
+    private void calculateRowHeight(Graphics graphics) {
+        Font font = getFont();
+        FontMetrics fontMetrics = graphics.getFontMetrics(font);
+        setRowHeight(fontMetrics.getHeight() + 3);
+    }
 
-	private boolean needsRowHeightCalculation = true;
+    private boolean needsRowHeightCalculation = true;
 
-	public void paint(Graphics graphics) {
-		if (needsRowHeightCalculation) {
-			calculateRowHeight(graphics);
-			needsRowHeightCalculation = false;
-		}
-		super.paint(graphics);
-	}
+    public void paint(Graphics graphics) {
+        if (needsRowHeightCalculation) {
+            calculateRowHeight(graphics);
+            needsRowHeightCalculation = false;
+        }
+        super.paint(graphics);
+    }
 
-	public void setFont(Font font) {
-		needsRowHeightCalculation = true;
-		super.setFont(font);
-	}
+    public void setFont(Font font) {
+        needsRowHeightCalculation = true;
+        super.setFont(font);
+    }
 }

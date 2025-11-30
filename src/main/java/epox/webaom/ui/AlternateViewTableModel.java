@@ -25,8 +25,8 @@ import com.sun.swing.TreeTableModel;
 import epox.util.StringUtilities;
 import epox.webaom.AppContext;
 import epox.webaom.data.AniDBFile;
-import epox.webaom.data.AnimeGroup;
 import epox.webaom.data.Anime;
+import epox.webaom.data.AnimeGroup;
 import epox.webaom.data.Base;
 import epox.webaom.data.Episode;
 import epox.webaom.data.Path;
@@ -35,150 +35,151 @@ import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.TableColumnModel;
 
 public class AlternateViewTableModel extends AbstractTreeTableModel implements TreeTableModel {
-	public static final int NAME = 0;
-	public static final int PRCT = 1;
-	public static final int LAST = 2;
-	public static final int TYPE = 3;
-	public static final int YEAR = 4;
-	public static final int NUMB = 5;
-	public static final int SIZE = 6;
-	protected static String[] cNames = {"Name", "%", "M", "Type", "Year", "Number", "Size"};
-	protected static Class[] cTypes = {TreeTableModel.class, String.class, Character.class, Integer.class,
-			Integer.class, Integer.class, String.class};
+    public static final int NAME = 0;
+    public static final int PRCT = 1;
+    public static final int LAST = 2;
+    public static final int TYPE = 3;
+    public static final int YEAR = 4;
+    public static final int NUMB = 5;
+    public static final int SIZE = 6;
+    protected static String[] cNames = {"Name", "%", "M", "Type", "Year", "Number", "Size"};
+    protected static Class[] cTypes = {
+        TreeTableModel.class, String.class, Character.class, Integer.class, Integer.class, Integer.class, String.class
+    };
 
-	public AlternateViewTableModel() {
-		super(AppContext.p);
-	}
+    public AlternateViewTableModel() {
+        super(AppContext.p);
+    }
 
-	public int getColumnCount() {
-		return cNames.length;
-	}
+    public int getColumnCount() {
+        return cNames.length;
+    }
 
-	public String getColumnName(int c) {
-		return cNames[c];
-	}
+    public String getColumnName(int c) {
+        return cNames[c];
+    }
 
-	public Class getColumnClass(int c) {
-		return cTypes[c];
-	}
+    public Class getColumnClass(int c) {
+        return cTypes[c];
+    }
 
-	public Object getValueAt(Object node, int c) {
-		if (node instanceof Base g) {
-			switch (c) {
-				case SIZE :
-					return StringUtilities.sbyte(g.totalSize);
-				default :
-					return null;
-			}
-		}
-		if (node instanceof Anime a) {
-			switch (c) {
-				case NAME :
-					return a.romajiTitle;
-				case TYPE :
-					return a.type;
-				case YEAR :
-					return Integer.valueOf(a.year);
-				case NUMB :
-					return Integer.valueOf(a.size());
-				case PRCT :
-					return Integer.valueOf(a.getCompletionPercent());
-				case LAST :
-					return Character.valueOf(a.getMissingPattern());
-				default :
-					return null;
-			}
-		}
-		if (node instanceof Episode e) {
-			switch (c) {
-				case NUMB :
-					return Integer.valueOf(e.size());
-				default :
-					return null;
-			}
-		}
-		if (node instanceof AniDBFile f) {
-			switch (c) {
-				case TYPE :
-					return f.getJob() == null ? null : f.getJob().getStatusText();
-				case YEAR :
-					return f.videoCodec; // new Integer(f.fileId);
-				case NUMB :
-					return f.audioCodec; // U.sbyte(f.totalSize);
-				default :
-					return null;
-			}
-		}
-		if (node instanceof AnimeGroup g) {
-			switch (c) {
-				case NUMB :
-					return Integer.valueOf(g.size());
-				case PRCT :
-					return Integer.valueOf(g.getCompletionPercent());
-				default :
-					return null;
-			}
-		}
-		if (node instanceof Path p) {
-			switch (c) {
-				case NUMB :
-					return Integer.valueOf(p.size());
-				// case PRCT: return new Integer(g.getCompletionPercent());
-				default :
-					return null;
-			}
-		}
-		if (node == AppContext.p) {
-			switch (c) {
-				case NAME :
-					return AppContext.p.toString();
-				case NUMB :
-					return Integer.valueOf(AppContext.p.size());
-				default :
-					return null;
-			}
-		}
-		StringUtilities.err("AnimeModel: Unknown object: " + node);
-		return null;
-	}
+    public Object getValueAt(Object node, int c) {
+        if (node instanceof Base g) {
+            switch (c) {
+                case SIZE:
+                    return StringUtilities.sbyte(g.totalSize);
+                default:
+                    return null;
+            }
+        }
+        if (node instanceof Anime a) {
+            switch (c) {
+                case NAME:
+                    return a.romajiTitle;
+                case TYPE:
+                    return a.type;
+                case YEAR:
+                    return Integer.valueOf(a.year);
+                case NUMB:
+                    return Integer.valueOf(a.size());
+                case PRCT:
+                    return Integer.valueOf(a.getCompletionPercent());
+                case LAST:
+                    return Character.valueOf(a.getMissingPattern());
+                default:
+                    return null;
+            }
+        }
+        if (node instanceof Episode e) {
+            switch (c) {
+                case NUMB:
+                    return Integer.valueOf(e.size());
+                default:
+                    return null;
+            }
+        }
+        if (node instanceof AniDBFile f) {
+            switch (c) {
+                case TYPE:
+                    return f.getJob() == null ? null : f.getJob().getStatusText();
+                case YEAR:
+                    return f.videoCodec; // new Integer(f.fileId);
+                case NUMB:
+                    return f.audioCodec; // U.sbyte(f.totalSize);
+                default:
+                    return null;
+            }
+        }
+        if (node instanceof AnimeGroup g) {
+            switch (c) {
+                case NUMB:
+                    return Integer.valueOf(g.size());
+                case PRCT:
+                    return Integer.valueOf(g.getCompletionPercent());
+                default:
+                    return null;
+            }
+        }
+        if (node instanceof Path p) {
+            switch (c) {
+                case NUMB:
+                    return Integer.valueOf(p.size());
+                // case PRCT: return new Integer(g.getCompletionPercent());
+                default:
+                    return null;
+            }
+        }
+        if (node == AppContext.p) {
+            switch (c) {
+                case NAME:
+                    return AppContext.p.toString();
+                case NUMB:
+                    return Integer.valueOf(AppContext.p.size());
+                default:
+                    return null;
+            }
+        }
+        StringUtilities.err("AnimeModel: Unknown object: " + node);
+        return null;
+    }
 
-	public Object getChild(Object parent, int index) {
-		if (parent instanceof Base) {
-			return ((Base) parent).get(index);
-		}
-		StringUtilities.err(parent);
-		return null;
-	}
+    public Object getChild(Object parent, int index) {
+        if (parent instanceof Base) {
+            return ((Base) parent).get(index);
+        }
+        StringUtilities.err(parent);
+        return null;
+    }
 
-	public int getChildCount(Object parent) {
-		Base p = (Base) parent;
-		p.buildSortedChildArray();
+    public int getChildCount(Object parent) {
+        Base p = (Base) parent;
+        p.buildSortedChildArray();
 
-		return p.size();
-	}
+        return p.size();
+    }
 
-	public boolean isLeaf(Object node) {
-		return node instanceof AniDBFile;
-	}
+    public boolean isLeaf(Object node) {
+        return node instanceof AniDBFile;
+    }
 
-	public void formatTable(TableColumnModel m) {
-		m.getColumn(AlternateViewTableModel.NAME).setPreferredWidth(1200);
-		m.getColumn(AlternateViewTableModel.TYPE).setPreferredWidth(200);
-		m.getColumn(AlternateViewTableModel.YEAR).setPreferredWidth(100);
-		m.getColumn(AlternateViewTableModel.NUMB).setPreferredWidth(100);
-		m.getColumn(AlternateViewTableModel.SIZE).setPreferredWidth(140);
-		m.getColumn(AlternateViewTableModel.PRCT).setPreferredWidth(60);
-		m.getColumn(AlternateViewTableModel.LAST).setPreferredWidth(30);
-		DefaultTableCellRenderer r0 = new DefaultTableCellRenderer();
-		r0.setHorizontalAlignment(SwingConstants.CENTER);
-		// m.getColumn(AnimeModel.NAME).setCellRenderer(centerRend);
-		m.getColumn(AlternateViewTableModel.TYPE).setCellRenderer(r0);
-		m.getColumn(AlternateViewTableModel.YEAR).setCellRenderer(r0);
-		m.getColumn(AlternateViewTableModel.NUMB).setCellRenderer(r0);
-		m.getColumn(AlternateViewTableModel.PRCT).setCellRenderer(r0);
-		m.getColumn(AlternateViewTableModel.LAST).setCellRenderer(r0);
-		DefaultTableCellRenderer r1 = new DefaultTableCellRenderer();
-		r1.setHorizontalAlignment(SwingConstants.RIGHT);
-		m.getColumn(AlternateViewTableModel.SIZE).setCellRenderer(r1);
-	}
+    public void formatTable(TableColumnModel m) {
+        m.getColumn(AlternateViewTableModel.NAME).setPreferredWidth(1200);
+        m.getColumn(AlternateViewTableModel.TYPE).setPreferredWidth(200);
+        m.getColumn(AlternateViewTableModel.YEAR).setPreferredWidth(100);
+        m.getColumn(AlternateViewTableModel.NUMB).setPreferredWidth(100);
+        m.getColumn(AlternateViewTableModel.SIZE).setPreferredWidth(140);
+        m.getColumn(AlternateViewTableModel.PRCT).setPreferredWidth(60);
+        m.getColumn(AlternateViewTableModel.LAST).setPreferredWidth(30);
+        DefaultTableCellRenderer r0 = new DefaultTableCellRenderer();
+        r0.setHorizontalAlignment(SwingConstants.CENTER);
+        // m.getColumn(AnimeModel.NAME).setCellRenderer(centerRend);
+        m.getColumn(AlternateViewTableModel.TYPE).setCellRenderer(r0);
+        m.getColumn(AlternateViewTableModel.YEAR).setCellRenderer(r0);
+        m.getColumn(AlternateViewTableModel.NUMB).setCellRenderer(r0);
+        m.getColumn(AlternateViewTableModel.PRCT).setCellRenderer(r0);
+        m.getColumn(AlternateViewTableModel.LAST).setCellRenderer(r0);
+        DefaultTableCellRenderer r1 = new DefaultTableCellRenderer();
+        r1.setHorizontalAlignment(SwingConstants.RIGHT);
+        m.getColumn(AlternateViewTableModel.SIZE).setCellRenderer(r1);
+    }
 }
