@@ -27,7 +27,6 @@ import java.io.IOException;
 import java.text.DateFormat;
 import java.text.DecimalFormat;
 import java.util.Date;
-import java.util.HashMap;
 import java.util.Locale;
 
 /**
@@ -301,13 +300,6 @@ public final class StringUtilities {
      */
     public static String sbyte(long bytes) {
         return sbyte(bytes, 0);
-        /*
-         * if(l<1000) return def.format(l)+" B";//1024
-         * if(l<1024000) return def.format(l/1024)+" KB";//1048576
-         * if(l<1048576000) return def.format(l/1048576)+" MB";//1073741824
-         * if(l<1073741824000l) return def.format(l/1073741824)+" GB";
-         * return def.format(l/1099511627776l)+" TB";
-         */
     }
 
     /**
@@ -323,10 +315,17 @@ public final class StringUtilities {
             if (file.length() > 1024 * 1024) {
                 return null;
             }
-            BufferedInputStream inputStream = new BufferedInputStream(new FileInputStream(file), (int) file.length());
             byte[] buffer = new byte[(int) file.length()];
-            inputStream.read(buffer);
-            inputStream.close();
+            try (BufferedInputStream inputStream =
+                    new BufferedInputStream(new FileInputStream(file), (int) file.length())) {
+                int totalBytesRead = 0;
+                int bytesRead;
+                while (totalBytesRead < buffer.length
+                        && (bytesRead = inputStream.read(buffer, totalBytesRead, buffer.length - totalBytesRead))
+                                != -1) {
+                    totalBytesRead += bytesRead;
+                }
+            }
             return new String(buffer);
         } catch (IOException ex) {
             // Silently fail and return null
@@ -344,7 +343,7 @@ public final class StringUtilities {
      * @return the text with codes replaced
      */
     @SuppressWarnings("rawtypes")
-    public static String replaceCCCode(String text, HashMap codeMap) {
+    public static String replaceCCCode(String text, java.util.Map codeMap) {
         StringBuilder result = new StringBuilder(text.length() * 4);
         char currentChar;
         Object replacement;
