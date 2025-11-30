@@ -23,12 +23,12 @@
 
 package epox.webaom;
 
-import epox.util.U;
+import epox.util.StringUtilities;
 import epox.webaom.data.AFile;
-import epox.webaom.data.AG;
+import epox.webaom.data.AnimeGroup;
 import epox.webaom.data.Anime;
 import epox.webaom.data.Base;
-import epox.webaom.data.Ep;
+import epox.webaom.data.Episode;
 import epox.webaom.data.Group;
 import epox.webaom.data.Path;
 import java.util.HashMap;
@@ -49,8 +49,9 @@ public class Cache {
 	}
 
 	public String toString() {
-		return "Anime: " + cacheMaps[DB.INDEX_ANIME].size() + ", Episode: " + cacheMaps[DB.INDEX_EPISODE].size()
-				+ ", Group: " + cacheMaps[DB.INDEX_ANIME].size();
+		return "Anime: " + cacheMaps[DatabaseManager.INDEX_ANIME].size() + ", Episode: "
+				+ cacheMaps[DatabaseManager.INDEX_EPISODE].size() + ", Group: "
+				+ cacheMaps[DatabaseManager.INDEX_ANIME].size();
 	}
 
 	public void clear() {
@@ -64,18 +65,18 @@ public class Cache {
 		if (!cacheMaps[cacheType].containsKey(id)) {
 			cacheMaps[cacheType].put(id, baseObject);
 			if (updateMode == 1) {
-				A.db.update(baseObject.id, baseObject, cacheType);
+				AppContext.databaseManager.update(baseObject.id, baseObject, cacheType);
 			}
 		}
 		if (updateMode == 2) {
-			A.db.update(baseObject.id, baseObject, cacheType);
+			AppContext.databaseManager.update(baseObject.id, baseObject, cacheType);
 		}
 	}
 
 	public Base get(int id, int cacheType) {
 		Base baseObject = cacheMaps[cacheType].get(Integer.valueOf(id));
 		if (baseObject == null) {
-			baseObject = A.db.getGeneric(id, cacheType);
+			baseObject = AppContext.databaseManager.getGeneric(id, cacheType);
 			if (baseObject != null) {
 				cacheMaps[cacheType].put(Integer.valueOf(id), baseObject);
 			}
@@ -91,19 +92,19 @@ public class Cache {
 		}
 		AFile file = job.anidbFile;
 		try {
-			file.anime = (Anime) get(file.animeId, DB.INDEX_ANIME);
+			file.anime = (Anime) get(file.animeId, DatabaseManager.INDEX_ANIME);
 			if (file.groupId != 0) {
-				file.group = (Group) get(file.groupId, DB.INDEX_GROUP);
+				file.group = (Group) get(file.groupId, DatabaseManager.INDEX_GROUP);
 			} else {
 				file.group = Group.none;
 			}
-			file.ep = (Ep) get(file.episodeId, DB.INDEX_EPISODE);
+			file.episode = (Episode) get(file.episodeId, DatabaseManager.INDEX_EPISODE);
 			if (addToTree) {
 				treeAdd(job);
 			}
 			return null;
 		} catch (Exception ex) {
-			U.err(file);
+			StringUtilities.err(file);
 			ex.printStackTrace();
 			return ex.getMessage();
 		}
@@ -118,19 +119,19 @@ public class Cache {
 		AFile file = new AFile(fields);
 		int fieldIndex = 20;
 		// create/retrieve data objects
-		file.anime = (Anime) cacheMaps[DB.INDEX_ANIME].get(Integer.valueOf(file.animeId));
+		file.anime = (Anime) cacheMaps[DatabaseManager.INDEX_ANIME].get(Integer.valueOf(file.animeId));
 		if (file.anime == null) {
 			file.anime = new Anime(file.animeId);
 		} else {
-			A.p.remove(file.anime);
+			AppContext.p.remove(file.anime);
 		}
 
-		file.ep = (Ep) cacheMaps[DB.INDEX_EPISODE].get(Integer.valueOf(file.episodeId));
-		if (file.ep == null) {
-			file.ep = new Ep(file.episodeId);
+		file.episode = (Episode) cacheMaps[DatabaseManager.INDEX_EPISODE].get(Integer.valueOf(file.episodeId));
+		if (file.episode == null) {
+			file.episode = new Episode(file.episodeId);
 		}
 
-		file.group = (Group) cacheMaps[DB.INDEX_GROUP].get(Integer.valueOf(file.groupId));
+		file.group = (Group) cacheMaps[DatabaseManager.INDEX_GROUP].get(Integer.valueOf(file.groupId));
 		if (file.group == null) {
 			file.group = new Group(file.groupId);
 		}
@@ -139,10 +140,10 @@ public class Cache {
 		file.group.name = fields[fieldIndex++];
 		file.group.shortName = fields[fieldIndex++];
 		// set episode data
-		file.ep.num = fields[fieldIndex++];
-		file.ep.eng = fields[fieldIndex++];
-		file.ep.rom = U.n(fields[fieldIndex++]);
-		file.ep.kan = U.n(fields[fieldIndex++]);
+		file.episode.num = fields[fieldIndex++];
+		file.episode.eng = fields[fieldIndex++];
+		file.episode.rom = StringUtilities.n(fields[fieldIndex++]);
+		file.episode.kan = StringUtilities.n(fields[fieldIndex++]);
 		// set anime data
 		file.anime.episodeCount = Integer.parseInt(fields[fieldIndex++]);
 		file.anime.latestEpisode = Integer.parseInt(fields[fieldIndex++]);
@@ -159,20 +160,20 @@ public class Cache {
 		}
 		file.anime.type = fields[fieldIndex++];
 		file.anime.romajiTitle = fields[fieldIndex++];
-		file.anime.kanjiTitle = U.n(fields[fieldIndex++]);
-		file.anime.englishTitle = U.n(fields[fieldIndex++]);
+		file.anime.kanjiTitle = StringUtilities.n(fields[fieldIndex++]);
+		file.anime.englishTitle = StringUtilities.n(fields[fieldIndex++]);
 		file.anime.categories = fields[fieldIndex++];
 		file.anime.init();
 		// wrap up
-		file.defaultName = file.anime.romajiTitle + " - " + file.ep.num + " - " + file.ep.eng + " - ["
+		file.defaultName = file.anime.romajiTitle + " - " + file.episode.num + " - " + file.episode.eng + " - ["
 				+ ((file.groupId > 0) ? file.group.shortName : "RAW") + "]";
 		file.pack();
 
 		// update cache/db
-		add(file.anime, 2, DB.INDEX_ANIME);
-		add(file.ep, 2, DB.INDEX_EPISODE);
-		add(file.group, 2, DB.INDEX_GROUP);
-		A.db.update(file.fileId, file, DB.INDEX_FILE);
+		add(file.anime, 2, DatabaseManager.INDEX_ANIME);
+		add(file.episode, 2, DatabaseManager.INDEX_EPISODE);
+		add(file.group, 2, DatabaseManager.INDEX_GROUP);
+		AppContext.databaseManager.update(file.fileId, file, DatabaseManager.INDEX_FILE);
 
 		// update data tree
 		job.anidbFile = file;
@@ -186,24 +187,24 @@ public class Cache {
 
 	public void rebuildTree() {
 		long startTime = System.currentTimeMillis();
-		A.p.clear();
-		Job[] jobs = A.jobs.array();
+		AppContext.p.clear();
+		Job[] jobs = AppContext.jobs.array();
 		for (Job job : jobs) {
 			treeAdd(job);
 		}
-		U.out("@ Rebuilt tree in " + (System.currentTimeMillis() - startTime) + " ms.");
+		StringUtilities.out("@ Rebuilt tree in " + (System.currentTimeMillis() - startTime) + " ms.");
 	}
 
 	public void treeAdd(Job job) {
 		boolean isMissingOrDeleted = job.checkOr(Job.H_MISSING | Job.H_DELETED);
 		if (job.incompl() || (hideExisting && !isMissingOrDeleted) || (hideNew && isMissingOrDeleted)
-				|| (job.hide(A.preg))) {
+				|| (job.hide(AppContext.preg))) {
 			return;
 		}
 		AFile file = job.anidbFile;
 		Anime anime = file.anime;
-		if (A.p.has(anime)) {
-			A.p.remove(anime);
+		if (AppContext.p.has(anime)) {
+			AppContext.p.remove(anime);
 		}
 		switch (treeSortMode) {
 			case MODE_ANIME_FILE : {
@@ -211,14 +212,14 @@ public class Cache {
 			}
 				break;
 			case MODE_ANIME_EPISODE_FILE : {
-				if (anime.has(file.ep)) {
-					anime.remove(file.ep);
+				if (anime.has(file.episode)) {
+					anime.remove(file.episode);
 				}
-				if (file.ep.has(file)) {
-					file.ep.remove(file);
+				if (file.episode.has(file)) {
+					file.episode.remove(file);
 				}
-				file.ep.add(file);
-				anime.add(file.ep);
+				file.episode.add(file);
+				anime.add(file.episode);
 			}
 				break;
 			case MODE_ANIME_GROUP_FILE : {
@@ -229,7 +230,7 @@ public class Cache {
 				if (groupNode != null) {
 					anime.remove(groupNode);
 				} else {
-					groupNode = new AG(anime, file.group);
+					groupNode = new AnimeGroup(anime, file.group);
 				}
 				if (groupNode.has(file)) {
 					groupNode.remove(file);
@@ -254,9 +255,9 @@ public class Cache {
 			}
 				break;
 		}
-		anime.registerEpisode(file.ep, true);
+		anime.registerEpisode(file.episode, true);
 		anime.updateCompletionPercent();
-		A.p.add(anime);
+		AppContext.p.add(anime);
 	}
 
 	public void treeRemove(Job job) {
@@ -265,8 +266,8 @@ public class Cache {
 		}
 		AFile file = job.anidbFile;
 		Anime anime = file.anime;
-		if (A.p.has(anime)) {
-			A.p.remove(anime);
+		if (AppContext.p.has(anime)) {
+			AppContext.p.remove(anime);
 		}
 		switch (treeSortMode) {
 			case MODE_ANIME_FILE : {
@@ -274,10 +275,10 @@ public class Cache {
 			}
 				break;
 			case MODE_ANIME_EPISODE_FILE : {
-				anime.remove(file.ep);
-				file.ep.remove(file);
-				if (file.ep.size() > 0) {
-					anime.add(file.ep);
+				anime.remove(file.episode);
+				file.episode.remove(file);
+				if (file.episode.size() > 0) {
+					anime.add(file.episode);
 				}
 			}
 				break;
@@ -308,10 +309,10 @@ public class Cache {
 			}
 				break;
 		}
-		anime.registerEpisode(file.ep, file.ep.size() > 0);
+		anime.registerEpisode(file.episode, file.episode.size() > 0);
 		anime.updateCompletionPercent();
 		if (anime.size() > 0) {
-			A.p.add(anime);
+			AppContext.p.add(anime);
 		}
 	}
 

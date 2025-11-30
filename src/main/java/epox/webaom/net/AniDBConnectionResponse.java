@@ -20,7 +20,7 @@
  */
 package epox.webaom.net;
 
-import epox.util.U;
+import epox.util.StringUtilities;
 import java.net.SocketTimeoutException;
 
 /**
@@ -31,28 +31,29 @@ import java.net.SocketTimeoutException;
  * optional data payload. Handles tag validation, error code detection, and throws appropriate
  * exceptions for error conditions (bans, auth failures, etc.).
  */
-public class AConR {
+public class AniDBConnectionResponse {
 	public int code = -1;
 	public String message = null;
 	public String data = null;
 	public String tag;
 
-	public AConR(String expectedTag, int tagLength, String rawResponse) throws AConEx, TagEx, SocketTimeoutException {
+	public AniDBConnectionResponse(String expectedTag, int tagLength, String rawResponse)
+			throws AniDBException, TagMismatchException, SocketTimeoutException {
 		if (expectedTag != null && !rawResponse.isEmpty() && rawResponse.charAt(0) == 't') {
 			tag = rawResponse.substring(0, tagLength + 1);
 			if (!tag.equals(expectedTag)) {
-				throw new TagEx();
+				throw new TagMismatchException();
 			}
 			rawResponse = rawResponse.substring(tagLength + 2);
 		}
 		try {
 			code = Integer.parseInt(rawResponse.substring(0, 3));
 		} catch (NumberFormatException e) {
-			throw new AConEx(AConEx.ANIDB_SERVER_ERROR, "Unexpected response");
+			throw new AniDBException(AniDBException.ANIDB_SERVER_ERROR, "Unexpected response");
 		}
 
 		if ((code > 600 && code < 700) && code != 602) {
-			throw new AConEx(AConEx.ANIDB_SERVER_ERROR, rawResponse);
+			throw new AniDBException(AniDBException.ANIDB_SERVER_ERROR, rawResponse);
 		}
 
 		int separatorIndex;
@@ -63,7 +64,7 @@ public class AConR {
 				if (separatorIndex > 0) {
 					banReason = rawResponse.substring(separatorIndex + 1);
 				}
-				throw new AConEx(AConEx.CLIENT_USER, "Banned: " + banReason);
+				throw new AniDBException(AniDBException.CLIENT_USER, "Banned: " + banReason);
 			case LOGIN_ACCEPTED :
 			case LOGIN_ACCEPTED_NEW_VER :
 				separatorIndex = rawResponse.indexOf("LOGIN ACCEPTED");
@@ -76,17 +77,17 @@ public class AConR {
 				message = rawResponse.substring(separatorIndex);
 				break;
 			case ACCESS_DENIED :
-				throw new AConEx(AConEx.CLIENT_USER);
+				throw new AniDBException(AniDBException.CLIENT_USER);
 			case SERVER_BUSY :
 				throw new SocketTimeoutException();
 			case CLIENT_BANNED :
 				message = rawResponse.substring(4, 17);
 				// data = rawResponse.substring(18);
-				throw new AConEx(AConEx.CLIENT_BANNED);
+				throw new AniDBException(AniDBException.CLIENT_BANNED);
 			case CLIENT_VERSION_OUTDATED :
-				throw new AConEx(AConEx.CLIENT_OUTDATED);
+				throw new AniDBException(AniDBException.CLIENT_OUTDATED);
 			case ILLEGAL_INPUT_OR_ACCESS_DENIED :
-				throw new AConEx(AConEx.CLIENT_BUG, "Illegal Input or Access Denied");
+				throw new AniDBException(AniDBException.CLIENT_BUG, "Illegal Input or Access Denied");
 			default :
 				separatorIndex = rawResponse.indexOf('\n');
 				if (separatorIndex > 0) {
@@ -96,7 +97,7 @@ public class AConR {
 					message = rawResponse.substring(4);
 				}
 		}
-		data = U.htmldesc(data);
+		data = StringUtilities.htmldesc(data);
 	}
 
 	@Override

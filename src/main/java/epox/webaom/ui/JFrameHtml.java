@@ -23,7 +23,7 @@
 
 package epox.webaom.ui;
 
-import epox.webaom.A;
+import epox.webaom.AppContext;
 import java.awt.Dimension;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
@@ -74,7 +74,7 @@ public class JFrameHtml extends JFrame implements HyperlinkListener, KeyListener
 
 	public void hyperlinkUpdate(HyperlinkEvent event) {
 		if (event.getEventType() == HyperlinkEvent.EventType.ACTIVATED) {
-			A.gui.openHyperlink(event.getDescription());
+			AppContext.gui.openHyperlink(event.getDescription());
 		}
 	}
 

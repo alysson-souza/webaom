@@ -82,8 +82,8 @@ public class Options {
 	}
 
 	public void saveToFile() {
-		if (!existsOnDisk()
-				&& !A.confirm("Warning", "Options will be stored here:\n" + getFilePath(), "Continue", "Cancel")) {
+		if (!existsOnDisk() && !AppContext.confirm("Warning", "Options will be stored here:\n" + getFilePath(),
+				"Continue", "Cancel")) {
 			return;
 		}
 		try {

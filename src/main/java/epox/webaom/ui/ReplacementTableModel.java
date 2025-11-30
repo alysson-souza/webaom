@@ -22,7 +22,7 @@
  */
 package epox.webaom.ui;
 
-import epox.util.DSData;
+import epox.util.ReplacementRule;
 
 import javax.swing.JTable;
 import javax.swing.SwingConstants;
@@ -31,28 +31,28 @@ import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.TableColumnModel;
 import java.util.Vector;
 
-public class TableModelDS extends AbstractTableModel {
+public class ReplacementTableModel extends AbstractTableModel {
 	public static final int COLUMN_SELECTED = 0;
 	public static final int COLUMN_SOURCE = 1;
 	public static final int COLUMN_DESTINATION = 2;
 
-	private Vector<DSData> rowDataList;
+	private Vector<ReplacementRule> rowDataList;
 	private final String sourceColumnTitle;
 	private final String destinationColumnTitle;
-	private final DSData emptyRowPlaceholder;
+	private final ReplacementRule emptyRowPlaceholder;
 
-	public TableModelDS(Vector<DSData> dataVector, String sourceTitle, String destinationTitle) {
+	public ReplacementTableModel(Vector<ReplacementRule> dataVector, String sourceTitle, String destinationTitle) {
 		setData(dataVector);
 		sourceColumnTitle = sourceTitle;
 		destinationColumnTitle = destinationTitle;
-		emptyRowPlaceholder = new DSData("", "", false);
+		emptyRowPlaceholder = new ReplacementRule("", "", false);
 	}
 
-	public Vector<DSData> getData() {
+	public Vector<ReplacementRule> getData() {
 		return rowDataList;
 	}
 
-	public void setData(Vector<DSData> dataVector) {
+	public void setData(Vector<ReplacementRule> dataVector) {
 		rowDataList = dataVector;
 	}
 
@@ -72,7 +72,7 @@ public class TableModelDS extends AbstractTableModel {
 	}
 
 	public Object getValueAt(int rowIndex, int columnIndex) {
-		DSData rowData;
+		ReplacementRule rowData;
 		if (rowIndex == rowDataList.size()) {
 			rowData = emptyRowPlaceholder;
 		} else {
@@ -91,9 +91,9 @@ public class TableModelDS extends AbstractTableModel {
 	}
 
 	public void setValueAt(Object value, int rowIndex, int columnIndex) {
-		DSData rowData;
+		ReplacementRule rowData;
 		if (rowIndex == rowDataList.size()) {
-			rowData = new DSData("", "", false);
+			rowData = new ReplacementRule("", "", false);
 			rowDataList.add(rowData);
 			fireTableRowsInserted(rowIndex, rowIndex);
 		} else {
@@ -124,7 +124,7 @@ public class TableModelDS extends AbstractTableModel {
 	 */
 	private String getValidatedDestination(Object destinationValue) {
 		String destination = (String) destinationValue;
-		DSData rowData;
+		ReplacementRule rowData;
 		for (int i = 0; i < rowDataList.size(); i++) {
 			rowData = rowDataList.elementAt(i);
 			if (rowData.source.equals(destination)) {

@@ -7,7 +7,7 @@ package epox.webaom.net;
 /**
  * AniDB connection settings. Holds configuration for UDP API communication.
  */
-public class AConS {
+public class AniDBConnectionSettings {
 
 	/** AniDB API server hostname */
 	public String host;
@@ -48,8 +48,8 @@ public class AConS {
 	 * @param natEnabled
 	 *            Whether to enable NAT traversal check
 	 */
-	public AConS(String host, int remotePort, int localPort, int timeoutSeconds, int packetDelay, int maxTimeouts,
-			boolean natEnabled) {
+	public AniDBConnectionSettings(String host, int remotePort, int localPort, int timeoutSeconds, int packetDelay,
+			int maxTimeouts, boolean natEnabled) {
 		this.host = host;
 		this.remotePort = remotePort;
 		this.localPort = localPort;

@@ -23,7 +23,7 @@
 package epox.webaom.ui;
 
 import epox.webaom.Options;
-import epox.webaom.net.ACon;
+import epox.webaom.net.AniDBConnection;
 import java.awt.Component;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
@@ -66,9 +66,9 @@ public class JPanelOptCon extends JPanel implements ChangeListener {
 
 		pingButton = new JButton("Ping AniDB");
 
-		hostTextField = new JTextField(ACon.DEFAULT_HOST);
-		remotePortTextField = new JTextField("" + ACon.DEFAULT_REMOTE_PORT);
-		localPortTextField = new JTextField("" + ACon.DEFAULT_LOCAL_PORT);
+		hostTextField = new JTextField(AniDBConnection.DEFAULT_HOST);
+		remotePortTextField = new JTextField("" + AniDBConnection.DEFAULT_REMOTE_PORT);
+		localPortTextField = new JTextField("" + AniDBConnection.DEFAULT_LOCAL_PORT);
 
 		KeyAdapter numericOnlyAdapter = new KeyAdapter() {
 			public void keyTyped(KeyEvent e) {

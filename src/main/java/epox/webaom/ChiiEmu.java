@@ -22,27 +22,27 @@ package epox.webaom;
 
 import epox.swing.CommandModel;
 import epox.swing.Log;
-import epox.util.U;
-import epox.webaom.net.ACon;
-import epox.webaom.net.AConEx;
-import epox.webaom.net.AConR;
+import epox.util.StringUtilities;
+import epox.webaom.net.AniDBConnection;
+import epox.webaom.net.AniDBException;
+import epox.webaom.net.AniDBConnectionResponse;
 
 public class ChiiEmu implements CommandModel {
 	private Thread workerThread;
-	protected ACon aniDbConnection;
+	protected AniDBConnection aniDbConnection;
 	private Log log;
 
-	public ChiiEmu(ACon connection) {
+	public ChiiEmu(AniDBConnection connection) {
 		log = null;
 		aniDbConnection = connection;
 	}
 
 	public void handleCommand(String command) {
-		aniDbConnection = A.conn;
+		aniDbConnection = AppContext.conn;
 		if (command.startsWith("!font")) {
 			if (command.length() > 6) {
-				A.font = command.substring(6).trim();
-				A.setFont(A.font);
+				AppContext.font = command.substring(6).trim();
+				AppContext.setFont(AppContext.font);
 			} else {
 				println("!font name,size");
 			}
@@ -83,7 +83,7 @@ public class ChiiEmu implements CommandModel {
 			String result = "Query failed.";
 			try {
 				result = executeCommand();
-			} catch (AConEx ex) {
+			} catch (AniDBException ex) {
 				result = ex.getMessage();
 			} catch (NullPointerException ex) {
 				/* don't care */
@@ -92,7 +92,7 @@ public class ChiiEmu implements CommandModel {
 			workerThread = null;
 		}
 
-		public String executeCommand() throws AConEx {
+		public String executeCommand() throws AniDBException {
 			if (commandText == null | commandText.length() < 3) {
 				return "No Command";
 			}
@@ -157,7 +157,7 @@ public class ChiiEmu implements CommandModel {
 		}
 
 		public String queryByIdOrName(String command, String idParameter, String nameParameter, String value)
-				throws AConEx {
+				throws AniDBException {
 			try {
 				return aniDbConnection.send(command, idParameter + Integer.parseInt(value), true).data;
 			} catch (NumberFormatException ex) {
@@ -169,8 +169,8 @@ public class ChiiEmu implements CommandModel {
 			return aniDbConnection.send(command, nameParameter + value, true).data;
 		}
 
-		public String updateStorageOrState(String parameters, int usageType) throws AConEx {
-			String[] arguments = U.split(parameters, ',');
+		public String updateStorageOrState(String parameters, int usageType) throws AniDBException {
+			String[] arguments = StringUtilities.split(parameters, ',');
 			if (arguments.length != 4) {
 				return getUsageMessage(usageType);
 			}
@@ -234,8 +234,9 @@ public class ChiiEmu implements CommandModel {
 				}
 			}
 
-			AConR response = aniDbConnection.send("MYLISTADD", requestParameters.toString(), true);
-			if (response.code != AConR.MYLIST_ENTRY_EDITED || response.data == null || response.data.isEmpty()) {
+			AniDBConnectionResponse response = aniDbConnection.send("MYLISTADD", requestParameters.toString(), true);
+			if (response.code != AniDBConnectionResponse.MYLIST_ENTRY_EDITED || response.data == null
+					|| response.data.isEmpty()) {
 				return command + ": no such entry";
 			}
 			if (response.data.equals("1")) {
@@ -244,7 +245,7 @@ public class ChiiEmu implements CommandModel {
 			return command + ": updated " + response.data + " entries";
 		}
 
-		public String randomAnime(String param) throws AConEx {
+		public String randomAnime(String param) throws AniDBException {
 			int type = 0;
 			if (param.equals("watched")) {
 				type = 1;
@@ -253,12 +254,12 @@ public class ChiiEmu implements CommandModel {
 			} else if (param.equals("all")) {
 				type = 3;
 			}
-			AConR response = aniDbConnection.send("RANDOMANIME", "type=" + type, true);
+			AniDBConnectionResponse response = aniDbConnection.send("RANDOMANIME", "type=" + type, true);
 			return "RANDOM " + formatAnime(response.data);
 		}
 
 		public String formatAnime(String response) {
-			String[] fields = U.split(response, '|');
+			String[] fields = StringUtilities.split(response, '|');
 			if (fields.length < 15) {
 				return response;
 			}
@@ -273,7 +274,7 @@ public class ChiiEmu implements CommandModel {
 		}
 
 		public String formatGroup(String response) {
-			String[] fields = U.split(response, '|');
+			String[] fields = StringUtilities.split(response, '|');
 			if (fields.length < 9) {
 				return response;
 			}
@@ -288,7 +289,7 @@ public class ChiiEmu implements CommandModel {
 		}
 
 		public String formatMyList(String response) {
-			String[] fields = U.split(response, '|');
+			String[] fields = StringUtilities.split(response, '|');
 			if (fields.length < 6) {
 				return response;
 			}
@@ -309,18 +310,20 @@ public class ChiiEmu implements CommandModel {
 		}
 
 		public String formatMyStats(String response) {
-			String[] fields = U.split(response, '|');
+			String[] fields = StringUtilities.split(response, '|');
 			if (fields.length < 16) {
 				return response;
 			}
 			String watchedEpsText = fields[13] + " / " + fields[12] + "% watched";
-			String mylistSizeText = U.sbyte(1048576L * U.i(fields[3])) + ", " + fields[11] + "% of AniDB, " + fields[10]
-					+ "% watched";
+			String mylistSizeText = StringUtilities.sbyte(1048576L * StringUtilities.i(fields[3])) + ", " + fields[11]
+					+ "% of AniDB, " + fields[10] + "% watched";
 			String contributionText = fields[4] + " animes, " + fields[5] + " eps, " + fields[6] + " files, "
 					+ fields[7] + " groups";
 			String votesReviewsText = fields[14] + " votes, " + fields[15] + " reviews added to DB";
 			String leechLameText = "Leech factor: " + fields[8] + "%, Lameness: " + fields[9] + "%";
-			String viewedTime = fields.length > 16 ? " Viewed: " + formatMinutes(U.i(fields[16])) + "." : "";
+			String viewedTime = fields.length > 16
+					? " Viewed: " + formatMinutes(StringUtilities.i(fields[16])) + "."
+					: "";
 			return "MYSTATS: " + fields[0] + " animes, " + fields[1] + " eps (" + watchedEpsText + ") and " + fields[2]
 					+ " files in mylist (" + mylistSizeText + "). " + contributionText + ". " + votesReviewsText + ". "
 					+ leechLameText + "." + viewedTime;
@@ -340,7 +343,7 @@ public class ChiiEmu implements CommandModel {
 			String apiParameters = "edit=1&viewed=";
 			int ed2kIndex = arguments.indexOf("ed2k://|file|");
 			if (ed2kIndex >= 0) {
-				String[] fields = U.split(arguments.substring(13).trim(), '|');
+				String[] fields = StringUtilities.split(arguments.substring(13).trim(), '|');
 				apiParameters += "&size=" + fields[1];
 				apiParameters += "&ed2k=" + fields[2];
 			} else {
@@ -384,8 +387,8 @@ public class ChiiEmu implements CommandModel {
 					}
 				}
 			}
-			AConR response = aniDbConnection.send("MYLISTADD", apiParameters, true);
-			if (response.code == AConR.MYLIST_ENTRY_EDITED) {
+			AniDBConnectionResponse response = aniDbConnection.send("MYLISTADD", apiParameters, true);
+			if (response.code == AniDBConnectionResponse.MYLIST_ENTRY_EDITED) {
 				if (response.data.length() > 3) {
 					return "WATCHED: entry updated.";
 				}
@@ -417,7 +420,7 @@ public class ChiiEmu implements CommandModel {
 			String apiParameters = "edit=1&state=" + stateCode;
 			int ed2kIndex = arguments.indexOf("ed2k://|file|");
 			if (ed2kIndex >= 0) {
-				String[] fields = U.split(arguments.substring(13, lastSpaceIndex).trim(), '|');
+				String[] fields = StringUtilities.split(arguments.substring(13, lastSpaceIndex).trim(), '|');
 				apiParameters += "&size=" + fields[1];
 				apiParameters += "&ed2k=" + fields[2];
 			} else {
@@ -451,8 +454,8 @@ public class ChiiEmu implements CommandModel {
 					}
 				}
 			}
-			AConR response = aniDbConnection.send("MYLISTADD", apiParameters, true);
-			if (response.code == AConR.MYLIST_ENTRY_EDITED) {
+			AniDBConnectionResponse response = aniDbConnection.send("MYLISTADD", apiParameters, true);
+			if (response.code == AniDBConnectionResponse.MYLIST_ENTRY_EDITED) {
 				if (response.data.length() > 3) {
 					return "STATE: entry updated.";
 				}

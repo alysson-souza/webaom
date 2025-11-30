@@ -22,8 +22,8 @@
  */
 package epox.webaom.data;
 
-import epox.util.U;
-import epox.webaom.A;
+import epox.util.StringUtilities;
+import epox.webaom.AppContext;
 import epox.webaom.Job;
 
 public class AFile extends Base {
@@ -68,8 +68,8 @@ public class AFile extends Base {
 	/** File extension. */
 	public String extension;
 
-	public Ep ep;
-	public AG ag;
+	public Episode episode;
+	public AnimeGroup animeGroup;
 	public Group group;
 	public Anime anime;
 	private Job job = null;
@@ -81,17 +81,17 @@ public class AFile extends Base {
 
 	public AFile(String[] fields) {
 		int index = 0;
-		fileId = U.i(fields[index++]);
-		animeId = U.i(fields[index++]);
-		episodeId = U.i(fields[index++]);
+		fileId = StringUtilities.i(fields[index++]);
+		animeId = StringUtilities.i(fields[index++]);
+		episodeId = StringUtilities.i(fields[index++]);
 		if (fields[index].isEmpty()) {
 			groupId = 0;
 		} else {
-			groupId = U.i(fields[index]);
+			groupId = StringUtilities.i(fields[index]);
 		}
 		index++;
-		mylistEntryId = U.i(fields[index++]);
-		state = U.i(fields[index++]);
+		mylistEntryId = StringUtilities.i(fields[index++]);
+		state = StringUtilities.i(fields[index++]);
 		if (fields[index].isEmpty()) {
 			totalSize = 0;
 		} else {
@@ -99,9 +99,9 @@ public class AFile extends Base {
 		}
 		index++;
 		ed2kHash = fields[index++];
-		md5Hash = U.n(fields[index++]);
-		shaHash = U.n(fields[index++]);
-		crcHash = U.n(fields[index++]);
+		md5Hash = StringUtilities.n(fields[index++]);
+		shaHash = StringUtilities.n(fields[index++]);
+		crcHash = StringUtilities.n(fields[index++]);
 
 		dubLanguage = fields[index++].intern();
 		subLanguage = fields[index++].intern();
@@ -111,7 +111,7 @@ public class AFile extends Base {
 		videoCodec = fields[index++].intern();
 		resolution = fields[index++].intern();
 		extension = fields[index++].intern();
-		lengthInSeconds = U.i(fields[index++]);
+		lengthInSeconds = StringUtilities.i(fields[index++]);
 	}
 
 	public Job getJob() {
@@ -178,9 +178,9 @@ public class AFile extends Base {
 
 	private String url0(String str, boolean non) {
 		if (non) {
-			return "http://" + A.S_WEB + "/perl-bin/animedb.pl?" + str + "&nonav=1";
+			return "http://" + AppContext.S_WEB + "/perl-bin/animedb.pl?" + str + "&nonav=1";
 		}
-		return "http://" + A.S_WEB + "/perl-bin/animedb.pl?" + str;
+		return "http://" + AppContext.S_WEB + "/perl-bin/animedb.pl?" + str;
 	}
 
 	private String url1(String str) {
@@ -305,7 +305,7 @@ public class AFile extends Base {
 	 * c=CRC, h=hashes, l=length, d=dub, s=sub, a=audio, v=video, x=resolution
 	 */
 	public String getMissingDataStrict() {
-		if (anime == null || ep == null) {
+		if (anime == null || episode == null) {
 			return "N/A";
 		}
 		String missingFlags = "";
@@ -344,7 +344,7 @@ public class AFile extends Base {
 	 * q=quality, o=rip source, e=english title, k=kanji title, r=romaji title
 	 */
 	public String getMissingDataAdditional() {
-		if (anime == null || ep == null) {
+		if (anime == null || episode == null) {
 			return "N/A";
 		}
 		String missingFlags = "";
@@ -356,13 +356,13 @@ public class AFile extends Base {
 			missingFlags += 'o';
 		}
 
-		if (ep.eng == null || ep.eng.isEmpty()) {
+		if (episode.eng == null || episode.eng.isEmpty()) {
 			missingFlags += 'e';
 		}
-		if (ep.kan == null || ep.kan.isEmpty()) {
+		if (episode.kan == null || episode.kan.isEmpty()) {
 			missingFlags += 'k';
 		}
-		if (ep.rom == null || ep.rom.isEmpty()) {
+		if (episode.rom == null || episode.rom.isEmpty()) {
 			missingFlags += 'r';
 		}
 

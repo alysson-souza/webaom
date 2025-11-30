@@ -11,8 +11,8 @@ import java.awt.Rectangle;
 /**
  * Utility class for Swing-related helper methods.
  */
-public final class MySwing {
-	private MySwing() {
+public final class SwingUtils {
+	private SwingUtils() {
 		// Prevent instantiation
 	}
 

@@ -8,11 +8,11 @@ package epox.webaom.data;
  * AG (Anime-Group) represents the association between an Anime and a Group (fansub/release group).
  * Used for organizing files by which group released them.
  */
-public class AG extends Base {
+public class AnimeGroup extends Base {
 	private final Group group;
 	private final Anime anime;
 
-	public AG(Anime anime, Group group) {
+	public AnimeGroup(Anime anime, Group group) {
 		this.id = group.id;
 		this.group = group;
 		this.anime = anime;

@@ -22,8 +22,8 @@
  */
 package epox.webaom;
 
-import epox.swing.MySwing;
-import epox.webaom.net.ACon;
+import epox.swing.SwingUtils;
+import epox.webaom.net.AniDBConnection;
 import java.awt.BorderLayout;
 import java.awt.Container;
 import java.awt.Font;
@@ -42,9 +42,9 @@ public class WebAOM extends JApplet {
 	public void init() {
 		Frame[] frames = Frame.getFrames();
 		if (frames.length > 0) {
-			A.frame = frames[0];
+			AppContext.frame = frames[0];
 		}
-		A.component = this;
+		AppContext.component = this;
 
 		/*
 		 * try {
@@ -62,27 +62,27 @@ public class WebAOM extends JApplet {
 		global = true;
 		inited = true;
 
-		ACon.shutdown = false;
+		AniDBConnection.shutdown = false;
 		setMyFont(new Font("Tahoma", Font.PLAIN, 11), new Font("Times", Font.PLAIN, 11));
-		A.init();
+		AppContext.init();
 		Container main = this.getContentPane();
 		main.setLayout(new BorderLayout());
-		main.add(A.gui, BorderLayout.CENTER);
+		main.add(AppContext.gui, BorderLayout.CENTER);
 
-		A.gui.startup();
+		AppContext.gui.startup();
 	}
 
 	public void stop() {
 		if (inited) {
-			A.gui.kill();
+			AppContext.gui.kill();
 		}
 	}
 
 	public void destroy() {
 		if (inited) {
-			A.gui.kill();
-			A.shutdown(false);
-			remove(A.gui);
+			AppContext.gui.kill();
+			AppContext.shutdown(false);
+			remove(AppContext.gui);
 			super.destroy();
 			inited = false;
 			global = false;
@@ -93,7 +93,7 @@ public class WebAOM extends JApplet {
 		try {
 			mmain();
 		} catch (Exception e) {
-			A.dialog("Exception", e.getMessage());
+			AppContext.dialog("Exception", e.getMessage());
 			e.printStackTrace();
 			System.exit(0);
 		}
@@ -102,29 +102,29 @@ public class WebAOM extends JApplet {
 	private static void mmain() {
 		setMyFont(new Font("Tahoma", Font.PLAIN, 11), new Font("Times", Font.PLAIN, 11));
 
-		JFrame jf = new JFrame("WebAOM " + A.S_VER + " Loading...");
-		A.frame = jf;
-		A.component = jf;
+		JFrame jf = new JFrame("WebAOM " + AppContext.S_VER + " Loading...");
+		AppContext.frame = jf;
+		AppContext.component = jf;
 		jf.setSize(800, 600);
 		jf.setDefaultCloseOperation(WindowConstants.DO_NOTHING_ON_CLOSE);
 
-		MySwing.centerComponent(jf);
+		SwingUtils.centerComponent(jf);
 		jf.setVisible(true);
 		jf.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 
-		A.init();
+		AppContext.init();
 
-		jf.getContentPane().add(A.gui, java.awt.BorderLayout.CENTER);
+		jf.getContentPane().add(AppContext.gui, java.awt.BorderLayout.CENTER);
 		jf.setDefaultCloseOperation(WindowConstants.DO_NOTHING_ON_CLOSE);
 		jf.setVisible(true);
 		jf.addWindowListener(new java.awt.event.WindowAdapter() {
 			public void windowClosing(java.awt.event.WindowEvent e) {
-				if (A.shutdown(true)) {
+				if (AppContext.shutdown(true)) {
 					System.exit(0);
 				}
 			}
 		});
-		A.gui.startup();
+		AppContext.gui.startup();
 
 		/*
 		 * Properties p = System.getProperties();

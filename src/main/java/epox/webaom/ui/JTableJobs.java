@@ -5,7 +5,7 @@
 package epox.webaom.ui;
 
 import epox.swing.JTableSortable;
-import epox.webaom.A;
+import epox.webaom.AppContext;
 import epox.webaom.Job;
 import java.awt.Color;
 import java.awt.Component;
@@ -21,11 +21,11 @@ public class JTableJobs extends JTableSortable {
 	public JTableJobs(TableModelJobs tableModel) {
 		super(tableModel);
 		jobsTableModel = tableModel;
-		final JPopupMenuM popupMenu = new JPopupMenuM(this, tableModel);
-		A.com0 = popupMenu;
+		final JobContextMenu popupMenu = new JobContextMenu(this, tableModel);
+		AppContext.com0 = popupMenu;
 		addMouseListener(popupMenu);
 
-		addMouseListener(new MouseAdapterJob(this, tableModel, A.jobs));
+		addMouseListener(new MouseAdapterJob(this, tableModel, AppContext.jobs));
 		getInputMap().put(KeyStroke.getKeyStroke("ESCAPE"), "stop");
 		getActionMap().put("stop", new AbstractAction() {
 			public void actionPerformed(ActionEvent event) {

@@ -34,9 +34,9 @@ public class HeaderListenerAlt extends HeaderListener {
 	private int currentSortColumn = 0;
 
 	/** The tree table this listener manages */
-	protected JTreeTableR treeTable;
+	protected JobTreeTable treeTable;
 
-	public HeaderListenerAlt(JTreeTableR treeTable) {
+	public HeaderListenerAlt(JobTreeTable treeTable) {
 		super(null, null, null);
 		this.treeTable = treeTable;
 		sortButtonRenderer = new SortButtonRenderer();

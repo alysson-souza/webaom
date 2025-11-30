@@ -24,7 +24,7 @@ package epox.webaom;
 
 import java.util.StringTokenizer;
 
-public final class Hyper {
+public final class HyperlinkBuilder {
 
 	/** Hex color code for warning/error text (red) */
 	public static String warningColor = "F00000";
@@ -33,7 +33,7 @@ public final class Hyper {
 	/** Hex color code for number text (navy) */
 	public static String numberColor = "000080";
 
-	private Hyper() {
+	private HyperlinkBuilder() {
 		// static only
 	}
 

@@ -5,8 +5,8 @@
 package epox.webaom.ui;
 
 import epox.swing.JScrollTable;
-import epox.util.U;
-import epox.webaom.A;
+import epox.util.StringUtilities;
+import epox.webaom.AppContext;
 import epox.webaom.Job;
 import epox.webaom.Options;
 import epox.webaom.data.AFile;
@@ -119,8 +119,8 @@ public class JPanelJobs extends JPanel implements ActionListener {
 		int[] columnIndices = new int[tokenizer.countTokens()];
 		while (tokenizer.hasMoreTokens()) {
 			String[] columnParts = tokenizer.nextToken().split(",", 2);
-			columnIndex = U.i(columnParts[0]);
-			columnWidth = U.i(columnParts[1]);
+			columnIndex = StringUtilities.i(columnParts[0]);
+			columnWidth = StringUtilities.i(columnParts[1]);
 			visibilityMask |= 1L << position;
 			columnIndices[position++] = columnIndex;
 			columnModel.getColumn(columnIndex).setPreferredWidth(columnWidth);
@@ -156,7 +156,7 @@ public class JPanelJobs extends JPanel implements ActionListener {
 	}
 
 	private void applyFilter() {
-		A.jobs.filter(statusFilterMask, fileStateFilterMask, showUnknownFiles);
+		AppContext.jobs.filter(statusFilterMask, fileStateFilterMask, showUnknownFiles);
 		tableModel.sort(true);
 		// tableModel.fireTableDataChanged(); // <- unselects rows
 		jobsTable.updateUI();

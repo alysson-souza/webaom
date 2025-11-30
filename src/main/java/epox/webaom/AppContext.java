@@ -22,36 +22,30 @@
  */
 package epox.webaom;
 
-import epox.util.U;
+import epox.util.StringUtilities;
 import epox.util.UserPass;
 import epox.webaom.data.Base;
-import epox.webaom.net.AConE;
-import epox.webaom.net.AConS;
+import epox.webaom.net.AniDBFileClient;
+import epox.webaom.net.AniDBConnectionSettings;
 import epox.webaom.ui.JPanelMain;
+
+import javax.swing.JOptionPane;
+import javax.swing.SwingUtilities;
 import java.awt.Component;
 import java.awt.Font;
 import java.io.File;
 import java.io.InputStream;
 import java.util.Properties;
-import javax.swing.JOptionPane;
-import javax.swing.SwingUtilities;
 
 /**
  * Global state singleton holding all subsystems and configuration.
  * This is a legacy pattern from the original codebase.
  */
-public final class A {
-	private A() {
+public final class AppContext {
+	private AppContext() {
 		// static only
 	}
 
-	/*
-	 * public static int mem0, mem1, mem2, mem3, mem4, mem5;
-	 * public static void memstats(){
-	 * System.out.println((mem1-mem0)/1048576f+"\t"+(mem2-mem1)/1048576f+"\t"+(mem3-mem2)/1048576f+"\t"+(mem4-mem3)/
-	 * 1048576f+"\t"+(mem5)/1048576f);
-	 * }
-	 */
 	public static final String S_WEB = "anidb.net";
 	public static final String S_N = "\r\n";
 	public static final String S_VER = loadVersion();
@@ -59,7 +53,7 @@ public final class A {
 	private static String loadVersion() {
 		try {
 			Properties props = new Properties();
-			InputStream is = A.class.getClassLoader().getResourceAsStream("version.properties");
+			InputStream is = AppContext.class.getClassLoader().getResourceAsStream("version.properties");
 			if (is != null) {
 				props.load(is);
 				String version = props.getProperty("version");
@@ -84,16 +78,16 @@ public final class A {
 	public static java.awt.Component component = null;
 	public static java.awt.Frame frame = null;
 
-	public static DB db;
+	public static DatabaseManager databaseManager;
 	public static NetIO nio;
 	public static DiskIO dio;
 	public static Options opt;
 	public static Rules rules;
 	public static Cache cache;
-	public static AConE conn;
+	public static AniDBFileClient conn;
 	public static JobCnt jobc;
 	public static JobList jobs;
-	public static AConS usetup;
+	public static AniDBConnectionSettings usetup;
 	public static JPanelMain gui;
 	public static FileHandler fha;
 
@@ -114,16 +108,16 @@ public final class A {
 		jobc = new JobCnt();
 		rules = new Rules();
 		cache = new Cache();
-		db = new DB();
+		databaseManager = new DatabaseManager();
 		fha = new FileHandler();
 		opt = new Options();
 		dio = new DiskIO();
 		nio = new NetIO();
 		// A.mem1 = A.getUsed();
 		gui = new JPanelMain();
-		fschema = U.fileToString(System.getProperty("user.home") + File.separator + ".webaom.htm");
+		fschema = StringUtilities.fileToString(System.getProperty("user.home") + File.separator + ".webaom.htm");
 		if (fschema == null) {
-			fschema = A.getFileString("file.htm");
+			fschema = AppContext.getFileString("file.htm");
 		}
 
 		if (!font.isEmpty()) {
@@ -137,7 +131,7 @@ public final class A {
 			Options o = new Options();
 			if (o.existsOnDisk()) {
 				gui.saveOptions(o);
-				if (!A.opt.equals(o)) {
+				if (!AppContext.opt.equals(o)) {
 					if (o.getBoolean(Options.BOOL_AUTO_SAVE)) {
 						o.saveToFile();
 					} else {
@@ -193,7 +187,7 @@ public final class A {
 
 	public static boolean confirm(String title, String msg, String pos, String neg) {
 		Object[] o = {pos, neg};
-		return JOptionPane.showOptionDialog(A.component, msg, title, JOptionPane.DEFAULT_OPTION,
+		return JOptionPane.showOptionDialog(AppContext.component, msg, title, JOptionPane.DEFAULT_OPTION,
 				JOptionPane.WARNING_MESSAGE, null, o, o[0]) == 0;
 	}
 
@@ -208,7 +202,7 @@ public final class A {
 	 */
 	public static int showYesNoCancelDialog(String title, String msg) {
 		Object[] options = {"Yes", "No", "Cancel"};
-		return JOptionPane.showOptionDialog(A.component, msg, title, JOptionPane.YES_NO_CANCEL_OPTION,
+		return JOptionPane.showOptionDialog(AppContext.component, msg, title, JOptionPane.YES_NO_CANCEL_OPTION,
 				JOptionPane.WARNING_MESSAGE, null, options, options[0]);
 	}
 
@@ -245,15 +239,15 @@ public final class A {
 	}
 
 	public static void dumpStats() {
-		System.out.println("@ JobList: " + A.jobs);
-		System.out.println("@ Cache: " + A.cache);
+		System.out.println("@ JobList: " + AppContext.jobs);
+		System.out.println("@ Cache: " + AppContext.cache);
 
 		int sub0 = 0;
 		int sub1 = 0;
 		Base b;
 		Base c;
-		for (int i = 0; i < A.p.size(); i++) {
-			b = A.p.get(i);
+		for (int i = 0; i < AppContext.p.size(); i++) {
+			b = AppContext.p.get(i);
 			if (b == null) {
 				continue;
 			}
@@ -266,6 +260,6 @@ public final class A {
 				}
 			}
 		}
-		System.out.println("@ Tree: " + A.p.size() + ", " + sub0 + ", " + sub1);
+		System.out.println("@ Tree: " + AppContext.p.size() + ", " + sub0 + ", " + sub1);
 	}
 }

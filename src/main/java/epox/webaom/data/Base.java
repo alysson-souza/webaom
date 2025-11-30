@@ -20,7 +20,7 @@
  */
 package epox.webaom.data;
 
-import epox.util.U;
+import epox.util.StringUtilities;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -66,11 +66,11 @@ public class Base implements Comparable {
 			childMap.remove(key);
 			totalSize -= child.totalSize;
 			if (totalSize < 0) {
-				U.err("Base: Negative size: " + child + " (" + this + ")");
+				StringUtilities.err("Base: Negative size: " + child + " (" + this + ")");
 				totalSize = 0;
 			}
 		} else {
-			U.err("Base: Tried to remove non ex obj: " + child + " (" + this + ")");
+			StringUtilities.err("Base: Tried to remove non ex obj: " + child + " (" + this + ")");
 		}
 	}
 

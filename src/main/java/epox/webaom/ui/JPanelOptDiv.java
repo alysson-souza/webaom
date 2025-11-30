@@ -25,7 +25,7 @@ package epox.webaom.ui;
 import epox.swing.JComboBoxLF;
 import epox.util.HashContainer;
 import epox.util.TTH;
-import epox.webaom.A;
+import epox.webaom.AppContext;
 import epox.webaom.Options;
 import java.awt.Component;
 import java.awt.GridBagConstraints;
@@ -110,7 +110,7 @@ public class JPanelOptDiv extends JPanel {
 		addLabeledComponent("Browser Path", browserPathField, constraints);
 		addLabeledComponent("My Database", databaseUrlField, constraints);
 		addLabeledComponent("Log File", logFilePathField, constraints);
-		addLabeledComponent("LookAndFeel", new JComboBoxLF(A.component), constraints);
+		addLabeledComponent("LookAndFeel", new JComboBoxLF(AppContext.component), constraints);
 
 		constraints.gridwidth = 1;
 

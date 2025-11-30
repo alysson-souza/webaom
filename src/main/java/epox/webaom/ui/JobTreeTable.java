@@ -22,7 +22,7 @@ package epox.webaom.ui;
 
 import com.sun.swing.JTreeTable;
 import com.sun.swing.TreeTableModel;
-import epox.webaom.A;
+import epox.webaom.AppContext;
 import epox.webaom.Job;
 import epox.webaom.JobMan;
 import epox.webaom.data.AFile;
@@ -34,8 +34,8 @@ import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.util.ArrayList;
 
-public class JTreeTableR extends JTreeTable implements RowModel, MouseListener {
-	public JTreeTableR(TreeTableModel treeTableModel) {
+public class JobTreeTable extends JTreeTable implements RowModel, MouseListener {
+	public JobTreeTable(TreeTableModel treeTableModel) {
 		super(treeTableModel);
 		addMouseListener(this);
 	}
@@ -44,7 +44,7 @@ public class JTreeTableR extends JTreeTable implements RowModel, MouseListener {
 		long elapsedTime = System.currentTimeMillis();
 		super.updateUI();
 		elapsedTime = System.currentTimeMillis() - elapsedTime;
-		System.out.println("@ Alt.updateUI() in " + elapsedTime + " ms. (" + A.cache.stats() + ")");
+		System.out.println("@ Alt.updateUI() in " + elapsedTime + " ms. (" + AppContext.cache.stats() + ")");
 	}
 
 	public Job[] getJobs(int row) {

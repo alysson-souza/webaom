@@ -22,13 +22,13 @@ package epox.webaom.ui;
 
 import com.sun.swing.AbstractTreeTableModel;
 import com.sun.swing.TreeTableModel;
-import epox.util.U;
-import epox.webaom.A;
+import epox.util.StringUtilities;
+import epox.webaom.AppContext;
 import epox.webaom.data.AFile;
-import epox.webaom.data.AG;
+import epox.webaom.data.AnimeGroup;
 import epox.webaom.data.Anime;
 import epox.webaom.data.Base;
-import epox.webaom.data.Ep;
+import epox.webaom.data.Episode;
 import epox.webaom.data.Path;
 import javax.swing.SwingConstants;
 import javax.swing.table.DefaultTableCellRenderer;
@@ -47,7 +47,7 @@ public class TableModelAlt extends AbstractTreeTableModel implements TreeTableMo
 			Integer.class, Integer.class, String.class};
 
 	public TableModelAlt() {
-		super(A.p);
+		super(AppContext.p);
 	}
 
 	public int getColumnCount() {
@@ -66,7 +66,7 @@ public class TableModelAlt extends AbstractTreeTableModel implements TreeTableMo
 		if (node instanceof Base g) {
 			switch (c) {
 				case SIZE :
-					return U.sbyte(g.totalSize);
+					return StringUtilities.sbyte(g.totalSize);
 			}
 		}
 		if (node instanceof Anime a) {
@@ -87,7 +87,7 @@ public class TableModelAlt extends AbstractTreeTableModel implements TreeTableMo
 					return null;
 			}
 		}
-		if (node instanceof Ep e) {
+		if (node instanceof Episode e) {
 			switch (c) {
 				case NUMB :
 					return Integer.valueOf(e.size());
@@ -107,7 +107,7 @@ public class TableModelAlt extends AbstractTreeTableModel implements TreeTableMo
 					return null;
 			}
 		}
-		if (node instanceof AG g) {
+		if (node instanceof AnimeGroup g) {
 			switch (c) {
 				case NUMB :
 					return Integer.valueOf(g.size());
@@ -126,17 +126,17 @@ public class TableModelAlt extends AbstractTreeTableModel implements TreeTableMo
 					return null;
 			}
 		}
-		if (node == A.p) {
+		if (node == AppContext.p) {
 			switch (c) {
 				case NAME :
-					return A.p.toString();
+					return AppContext.p.toString();
 				case NUMB :
-					return Integer.valueOf(A.p.size());
+					return Integer.valueOf(AppContext.p.size());
 				default :
 					return null;
 			}
 		}
-		U.err("AnimeModel: Unknown object: " + node);
+		StringUtilities.err("AnimeModel: Unknown object: " + node);
 		return null;
 	}
 
@@ -144,7 +144,7 @@ public class TableModelAlt extends AbstractTreeTableModel implements TreeTableMo
 		if (parent instanceof Base) {
 			return ((Base) parent).get(index);
 		}
-		U.err(parent);
+		StringUtilities.err(parent);
 		return null;
 	}
 

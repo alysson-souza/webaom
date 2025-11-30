@@ -56,15 +56,16 @@ public class JobCnt {
 			return;
 		}
 		int categoryIndex = INDEX_HALTED;
-		if (A.bitcmp(health, Job.H_NORMAL) && (A.bitcmp(status, Job.S_DO) || A.bitcmp(status, Job.S_DOING))) {
-			if (A.bitcmp(status, Job.D_DIO)) {
+		if (AppContext.bitcmp(health, Job.H_NORMAL)
+				&& (AppContext.bitcmp(status, Job.S_DO) || AppContext.bitcmp(status, Job.S_DOING))) {
+			if (AppContext.bitcmp(status, Job.D_DIO)) {
 				categoryIndex = INDEX_DISK_IO;
-			} else if (A.bitcmp(status, Job.D_NIO)) {
+			} else if (AppContext.bitcmp(status, Job.D_NIO)) {
 				categoryIndex = INDEX_NETWORK_IO;
 			}
-		} else if (A.bitcmp(health, Job.H_NORMAL) && A.bitcmp(status, Job.FINISHED)) {
+		} else if (AppContext.bitcmp(health, Job.H_NORMAL) && AppContext.bitcmp(status, Job.FINISHED)) {
 			categoryIndex = INDEX_FINISHED;
-		} else if (A.bitcmp(status, Job.FAILED) || A.bitcmp(status, Job.UNKNOWN)) {
+		} else if (AppContext.bitcmp(status, Job.FAILED) || AppContext.bitcmp(status, Job.UNKNOWN)) {
 			categoryIndex = INDEX_ERROR;
 		}
 		if (increment) {

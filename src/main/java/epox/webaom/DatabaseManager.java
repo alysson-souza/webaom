@@ -20,14 +20,15 @@
  * @version 	01
  * @author 		epoximator
  */
+
 package epox.webaom;
 
 import epox.av.FileInfo;
-import epox.util.U;
+import epox.util.StringUtilities;
 import epox.webaom.data.AFile;
 import epox.webaom.data.Anime;
 import epox.webaom.data.Base;
-import epox.webaom.data.Ep;
+import epox.webaom.data.Episode;
 import epox.webaom.data.Group;
 import epox.webaom.util.PlatformPaths;
 import java.io.File;
@@ -39,7 +40,7 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.HashMap;
 
-public class DB {
+public class DatabaseManager {
 	/** Maximum retry attempts for database operations after connection failures. */
 	public static final int RETRY_LIMIT = 1;
 	/** Cache index for Anime objects. */
@@ -115,7 +116,7 @@ public class DB {
 				loadAllJobs = true;
 				databaseString = databaseString.substring(1);
 			} else if (databaseString.startsWith("?")) {
-				shouldCleanDatabase = A.confirm("Warning", "Do you really want to clean the db?", "Yes", "No");
+				shouldCleanDatabase = AppContext.confirm("Warning", "Do you really want to clean the db?", "Yes", "No");
 				databaseString = databaseString.substring(1);
 			} else {
 				loadAllJobs = false;
@@ -152,7 +153,7 @@ public class DB {
 			}
 			return true;
 		} catch (Exception e) {
-			A.dialog("Database:", e.toString());
+			AppContext.dialog("Database:", e.toString());
 		}
 		return false;
 	}
@@ -286,17 +287,17 @@ public class DB {
 			if (rs != null && rs.next()) { // old system
 				int version = rs.getInt(1);
 				if (version < 1) {
-					executeStatements(A.getFileString("db01.sql"), silent);
+					executeStatements(AppContext.getFileString("db01.sql"), silent);
 				}
 				if (version < 2) {
-					executeStatements(A.getFileString("db02.sql"), silent);
+					executeStatements(AppContext.getFileString("db02.sql"), silent);
 				}
 			} else { // new system or none db defined
 				rs = query("select ver from vtb;", silent);
 				if (rs != null && rs.next()) {
 					int version = rs.getInt(1);
 					if (version < 4) {
-						if (!A.confirm("Warning",
+						if (!AppContext.confirm("Warning",
 								"The database definition has to be upgraded.\n"
 										+ "This will make it uncompatible with previous versions of" + " WebAOM.\n"
 										+ "Do you want to continue? (Backup now, if needed.)",
@@ -305,29 +306,29 @@ public class DB {
 						}
 					}
 					if (version < 1) {
-						executeStatements(A.getFileString("db03.sql"), silent);
+						executeStatements(AppContext.getFileString("db03.sql"), silent);
 					}
 					if (version < 2) {
-						executeStatements(A.getFileString("db04.sql"), silent);
+						executeStatements(AppContext.getFileString("db04.sql"), silent);
 					}
 					if (version < 3) {
-						executeStatements(A.getFileString("db05.sql"), silent);
+						executeStatements(AppContext.getFileString("db05.sql"), silent);
 					}
 					if (version < 4) {
-						executeStatements(A.getFileString("db06.sql"), silent);
+						executeStatements(AppContext.getFileString("db06.sql"), silent);
 					}
 					if (version < 5) {
 						if (isPostgreSQL) {
-							executeStatements(A.getFileString("db07a.sql"), silent);
+							executeStatements(AppContext.getFileString("db07a.sql"), silent);
 						} else {
-							executeStatements(A.getFileString("db07b.sql"), silent);
+							executeStatements(AppContext.getFileString("db07b.sql"), silent);
 						}
 					}
 					if (version < 6) {
 						if (isPostgreSQL) {
-							executeStatements(A.getFileString("db08a.sql"), silent);
+							executeStatements(AppContext.getFileString("db08a.sql"), silent);
 						} else {
-							executeStatements(A.getFileString("db08b.sql"), silent);
+							executeStatements(AppContext.getFileString("db08b.sql"), silent);
 						}
 					}
 				} else {
@@ -335,14 +336,14 @@ public class DB {
 					String schemaSql;
 					if (connectionUrl.indexOf("h2") > 0) {
 						// H2 database - use H2-specific schema
-						schemaSql = A.getFileString("db00-h2.sql");
+						schemaSql = AppContext.getFileString("db00-h2.sql");
 					} else if (isPostgreSQL) {
 						// PostgreSQL - use default schema (has serial)
-						schemaSql = A.getFileString("db00.sql");
+						schemaSql = AppContext.getFileString("db00.sql");
 					} else {
 						// MySQL - convert serial to auto_increment
-						schemaSql = A.getFileString("db00.sql");
-						schemaSql = U.replace(schemaSql, "serial", "integer NOT NULL auto_increment");
+						schemaSql = AppContext.getFileString("db00.sql");
+						schemaSql = StringUtilities.replace(schemaSql, "serial", "integer NOT NULL auto_increment");
 					}
 					executeStatements(schemaSql, silent);
 				}
@@ -453,7 +454,7 @@ public class DB {
 			preparedStatement.setString(paramIndex++, anime.type);
 			preparedStatement.setString(paramIndex++, anime.categories);
 			preparedStatement.setInt(paramIndex++, entityId);
-		} else if (dataObject instanceof Ep episode) {
+		} else if (dataObject instanceof Episode episode) {
 			preparedStatement.setString(paramIndex++, episode.eng);
 			preparedStatement.setString(paramIndex++, episode.kan);
 			preparedStatement.setString(paramIndex++, episode.rom);
@@ -530,8 +531,8 @@ public class DB {
 			path = "";
 		}
 		try {
-			path = U.replace(path, "\\", "\\\\");
-			path = U.replace(path, "'", "\\'");
+			path = StringUtilities.replace(path, "\\", "\\\\");
+			path = StringUtilities.replace(path, "'", "\\'");
 			Object cachedId = directoryIdCache.get(path);
 			if (cachedId != null) {
 				return (Integer) cachedId;
@@ -584,7 +585,7 @@ public class DB {
 		}
 		try {
 			if (entityType == INDEX_EPISODE) {
-				Ep episode = new Ep(entityId);
+				Episode episode = new Episode(entityId);
 				ResultSet rs = query("select english,kanji,romaji,number from etb where eid=" + entityId + ";", false);
 				if (rs.first()) {
 					episode.eng = rs.getString(1);
@@ -686,8 +687,8 @@ public class DB {
 						resultSet.getString(columnIndex++) + File.separatorChar + resultSet.getString(columnIndex++));
 				job = new Job(file, resultSet.getInt(columnIndex++));
 				populateJobFromResultSet(resultSet, columnIndex, job);
-				if (!A.jobs.add(job)) {
-					U.err("DB: Dupe: " + job);
+				if (!AppContext.jobs.add(job)) {
+					StringUtilities.err("DB: Dupe: " + job);
 				}
 			}
 		} catch (SQLException ex) {
@@ -746,7 +747,7 @@ public class DB {
 			for (int fieldIndex = 0; fieldIndex < fields.length; fieldIndex++) {
 				fields[fieldIndex] = rs.getString(colIndex++);
 			}
-			A.cache.add(new Ep(fields), 0, DB.INDEX_EPISODE);
+			AppContext.cache.add(new Episode(fields), 0, DatabaseManager.INDEX_EPISODE);
 		}
 	}
 
@@ -767,7 +768,7 @@ public class DB {
 		if (value == null) {
 			return "NULL";
 		}
-		return "'" + U.replace(value, "'", "\\'") + "'";
+		return "'" + StringUtilities.replace(value, "'", "\\'") + "'";
 	}
 
 	/**

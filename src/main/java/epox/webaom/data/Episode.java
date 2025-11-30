@@ -22,12 +22,12 @@
  */
 package epox.webaom.data;
 
-import epox.util.U;
+import epox.util.StringUtilities;
 
 /**
  * Represents an episode entry from AniDB.
  */
-public class Ep extends Base {
+public class Episode extends Base {
 	/** Episode number/code (e.g., "1", "S1", "C2"). */
 	public String num;
 	/** Romaji title. */
@@ -37,17 +37,17 @@ public class Ep extends Base {
 	/** English title. */
 	public String eng;
 
-	public Ep(int id) {
+	public Episode(int id) {
 		this.id = id;
 	}
 
-	public Ep(String[] fields) {
+	public Episode(String[] fields) {
 		int index = 0;
-		id = U.i(fields[index++]);
+		id = StringUtilities.i(fields[index++]);
 		num = fields[index++].intern();
 		eng = fields[index++];
-		rom = U.n(fields[index++]);
-		kan = U.n(fields[index++]);
+		rom = StringUtilities.n(fields[index++]);
+		kan = StringUtilities.n(fields[index++]);
 	}
 
 	/** Title display priority: 0=english, 1=romaji, 2=kanji. */
@@ -69,7 +69,7 @@ public class Ep extends Base {
 	}
 
 	public int compareTo(Object obj) {
-		if (obj instanceof Ep other) {
+		if (obj instanceof Episode other) {
 			try {
 				int thisNum = Integer.parseInt(num);
 				int otherNum = Integer.parseInt(other.num);

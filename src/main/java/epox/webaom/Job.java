@@ -23,9 +23,9 @@
 package epox.webaom;
 
 import epox.av.FileInfo;
-import epox.util.U;
+import epox.util.StringUtilities;
 import epox.webaom.data.AFile;
-import epox.webaom.data.AMap;
+import epox.webaom.data.AttributeMap;
 import java.io.File;
 
 public class Job {
@@ -56,14 +56,14 @@ public class Job {
 	}
 
 	public Job(String[] serializedData) {
-		this(new File(serializedData[1]), U.i(serializedData[0]));
+		this(new File(serializedData[1]), StringUtilities.i(serializedData[0]));
 		int index = 2;
 		fileSize = Long.parseLong(serializedData[index++]);
 		ed2kHash = serializedData[index++];
-		md5Hash = U.n(serializedData[index++]);
-		sha1Hash = U.n(serializedData[index++]);
-		tthHash = U.n(serializedData[index++]);
-		crc32Hash = U.n(serializedData[index++]);
+		md5Hash = StringUtilities.n(serializedData[index++]);
+		sha1Hash = StringUtilities.n(serializedData[index++]);
+		tthHash = StringUtilities.n(serializedData[index++]);
+		crc32Hash = StringUtilities.n(serializedData[index++]);
 		originalName = serializedData[index++];
 	}
 
@@ -82,7 +82,7 @@ public class Job {
 		} else {
 			status |= H_PAUSED;
 		}
-		A.jobc.register(-1, -1, status & M_R, getHealth());
+		AppContext.jobc.register(-1, -1, status & M_R, getHealth());
 	}
 
 	public String toString() {
@@ -162,7 +162,7 @@ public class Job {
 	}
 
 	public boolean incompl() {
-		return anidbFile == null || anidbFile.anime == null || anidbFile.ep == null;
+		return anidbFile == null || anidbFile.anime == null || anidbFile.episode == null;
 	}
 
 	public String getStatusText() {
@@ -188,14 +188,14 @@ public class Job {
 		}
 		if ((newStatus & F_DB) == F_DB) { // only for main status
 			if (test && health == H_NORMAL) {
-				A.jobs.updateQueues(this, getStatus(), newStatus & M_S); // TODO pause off fix
+				AppContext.jobs.updateQueues(this, getStatus(), newStatus & M_S); // TODO pause off fix
 			}
 			// A.jobc.register(getRegVal(), (newStatus|H_NORMAL)&M_R);
 			health = H_NORMAL;
 			if (newStatus == FINISHED && !currentFile.exists()) {
 				health = H_MISSING;
 			}
-			A.jobc.register(status & M_R, getHealth(), newStatus & M_R, health);
+			AppContext.jobc.register(status & M_R, getHealth(), newStatus & M_R, health);
 			status = newStatus | health;
 
 		} else {
@@ -206,13 +206,13 @@ public class Job {
 	private void setHealth(int health) {
 		int currentStatus = getStatus();
 		if (!check(H_NORMAL) && health == H_NORMAL) {
-			A.jobs.updateQueues(this, 0, currentStatus);
+			AppContext.jobs.updateQueues(this, 0, currentStatus);
 		} else if (check(H_NORMAL) && health != H_NORMAL) {
-			A.jobs.updateQueues(this, currentStatus, -1);
+			AppContext.jobs.updateQueues(this, currentStatus, -1);
 		}
 
 		// A.jobc.register(getRegVal(), currentStatus|health);
-		A.jobc.register(status & M_R, getHealth(), status & M_R, health);
+		AppContext.jobc.register(status & M_R, getHealth(), status & M_R, health);
 		setHealth0(health);
 	}
 
@@ -240,10 +240,10 @@ public class Job {
 			case H_DELETED :
 				if (health == H_DELETED) {
 					health = (currentFile.exists() ? H_NORMAL : H_MISSING);
-					A.db.update(0, this, DB.INDEX_JOB);
+					AppContext.databaseManager.update(0, this, DatabaseManager.INDEX_JOB);
 				} else {
 					health = H_DELETED; // delete
-					A.db.removeJob(this);
+					AppContext.databaseManager.removeJob(this);
 				}
 				break;
 			case H_MISSING :
@@ -366,29 +366,29 @@ public class Job {
 	}
 
 	public String convert(String template) {
-		String avInfoBlock = U.getInTag(template, "avinfo");
+		String avInfoBlock = StringUtilities.getInTag(template, "avinfo");
 		if (avInfoBlock != null) {
 			String processedAvInfo = avInfoBlock;
 			if (avFileInfo != null) {
 				String[] tags = new String[]{"vid", "aud", "sub"};
 				for (int i = 0; i < 3; i++) {
-					String tagContent = U.getInTag(processedAvInfo, tags[i]);
+					String tagContent = StringUtilities.getInTag(processedAvInfo, tags[i]);
 					if (tagContent == null) {
 						continue;
 					}
 					String converted = avFileInfo.convert(tagContent, i);
-					processedAvInfo = U.replace(processedAvInfo, tagContent, converted);
+					processedAvInfo = StringUtilities.replace(processedAvInfo, tagContent, converted);
 				}
 			} else {
 				processedAvInfo = "";
 			}
-			template = U.replace(template, avInfoBlock, processedAvInfo);
+			template = StringUtilities.replace(template, avInfoBlock, processedAvInfo);
 		}
-		return U.replaceCCCode(template, genMap());
+		return StringUtilities.replaceCCCode(template, genMap());
 	}
 
-	public AMap genMap() {
-		AMap am = new AMap();
+	public AttributeMap genMap() {
+		AttributeMap am = new AttributeMap();
 
 		am.put("fil", currentFile.getName());
 		am.put("pat", currentFile.getParent());
@@ -450,13 +450,13 @@ public class Job {
 				am.put("lep", anidbFile.anime.latestEpisode);
 				am.put("yen", anidbFile.anime.endYear);
 			}
-			if (anidbFile.ep != null) {
-				am.put("epn", anidbFile.ep.eng);
-				am.put("epk", anidbFile.ep.kan);
-				am.put("epr", anidbFile.ep.rom);
+			if (anidbFile.episode != null) {
+				am.put("epn", anidbFile.episode.eng);
+				am.put("epk", anidbFile.episode.kan);
+				am.put("epr", anidbFile.episode.rom);
 			}
-			if (anidbFile.anime != null && anidbFile.ep != null) {
-				am.put("enr", Parser.pad(anidbFile.ep.num, anidbFile.anime.getTotal()));
+			if (anidbFile.anime != null && anidbFile.episode != null) {
+				am.put("enr", Parser.pad(anidbFile.episode.num, anidbFile.anime.getTotal()));
 			}
 			if (anidbFile.group != null && anidbFile.groupId > 0) {
 				am.put("grp", anidbFile.group.shortName);
