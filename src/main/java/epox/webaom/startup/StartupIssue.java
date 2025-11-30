@@ -74,14 +74,14 @@ public record StartupIssue(Severity severity, String title, String message, Stri
 	 * @return formatted issue string
 	 */
 	public String getFormattedMessage() {
-		StringBuilder sb = new StringBuilder();
-		sb.append("[").append(severity.getDisplayName()).append("] ");
-		sb.append(title).append("\n");
-		sb.append(message);
+		StringBuilder builder = new StringBuilder();
+		builder.append("[").append(severity.getDisplayName()).append("] ");
+		builder.append(title).append("\n");
+		builder.append(message);
 		if (suggestion != null && !suggestion.isEmpty()) {
-			sb.append("\n\nSuggestion: ").append(suggestion);
+			builder.append("\n\nSuggestion: ").append(suggestion);
 		}
-		return sb.toString();
+		return builder.toString();
 	}
 
 	@Override
