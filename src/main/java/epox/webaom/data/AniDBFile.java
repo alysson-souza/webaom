@@ -186,9 +186,9 @@ public class AniDBFile extends Base {
 
     private String url0(String str, boolean non) {
         if (non) {
-            return "http://" + AppContext.S_WEB + "/perl-bin/animedb.pl?" + str + "&nonav=1";
+            return "https://" + AppContext.ANIDB_HOST + "/perl-bin/animedb.pl?" + str + "&nonav=1";
         }
-        return "http://" + AppContext.S_WEB + "/perl-bin/animedb.pl?" + str;
+        return "https://" + AppContext.ANIDB_HOST + "/perl-bin/animedb.pl?" + str;
     }
 
     private String url1(String str) {

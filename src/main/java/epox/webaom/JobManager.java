@@ -346,7 +346,7 @@ public final class JobManager {
     }
 
     public static void showInfo(Job job) {
-        AppContext.dialog2(job.currentFile.getName(), job.convert(AppContext.fschema));
+        AppContext.dialog2(job.currentFile.getName(), job.convert(AppContext.fileSchemaTemplate));
     }
 
     private static void moveSubtitleFiles(File sourceFile, File destinationFile) {

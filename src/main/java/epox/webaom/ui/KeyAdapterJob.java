@@ -34,13 +34,13 @@ public class KeyAdapterJob extends KeyAdapter {
                     AppContext.gui.altViewPanel.updateAlternativeView(true);
                     return;
                 case 'D':
-                    AppContext.p.dump("@ ");
+                    AppContext.animeTreeRoot.dump("@ ");
                     return; // A.jobs.dumpHashSet();
                 case 'B':
                     AppContext.dumpStats();
                     return;
                 case 'L':
-                    AppContext.p.clear();
+                    AppContext.animeTreeRoot.clear();
                     AppContext.gui.altViewPanel.updateAlternativeView(false);
                     return;
                 default:

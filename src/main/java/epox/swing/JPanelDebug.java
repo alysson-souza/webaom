@@ -53,8 +53,8 @@ public class JPanelDebug extends JPanel {
         super(new java.awt.BorderLayout());
         textArea = new JTextArea();
         textArea.setMargin(new java.awt.Insets(2, 2, 2, 2));
-        textArea.append(
-                "Please report bugs at https://github.com/alysson-souza/webaom - Version:" + AppContext.S_VER + "\r\n");
+        textArea.append("Please report bugs at https://github.com/alysson-souza/webaom - Version:" + AppContext.VERSION
+                + "\r\n");
         JScrollPane scroll = new JScrollPane(textArea);
         scrollBar = scroll.getVerticalScrollBar();
         add(scroll);
