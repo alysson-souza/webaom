@@ -23,7 +23,6 @@
 package epox.webaom.ui;
 
 import epox.av.AVInfo;
-import epox.swing.JTextInputDialog;
 import epox.webaom.AppContext;
 import epox.webaom.Job;
 import epox.webaom.JobManager;
@@ -206,9 +205,8 @@ public class JobContextMenu extends JPopupMenu implements MouseListener, ActionL
             return;
         }
         if (commandId == EDIT_PATH) {
-            folderPath = new JTextInputDialog(
-                            AppContext.frame, "Edit path", jobs[0].getFile().getParent())
-                    .getStr();
+            folderPath = javax.swing.JOptionPane.showInputDialog(
+                    AppContext.frame, "Edit path", jobs[0].getFile().getParent());
             if (folderPath == null || folderPath.length() < 2) {
                 return;
             }
@@ -282,10 +280,16 @@ public class JobContextMenu extends JPopupMenu implements MouseListener, ActionL
                 break;
             case EDIT_NAME:
                 String currentName = job.getFile().getName();
-                JobManager.setName(job, new JTextInputDialog(AppContext.frame, "Edit name", currentName).getStr());
+                JobManager.setName(
+                        job, javax.swing.JOptionPane.showInputDialog(AppContext.frame, "Edit name", currentName));
                 break;
             case SET_FID:
-                job.fileIdOverride = new JTextInputDialog(AppContext.frame, "Insert fid", "").getInt();
+                String fidInput = javax.swing.JOptionPane.showInputDialog(AppContext.frame, "Insert fid", "");
+                try {
+                    job.fileIdOverride = fidInput != null ? Integer.parseInt(fidInput.trim()) : -1;
+                } catch (NumberFormatException ignored) {
+                    job.fileIdOverride = -1;
+                }
                 if (job.fileIdOverride > 0) {
                     job.anidbFile = null;
                     JobManager.updateStatus(job, Job.HASHED);
