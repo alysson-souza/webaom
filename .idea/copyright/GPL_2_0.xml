@@ -1,9 +1,0 @@
-<component name="CopyrightManager">
-  <copyright>
-    <option name="notice" value="WebAOM - Web Anime-O-Matic&#10;Copyright (C) 2005-2010 epoximator ${today.year} Alysson Souza&#10;&#10;This program is free software; you can redistribute it and/or modify it under&#10;the terms of the GNU General Public License version 2 as published by the Free&#10;Software Foundation.&#10;&#10;This program is distributed in the hope that it will be useful, but WITHOUT&#10;ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS&#10;FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.&#10;&#10;You should have received a copy of the GNU General Public License along with&#10;this program; if not, see &lt;https://www.gnu.org/licenses/&gt;."/>
-    <option name="myName" value="GPL-2.0"/>
-    <option name="keyword" value="Copyright"/>
-    <option name="allowReplaceKeyword" value=""/>
-    <option name="myLocal" value="true"/>
-  </copyright>
-</component>
