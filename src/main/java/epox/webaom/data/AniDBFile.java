@@ -134,6 +134,7 @@ public class AniDBFile extends AniDBEntity {
         job = newJob;
     }
 
+    @Override
     public String toString() {
         if (job != null) {
             return job.getFile().getName();
@@ -141,13 +142,7 @@ public class AniDBFile extends AniDBEntity {
         return defaultName;
     }
 
-    /*
-     * public String toString(){
-     * return
-     * ed2kHash+md5Hash+shaHash+crcHash+dubLanguage+subLanguage+quality+ripSource+resolution+videoCodec+audioCodec+
-     * defaultName+ep;
-     * }
-     */
+    @Override
     public String serialize() {
         return "" + fileId + S + animeId + S + episodeId + S + groupId + S + mylistEntryId + S + state + S + totalSize
                 + S + ed2kHash + S + md5Hash + S + shaHash + S + crcHash + S + dubLanguage + S + subLanguage + S
@@ -155,10 +150,12 @@ public class AniDBFile extends AniDBEntity {
                 + lengthInSeconds + S + (group != null ? group.serialize() : "");
     }
 
+    @Override
     public Object getKey() {
         return Integer.valueOf(fileId);
     }
 
+    @Override
     public void clear() {
         //
     }
@@ -239,7 +236,7 @@ public class AniDBFile extends AniDBEntity {
     }
 
     public boolean inYear(String yearRange) {
-        yearRange.replaceAll(" ", "");
+        yearRange = yearRange.replace(" ", "");
         int dashIndex = yearRange.indexOf('-');
         if (dashIndex > 0) { // Range
             int startYear = Integer.parseInt(yearRange.substring(0, dashIndex));
@@ -367,17 +364,4 @@ public class AniDBFile extends AniDBEntity {
 
         return missingFlags;
     }
-    /*
-     * public int compareTo(Object o){
-     * if(o instanceof AFile){
-     * AFile f = (AFile)o;
-     * if(mBs==f.mBs){
-     * return job.getFile().compareTo(f.job.getFile());
-     * }
-     * if(mBs&&!f.mBs) return -1;
-     * return 1;
-     * }
-     * return super.compareTo(o);
-     * }
-     */
 }
