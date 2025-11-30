@@ -32,8 +32,11 @@ import epox.webaom.data.Episode;
 import epox.webaom.data.Group;
 import epox.webaom.data.Path;
 import java.util.HashMap;
+import java.util.logging.Logger;
 
 public class Cache {
+    private static final Logger LOGGER = Logger.getLogger(Cache.class.getName());
+
     /** Tree sort mode: Anime > File */
     public static final int MODE_ANIME_FILE = 0;
     /** Tree sort mode: Anime > Episode > File */
@@ -45,17 +48,45 @@ public class Cache {
     /** Total number of tree sort modes */
     public static final int MODE_COUNT = 4;
     /** Display labels for each sort mode */
-    public static final String[] SORT_MODE_LABELS = {
+    private static final String[] SORT_MODE_LABELS = {
         "Anime, File", "Anime, Episode, File", "Anime, Group, File", "Anime, Folder, File"
     };
     /** Current tree sort mode */
-    public static int treeSortMode = MODE_ANIME_EPISODE_FILE;
+    private static int treeSortMode = MODE_ANIME_EPISODE_FILE;
 
-    /////////////// OTHER///////////////
+    // Configuration flags for tree display
     /** Whether to hide existing (non-missing) files from tree */
-    public static boolean hideExisting = false;
+    private static boolean hideExisting = false;
     /** Whether to hide new/missing files from tree */
-    public static boolean hideNew = false;
+    private static boolean hideNew = false;
+
+    public static String[] getSortModeLabels() {
+        return SORT_MODE_LABELS.clone();
+    }
+
+    public static int getTreeSortMode() {
+        return treeSortMode;
+    }
+
+    public static void setTreeSortMode(int mode) {
+        treeSortMode = mode;
+    }
+
+    public static boolean isHideExisting() {
+        return hideExisting;
+    }
+
+    public static void setHideExisting(boolean hide) {
+        hideExisting = hide;
+    }
+
+    public static boolean isHideNew() {
+        return hideNew;
+    }
+
+    public static void setHideNew(boolean hide) {
+        hideNew = hide;
+    }
 
     private final CacheMap[] cacheMaps;
 
@@ -129,7 +160,7 @@ public class Cache {
 
     public AniDBFile parseFile(String[] fields, Job job) {
         if (fields.length != 34) {
-            System.out.println("Unexpected response! len=" + fields.length);
+            LOGGER.warning(() -> "Unexpected response! len=" + fields.length);
             job.setError("Unexpected response from server.");
             return null;
         }
@@ -179,7 +210,7 @@ public class Cache {
         file.anime.romajiTitle = fields[fieldIndex++];
         file.anime.kanjiTitle = StringUtilities.n(fields[fieldIndex++]);
         file.anime.englishTitle = StringUtilities.n(fields[fieldIndex++]);
-        file.anime.categories = fields[fieldIndex++];
+        file.anime.categories = fields[fieldIndex];
         file.anime.init();
         // wrap up
         file.defaultName = file.anime.romajiTitle + " - " + file.episode.num + " - " + file.episode.eng + " - ["
@@ -277,6 +308,8 @@ public class Cache {
                     anime.add(folderNode);
                 }
                 break;
+            default:
+                break;
         }
         anime.registerEpisode(file.episode, true);
         anime.updateCompletionPercent();
@@ -334,6 +367,8 @@ public class Cache {
                         }
                     }
                 }
+                break;
+            default:
                 break;
         }
         anime.registerEpisode(file.episode, file.episode.size() > 0);
