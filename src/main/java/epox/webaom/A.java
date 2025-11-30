@@ -36,10 +36,11 @@ import java.util.Properties;
 import javax.swing.JOptionPane;
 import javax.swing.SwingUtilities;
 
-/*
- * THE STATIX CLASS
+/**
+ * Global state singleton holding all subsystems and configuration.
+ * This is a legacy pattern from the original codebase.
  */
-public class A {
+public final class A {
 	private A() {
 		// static only
 	}
@@ -75,8 +76,10 @@ public class A {
 	public static String dir = null;
 	public static String preg = null /* "^.*$" */;
 	public static String font = "";
-	public static int ASNO = 99;
-	public static int ASSP = 99;
+	/** Assumed episode count for normal episodes when actual count unknown (for zero-padding). */
+	public static int assumedEpisodeCount = 99;
+	/** Assumed episode count for special episodes when actual count unknown (for zero-padding). */
+	public static int assumedSpecialCount = 99;
 
 	public static java.awt.Component component = null;
 	public static java.awt.Frame frame = null;
@@ -100,11 +103,9 @@ public class A {
 	public static Base p = new Base();
 
 	public static boolean autoadd = false;
-	public static boolean opt_change = false;
+	public static boolean optionsChanged = false;
 
-	// public static volatile int nr_dio=-1, nr_nio = -1, nr_menu = -1;
-
-	public static final UserPass up = new UserPass(null, null, null);
+	public static UserPass userPass = new UserPass(null, null, null);
 
 	public static void init() {
 		// A.mem0 = A.getUsed();
@@ -140,13 +141,19 @@ public class A {
 					if (o.getBoolean(Options.BOOL_AUTO_SAVE)) {
 						o.saveToFile();
 					} else {
-						switch (yes_no_cancel("The options has changed", "Do you want to save them?")) {
+						String dialogTitle = "The options has changed";
+						String dialogMessage = "Do you want to save them?";
+						int response = showYesNoCancelDialog(dialogTitle, dialogMessage);
+						switch (response) {
 							case 0 :
 								o.saveToFile();
 								break;
 							case -1 :
 							case 2 :
 								return false;
+							default :
+								// No (case 1) - continue without saving
+								break;
 						}
 					}
 				}
@@ -190,10 +197,19 @@ public class A {
 				JOptionPane.WARNING_MESSAGE, null, o, o[0]) == 0;
 	}
 
-	public static int yes_no_cancel(String title, String msg) {
-		Object[] o = {"Yes", "No", "Cancel"};
+	/**
+	 * Shows a Yes/No/Cancel dialog.
+	 *
+	 * @param title
+	 *            dialog title
+	 * @param msg
+	 *            dialog message
+	 * @return 0 for Yes, 1 for No, 2 for Cancel, -1 if closed
+	 */
+	public static int showYesNoCancelDialog(String title, String msg) {
+		Object[] options = {"Yes", "No", "Cancel"};
 		return JOptionPane.showOptionDialog(A.component, msg, title, JOptionPane.YES_NO_CANCEL_OPTION,
-				JOptionPane.WARNING_MESSAGE, null, o, o[0]);
+				JOptionPane.WARNING_MESSAGE, null, options, options[0]);
 	}
 
 	public static boolean bitcmp(int s, int m) {
@@ -204,10 +220,10 @@ public class A {
 		try {
 			InputStream is = WebAOM.class.getClassLoader().getResourceAsStream(name);
 			String str = "";
-			int buf_size = 1024;
-			byte[] buffer = new byte[buf_size];
+			int bufferSize = 1024;
+			byte[] buffer = new byte[bufferSize];
 			int read;
-			while ((read = is.read(buffer, 0, buf_size)) > 0) {
+			while ((read = is.read(buffer, 0, bufferSize)) > 0) {
 				str += new String(buffer, 0, read);
 			}
 			return str;
@@ -252,12 +268,4 @@ public class A {
 		}
 		System.out.println("@ Tree: " + A.p.size() + ", " + sub0 + ", " + sub1);
 	}
-	/*
-	 * public static int getUsed(){
-	 * MemoryMXBean mx = ManagementFactory.getMemoryMXBean();
-	 * MemoryUsage muh = mx.getHeapMemoryUsage();
-	 * MemoryUsage mus = mx.getNonHeapMemoryUsage();
-	 * return (int)(muh.getUsed()+mus.getUsed());
-	 * }
-	 */
 }

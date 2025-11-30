@@ -54,7 +54,7 @@ public class NetIO implements Runnable {
 					if (!e.is(AConEx.ENCRYPTION)) {
 						A.gui.kill();
 						A.gui.handleFatalError(true);
-					} // else A.up.key = null;
+					} // else A.userPass.apiKey = null;
 					cleanCurrentJob(e.getMessage());
 				} catch (Exception e) {
 					e.printStackTrace();

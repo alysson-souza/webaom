@@ -13,69 +13,74 @@ import java.awt.event.ActionListener;
 import java.util.Stack;
 
 public class RuleMenu extends DefaultHandler {
-	private JMenuItem m_item = null;
-	private final Stack<JMenu> m_subs;
-	private final JTextArea m_jta;
+	/** The currently active menu item being parsed. */
+	private JMenuItem currentItem = null;
+	/** Stack of nested submenus for hierarchical menu building. */
+	private final Stack<JMenu> menuStack;
+	/** Target text area for inserting rule text. */
+	private final JTextArea textArea;
 
-	public RuleMenu(JTextArea jta) {
-		m_jta = jta;
-		m_subs = new Stack<>();
+	public RuleMenu(JTextArea targetTextArea) {
+		textArea = targetTextArea;
+		menuStack = new Stack<>();
 	}
 
 	public JPopupMenu getMenu() {
-		return m_subs.peek().getPopupMenu();
+		return menuStack.peek().getPopupMenu();
 	}
 
+	@Override
 	public void startElement(String uri, String localName, String qName, final Attributes attributes)
 			throws SAXException {
 		super.startElement(uri, localName, qName, attributes);
 
 		switch (qName) {
 			case "elem" -> {
-				m_item = new JMenuItem(attributes.getValue("title"));
-				// m_item.setToolTipText(attributes.getValue("tip"));
-				MyListener my = new MyListener(m_jta, attributes.getValue("value"));
-				m_item.addActionListener(my);
-				// m_item.addMouseListener(my);
-				m_subs.peek().add(m_item);
+				currentItem = new JMenuItem(attributes.getValue("title"));
+				String valueAttr = attributes.getValue("value");
+				InsertTextListener listener = new InsertTextListener(textArea, valueAttr);
+				currentItem.addActionListener(listener);
+				menuStack.peek().add(currentItem);
 			}
-			case "item" -> m_subs.push(new JMenu(attributes.getValue("title")));
-			case "menu" -> m_subs.add(new JMenu());
+			case "item" -> menuStack.push(new JMenu(attributes.getValue("title")));
+			case "menu" -> menuStack.add(new JMenu());
+			default -> {
+			}
 		}
 	}
 
+	@Override
 	public void endElement(String uri, String localName, String qName) throws SAXException {
 		super.endElement(uri, localName, qName);
 		if (qName.equals("item")) {
-			JMenu sub = m_subs.pop();
-			m_subs.peek().add(sub);
-			// System.out.println("pop  "+sub.getText());
+			JMenu submenu = menuStack.pop();
+			menuStack.peek().add(submenu);
 		}
-		m_item = null;
+		currentItem = null;
 	}
 
+	@Override
 	public void characters(char[] ch, int start, int length) throws SAXException {
 		super.characters(ch, start, length);
-		String str = new String(ch, start, length).trim();
-		if (m_item != null && !str.isEmpty()) {
-			m_item.setToolTipText(str);
+		String tooltipText = new String(ch, start, length).trim();
+		if (currentItem != null && !tooltipText.isEmpty()) {
+			currentItem.setToolTipText(tooltipText);
 		}
 	}
 
-	private class MyListener /* extends MouseAdapter */ implements ActionListener {
-		private final JTextArea jta;
-		// private final JMenuItem jmi;
-		private final String s;
+	/** Listener that inserts rule text at the caret position in the target text area. */
+	private class InsertTextListener implements ActionListener {
+		private final JTextArea targetTextArea;
+		private final String insertText;
 
-		public MyListener(JTextArea ta, /* JMenuItem mi, */ String s) {
-			jta = ta;
-			// jmi = mi;
-			this.s = s;
+		InsertTextListener(JTextArea textArea, String textToInsert) {
+			targetTextArea = textArea;
+			insertText = textToInsert;
 		}
 
-		public void actionPerformed(ActionEvent e) {
-			// System.out.println(s);
-			jta.insert(s, jta.getCaretPosition());
+		@Override
+		public void actionPerformed(ActionEvent event) {
+			targetTextArea.insert(insertText, targetTextArea.getCaretPosition());
 		}
 		/*
 		 * public void mouseEntered(MouseEvent e) {

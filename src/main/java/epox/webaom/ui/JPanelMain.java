@@ -674,7 +674,7 @@ public class JPanelMain extends JPanel
 
 	private boolean startNetworkIoInternal() {
 		if (!isKilled() && networkIoThread == null) {
-			// if(A.up.usr==null||A.up.psw==null||A.up.key==null)
+			// if(A.userPass.username==null||A.userPass.password==null||A.userPass.apiKey==null)
 			if (new JDialogLogin().getPass() == null) {
 				return false;
 			}
@@ -790,7 +790,7 @@ public class JPanelMain extends JPanel
 		A.usetup = new AConS(getHost(), getRemotePort(), getLocalPort(), connectionOptionsPanel.getTimeout(),
 				connectionOptionsPanel.getDelayMillis(), 3, connectionOptionsPanel.isNatKeepAliveEnabled());
 		AConE connection = new AConE(this, A.usetup);
-		connection.set(A.up.username, A.up.password, A.up.apiKey);
+		connection.set(A.userPass.username, A.userPass.password, A.userPass.apiKey);
 		return connection;
 	}
 
@@ -798,7 +798,7 @@ public class JPanelMain extends JPanel
 	public void saveOptions(Options options) {
 		options.setBoolean(Options.BOOL_ADD_FILE, autoAddToMylistCheckbox.isSelected());
 		options.setString(Options.STR_HTML_COLORS, Hyper.encodeColors());
-		options.setString(Options.STR_USERNAME, A.up.get(miscOptionsPanel.isStorePasswordEnabled()));
+		options.setString(Options.STR_USERNAME, A.userPass.get(miscOptionsPanel.isStorePasswordEnabled()));
 
 		mylistOptionsPanel.saveToOptions(options);
 		A.fha.saveOptions(options);
@@ -816,7 +816,7 @@ public class JPanelMain extends JPanel
 		try {
 			autoAddToMylistCheckbox.setSelected(options.getBoolean(Options.BOOL_ADD_FILE));
 			Hyper.decodeColors(options.getString(Options.STR_HTML_COLORS));
-			A.up.set(options.getString(Options.STR_USERNAME));
+			A.userPass.set(options.getString(Options.STR_USERNAME));
 			mylistOptionsPanel.loadFromOptions(options);
 			A.fha.loadOptions(options);
 			connectionOptionsPanel.loadOptions(options);
