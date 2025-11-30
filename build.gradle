@@ -2,7 +2,6 @@ plugins {
 	id 'java'
 	id 'application'
 	id 'com.diffplug.spotless' version '8.1.0'
-	id 'com.palantir.java-format' version '2.83.0'
 }
 
 group = 'epox'
@@ -73,6 +72,7 @@ tasks.withType(JavaCompile).configureEach {
 spotless {
 	java {
 		target 'src/main/java/epox/**/*.java'
+		palantirJavaFormat()
 		removeUnusedImports()
 		formatAnnotations()
 		trimTrailingWhitespace()

@@ -224,8 +224,8 @@ public class DatabaseManager {
             updateStatements[INDEX_EPISODE] =
                     con.prepareStatement("update etb set english=?,kanji=?,romaji=?,number=? where eid=?");
             updateStatements[INDEX_FILE] = con.prepareStatement("update ftb set"
-                + " aid=?,eid=?,gid=?,def_name=?,state=?,size=?,len=?,ed2k=?,md5=?,sha1=?,crc32=?,dublang=?,sublang=?,quality=?,ripsource=?,audio=?,video=?,resolution=?,ext=?"
-                + " where fid=?");
+                    + " aid=?,eid=?,gid=?,def_name=?,state=?,size=?,len=?,ed2k=?,md5=?,sha1=?,crc32=?,dublang=?,sublang=?,quality=?,ripsource=?,audio=?,video=?,resolution=?,ext=?"
+                    + " where fid=?");
             updateStatements[INDEX_GROUP] = con.prepareStatement("update gtb set name=?,short=? where gid=?");
             updateStatements[INDEX_JOB] = con.prepareStatement(
                     "update jtb set" + " name=?,did=?,status=?,md5=?,sha1=?,tth=?,crc32=?,fid=?,lid=?,avxml=?"
@@ -237,8 +237,8 @@ public class DatabaseManager {
             insertStatements[INDEX_EPISODE] =
                     con.prepareStatement("insert into etb (english,kanji,romaji,number,eid) values (?,?,?,?,?)");
             insertStatements[INDEX_FILE] = con.prepareStatement("insert into ftb"
-                + " (aid,eid,gid,def_name,state,size,len,ed2k,md5,sha1,crc32,dublang,sublang,quality,ripsource,audio,video,resolution,ext,fid)"
-                + " values (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)");
+                    + " (aid,eid,gid,def_name,state,size,len,ed2k,md5,sha1,crc32,dublang,sublang,quality,ripsource,audio,video,resolution,ext,fid)"
+                    + " values (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)");
             insertStatements[INDEX_GROUP] = con.prepareStatement("insert into gtb (name,short,gid) values (?,?,?)");
             insertStatements[INDEX_JOB] = con.prepareStatement(
                     "insert into jtb" + " (name,did,status,md5,sha1,tth,crc32,fid,lid,avxml,size,ed2k,orig,uid)"
