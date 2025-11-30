@@ -28,7 +28,7 @@ import javax.swing.table.TableRowSorter;
  */
 public class JTableSortable extends JTable {
     /** Header click listener for column visibility menu */
-    private transient HeaderListener headerListener;
+    private final transient HeaderListener headerListener;
 
     /** Flag to trigger row height recalculation on next paint */
     private boolean needsRowHeightCalculation = true;
