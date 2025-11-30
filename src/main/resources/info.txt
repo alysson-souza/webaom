@@ -3,6 +3,7 @@ WebAOM!
 2.0.0 2025.11.30
 *First public release of the modernized WebAOM.
 *Added native app packages for macOS (.dmg), Windows (.msi), and Linux (.deb).
+*Added automatic switch to Jobs panel when adding files.
 *Added Delete/Backspace keyboard shortcut to remove jobs from list.
 *Added application window icon for taskbar/dock.
 *Added ⌘R keyboard shortcut for refresh on macOS (F5 still works).
@@ -14,11 +15,11 @@ WebAOM!
 *Added user-friendly descriptions to Jobs table columns.
 *Added platform-appropriate default locations for log files and database.
 *Added directory memory to file and directory pickers across sessions.
+*Added drag-and-drop support with visual feedback.
 *Fixed "Add to mylist" failing when file is already in mylist.
 *Fixed Source condition in rule helper menu.
 *Fixed Help button not working on macOS and Linux.
 *Fixed "Watch Now" and "Explore Folder" not working on macOS and Linux.
-*Fixed drag-and-drop operations with visual feedback.
 *Fixed embedded database not working.
 *Fixed credential loading from saved options.
 *Fixed login dialog layout.
