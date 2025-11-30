@@ -2,24 +2,25 @@ WebAOM!
 
 2.0.0 2025.11.30
 *First public release of the modernized WebAOM.
-*Fixed "Add to mylist" failing when file is already in mylist.
 *Migrated to Gradle build system with Java 21 LTS.
 *Added automatic embedded database support (H2). If PostgreSQL/MySQL is unavailable, WebAOM will now use an embedded database automatically.
 *Added "Auto rename" option to disable automatic file renaming after identification.
 *Added startup validation that shows helpful messages if there are configuration issues.
+*Added support for more video formats (3gp, asf, dat, divx, f4v, flv, m2ts, m2v, m4v, mov, mpeg, mpg, mts, ogv, qt, ram, rm, rmvb, ts, vob, webm, wmv).
+*Added support for more subtitle formats (sbv, smi, vtt).
+*Fixed "Add to mylist" failing when file is already in mylist.
 *Fixed Help button not working on macOS and Linux.
 *Fixed drag-and-drop operations with visual feedback.
 *Fixed embedded database not working.
 *Fixed credential loading from saved options.
 *Fixed login dialog layout.
 *Fixed !mystats, !anime, !group and !mylist commands in Chii emulator.
-*Added support for more video formats (3gp, asf, dat, divx, f4v, flv, m2ts, m2v, m4v, mov, mpeg, mpg, mts, ogv, qt, ram, rm, rmvb, ts, vob, webm, wmv).
-*Added support for more subtitle formats (sbv, smi, vtt).
-*Jobs table columns now display user-friendly descriptions.
-*Updated database drivers (PostgreSQL 42.7.8, MySQL 9.5.0, H2 2.4.240).
-*Log files and database now use platform-appropriate default locations.
-*Application will now continue to run even if optional features fail to initialize.
 *Fixed several minor bugs and improved compatibility with modern Java versions.
+*Updated database drivers (PostgreSQL 42.7.8, MySQL 9.5.0, H2 2.4.240).
+*Jobs table columns now display user-friendly descriptions.
+*Log files and database now use platform-appropriate default locations.
+*File and directory pickers now remember the last used directory across sessions.
+*Application will now continue to run even if optional features fail to initialize.
 
 1.19p 2010.03.07
 *Hack to keep receive thread from dribbling all over itself and quitting if the server replies with a 602.  Probably.

@@ -862,6 +862,7 @@ public class MainPanel extends JPanel
         options.setString(Options.STR_PATH_REGEX, AppContext.preg);
         options.setString(Options.STR_FONT, AppContext.font);
         options.setString(Options.STR_LOG_HEADER, JEditorPaneLog.htmlHeader);
+        options.setString(Options.STR_LAST_DIRECTORY, AppContext.dir);
     }
 
     public void loadOptions(Options options) {
@@ -884,6 +885,10 @@ public class MainPanel extends JPanel
             }
             AppContext.font = options.getString(Options.STR_FONT);
             logEditorPane.setHeader(options.getString(Options.STR_LOG_HEADER));
+            String lastDir = options.getString(Options.STR_LAST_DIRECTORY);
+            if (lastDir != null && !lastDir.isEmpty()) {
+                AppContext.dir = lastDir;
+            }
         } catch (Exception ex) {
             ex.printStackTrace();
             System.out.println("! Options file is outdated. Could not load.");

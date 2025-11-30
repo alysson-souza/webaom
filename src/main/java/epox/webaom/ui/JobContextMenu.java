@@ -65,8 +65,6 @@ public class JobContextMenu extends JPopupMenu implements MouseListener, ActionL
     protected final RowModel rowModel;
     private final JMenuItem[] menuItems;
     protected MenuWorker worker = null;
-    /** Last directory selected in the folder chooser dialog. */
-    private String lastSelectedDirectory = null;
 
     public JobContextMenu(final JTable table, final RowModel rowModel) {
         this.table = table;
@@ -303,13 +301,13 @@ public class JobContextMenu extends JPopupMenu implements MouseListener, ActionL
         JFileChooser fileChooser = new JFileChooser();
         fileChooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
         fileChooser.setMultiSelectionEnabled(false);
-        if (lastSelectedDirectory != null) {
-            fileChooser.setCurrentDirectory(new java.io.File(lastSelectedDirectory));
+        if (AppContext.dir != null) {
+            fileChooser.setCurrentDirectory(new java.io.File(AppContext.dir));
         }
         int option = fileChooser.showDialog(AppContext.component, "Select Directory");
         if (option == JFileChooser.APPROVE_OPTION) {
-            lastSelectedDirectory = fileChooser.getSelectedFile().getAbsolutePath();
-            return lastSelectedDirectory;
+            AppContext.dir = fileChooser.getSelectedFile().getAbsolutePath();
+            return AppContext.dir;
         }
         return null;
     }
