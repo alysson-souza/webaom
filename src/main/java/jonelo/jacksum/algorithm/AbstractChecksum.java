@@ -21,7 +21,6 @@
  * E-mail: jonelo@jonelo.de
  *
  *****************************************************************************/
-
 package jonelo.jacksum.algorithm;
 
 import java.util.zip.Checksum;

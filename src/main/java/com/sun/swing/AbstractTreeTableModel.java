@@ -74,8 +74,7 @@ public abstract class AbstractTreeTableModel implements TreeTableModel {
 
     // This is not called in the JTree's default mode: use a naive implementation.
     public int getIndexOfChild(Object parent, Object child) {
-        for (int i = 0; i < getChildCount(parent); i++)
-            if (getChild(parent, i).equals(child)) return i;
+        for (int i = 0; i < getChildCount(parent); i++) if (getChild(parent, i).equals(child)) return i;
         return -1;
     }
 

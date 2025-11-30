@@ -1,12 +1,15 @@
 plugins {
-	id 'java'
-	id 'application'
-	id 'com.diffplug.spotless' version '8.1.0'
+    id 'java'
+    id 'application'
+    id('com.diffplug.spotless') version '8.1.0'
+    id('com.palantir.java-format-spotless') version '2.83.0'  // For VSCode/Spotless
+    id('com.palantir.java-format') version '2.83.0'           // For IntelliJ configuration
+    id('com.palantir.baseline-idea') version '6.75.0'
 }
 
 group = 'epox'
 version = '2.0.0'
-description = 'WebAOM - Web Anime-o-Matic (AniDB file identification and organization)'
+description = 'WebAOM - Web Anime-O-Matic (AniDB file identification and organization)'
 
 java {
 	toolchain {
@@ -149,18 +152,6 @@ tasks.withType(JavaCompile).configureEach {
 
 spotless {
 	java {
-		target 'src/main/java/epox/**/*.java'
-		palantirJavaFormat()
-		removeUnusedImports()
-		formatAnnotations()
-		trimTrailingWhitespace()
-		endWithNewline()
-		toggleOffOn()
-	}
-
-	groovyGradle {
-		target '*.gradle'
-		greclipse()
 	}
 }
 
@@ -169,8 +160,8 @@ def jpackageOutputDir = layout.buildDirectory.dir('installer')
 def jlinkOutputDir = layout.buildDirectory.dir('jlink')
 def appName = 'WebAOM'
 def appDescription = 'AniDB file identification and organization tool'
-def appVendor = 'Alysson Souza'
-def appCopyright = 'Copyright (C) 2005-2010 epoximator, 2025 Alysson Souza'
+def appVendor = 'epoximator'
+def appCopyright = 'Copyright 2005-2010 epoximator'
 
 // Modules required by the application (Swing + networking + database drivers)
 def requiredModules = [

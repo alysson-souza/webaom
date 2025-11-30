@@ -40,8 +40,7 @@ public class Edonkey extends AbstractChecksum {
 
     public Edonkey() throws NoSuchAlgorithmException {
         md4 = new MD4(); // HashFactory.getInstance(AUX_ALGORITHM);
-        if (md4 == null)
-            throw new NoSuchAlgorithmException(AUX_ALGORITHM + " is an unknown algorithm.");
+        if (md4 == null) throw new NoSuchAlgorithmException(AUX_ALGORITHM + " is an unknown algorithm.");
         md4final = new MD4(); // HashFactory.getInstance(AUX_ALGORITHM);
     }
 

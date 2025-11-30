@@ -188,12 +188,7 @@ public class JTreeTable extends JTable {
 
         /** TreeCellRenderer method. Overridden to update the visible row. */
         public Component getTableCellRendererComponent(
-                JTable table,
-                Object value,
-                boolean isSelected,
-                boolean hasFocus,
-                int row,
-                int column) {
+                JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int column) {
             if (isSelected) setBackground(table.getSelectionBackground());
             else setBackground(table.getBackground());
 
@@ -204,8 +199,7 @@ public class JTreeTable extends JTable {
 
     /** TreeTableCellEditor implementation. Component returned is the JTree. */
     public class TreeTableCellEditor extends AbstractCellEditor implements TableCellEditor {
-        public Component getTableCellEditorComponent(
-                JTable table, Object value, boolean isSelected, int r, int c) {
+        public Component getTableCellEditorComponent(JTable table, Object value, boolean isSelected, int r, int c) {
             return tree;
         }
 
@@ -229,16 +223,15 @@ public class JTreeTable extends JTable {
             if (e instanceof MouseEvent me)
                 for (int counter = getColumnCount() - 1; counter >= 0; counter--)
                     if (getColumnClass(counter) == TreeTableModel.class) {
-                        MouseEvent newME =
-                                new MouseEvent(
-                                        tree,
-                                        me.getID(),
-                                        me.getWhen(),
-                                        me.getModifiersEx(),
-                                        me.getX() - getCellRect(0, counter, true).x,
-                                        me.getY(),
-                                        me.getClickCount(),
-                                        me.isPopupTrigger());
+                        MouseEvent newME = new MouseEvent(
+                                tree,
+                                me.getID(),
+                                me.getWhen(),
+                                me.getModifiersEx(),
+                                me.getX() - getCellRect(0, counter, true).x,
+                                me.getY(),
+                                me.getClickCount(),
+                                me.isPopupTrigger());
                         tree.dispatchEvent(newME);
                         break;
                     }
