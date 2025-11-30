@@ -54,8 +54,8 @@ public class Cache {
 	}
 
 	public void clear() {
-		for (int index = 0; index < cacheMaps.length; index++) {
-			cacheMaps[index].clear();
+		for (CacheMap cacheMap : cacheMaps) {
+			cacheMap.clear();
 		}
 	}
 
@@ -188,8 +188,8 @@ public class Cache {
 		long startTime = System.currentTimeMillis();
 		A.p.clear();
 		Job[] jobs = A.jobs.array();
-		for (int index = 0; index < jobs.length; index++) {
-			treeAdd(jobs[index]);
+		for (Job job : jobs) {
+			treeAdd(job);
 		}
 		U.out("@ Rebuilt tree in " + (System.currentTimeMillis() - startTime) + " ms.");
 	}

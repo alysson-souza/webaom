@@ -20,22 +20,21 @@
  */
 package epox.swing;
 
-import java.awt.BorderLayout;
-import java.awt.Color;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import javax.swing.JComboBox;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
+import java.awt.BorderLayout;
+import java.awt.Color;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 
 /**
  * Panel with a command input combo box and output text area. Used for command-line style interfaces.
  */
 public class JPanelCommand extends JPanel implements ActionListener, Log {
 	private final JTextArea outputArea;
-	private final JComboBox commandComboBox;
-	private final JScrollPane scrollPane;
+	private final JComboBox<String> commandComboBox;
 
 	private final CommandModel commandModel;
 
@@ -44,10 +43,10 @@ public class JPanelCommand extends JPanel implements ActionListener, Log {
 
 		outputArea = new JTextArea(initialText);
 		outputArea.setMargin(new java.awt.Insets(2, 2, 2, 2));
-		commandComboBox = new JComboBox();
+		commandComboBox = new JComboBox<>();
 		commandComboBox.setBackground(Color.white);
 
-		scrollPane = new JScrollPane(outputArea);
+		JScrollPane scrollPane = new JScrollPane(outputArea);
 
 		setLayout(new BorderLayout());
 		add(scrollPane, BorderLayout.CENTER);
@@ -64,15 +63,15 @@ public class JPanelCommand extends JPanel implements ActionListener, Log {
 		}
 	}
 
-	private void handleCommand(Object command) {
+	private void handleCommand(String command) {
 		commandComboBox.removeItem(command);
-		if (command.toString().isEmpty()) {
+		if (command.isEmpty()) {
 			return;
 		}
 		commandComboBox.insertItemAt(command, 0);
 		commandComboBox.setSelectedItem("");
 		println(command);
-		commandModel.handleCommand(command.toString());
+		commandModel.handleCommand(command);
 	}
 
 	@Override

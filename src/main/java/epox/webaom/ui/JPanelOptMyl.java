@@ -24,9 +24,7 @@ package epox.webaom.ui;
 
 import epox.webaom.Options;
 import epox.webaom.data.Mylist;
-import java.awt.GridBagConstraints;
-import java.awt.GridBagLayout;
-import java.awt.Insets;
+
 import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
 import javax.swing.JLabel;
@@ -34,12 +32,15 @@ import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
 import javax.swing.JTextField;
+import java.awt.GridBagConstraints;
+import java.awt.GridBagLayout;
+import java.awt.Insets;
 
 public class JPanelOptMyl extends JPanel {
 	private static final String[] FILE_STATES = {"Unknown", "On HDD", "On CD", "Deleted"};
 	private final JTextField storageField;
 	private final JTextField sourceField;
-	private final JComboBox stateComboBox;
+	private final JComboBox<String> stateComboBox;
 	private final JTextArea otherInfoArea;
 	private final JCheckBox watchedCheckBox;
 
@@ -49,7 +50,7 @@ public class JPanelOptMyl extends JPanel {
 		sourceField = new JTextField();
 		otherInfoArea = new JTextArea();
 
-		stateComboBox = new JComboBox(FILE_STATES);
+		stateComboBox = new JComboBox<>(FILE_STATES);
 		stateComboBox.setSelectedIndex(1);
 
 		watchedCheckBox = new JCheckBox("Watched", false);

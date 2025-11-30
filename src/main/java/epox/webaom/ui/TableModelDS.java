@@ -23,35 +23,36 @@
 package epox.webaom.ui;
 
 import epox.util.DSData;
-import java.util.Vector;
+
 import javax.swing.JTable;
 import javax.swing.SwingConstants;
 import javax.swing.table.AbstractTableModel;
 import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.TableColumnModel;
+import java.util.Vector;
 
 public class TableModelDS extends AbstractTableModel {
 	public static final int COLUMN_SELECTED = 0;
 	public static final int COLUMN_SOURCE = 1;
 	public static final int COLUMN_DESTINATION = 2;
 
-	private Vector /* !<DSData> */ rowDataList;
+	private Vector<DSData> rowDataList;
 	private final String sourceColumnTitle;
 	private final String destinationColumnTitle;
 	private final DSData emptyRowPlaceholder;
 
-	public TableModelDS(Vector /* <DSData> */ dataVector, String sourceTitle, String destinationTitle) {
+	public TableModelDS(Vector<DSData> dataVector, String sourceTitle, String destinationTitle) {
 		setData(dataVector);
 		sourceColumnTitle = sourceTitle;
 		destinationColumnTitle = destinationTitle;
 		emptyRowPlaceholder = new DSData("", "", false);
 	}
 
-	public Vector /* !<DSData> */ getData() {
+	public Vector<DSData> getData() {
 		return rowDataList;
 	}
 
-	public void setData(Vector /* !<DSData> */ dataVector) {
+	public void setData(Vector<DSData> dataVector) {
 		rowDataList = dataVector;
 	}
 
@@ -59,13 +60,11 @@ public class TableModelDS extends AbstractTableModel {
 		return 3;
 	}
 
-	public Class /* !<?> */ getColumnClass(int columnIndex) {
-		switch (columnIndex) {
-			case COLUMN_SELECTED :
-				return Boolean.class;
-			default :
-				return String.class;
-		}
+	public Class<?> getColumnClass(int columnIndex) {
+		return switch (columnIndex) {
+			case COLUMN_SELECTED -> Boolean.class;
+			default -> String.class;
+		};
 	}
 
 	public int getRowCount() {
@@ -77,17 +76,14 @@ public class TableModelDS extends AbstractTableModel {
 		if (rowIndex == rowDataList.size()) {
 			rowData = emptyRowPlaceholder;
 		} else {
-			rowData = (DSData) rowDataList.elementAt(rowIndex); // !
+			rowData = rowDataList.elementAt(rowIndex);
 		}
-		switch (columnIndex) {
-			case COLUMN_SELECTED :
-				return rowData.enabled;
-			case COLUMN_SOURCE :
-				return rowData.source;
-			case COLUMN_DESTINATION :
-				return rowData.destination;
-		}
-		return null;
+		return switch (columnIndex) {
+			case COLUMN_SELECTED -> rowData.enabled;
+			case COLUMN_SOURCE -> rowData.source;
+			case COLUMN_DESTINATION -> rowData.destination;
+			default -> null;
+		};
 	}
 
 	public boolean isCellEditable(int rowIndex, int columnIndex) {
@@ -101,7 +97,7 @@ public class TableModelDS extends AbstractTableModel {
 			rowDataList.add(rowData);
 			fireTableRowsInserted(rowIndex, rowIndex);
 		} else {
-			rowData = (DSData) rowDataList.elementAt(rowIndex); // !
+			rowData = rowDataList.elementAt(rowIndex);
 		}
 		if (rowData != null) {
 			switch (columnIndex) {
@@ -130,7 +126,7 @@ public class TableModelDS extends AbstractTableModel {
 		String destination = (String) destinationValue;
 		DSData rowData;
 		for (int i = 0; i < rowDataList.size(); i++) {
-			rowData = (DSData) rowDataList.elementAt(i); // !
+			rowData = rowDataList.elementAt(i);
 			if (rowData.source.equals(destination)) {
 				return "";
 			}
@@ -139,15 +135,12 @@ public class TableModelDS extends AbstractTableModel {
 	}
 
 	public String getColumnName(int columnIndex) {
-		switch (columnIndex) {
-			case COLUMN_SELECTED :
-				return "Enabled";
-			case COLUMN_SOURCE :
-				return sourceColumnTitle;
-			case COLUMN_DESTINATION :
-				return destinationColumnTitle;
-		}
-		return "No such column!";
+		return switch (columnIndex) {
+			case COLUMN_SELECTED -> "Enabled";
+			case COLUMN_SOURCE -> sourceColumnTitle;
+			case COLUMN_DESTINATION -> destinationColumnTitle;
+			default -> "No such column!";
+		};
 	}
 
 	public static void formatTable(JTable table) {

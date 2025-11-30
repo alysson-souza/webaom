@@ -35,6 +35,7 @@ import javax.swing.UIManager;
 import javax.swing.WindowConstants;
 import javax.swing.plaf.FontUIResource;
 
+@SuppressWarnings({"removal", "deprecation"})
 public class WebAOM extends JApplet {
 	private static boolean global = false;
 	private boolean inited = false;

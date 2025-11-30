@@ -133,11 +133,11 @@ public class JPanelDebug extends JPanel {
 					isNewLine = false;
 				} else {
 					String[] lines = U.split(text, '\n');
-					for (int index = 0; index < lines.length; index++) {
+					for (String line : lines) {
 						if (isNewLine) {
 							textArea.append(prefix);
 						}
-						textArea.append(lines[index] + "\n");
+						textArea.append(line + "\n");
 						isNewLine = true;
 					}
 					startTime = currentTime;

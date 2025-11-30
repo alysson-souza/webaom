@@ -48,7 +48,7 @@ public class NetIO implements Runnable {
 				} catch (AConEx e) {
 					e.printStackTrace();
 					String message = e.getMessage();
-					timedOut = message != null && message.indexOf("TIME OUT") >= 0;
+					timedOut = message != null && message.contains("TIME OUT");
 					A.gui.status1(message);
 					A.gui.showMessage(" " + ((message == null) ? "Null pointer exception." : message));
 					if (!e.is(AConEx.ENCRYPTION)) {
@@ -160,7 +160,7 @@ public class NetIO implements Runnable {
 		// A.gui.updateJobTable(job);
 		A.gui.status1("Retrieving file data for " + job.getFile().getName());
 		if (job.anidbFile == null) {
-			String[] fileData = null;
+			String[] fileData;
 			if (job.fileIdOverride > 0) {
 				fileData = A.conn.retrieveFileData(job.fileIdOverride, job.getFile().getName());
 			} else {

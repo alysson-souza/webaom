@@ -30,7 +30,6 @@ import epox.webaom.data.Base;
 import java.awt.Font;
 import java.awt.FontMetrics;
 import java.awt.Graphics;
-import java.awt.event.InputEvent;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.util.ArrayList;
@@ -57,8 +56,7 @@ public class JTreeTableR extends JTreeTable implements RowModel, MouseListener {
 		} else {
 			ArrayList<Job> jobsList = new ArrayList<>();
 			collectJobsRecursively(jobsList, (Base) treeNode);
-			Job[] jobs = jobsList.toArray(new Job[0]);
-			return jobs;
+			return jobsList.toArray(new Job[0]);
 		}
 		return null;
 	}
@@ -81,7 +79,7 @@ public class JTreeTableR extends JTreeTable implements RowModel, MouseListener {
 			Object treeNode = tree.getPathForRow(getSelectedRow()).getLastPathComponent();
 			if (treeNode instanceof AFile file) {
 				if (file.getJob() != null) {
-					if ((event.getModifiers() & InputEvent.ALT_MASK) == InputEvent.ALT_MASK) {
+					if (event.isAltDown()) {
 						JobMan.openInDefaultPlayer(file.getJob());
 					} else {
 						JobMan.showInfo(file.getJob());

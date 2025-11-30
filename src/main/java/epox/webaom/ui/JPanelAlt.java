@@ -6,22 +6,23 @@ package epox.webaom.ui;
 
 import epox.webaom.A;
 import epox.webaom.Cache;
-import java.awt.BorderLayout;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
+
 import javax.swing.AbstractAction;
 import javax.swing.JComboBox;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTextField;
 import javax.swing.KeyStroke;
+import java.awt.BorderLayout;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 
 public class JPanelAlt extends JPanel {
 	public JTreeTableR altViewTreeTable;
-	public JComboBox sortModeComboBox;
-	public JComboBox fileVisibilityComboBox;
-	public JComboBox animeTitleComboBox;
-	public JComboBox episodeTitleComboBox;
+	public JComboBox<String> sortModeComboBox;
+	public JComboBox<String> fileVisibilityComboBox;
+	public JComboBox<String> animeTitleComboBox;
+	public JComboBox<String> episodeTitleComboBox;
 	public JTextField pathRegexField;
 
 	public JPanelAlt(ActionListener actionListener) {
@@ -33,20 +34,20 @@ public class JPanelAlt extends JPanel {
 		JScrollPane scrollPane = new JScrollPane(altViewTreeTable);
 		scrollPane.getViewport().setBackground(java.awt.Color.white);
 
-		sortModeComboBox = new JComboBox(Cache.SORT_MODE_LABELS);
+		sortModeComboBox = new JComboBox<>(Cache.SORT_MODE_LABELS);
 		sortModeComboBox.setSelectedIndex(Cache.treeSortMode);
 		sortModeComboBox.setEditable(false);
 		sortModeComboBox.addActionListener(actionListener);
 
-		animeTitleComboBox = new JComboBox(new String[]{"Romaji", "Kanji", "English"});
+		animeTitleComboBox = new JComboBox<>(new String[]{"Romaji", "Kanji", "English"});
 		animeTitleComboBox.setEditable(false);
 		animeTitleComboBox.addActionListener(actionListener);
 
-		episodeTitleComboBox = new JComboBox(new String[]{"English", "Romaji", "Kanji"});
+		episodeTitleComboBox = new JComboBox<>(new String[]{"English", "Romaji", "Kanji"});
 		episodeTitleComboBox.setEditable(false);
 		episodeTitleComboBox.addActionListener(actionListener);
 
-		fileVisibilityComboBox = new JComboBox(
+		fileVisibilityComboBox = new JComboBox<>(
 				new String[]{"Show all files", "Show only existing", "Show only non existing"});
 		fileVisibilityComboBox.setEditable(false);
 		fileVisibilityComboBox.addActionListener(actionListener);

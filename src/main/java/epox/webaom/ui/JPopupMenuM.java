@@ -27,15 +27,16 @@ import epox.swing.JTextInputDialog;
 import epox.webaom.A;
 import epox.webaom.Job;
 import epox.webaom.JobMan;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-import java.awt.event.InputEvent;
-import java.awt.event.MouseEvent;
-import java.awt.event.MouseListener;
+
 import javax.swing.JFileChooser;
 import javax.swing.JMenuItem;
 import javax.swing.JPopupMenu;
 import javax.swing.JTable;
+import javax.swing.SwingUtilities;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseListener;
 
 public class JPopupMenuM extends JPopupMenu implements MouseListener, ActionListener {
 	protected final JTable table;
@@ -96,7 +97,7 @@ public class JPopupMenuM extends JPopupMenu implements MouseListener, ActionList
 
 	@Override
 	public void mouseClicked(MouseEvent event) {
-		if (worker == null && (event.getModifiers() & InputEvent.BUTTON3_MASK) == InputEvent.BUTTON3_MASK) {
+		if (worker == null && SwingUtilities.isRightMouseButton(event)) {
 			menuItems[REMOVE_DB].setEnabled(A.db.isConnected());
 			menuItems[PARSE].setEnabled(AVInfo.ok());
 			this.updateUI();
@@ -159,9 +160,9 @@ public class JPopupMenuM extends JPopupMenu implements MouseListener, ActionList
 				return;
 			}
 		}
-		for (int index = 0; index < jobs.length; index++) {
-			if (jobs[index] != null) {
-				executeCommand(commandId, jobs[index], folderPath);
+		for (Job job : jobs) {
+			if (job != null) {
+				executeCommand(commandId, job, folderPath);
 			}
 		}
 	}

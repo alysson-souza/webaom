@@ -29,17 +29,7 @@ import epox.webaom.A;
 import epox.webaom.RuleMenu;
 import epox.webaom.Rules;
 import epox.webaom.WebAOM;
-import java.awt.BorderLayout;
-import java.awt.Color;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-import java.awt.event.ItemEvent;
-import java.awt.event.ItemListener;
-import java.awt.event.MouseAdapter;
-import java.awt.event.MouseEvent;
-import java.util.Arrays;
-import java.util.StringTokenizer;
-import java.util.Vector;
+
 import javax.swing.AbstractAction;
 import javax.swing.Action;
 import javax.swing.ButtonGroup;
@@ -54,6 +44,17 @@ import javax.swing.KeyStroke;
 import javax.swing.border.EtchedBorder;
 import javax.xml.parsers.SAXParser;
 import javax.xml.parsers.SAXParserFactory;
+import java.awt.BorderLayout;
+import java.awt.Color;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.ItemEvent;
+import java.awt.event.ItemListener;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
+import java.util.Arrays;
+import java.util.StringTokenizer;
+import java.util.Vector;
 
 public class JPanelOptRls extends JPanel implements Action, ActionListener, ItemListener {
 	protected final JTextArea rulesTextArea;
@@ -181,12 +182,6 @@ public class JPanelOptRls extends JPanel implements Action, ActionListener, Item
 	}
 
 	public void testAndApplyRules() {
-		/*
-		 * for(String line:handler.m_tf.getText().split("\\n"))
-		 * System.out.println(line+" -> "+line.toLowerCase().
-		 * matches("^((if|else|else ?if) ?([ageqrtydspnic] ?\\(.*\\))+ ?)?do ?(set|add|finish|return|fail)( .*)$"));//
-		 *
-		 */
 		String rulesText = rulesTextArea.getText();
 		String currentLine;
 		StringTokenizer lineTokenizer = new StringTokenizer(rulesText, "\r\n");
@@ -197,7 +192,7 @@ public class JPanelOptRls extends JPanel implements Action, ActionListener, Item
 			if (currentLine.charAt(0) == '#') {
 				continue;
 			}
-			if (currentLine.indexOf("DO ") < 0) {
+			if (!currentLine.contains("DO ")) {
 				A.dialog("Error in script @ line" + lineNumber, "All lines must include ' DO '.");
 				return;
 			}
@@ -217,7 +212,7 @@ public class JPanelOptRls extends JPanel implements Action, ActionListener, Item
 		}
 	}
 
-	private void removeElements(Vector /* !<DSData> */ dataVector, int[] selectedRows) {
+	private void removeElements(Vector<DSData> dataVector, int[] selectedRows) {
 		Arrays.sort(selectedRows);
 		for (int index = selectedRows.length - 1; index >= 0; index--) {
 			if (selectedRows[index] >= dataVector.size()) {
@@ -230,14 +225,14 @@ public class JPanelOptRls extends JPanel implements Action, ActionListener, Item
 		}
 	}
 
-	protected void moveElement(JTable table, Vector /* !<DSData> */ dataVector, int direction) {
+	protected void moveElement(JTable table, Vector<DSData> dataVector, int direction) {
 		int selectedIndex = table.getSelectedRow();
 		int targetIndex = direction + selectedIndex;
 		if (targetIndex >= dataVector.size() || targetIndex < 0) {
 			return;
 		}
 		try {
-			DSData removedElement = (DSData) dataVector.remove(selectedIndex);
+			DSData removedElement = dataVector.remove(selectedIndex);
 			dataVector.insertElementAt(removedElement, targetIndex);
 			table.setRowSelectionInterval(targetIndex, targetIndex);
 			table.updateUI();

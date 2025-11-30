@@ -68,8 +68,8 @@ public class UniqueStringList implements ListModel {
 	public String toString() {
 		StringBuilder result = new StringBuilder();
 		Object[] strings = getStrings();
-		for (int index = 0; index < strings.length; index++) {
-			result.append(strings[index]).append(separator);
+		for (Object string : strings) {
+			result.append(string).append(separator);
 		}
 		return result.toString().trim();
 	}
