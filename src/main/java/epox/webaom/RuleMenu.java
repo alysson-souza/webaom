@@ -12,12 +12,12 @@ import org.xml.sax.SAXException;
 import org.xml.sax.helpers.DefaultHandler;
 
 public class RuleMenu extends DefaultHandler {
-    /** The currently active menu item being parsed. */
-    private JMenuItem currentItem = null;
     /** Stack of nested submenus for hierarchical menu building. */
     private final Stack<JMenu> menuStack;
     /** Target text area for inserting rule text. */
     private final JTextArea textArea;
+    /** The currently active menu item being parsed. */
+    private JMenuItem currentItem = null;
 
     public RuleMenu(JTextArea targetTextArea) {
         textArea = targetTextArea;

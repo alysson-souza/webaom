@@ -45,45 +45,6 @@ public class UserPass {
     }
 
     /**
-     * Parses and sets credentials from an encoded string (format: "user:encpass:enckey").
-     *
-     * @param encoded
-     *            the encoded credentials string
-     */
-    public void set(String encoded) {
-        try {
-            String[] parts = StringUtilities.split(encoded, ':');
-            username = parts[0];
-            if (parts.length >= 2) {
-                password = decrypt(parts[1]);
-            } else {
-                password = null;
-            }
-            if (parts.length >= 3) {
-                apiKey = decrypt(parts[2]);
-            } else {
-                apiKey = null;
-            }
-        } catch (Exception ex) {
-            // Silently fail on parse errors
-        }
-    }
-
-    /**
-     * Returns the credentials as a string.
-     *
-     * @param includePassword
-     *            if true, includes encrypted password and API key
-     * @return the credentials string
-     */
-    public String get(boolean includePassword) {
-        if (!includePassword) {
-            return username;
-        }
-        return username + ":" + encryptIfNotEmpty(password) + ":" + encryptIfNotEmpty(apiKey);
-    }
-
-    /**
      * Encrypts a string if it's not null or empty.
      *
      * @param value
@@ -146,5 +107,44 @@ public class UserPass {
         } catch (Exception ex) {
             return null;
         }
+    }
+
+    /**
+     * Parses and sets credentials from an encoded string (format: "user:encpass:enckey").
+     *
+     * @param encoded
+     *            the encoded credentials string
+     */
+    public void set(String encoded) {
+        try {
+            String[] parts = StringUtilities.split(encoded, ':');
+            username = parts[0];
+            if (parts.length >= 2) {
+                password = decrypt(parts[1]);
+            } else {
+                password = null;
+            }
+            if (parts.length >= 3) {
+                apiKey = decrypt(parts[2]);
+            } else {
+                apiKey = null;
+            }
+        } catch (Exception ex) {
+            // Silently fail on parse errors
+        }
+    }
+
+    /**
+     * Returns the credentials as a string.
+     *
+     * @param includePassword
+     *            if true, includes encrypted password and API key
+     * @return the credentials string
+     */
+    public String get(boolean includePassword) {
+        if (!includePassword) {
+            return username;
+        }
+        return username + ":" + encryptIfNotEmpty(password) + ":" + encryptIfNotEmpty(apiKey);
     }
 }

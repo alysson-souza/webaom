@@ -28,13 +28,35 @@ import epox.webaom.net.AniDBConnectionResponse;
 import epox.webaom.net.AniDBException;
 
 public class ChiiEmu implements CommandModel {
-    private Thread workerThread;
+    protected static final int USAGE_WATCHED = 0;
+    protected static final int USAGE_STATE = 1;
+    protected static final int USAGE_STATE2 = 2;
+    protected static final int USAGE_STORAGE = 3;
     protected AniDBConnection aniDbConnection;
+    private Thread workerThread;
     private Log log;
 
     public ChiiEmu(AniDBConnection connection) {
         log = null;
         aniDbConnection = connection;
+    }
+
+    protected static String getUsageMessage(int usageType) {
+        switch (usageType) {
+            case USAGE_WATCHED:
+                return "WATCHED: usage: !watched <anime> <epnumber>, !state <fid>, !state <ed2k"
+                        + " link>, epnumber may be 'all', 'upto <epno>' or 'NONE'.";
+            case USAGE_STATE:
+                return "STATE: usage: !state <anime> <epnumber> <state>, !state <fid> <state>,"
+                        + " !state <ed2k link> <state>, !state last <state>, epnumber may be"
+                        + " 'all' or 'upto <epno>'. State is: unknown/hdd/cd/deleted.";
+            case USAGE_STATE2:
+                return "!state2 anime/aid, group/gid/all, all/upto x/x, unknown/hdd/cd/deleted";
+            case USAGE_STORAGE:
+                return "!storage anime/aid, group/gid/all, all/upto x/x, text";
+            default:
+                return "NOO!";
+        }
     }
 
     public void handleCommand(String command) {
@@ -69,6 +91,150 @@ public class ChiiEmu implements CommandModel {
         } else {
             log.println(message.toString());
         }
+    }
+
+    /**
+     * !state <anime> <ep#> <state> !state <anime> all <state> !state <anime> upto <ep#> <state> !state
+     * <anime> last <state> !state <fid> <state> !state <ed2k link> <state> !state last <state>
+     *
+     * <p>
+     * !watched <anime> <epnumber> !watched <fid> !watched <ed2k link> !watched <anime> upto
+     * <epnumber> !watched <anime> all !watched <anime> NONE
+     */
+    public String updateWatchedStatus(String arguments) {
+        try {
+            String apiParameters = "edit=1&viewed=";
+            int ed2kIndex = arguments.indexOf("ed2k://|file|");
+            if (ed2kIndex >= 0) {
+                String[] fields = StringUtilities.split(arguments.substring(13).trim(), '|');
+                apiParameters += "&size=" + fields[1];
+                apiParameters += "&ed2k=" + fields[2];
+            } else {
+                int episodeNumber = 0;
+                ed2kIndex = arguments.indexOf(" NONE");
+                if (ed2kIndex < 0) {
+                    ed2kIndex = arguments.indexOf(" all");
+                    apiParameters += "1";
+                    if (ed2kIndex < 0) {
+                        ed2kIndex = arguments.indexOf(" upto ");
+                        if (ed2kIndex > 0) {
+                            episodeNumber = -Integer.parseInt(
+                                    arguments.substring(ed2kIndex + 6).trim());
+                        } else {
+                            ed2kIndex = arguments.lastIndexOf(' ');
+                            if (ed2kIndex < 0) {
+                                ed2kIndex = 0;
+                            }
+                            try {
+                                episodeNumber = Integer.parseInt(arguments
+                                        .substring(ed2kIndex < 0 ? 0 : ed2kIndex)
+                                        .trim());
+                            } catch (NumberFormatException ex) {
+                                return getUsageMessage(USAGE_WATCHED);
+                            }
+                        }
+                    }
+                } else {
+                    apiParameters += "0";
+                }
+                String animeIdentifier = arguments.substring(0, ed2kIndex).trim();
+                if (animeIdentifier.isEmpty()) {
+                    if (episodeNumber < 1) {
+                        return getUsageMessage(USAGE_WATCHED);
+                    }
+                    apiParameters += "&fid=" + episodeNumber;
+                } else {
+                    apiParameters += "&epno=" + episodeNumber;
+                    try {
+                        apiParameters += "&aid=" + Integer.parseInt(animeIdentifier);
+                    } catch (NumberFormatException ex) {
+                        apiParameters += "&aname=" + animeIdentifier;
+                    }
+                }
+            }
+            AniDBConnectionResponse response = aniDbConnection.send("MYLISTADD", apiParameters, true);
+            if (response.code == AniDBConnectionResponse.MYLIST_ENTRY_EDITED) {
+                if (response.data.length() > 3) {
+                    return "WATCHED: entry updated.";
+                }
+                return "WATCHED: " + response.data + " entries updated.";
+            }
+            return "WATCHED: no such entry";
+        } catch (Exception ex) {
+            ex.printStackTrace();
+        }
+        return getUsageMessage(USAGE_WATCHED);
+    }
+
+    public String updateState(String arguments) {
+        try {
+            int lastSpaceIndex = arguments.lastIndexOf(' ');
+            int stateCode = 0;
+            String stateString = arguments.substring(lastSpaceIndex).trim();
+            if (stateString.equalsIgnoreCase("unknown")) {
+                stateCode = 0;
+            } else if (stateString.equalsIgnoreCase("hdd")) {
+                stateCode = 1;
+            } else if (stateString.equalsIgnoreCase("cd")) {
+                stateCode = 2;
+            } else if (stateString.equalsIgnoreCase("deleted")) {
+                stateCode = 3;
+            } else {
+                return getUsageMessage(USAGE_STATE);
+            }
+            String apiParameters = "edit=1&state=" + stateCode;
+            int ed2kIndex = arguments.indexOf("ed2k://|file|");
+            if (ed2kIndex >= 0) {
+                String[] fields = StringUtilities.split(
+                        arguments.substring(13, lastSpaceIndex).trim(), '|');
+                apiParameters += "&size=" + fields[1];
+                apiParameters += "&ed2k=" + fields[2];
+            } else {
+                int episodeNumber = 0;
+                ed2kIndex = arguments.indexOf(" all ");
+                if (ed2kIndex < 0) {
+                    ed2kIndex = arguments.indexOf(" upto ");
+                    if (ed2kIndex > 0) {
+                        episodeNumber = -Integer.parseInt(arguments
+                                .substring(ed2kIndex + 6, lastSpaceIndex)
+                                .trim());
+                    } else {
+                        ed2kIndex = arguments.lastIndexOf(' ', lastSpaceIndex - 1);
+                        if (ed2kIndex < 0) {
+                            ed2kIndex = 0;
+                        }
+                        episodeNumber = Integer.parseInt(arguments
+                                .substring(ed2kIndex < 0 ? 0 : ed2kIndex, lastSpaceIndex)
+                                .trim());
+                    }
+                }
+                String animeIdentifier = arguments.substring(0, ed2kIndex).trim();
+                if (animeIdentifier.isEmpty()) {
+                    if (episodeNumber < 1) {
+                        return getUsageMessage(USAGE_STATE);
+                    }
+                    apiParameters += "&fid=" + episodeNumber;
+                } else {
+                    apiParameters += "&epno=" + episodeNumber;
+                    try {
+                        apiParameters += "&aid=" + Integer.parseInt(animeIdentifier);
+                    } catch (NumberFormatException ex) {
+                        apiParameters += "&aname=" + animeIdentifier;
+                    }
+                }
+            }
+            AniDBConnectionResponse response = aniDbConnection.send("MYLISTADD", apiParameters, true);
+            if (response.code == AniDBConnectionResponse.MYLIST_ENTRY_EDITED) {
+                if (response.data.length() > 3) {
+                    return "STATE: entry updated.";
+                }
+                return "STATE: " + response.data + " entries updated.";
+            }
+            return "STATE: no such entry";
+        } catch (Exception ex) {
+            ex.printStackTrace();
+        }
+        return getUsageMessage(USAGE_STATE);
     }
 
     private class EmuWorker extends Thread {
@@ -330,173 +496,6 @@ public class ChiiEmu implements CommandModel {
             return "MYSTATS: " + fields[0] + " animes, " + fields[1] + " eps (" + watchedEpsText + ") and " + fields[2]
                     + " files in mylist (" + mylistSizeText + "). " + contributionText + ". " + votesReviewsText + ". "
                     + leechLameText + "." + viewedTime;
-        }
-    }
-
-    /**
-     * !state <anime> <ep#> <state> !state <anime> all <state> !state <anime> upto <ep#> <state> !state
-     * <anime> last <state> !state <fid> <state> !state <ed2k link> <state> !state last <state>
-     *
-     * <p>
-     * !watched <anime> <epnumber> !watched <fid> !watched <ed2k link> !watched <anime> upto
-     * <epnumber> !watched <anime> all !watched <anime> NONE
-     */
-    public String updateWatchedStatus(String arguments) {
-        try {
-            String apiParameters = "edit=1&viewed=";
-            int ed2kIndex = arguments.indexOf("ed2k://|file|");
-            if (ed2kIndex >= 0) {
-                String[] fields = StringUtilities.split(arguments.substring(13).trim(), '|');
-                apiParameters += "&size=" + fields[1];
-                apiParameters += "&ed2k=" + fields[2];
-            } else {
-                int episodeNumber = 0;
-                ed2kIndex = arguments.indexOf(" NONE");
-                if (ed2kIndex < 0) {
-                    ed2kIndex = arguments.indexOf(" all");
-                    apiParameters += "1";
-                    if (ed2kIndex < 0) {
-                        ed2kIndex = arguments.indexOf(" upto ");
-                        if (ed2kIndex > 0) {
-                            episodeNumber = -Integer.parseInt(
-                                    arguments.substring(ed2kIndex + 6).trim());
-                        } else {
-                            ed2kIndex = arguments.lastIndexOf(' ');
-                            if (ed2kIndex < 0) {
-                                ed2kIndex = 0;
-                            }
-                            try {
-                                episodeNumber = Integer.parseInt(arguments
-                                        .substring(ed2kIndex < 0 ? 0 : ed2kIndex)
-                                        .trim());
-                            } catch (NumberFormatException ex) {
-                                return getUsageMessage(USAGE_WATCHED);
-                            }
-                        }
-                    }
-                } else {
-                    apiParameters += "0";
-                }
-                String animeIdentifier = arguments.substring(0, ed2kIndex).trim();
-                if (animeIdentifier.isEmpty()) {
-                    if (episodeNumber < 1) {
-                        return getUsageMessage(USAGE_WATCHED);
-                    }
-                    apiParameters += "&fid=" + episodeNumber;
-                } else {
-                    apiParameters += "&epno=" + episodeNumber;
-                    try {
-                        apiParameters += "&aid=" + Integer.parseInt(animeIdentifier);
-                    } catch (NumberFormatException ex) {
-                        apiParameters += "&aname=" + animeIdentifier;
-                    }
-                }
-            }
-            AniDBConnectionResponse response = aniDbConnection.send("MYLISTADD", apiParameters, true);
-            if (response.code == AniDBConnectionResponse.MYLIST_ENTRY_EDITED) {
-                if (response.data.length() > 3) {
-                    return "WATCHED: entry updated.";
-                }
-                return "WATCHED: " + response.data + " entries updated.";
-            }
-            return "WATCHED: no such entry";
-        } catch (Exception ex) {
-            ex.printStackTrace();
-        }
-        return getUsageMessage(USAGE_WATCHED);
-    }
-
-    public String updateState(String arguments) {
-        try {
-            int lastSpaceIndex = arguments.lastIndexOf(' ');
-            int stateCode = 0;
-            String stateString = arguments.substring(lastSpaceIndex).trim();
-            if (stateString.equalsIgnoreCase("unknown")) {
-                stateCode = 0;
-            } else if (stateString.equalsIgnoreCase("hdd")) {
-                stateCode = 1;
-            } else if (stateString.equalsIgnoreCase("cd")) {
-                stateCode = 2;
-            } else if (stateString.equalsIgnoreCase("deleted")) {
-                stateCode = 3;
-            } else {
-                return getUsageMessage(USAGE_STATE);
-            }
-            String apiParameters = "edit=1&state=" + stateCode;
-            int ed2kIndex = arguments.indexOf("ed2k://|file|");
-            if (ed2kIndex >= 0) {
-                String[] fields = StringUtilities.split(
-                        arguments.substring(13, lastSpaceIndex).trim(), '|');
-                apiParameters += "&size=" + fields[1];
-                apiParameters += "&ed2k=" + fields[2];
-            } else {
-                int episodeNumber = 0;
-                ed2kIndex = arguments.indexOf(" all ");
-                if (ed2kIndex < 0) {
-                    ed2kIndex = arguments.indexOf(" upto ");
-                    if (ed2kIndex > 0) {
-                        episodeNumber = -Integer.parseInt(arguments
-                                .substring(ed2kIndex + 6, lastSpaceIndex)
-                                .trim());
-                    } else {
-                        ed2kIndex = arguments.lastIndexOf(' ', lastSpaceIndex - 1);
-                        if (ed2kIndex < 0) {
-                            ed2kIndex = 0;
-                        }
-                        episodeNumber = Integer.parseInt(arguments
-                                .substring(ed2kIndex < 0 ? 0 : ed2kIndex, lastSpaceIndex)
-                                .trim());
-                    }
-                }
-                String animeIdentifier = arguments.substring(0, ed2kIndex).trim();
-                if (animeIdentifier.isEmpty()) {
-                    if (episodeNumber < 1) {
-                        return getUsageMessage(USAGE_STATE);
-                    }
-                    apiParameters += "&fid=" + episodeNumber;
-                } else {
-                    apiParameters += "&epno=" + episodeNumber;
-                    try {
-                        apiParameters += "&aid=" + Integer.parseInt(animeIdentifier);
-                    } catch (NumberFormatException ex) {
-                        apiParameters += "&aname=" + animeIdentifier;
-                    }
-                }
-            }
-            AniDBConnectionResponse response = aniDbConnection.send("MYLISTADD", apiParameters, true);
-            if (response.code == AniDBConnectionResponse.MYLIST_ENTRY_EDITED) {
-                if (response.data.length() > 3) {
-                    return "STATE: entry updated.";
-                }
-                return "STATE: " + response.data + " entries updated.";
-            }
-            return "STATE: no such entry";
-        } catch (Exception ex) {
-            ex.printStackTrace();
-        }
-        return getUsageMessage(USAGE_STATE);
-    }
-
-    protected static final int USAGE_WATCHED = 0;
-    protected static final int USAGE_STATE = 1;
-    protected static final int USAGE_STATE2 = 2;
-    protected static final int USAGE_STORAGE = 3;
-
-    protected static String getUsageMessage(int usageType) {
-        switch (usageType) {
-            case USAGE_WATCHED:
-                return "WATCHED: usage: !watched <anime> <epnumber>, !state <fid>, !state <ed2k"
-                        + " link>, epnumber may be 'all', 'upto <epno>' or 'NONE'.";
-            case USAGE_STATE:
-                return "STATE: usage: !state <anime> <epnumber> <state>, !state <fid> <state>,"
-                        + " !state <ed2k link> <state>, !state last <state>, epnumber may be"
-                        + " 'all' or 'upto <epno>'. State is: unknown/hdd/cd/deleted.";
-            case USAGE_STATE2:
-                return "!state2 anime/aid, group/gid/all, all/upto x/x, unknown/hdd/cd/deleted";
-            case USAGE_STORAGE:
-                return "!storage anime/aid, group/gid/all, all/upto x/x, text";
-            default:
-                return "NOO!";
         }
     }
 }

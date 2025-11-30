@@ -40,6 +40,9 @@ import java.nio.charset.StandardCharsets;
 import javax.swing.JFileChooser;
 
 public final class Parser {
+    /** Zero padding prefixes for episode number formatting (0-4 zeros). */
+    private static final String[] ZERO_PADDING_PREFIXES = {"", "0", "00", "000", "0000"};
+
     private Parser() {}
 
     public static Group parseGroup(String[] fields) {
@@ -80,9 +83,6 @@ public final class Parser {
         anime.categories = fields[18];
         return anime;
     }
-
-    /** Zero padding prefixes for episode number formatting (0-4 zeros). */
-    private static final String[] ZERO_PADDING_PREFIXES = {"", "0", "00", "000", "0000"};
 
     /**
      * Pads an episode number string with leading zeros based on total episode count.

@@ -29,240 +29,6 @@ import epox.webaom.data.AttributeMap;
 import java.io.File;
 
 public class Job {
-    // Size, int=4, long=1, pointer=4, string=7 -> 4*4+1*8+4*8+7*8= 112 bytes / calc = 108 bytes
-    private static final char FIELD_SEPARATOR = '|';
-    private int status;
-    public int directoryId;
-    public int mylistId = 0;
-    public int fileIdOverride = 0;
-    public boolean isFresh = true;
-    public long fileSize;
-    public File currentFile;
-    public File targetFile;
-    public AniDBFile anidbFile;
-    public FileInfo avFileInfo;
-    public String originalName;
-    public String errorMessage;
-    public String ed2kHash;
-    public String md5Hash;
-    public String sha1Hash;
-    public String tthHash;
-    public String crc32Hash;
-
-    public String serialize() {
-        return "" + getStatus() + FIELD_SEPARATOR + currentFile + FIELD_SEPARATOR + fileSize + FIELD_SEPARATOR
-                + ed2kHash + FIELD_SEPARATOR + md5Hash + FIELD_SEPARATOR + sha1Hash + FIELD_SEPARATOR + tthHash
-                + FIELD_SEPARATOR + crc32Hash + FIELD_SEPARATOR + originalName;
-    }
-
-    public Job(String[] serializedData) {
-        this(new File(serializedData[1]), StringUtilities.i(serializedData[0]));
-        int index = 2;
-        fileSize = Long.parseLong(serializedData[index++]);
-        ed2kHash = serializedData[index++];
-        md5Hash = StringUtilities.n(serializedData[index++]);
-        sha1Hash = StringUtilities.n(serializedData[index++]);
-        tthHash = StringUtilities.n(serializedData[index++]);
-        crc32Hash = StringUtilities.n(serializedData[index++]);
-        originalName = serializedData[index++];
-    }
-
-    public Job(File file, int initialStatus) {
-        status = initialStatus;
-        currentFile = file;
-        targetFile = null;
-        anidbFile = null;
-        ed2kHash = md5Hash = sha1Hash = tthHash = crc32Hash = null;
-
-        fileSize = file.length();
-        originalName = file.getName();
-
-        if (!currentFile.exists()) {
-            status |= H_MISSING;
-        } else {
-            status |= H_PAUSED;
-        }
-        AppContext.jobc.register(-1, -1, status & M_R, getHealth());
-    }
-
-    public String toString() {
-        return currentFile.getName() + ": " + getStatusText();
-    }
-
-    public boolean hide(String pattern) {
-        if (pattern == null || pattern.isEmpty()) {
-            return false;
-        }
-        if (pattern.charAt(0) == '!') {
-            return currentFile.getAbsolutePath().matches(pattern.substring(1));
-        }
-        return !currentFile.getAbsolutePath().matches(pattern);
-    }
-
-    public File getFile() {
-        return currentFile;
-    }
-
-    public String getExtension() {
-        if (anidbFile == null || anidbFile.extension == null) {
-            String fileName = currentFile.getName();
-            int dotIndex = fileName.lastIndexOf('.');
-            if (dotIndex < 1) {
-                System.out.println("No ext: " + fileName);
-                return "unk";
-            }
-            return fileName.substring(dotIndex + 1);
-        }
-        return anidbFile.extension;
-    }
-
-    public int getStatus() {
-        return status & M_S;
-    }
-
-    public int getHealth() {
-        return status & M_H;
-    }
-
-    public boolean check(int statusFlags) {
-        return (status & statusFlags) == statusFlags;
-    }
-
-    public boolean checkOr(int statusFlags) {
-        return (status & statusFlags) > 0;
-    }
-
-    public boolean checkSep(int statusFlags, int fileFlags, boolean unknownOnly) {
-        boolean matches = (status & M_SS & statusFlags) > 0
-                && (status & M_H & statusFlags) > 0
-                && ((statusFlags & M_D) < 1 || (status & M_D & statusFlags) > 0);
-        if (unknownOnly) {
-            return anidbFile == null && matches;
-        }
-        return matches && (fileFlags < 1 || (anidbFile != null && (anidbFile.state & fileFlags) > 0));
-    }
-
-    public boolean isLocked(int targetStatus) {
-        int health = getHealth();
-        if (health < H_MISSING) {
-            return false;
-        }
-        if (health == H_MISSING) {
-            switch (targetStatus) {
-                case FINISHED:
-                case ADDWAIT:
-                case REMWAIT:
-                    return false;
-            }
-        }
-        return true;
-    }
-
-    public boolean isCorrupt() {
-        return anidbFile != null && ((anidbFile.state & AniDBFile.F_CRCERR) == AniDBFile.F_CRCERR);
-    }
-
-    public boolean incompl() {
-        return anidbFile == null || anidbFile.anime == null || anidbFile.episode == null;
-    }
-
-    public String getStatusText() {
-        if (check(H_NORMAL)) {
-            return statusStr(getStatus());
-        }
-        return statusStr(getStatus()) + " [" + statusStr(getHealth()) + "]";
-    }
-
-    public void setStatus(int newStatus, boolean test) {
-        int health = getHealth();
-        if (test) {
-            // if(health>H_PAUSED&&!(newStatus==FINISHED||newStatus==REMWAIT||newStatus==ADDWAIT))
-            // &&(newStatus&F_PD)==0)//extra check, could be removed maybe
-            //	return;
-            if (isLocked(newStatus)) {
-                return;
-            }
-            if (health == H_PAUSED || health == H_MISSING) {
-                setHealth(H_NORMAL);
-            }
-            health = getHealth();
-        }
-        if ((newStatus & F_DB) == F_DB) { // only for main status
-            if (test && health == H_NORMAL) {
-                AppContext.jobs.updateQueues(this, getStatus(), newStatus & M_S); // TODO pause off fix
-            }
-            // A.jobc.register(getRegVal(), (newStatus|H_NORMAL)&M_R);
-            health = H_NORMAL;
-            if (newStatus == FINISHED && !currentFile.exists()) {
-                health = H_MISSING;
-            }
-            AppContext.jobc.register(status & M_R, getHealth(), newStatus & M_R, health);
-            status = newStatus | health;
-
-        } else {
-            status = newStatus | H_NORMAL;
-        }
-    }
-
-    private void setHealth(int health) {
-        int currentStatus = getStatus();
-        if (!check(H_NORMAL) && health == H_NORMAL) {
-            AppContext.jobs.updateQueues(this, 0, currentStatus);
-        } else if (check(H_NORMAL) && health != H_NORMAL) {
-            AppContext.jobs.updateQueues(this, currentStatus, -1);
-        }
-
-        // A.jobc.register(getRegVal(), currentStatus|health);
-        AppContext.jobc.register(status & M_R, getHealth(), status & M_R, health);
-        setHealth0(health);
-    }
-
-    public void setHealth0(int health) {
-        status = (status & M_S) | health;
-    }
-
-    public void setError(String errorText) {
-        errorMessage = errorText;
-    }
-
-    public void updateHealth(int healthUpdate) {
-        if (healthUpdate != H_DELETED && checkOr(H_MISSING | H_DELETED)) {
-            return;
-        }
-        int health = getHealth();
-        switch (healthUpdate) {
-            case H_PAUSED:
-                if (health == H_NORMAL) {
-                    health = H_PAUSED; // turn pause on
-                } else if (health == H_PAUSED) {
-                    health = H_NORMAL; // turn pause off
-                }
-                break;
-            case H_DELETED:
-                if (health == H_DELETED) {
-                    health = (currentFile.exists() ? H_NORMAL : H_MISSING);
-                    AppContext.databaseManager.update(0, this, DatabaseManager.INDEX_JOB);
-                } else {
-                    health = H_DELETED; // delete
-                    AppContext.databaseManager.removeJob(this);
-                }
-                break;
-            case H_MISSING:
-                health = H_MISSING;
-                break;
-        }
-        setHealth(health);
-    }
-
-    public void find(File file) {
-        if (!check(H_MISSING)) {
-            return;
-        }
-        JobManager.setJobFile(this, file);
-        setHealth0(file.exists() ? H_PAUSED : H_MISSING);
-        directoryId = -1;
-    }
-
     /// STATIC
     public static final int S_DONE = 0x00000001; // status
     public static final int S_DO = 0x00000002;
@@ -304,13 +70,59 @@ public class Job {
     public static final int MOVING = D_DIO | T_2 | S_DOING; // 0x92,
     public static final int MOVECHECK = D_DIO | T_2 | U_2 | S_DOING; // 0x94,
     public static final int MOVED = D_DIO | T_2 | S_DONE; // 0x9f,
-
-    //	INPUTWAIT	= M_USR|U_1|S_DO|F_DB,	//0xb0,
-
     public static final int REMWAIT = D_NIO | T_4 | S_DO | F_DB | F_PD; // 0xc0,
     public static final int REMING = D_NIO | T_4 | S_DOING; // 0xc2,
     public static final int PARSEWAIT = D_DIO | T_4 | S_DO | F_DB | F_PD; // 0xd0,
     public static final int PARSING = D_DIO | T_4 | S_DOING; // 0xd2,
+    // Size, int=4, long=1, pointer=4, string=7 -> 4*4+1*8+4*8+7*8= 112 bytes / calc = 108 bytes
+    private static final char FIELD_SEPARATOR = '|';
+    public int directoryId;
+    public int mylistId = 0;
+    public int fileIdOverride = 0;
+    public boolean isFresh = true;
+    public long fileSize;
+    public File currentFile;
+    public File targetFile;
+    public AniDBFile anidbFile;
+    public FileInfo avFileInfo;
+    public String originalName;
+    public String errorMessage;
+    public String ed2kHash;
+    public String md5Hash;
+    public String sha1Hash;
+    public String tthHash;
+    public String crc32Hash;
+    private int status;
+
+    public Job(String[] serializedData) {
+        this(new File(serializedData[1]), StringUtilities.i(serializedData[0]));
+        int index = 2;
+        fileSize = Long.parseLong(serializedData[index++]);
+        ed2kHash = serializedData[index++];
+        md5Hash = StringUtilities.n(serializedData[index++]);
+        sha1Hash = StringUtilities.n(serializedData[index++]);
+        tthHash = StringUtilities.n(serializedData[index++]);
+        crc32Hash = StringUtilities.n(serializedData[index++]);
+        originalName = serializedData[index++];
+    }
+
+    public Job(File file, int initialStatus) {
+        status = initialStatus;
+        currentFile = file;
+        targetFile = null;
+        anidbFile = null;
+        ed2kHash = md5Hash = sha1Hash = tthHash = crc32Hash = null;
+
+        fileSize = file.length();
+        originalName = file.getName();
+
+        if (!currentFile.exists()) {
+            status |= H_MISSING;
+        } else {
+            status |= H_PAUSED;
+        }
+        AppContext.jobc.register(-1, -1, status & M_R, getHealth());
+    }
 
     private static String statusStr(int i) {
         switch (i) {
@@ -364,6 +176,192 @@ public class Job {
             default:
                 return "" + i;
         }
+    }
+
+    public String serialize() {
+        return "" + getStatus() + FIELD_SEPARATOR + currentFile + FIELD_SEPARATOR + fileSize + FIELD_SEPARATOR
+                + ed2kHash + FIELD_SEPARATOR + md5Hash + FIELD_SEPARATOR + sha1Hash + FIELD_SEPARATOR + tthHash
+                + FIELD_SEPARATOR + crc32Hash + FIELD_SEPARATOR + originalName;
+    }
+
+    public String toString() {
+        return currentFile.getName() + ": " + getStatusText();
+    }
+
+    public boolean hide(String pattern) {
+        if (pattern == null || pattern.isEmpty()) {
+            return false;
+        }
+        if (pattern.charAt(0) == '!') {
+            return currentFile.getAbsolutePath().matches(pattern.substring(1));
+        }
+        return !currentFile.getAbsolutePath().matches(pattern);
+    }
+
+    public File getFile() {
+        return currentFile;
+    }
+
+    public String getExtension() {
+        if (anidbFile == null || anidbFile.extension == null) {
+            String fileName = currentFile.getName();
+            int dotIndex = fileName.lastIndexOf('.');
+            if (dotIndex < 1) {
+                System.out.println("No ext: " + fileName);
+                return "unk";
+            }
+            return fileName.substring(dotIndex + 1);
+        }
+        return anidbFile.extension;
+    }
+
+    public int getStatus() {
+        return status & M_S;
+    }
+
+    public int getHealth() {
+        return status & M_H;
+    }
+
+    private void setHealth(int health) {
+        int currentStatus = getStatus();
+        if (!check(H_NORMAL) && health == H_NORMAL) {
+            AppContext.jobs.updateQueues(this, 0, currentStatus);
+        } else if (check(H_NORMAL) && health != H_NORMAL) {
+            AppContext.jobs.updateQueues(this, currentStatus, -1);
+        }
+
+        // A.jobc.register(getRegVal(), currentStatus|health);
+        AppContext.jobc.register(status & M_R, getHealth(), status & M_R, health);
+        setHealth0(health);
+    }
+
+    public boolean check(int statusFlags) {
+        return (status & statusFlags) == statusFlags;
+    }
+
+    public boolean checkOr(int statusFlags) {
+        return (status & statusFlags) > 0;
+    }
+
+    public boolean checkSep(int statusFlags, int fileFlags, boolean unknownOnly) {
+        boolean matches = (status & M_SS & statusFlags) > 0
+                && (status & M_H & statusFlags) > 0
+                && ((statusFlags & M_D) < 1 || (status & M_D & statusFlags) > 0);
+        if (unknownOnly) {
+            return anidbFile == null && matches;
+        }
+        return matches && (fileFlags < 1 || (anidbFile != null && (anidbFile.state & fileFlags) > 0));
+    }
+
+    public boolean isLocked(int targetStatus) {
+        int health = getHealth();
+        if (health < H_MISSING) {
+            return false;
+        }
+        if (health == H_MISSING) {
+            switch (targetStatus) {
+                case FINISHED:
+                case ADDWAIT:
+                case REMWAIT:
+                    return false;
+            }
+        }
+        return true;
+    }
+
+    public boolean isCorrupt() {
+        return anidbFile != null && ((anidbFile.state & AniDBFile.F_CRCERR) == AniDBFile.F_CRCERR);
+    }
+
+    public boolean incompl() {
+        return anidbFile == null || anidbFile.anime == null || anidbFile.episode == null;
+    }
+
+    public String getStatusText() {
+        if (check(H_NORMAL)) {
+            return statusStr(getStatus());
+        }
+        return statusStr(getStatus()) + " [" + statusStr(getHealth()) + "]";
+    }
+
+    //	INPUTWAIT	= M_USR|U_1|S_DO|F_DB,	//0xb0,
+
+    public void setStatus(int newStatus, boolean test) {
+        int health = getHealth();
+        if (test) {
+            // if(health>H_PAUSED&&!(newStatus==FINISHED||newStatus==REMWAIT||newStatus==ADDWAIT))
+            // &&(newStatus&F_PD)==0)//extra check, could be removed maybe
+            //	return;
+            if (isLocked(newStatus)) {
+                return;
+            }
+            if (health == H_PAUSED || health == H_MISSING) {
+                setHealth(H_NORMAL);
+            }
+            health = getHealth();
+        }
+        if ((newStatus & F_DB) == F_DB) { // only for main status
+            if (test && health == H_NORMAL) {
+                AppContext.jobs.updateQueues(this, getStatus(), newStatus & M_S); // TODO pause off fix
+            }
+            // A.jobc.register(getRegVal(), (newStatus|H_NORMAL)&M_R);
+            health = H_NORMAL;
+            if (newStatus == FINISHED && !currentFile.exists()) {
+                health = H_MISSING;
+            }
+            AppContext.jobc.register(status & M_R, getHealth(), newStatus & M_R, health);
+            status = newStatus | health;
+
+        } else {
+            status = newStatus | H_NORMAL;
+        }
+    }
+
+    public void setHealth0(int health) {
+        status = (status & M_S) | health;
+    }
+
+    public void setError(String errorText) {
+        errorMessage = errorText;
+    }
+
+    public void updateHealth(int healthUpdate) {
+        if (healthUpdate != H_DELETED && checkOr(H_MISSING | H_DELETED)) {
+            return;
+        }
+        int health = getHealth();
+        switch (healthUpdate) {
+            case H_PAUSED:
+                if (health == H_NORMAL) {
+                    health = H_PAUSED; // turn pause on
+                } else if (health == H_PAUSED) {
+                    health = H_NORMAL; // turn pause off
+                }
+                break;
+            case H_DELETED:
+                if (health == H_DELETED) {
+                    health = (currentFile.exists() ? H_NORMAL : H_MISSING);
+                    AppContext.databaseManager.update(0, this, DatabaseManager.INDEX_JOB);
+                } else {
+                    health = H_DELETED; // delete
+                    AppContext.databaseManager.removeJob(this);
+                }
+                break;
+            case H_MISSING:
+                health = H_MISSING;
+                break;
+        }
+        setHealth(health);
+    }
+
+    public void find(File file) {
+        if (!check(H_MISSING)) {
+            return;
+        }
+        JobManager.setJobFile(this, file);
+        setHealth0(file.exists() ? H_PAUSED : H_MISSING);
+        directoryId = -1;
     }
 
     public String convert(String template) {

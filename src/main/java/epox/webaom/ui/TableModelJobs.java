@@ -44,6 +44,18 @@ public class TableModelJobs extends TableModelSortable implements RowModel {
         reset();
     }
 
+    public static void formatTable(JTable table) {
+        table.setShowGrid(false);
+        TableColumnModel columnModel = table.getColumnModel();
+        DefaultTableCellRenderer centeredRenderer = new DefaultTableCellRenderer();
+        centeredRenderer.setHorizontalAlignment(SwingConstants.CENTER);
+        for (int i = 0; i < JobColumn.getColumnCount(); i++) {
+            if (i != JobColumn.FILE.getIndex()) {
+                columnModel.getColumn(i).setCellRenderer(centeredRenderer);
+            }
+        }
+    }
+
     public void reset() {
         currentRowIndex = -1;
         currentJob = null;
@@ -230,18 +242,6 @@ public class TableModelJobs extends TableModelSortable implements RowModel {
     public int getColumnIndex(String tag) {
         JobColumn column = JobColumn.fromTag(tag);
         return column != null ? column.getIndex() : -1;
-    }
-
-    public static void formatTable(JTable table) {
-        table.setShowGrid(false);
-        TableColumnModel columnModel = table.getColumnModel();
-        DefaultTableCellRenderer centeredRenderer = new DefaultTableCellRenderer();
-        centeredRenderer.setHorizontalAlignment(SwingConstants.CENTER);
-        for (int i = 0; i < JobColumn.getColumnCount(); i++) {
-            if (i != JobColumn.FILE.getIndex()) {
-                columnModel.getColumn(i).setCellRenderer(centeredRenderer);
-            }
-        }
     }
 
     public void updateRow(int rowIndex) {

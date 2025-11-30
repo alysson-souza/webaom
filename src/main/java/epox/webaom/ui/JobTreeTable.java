@@ -35,6 +35,8 @@ import java.awt.event.MouseListener;
 import java.util.ArrayList;
 
 public class JobTreeTable extends JTreeTable implements RowModel, MouseListener {
+    private boolean needsRowHeightCalculation = true;
+
     public JobTreeTable(TreeTableModel treeTableModel) {
         super(treeTableModel);
         addMouseListener(this);
@@ -110,8 +112,6 @@ public class JobTreeTable extends JTreeTable implements RowModel, MouseListener 
         FontMetrics fontMetrics = graphics.getFontMetrics(font);
         setRowHeight(fontMetrics.getHeight() + 3);
     }
-
-    private boolean needsRowHeightCalculation = true;
 
     public void paint(Graphics graphics) {
         if (needsRowHeightCalculation) {

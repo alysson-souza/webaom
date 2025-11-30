@@ -1,19 +1,19 @@
 {
-    "java.configuration.updateBuildConfiguration": "automatic",
-    "java.format.enabled": false,
-    "java.compile.nullAnalysis.mode": "automatic",
-    "java.codeGeneration.useBlocks": true,
-    "java.codeGeneration.generateComments": true,
-    "java.saveActions.cleanup": true,
-    "java.inlayHints.parameterNames.enabled": "all",
-    "[java]": {
-        "files.trimTrailingWhitespace": false,
-        "spotlessGradle.diagnostics.enable": true,
-        "spotlessGradle.format.enable": true,
-        "editor.defaultFormatter": "richardwillis.vscode-spotless-gradle",
-        "editor.codeActionsOnSave": {
-            "source.fixAll.spotlessGradle": "explicit"
-        }
-    },
-    "java.dependency.packagePresentation": "hierarchical"
+  "java.configuration.updateBuildConfiguration": "automatic",
+  "java.format.enabled": false,
+  "java.compile.nullAnalysis.mode": "automatic",
+  "java.codeGeneration.useBlocks": true,
+  "java.codeGeneration.generateComments": true,
+  "java.saveActions.cleanup": true,
+  "java.inlayHints.parameterNames.enabled": "all",
+  "[java]": {
+    "files.trimTrailingWhitespace": false,
+    "spotlessGradle.diagnostics.enable": true,
+    "spotlessGradle.format.enable": true,
+    "editor.defaultFormatter": "richardwillis.vscode-spotless-gradle",
+    "editor.codeActionsOnSave": {
+      "source.fixAll.spotlessGradle": "explicit"
+    }
+  },
+  "java.dependency.packagePresentation": "hierarchical"
 }

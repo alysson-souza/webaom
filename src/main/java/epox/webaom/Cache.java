@@ -34,10 +34,28 @@ import epox.webaom.data.Path;
 import java.util.HashMap;
 
 public class Cache {
-    /** Internal HashMap for caching Base objects by ID. */
-    protected class CacheMap extends HashMap<Integer, Base> {
-        //
-    }
+    /** Tree sort mode: Anime > File */
+    public static final int MODE_ANIME_FILE = 0;
+    /** Tree sort mode: Anime > Episode > File */
+    public static final int MODE_ANIME_EPISODE_FILE = 1;
+    /** Tree sort mode: Anime > Group > File */
+    public static final int MODE_ANIME_GROUP_FILE = 2;
+    /** Tree sort mode: Anime > Folder > File */
+    public static final int MODE_ANIME_FOLDER_FILE = 3;
+    /** Total number of tree sort modes */
+    public static final int MODE_COUNT = 4;
+    /** Display labels for each sort mode */
+    public static final String[] SORT_MODE_LABELS = {
+        "Anime, File", "Anime, Episode, File", "Anime, Group, File", "Anime, Folder, File"
+    };
+    /** Current tree sort mode */
+    public static int treeSortMode = MODE_ANIME_EPISODE_FILE;
+
+    /////////////// OTHER///////////////
+    /** Whether to hide existing (non-missing) files from tree */
+    public static boolean hideExisting = false;
+    /** Whether to hide new/missing files from tree */
+    public static boolean hideNew = false;
 
     private final CacheMap[] cacheMaps;
 
@@ -84,7 +102,6 @@ public class Cache {
         return baseObject;
     }
 
-    /////////////// OTHER///////////////
     /** Gathers related info (anime, group, episode) for a job's file. */
     public synchronized String gatherInfo(Job job, boolean addToTree) {
         if (job == null || job.anidbFile == null) {
@@ -326,24 +343,8 @@ public class Cache {
         }
     }
 
-    /** Tree sort mode: Anime > File */
-    public static final int MODE_ANIME_FILE = 0;
-    /** Tree sort mode: Anime > Episode > File */
-    public static final int MODE_ANIME_EPISODE_FILE = 1;
-    /** Tree sort mode: Anime > Group > File */
-    public static final int MODE_ANIME_GROUP_FILE = 2;
-    /** Tree sort mode: Anime > Folder > File */
-    public static final int MODE_ANIME_FOLDER_FILE = 3;
-    /** Total number of tree sort modes */
-    public static final int MODE_COUNT = 4;
-    /** Display labels for each sort mode */
-    public static final String[] SORT_MODE_LABELS = {
-        "Anime, File", "Anime, Episode, File", "Anime, Group, File", "Anime, Folder, File"
-    };
-    /** Current tree sort mode */
-    public static int treeSortMode = MODE_ANIME_EPISODE_FILE;
-    /** Whether to hide existing (non-missing) files from tree */
-    public static boolean hideExisting = false;
-    /** Whether to hide new/missing files from tree */
-    public static boolean hideNew = false;
+    /** Internal HashMap for caching Base objects by ID. */
+    protected class CacheMap extends HashMap<Integer, Base> {
+        //
+    }
 }

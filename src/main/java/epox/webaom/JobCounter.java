@@ -24,10 +24,24 @@
 package epox.webaom;
 
 public class JobCounter {
-    /** Total number of jobs registered */
-    private int totalJobCount = 0;
+    /** Index for finished jobs count */
+    private static final int INDEX_FINISHED = 0;
+    /** Index for disk I/O jobs count */
+    private static final int INDEX_DISK_IO = 1;
+    /** Index for network I/O jobs count */
+    private static final int INDEX_NETWORK_IO = 2;
+    /** Index for error jobs count */
+    private static final int INDEX_ERROR = 3;
+    /** Index for halted jobs count */
+    private static final int INDEX_HALTED = 4;
+    /** Total number of status categories */
+    private static final int STATUS_COUNT = 5;
+    /** Display names for status categories */
+    private static final String[] STATUS_NAMES = {"fin", "dio", "nio", "err", "hlt"};
     /** Count of jobs by status category */
     private final int[] statusCounts = new int[STATUS_COUNT];
+    /** Total number of jobs registered */
+    private int totalJobCount = 0;
 
     public synchronized int getProgress() {
         int activeJobCount = totalJobCount - statusCounts[INDEX_HALTED] - statusCounts[INDEX_ERROR];
@@ -81,19 +95,4 @@ public class JobCounter {
         }
         totalJobCount = 0;
     }
-
-    /** Index for finished jobs count */
-    private static final int INDEX_FINISHED = 0;
-    /** Index for disk I/O jobs count */
-    private static final int INDEX_DISK_IO = 1;
-    /** Index for network I/O jobs count */
-    private static final int INDEX_NETWORK_IO = 2;
-    /** Index for error jobs count */
-    private static final int INDEX_ERROR = 3;
-    /** Index for halted jobs count */
-    private static final int INDEX_HALTED = 4;
-    /** Total number of status categories */
-    private static final int STATUS_COUNT = 5;
-    /** Display names for status categories */
-    private static final String[] STATUS_NAMES = {"fin", "dio", "nio", "err", "hlt"};
 }

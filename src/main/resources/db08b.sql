@@ -1,2 +1,3 @@
 ALTER TABLE jtb CHANGE COLUMN size size BIGINT NOT NULL;
-UPDATE vtb SET ver=6;
+UPDATE vtb
+SET ver=6;

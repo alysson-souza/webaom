@@ -26,6 +26,8 @@ package epox.webaom.data;
  * Represents a fansub/release group from AniDB.
  */
 public class Group extends Base {
+    /** Singleton representing no group (raw release). */
+    public static final Group NONE = new Group(0);
     /** Full group name. */
     public String name = "NONE";
     /** Short group name/tag (e.g., "a-f" for "Anime-Fansubs"). */
@@ -42,7 +44,4 @@ public class Group extends Base {
     public String toString() {
         return name + "|" + shortName;
     }
-
-    /** Singleton representing no group (raw release). */
-    public static final Group NONE = new Group(0);
 }

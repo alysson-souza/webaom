@@ -1,8 +1,8 @@
 {
-    "recommendations": [
-        "redhat.java",
-        "vscjava.vscode-gradle",
-        "richardwillis.vscode-spotless-gradle",
-        "sonarsource.sonarlint-vscode"
-    ]
+  "recommendations": [
+    "redhat.java",
+    "vscjava.vscode-gradle",
+    "richardwillis.vscode-spotless-gradle",
+    "sonarsource.sonarlint-vscode"
+  ]
 }

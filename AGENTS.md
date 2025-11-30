@@ -1,9 +1,12 @@
 # WebAOM Agent Instructions
 
 ## Project Overview
-WebAOM (Web Anime-o-Matic) is a Java Swing desktop application for identifying anime files via AniDB's UDP API. Originally developed 2005-2010, revived in 2025 for modernization.
+
+WebAOM (Web Anime-o-Matic) is a Java Swing desktop application for identifying anime files via AniDB's UDP API.
+Originally developed 2005-2010, revived in 2025 for modernization.
 
 ## Build Commands
+
 ```bash
 ./gradlew build          # Compile + create fat JAR with dependencies
 ./gradlew run            # Run application
@@ -14,12 +17,16 @@ WebAOM (Web Anime-o-Matic) is a Java Swing desktop application for identifying a
 ## Architecture
 
 ### Core Components
+
 - **Entry Point**: `src/main/java/epox/webaom/WebAOM.java` - Swing JApplet/JFrame launcher
-- **Global State**: `AppContext.java` - Static singleton holding all subsystems (`AppContext.databaseManager`, `AppContext.nio`, `AppContext.dio`, `AppContext.jobs`, `AppContext.gui`, etc.)
+- **Global State**: `AppContext.java` - Static singleton holding all subsystems (`AppContext.databaseManager`,
+  `AppContext.nio`, `AppContext.dio`, `AppContext.jobs`, `AppContext.gui`, etc.)
 - **Job System**: `Job.java` with bitmask-based state machine (status + health flags)
-- **Network Layer**: `AniDBConnection.java` / `AniDBFileClient.java` - AniDB UDP API client and high-level file/MyList operations (encryption/compression supported)
+- **Network Layer**: `AniDBConnection.java` / `AniDBFileClient.java` - AniDB UDP API client and high-level file/MyList
+  operations (encryption/compression supported)
 
 ### Package Structure
+
 - `epox.webaom/` - Core application logic
 - `epox.webaom.data/` - Data models (`AniDBFile`, `Anime`, `Episode`, `Group`)
 - `epox.webaom.net/` - AniDB UDP protocol implementation
@@ -29,7 +36,9 @@ WebAOM (Web Anime-o-Matic) is a Java Swing desktop application for identifying a
 - `epox.swing/` - Reusable Swing components
 
 ### Vendored Code (DO NOT MODIFY)
+
 Third-party code in `com/`, `gnu/`, `jonelo/` packages is excluded from formatting/linting:
+
 - `com.bitzi.util` - Base32 encoding
 - `com.twmacinta` - Fast MD5 implementation
 - `gnu.crypto.hash` - Tiger hash
@@ -38,6 +47,7 @@ Third-party code in `com/`, `gnu/`, `jonelo/` packages is excluded from formatti
 ## Code Style
 
 ### Formatting
+
 - Palantir Java Format via Spotless - only applies to `epox/**/*.java`
 - 120 character line length, lambda-friendly formatting
 - 4-space indentation
@@ -45,14 +55,19 @@ Third-party code in `com/`, `gnu/`, `jonelo/` packages is excluded from formatti
 - Java 21 toolchain
 - No star imports, unused imports removed automatically
 - Run `./gradlew spotlessApply` before committing
-- IntelliJ IDEA: install the [Palantir Java Format](https://plugins.jetbrains.com/plugin/13180-palantir-java-format) plugin for consistent formatting
-- VS Code: install [Spotless Gradle](https://marketplace.visualstudio.com/items?itemName=richardwillis.vscode-spotless-gradle) extension for format-on-save via Spotless
+- IntelliJ IDEA: install the [Palantir Java Format](https://plugins.jetbrains.com/plugin/13180-palantir-java-format)
+  plugin for consistent formatting
+- VS Code:
+  install [Spotless Gradle](https://marketplace.visualstudio.com/items?itemName=richardwillis.vscode-spotless-gradle)
+  extension for format-on-save via Spotless
 
 ### Linting
+
 - SonarLint for IDE-based code quality analysis (VS Code and IntelliJ IDEA)
 - No CI-based linting - rely on IDE integration
 
 ### Legacy Patterns (To be improved as you go)
+
 - Global state via `AppContext` static fields (historically `A`)
 - Some legacy files may use Hungarian-ish prefixes: `m_` (member), `mI` (int), `mS` (string), `mB` (boolean)
 - Bitmask constants for Job states: `S_DONE`, `H_PAUSED`, `D_DIO`, etc.
@@ -61,21 +76,25 @@ Third-party code in `com/`, `gnu/`, `jonelo/` packages is excluded from formatti
 ## Key Implementation Details
 
 ### Configuration
+
 - User settings stored in `~/.webaom` (UTF-8 encoded)
 - HTML template override: `~/.webaom.htm`
 - Options managed via `Options.java` with arrays (`booleanOptions[]`, `integerOptions[]`, `stringOptions[]`)
 
 ### AniDB UDP Protocol
+
 - Default server: `api.anidb.net:9000`
 - Session-based auth with optional AES encryption
 - Rate limiting handled internally (configurable delay between packets)
 
 ### File Processing
+
 - Multi-algorithm hashing: ED2K, MD5, SHA-1, CRC32, Tiger Tree Hash
 - Template-based file renaming with tags (`%ann`, `%epn`, `%grp`, etc.)
 - Conditional rules defined in `Rules.java`
 
 ## Testing
+
 No automated test suite exists. Test manually by running the application.
 
 ## Version Bumping
@@ -92,7 +111,9 @@ Note: `version.properties` is auto-generated during build from `build.gradle`.
 ## Git Conventions
 
 ### Commit Style
+
 Use **conventional commits** with optional scope and body:
+
 ```
 type(scope): subject line
 
@@ -100,9 +121,11 @@ Optional body explaining the change in detail.
 ```
 
 Examples from this repo:
+
 - `fix(ci): remove Azul vendor requirement from toolchain`
 - `chore(spotless): migrate to Palantir Java Format`
 - `style: reformat code with Palantir formatter`
 
 ### Git Commands
+
 - If you need to see the git log history, use `git log --format=full` or similar

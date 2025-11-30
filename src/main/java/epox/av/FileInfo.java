@@ -44,81 +44,6 @@ public class FileInfo {
         dump(sub);
     }
 
-    protected class MyHandler extends DefaultHandler {
-        static final int DUR = 0;
-        static final int VID = 1;
-        static final int AUD = 2;
-        static final int SUB = 3;
-        int ctyp = -1;
-        int tcnt = 1;
-        String name = null;
-        String id = null;
-        AttributeMap m;
-
-        /*
-         * private void o(Object o){
-         * System.out.println(o);
-         * }
-         */
-        public void startElement(String namespace, String localname, String type, org.xml.sax.Attributes attributes)
-                throws org.xml.sax.SAXException {
-            name = type;
-            id = attributes.getValue("id");
-            // o("> "+type);
-            if (ctyp > 0) {
-                return;
-            }
-            // if(type.equals("duration"))	ctyp = DUR;
-            switch (type) {
-                case "vid" -> ctyp = VID;
-                case "aud" -> ctyp = AUD;
-                case "sub" -> ctyp = SUB;
-                default -> ctyp = -1;
-            }
-
-            if (ctyp > 0) {
-                m = new AttributeMap();
-                String d = attributes.getValue("default");
-                m.put("def", d != null && d.equals("1") ? "default" : "");
-                m.put("num", tcnt++);
-            }
-        }
-
-        public void endElement(String namespace, String localname, String type) throws org.xml.sax.SAXException {
-            // o("< "+type);
-
-            if (type.equals("vid") && ctyp == VID) {
-                vid.add(m);
-                m = null;
-                ctyp = -1;
-                return;
-            }
-            if (type.equals("aud") && ctyp == AUD) {
-                aud.add(m);
-                m = null;
-                ctyp = -1;
-                return;
-            }
-            if (type.equals("sub") && ctyp == SUB) {
-                sub.add(m);
-                m = null;
-                ctyp = -1;
-            }
-        }
-
-        public void characters(char[] ch, int start, int len) {
-            String text = new String(ch, start, len).trim();
-            if (text.isEmpty()) {
-                return;
-            }
-            if (m != null)
-            // o("put("+name+", "+text+") "+(id==null?"":id));
-            {
-                m.put(name, text);
-            }
-        }
-    }
-
     public void byXml(String str) throws IOException {
         try {
             MyHandler myh = new MyHandler();
@@ -200,6 +125,81 @@ public class FileInfo {
             sb.append(s);
         }
         return sb.toString();
+    }
+
+    protected class MyHandler extends DefaultHandler {
+        static final int DUR = 0;
+        static final int VID = 1;
+        static final int AUD = 2;
+        static final int SUB = 3;
+        int ctyp = -1;
+        int tcnt = 1;
+        String name = null;
+        String id = null;
+        AttributeMap m;
+
+        /*
+         * private void o(Object o){
+         * System.out.println(o);
+         * }
+         */
+        public void startElement(String namespace, String localname, String type, org.xml.sax.Attributes attributes)
+                throws org.xml.sax.SAXException {
+            name = type;
+            id = attributes.getValue("id");
+            // o("> "+type);
+            if (ctyp > 0) {
+                return;
+            }
+            // if(type.equals("duration"))	ctyp = DUR;
+            switch (type) {
+                case "vid" -> ctyp = VID;
+                case "aud" -> ctyp = AUD;
+                case "sub" -> ctyp = SUB;
+                default -> ctyp = -1;
+            }
+
+            if (ctyp > 0) {
+                m = new AttributeMap();
+                String d = attributes.getValue("default");
+                m.put("def", d != null && d.equals("1") ? "default" : "");
+                m.put("num", tcnt++);
+            }
+        }
+
+        public void endElement(String namespace, String localname, String type) throws org.xml.sax.SAXException {
+            // o("< "+type);
+
+            if (type.equals("vid") && ctyp == VID) {
+                vid.add(m);
+                m = null;
+                ctyp = -1;
+                return;
+            }
+            if (type.equals("aud") && ctyp == AUD) {
+                aud.add(m);
+                m = null;
+                ctyp = -1;
+                return;
+            }
+            if (type.equals("sub") && ctyp == SUB) {
+                sub.add(m);
+                m = null;
+                ctyp = -1;
+            }
+        }
+
+        public void characters(char[] ch, int start, int len) {
+            String text = new String(ch, start, len).trim();
+            if (text.isEmpty()) {
+                return;
+            }
+            if (m != null)
+            // o("put("+name+", "+text+") "+(id==null?"":id));
+            {
+                m.put(name, text);
+            }
+        }
     }
     /*
      * private static String str_chn(int i){

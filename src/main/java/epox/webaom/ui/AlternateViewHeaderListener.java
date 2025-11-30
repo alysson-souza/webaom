@@ -30,11 +30,10 @@ import javax.swing.table.TableColumnModel;
  * Header click listener for the alternate (tree-based) file view. Handles column sorting by clicking column headers.
  */
 public class AlternateViewHeaderListener extends HeaderListener {
-    /** Current sort column index (positive = ascending, negative = descending) */
-    private int currentSortColumn = 0;
-
     /** The tree table this listener manages */
     protected JobTreeTable treeTable;
+    /** Current sort column index (positive = ascending, negative = descending) */
+    private int currentSortColumn = 0;
 
     public AlternateViewHeaderListener(JobTreeTable treeTable) {
         super(null, null, null);

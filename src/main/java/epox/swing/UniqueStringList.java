@@ -31,9 +31,9 @@ import javax.swing.event.ListDataListener;
  * A ListModel that stores unique strings. Duplicates are silently ignored when adding.
  */
 public class UniqueStringList implements ListModel {
-    private ListDataListener listDataListener;
     private final Vector<String> stringList;
     private final String separator;
+    private ListDataListener listDataListener;
 
     public UniqueStringList(String separator) {
         this.separator = separator;

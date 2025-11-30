@@ -27,6 +27,14 @@ import epox.webaom.AppContext;
 import epox.webaom.Job;
 
 public class AniDBFile extends Base {
+    public static final int F_CRCOK = 1;
+    public static final int F_CRCERR = 2;
+    public static final int F_ISV2 = 4;
+    public static final int F_ISV3 = 8;
+    public static final int F_ISV4 = 16;
+    public static final int F_ISV5 = 32;
+    public static final int F_UNC = 64;
+    public static final int F_CEN = 128;
     /** AniDB file ID. */
     public int fileId;
     /** AniDB anime ID. */
@@ -114,6 +122,10 @@ public class AniDBFile extends Base {
         lengthInSeconds = StringUtilities.i(fields[index++]);
     }
 
+    public static Base getInst(String[] s) {
+        return new AniDBFile(s);
+    }
+
     public Job getJob() {
         return job;
     }
@@ -141,10 +153,6 @@ public class AniDBFile extends Base {
                 + S + ed2kHash + S + md5Hash + S + shaHash + S + crcHash + S + dubLanguage + S + subLanguage + S
                 + quality + S + ripSource + S + audioCodec + S + videoCodec + S + resolution + S + extension + S
                 + lengthInSeconds + S + (group != null ? group.serialize() : "");
-    }
-
-    public static Base getInst(String[] s) {
-        return new AniDBFile(s);
     }
 
     public Object getKey() {
@@ -229,15 +237,6 @@ public class AniDBFile extends Base {
             return url1("search");
         }
     }
-
-    public static final int F_CRCOK = 1;
-    public static final int F_CRCERR = 2;
-    public static final int F_ISV2 = 4;
-    public static final int F_ISV3 = 8;
-    public static final int F_ISV4 = 16;
-    public static final int F_ISV5 = 32;
-    public static final int F_UNC = 64;
-    public static final int F_CEN = 128;
 
     public boolean inYear(String yearRange) {
         yearRange.replaceAll(" ", "");

@@ -44,17 +44,6 @@ public class ReplacementRule {
         enabled = Boolean.valueOf(isEnabled);
     }
 
-    public String toString() {
-        String destValue = destination;
-        if (destValue.equals("")) {
-            destValue = "\\0";
-        }
-        if (enabled) {
-            return source + Options.FIELD_SEPARATOR + destValue;
-        }
-        return "#" + source + Options.FIELD_SEPARATOR + destValue;
-    }
-
     /**
      * Parses a source-destination pair from encoded strings.
      * Lines starting with '#' indicate a disabled rule.
@@ -95,5 +84,16 @@ public class ReplacementRule {
             rulesList.add(parse(tokenizer.nextToken(), tokenizer.nextToken()));
         }
         return encodedString;
+    }
+
+    public String toString() {
+        String destValue = destination;
+        if (destValue.equals("")) {
+            destValue = "\\0";
+        }
+        if (enabled) {
+            return source + Options.FIELD_SEPARATOR + destValue;
+        }
+        return "#" + source + Options.FIELD_SEPARATOR + destValue;
     }
 }

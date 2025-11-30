@@ -32,10 +32,104 @@ import java.net.SocketTimeoutException;
  * exceptions for error conditions (bans, auth failures, etc.).
  */
 public class AniDBConnectionResponse {
+    ///////////////////////////////// REPLY CODES////////////////////////////////
+    public static final int LOGIN_ACCEPTED = 200; // C
+    public static final int LOGIN_ACCEPTED_NEW_VER = 201; // C
+    public static final int LOGGED_OUT = 203; // C
+    public static final int // 	STATS							=206, //N
+            //	TOP								=207, //N
+            //	UPTIME							=208, //N
+            ENCRYPTION_ENABLED = 209; // N
+    public static final int MYLIST_ENTRY_ADDED = 210; // C
+    public static final int MYLIST_ENTRY_DELETED = 211; // C
+    public static final int FILE = 220; // C
+    public static final int ANIME = 230; // N
+    public static final int EPISODE = 240; // N
+    public static final int GROUP = 250; // N
+    public static final int /*
+							 * NOTIFICATION_ENABLED =270, //C
+							 * PUSHACK_CONFIRMED =280, //C
+							 * NOTIFYACK_SUCCESSFUL_M =281, //C
+							 * NOTIFYACK_SUCCESSFUL_N =282, //C
+							 * NOTIFICATION =290, //C
+							 * NOTIFYLIST =291, //C
+							 * NOTIFYGET_MESSAGE =292, //C
+							 * NOTIFYGET_NOTIFY =293, //C
+							 * SENDMSG_SUCCESSFUL =294, //C
+							 */
+            /*
+             * AFFIRMATIVE/NEGATIVE 3XX
+             */
+            //	PONG							=300, //C
+            API_PASSWORD_NOT_DEFINED = 309;
+    public static final int FILE_ALREADY_IN_MYLIST = 310; // C
+    public static final int MYLIST_ENTRY_EDITED = 311; // C
+    //	MYLIST							=221, //C
+    //	MYLIST_STATS					=222, //N
+    public static final int MULTIPLE_MYLIST_ENTRIES = 312; // C
+    //	ANIME_BEST_MATCH				=231, //N
+    //	RANDOMANIME						=232, //N
+    public static final int NO_SUCH_FILE = 320; // C
+    public static final int /*
+							 * NO_SUCH_ENTRY =321, //C
+							 * MULTIPLE_FILES_FOUND =322, //N
+							 *
+							 * NO_SUCH_ANIME =330, //N
+							 * NO_SUCH_EPISODE =340, //N
+							 * NO_SUCH_GROUP =350, //N
+							 *
+							 * NO_SUCH_VOTE =360, //N
+							 * INVALID_VOTE_TYPE =361, //N
+							 * INVALID_VOTE_VALUE =362, //N
+							 * PERMVOTE_NOT_ALLOWED =363, //N
+							 * ALREADY_PERMVOTED =364, //N
+							 *
+							 * NOTIFICATION_DISABLED =370, //C
+							 * NO_SUCH_PACKET_PENDING =380, //C
+							 * NO_SUCH_ENTRY_M =381, //C
+							 * NO_SUCH_ENTRY_N =382, //C
+							 *
+							 * NO_SUCH_MESSAGE =392, //C
+							 * NO_SUCH_NOTIFY =393, //C
+							 */ NO_SUCH_USER = 394; // C
+
+    //	VOTED							=260, //N
+    //	VOTE_FOUND						=261, //N
+    //	VOTE_UPDATED					=262, //N
+    //	VOTE_REVOKED					=263, //N
+    public static final int NOT_LOGGED_IN = 403; // C
+    public static final int NO_SUCH_MYLIST_FILE = 410; // C
+    public static final int NO_SUCH_MYLIST_ENTRY = 411; // C
+    public static final int LOGIN_FAILED = 500; // C
+    public static final int LOGIN_FIRST = 501; // C
+    public static final int ACCESS_DENIED = 502; // C
+
+    //	NO_SUCH_DATA_ENTRY				=396, //N
+
+    /*
+     * NEGATIVE 4XX
+     */
+    public static final int CLIENT_VERSION_OUTDATED = 503; // C
+    public static final int CLIENT_BANNED = 504; // C
+    public static final int ILLEGAL_INPUT_OR_ACCESS_DENIED = 505; // C
+
+    /*
+     * CLIENT SIDE FAILURE 5XX
+     */
+    public static final int INVALID_SESSION = 506; // C
+    public static final int ENCODING_NOT_SUPPORTED = 510; // M
+    public static final int BANNED = 555; // C
+    public static final int INTERNAL_SERVER_ERROR = 600; // C
+    public static final int SERVER_BUSY = 602;
     public int code = -1;
     public String message = null;
     public String data = null;
     public String tag;
+    //	UNKNOWN_COMMAND					=598, //C
+
+    /*
+     * SERVER SIDE FAILURE 6XX
+     */
 
     public AniDBConnectionResponse(String expectedTag, int tagLength, String rawResponse)
             throws AniDBException, TagMismatchException, SocketTimeoutException {
@@ -104,107 +198,6 @@ public class AniDBConnectionResponse {
     public String toString() {
         return code + " " + message + " [" + data + "]";
     }
-
-    ///////////////////////////////// REPLY CODES////////////////////////////////
-    public static final int LOGIN_ACCEPTED = 200; // C
-    public static final int LOGIN_ACCEPTED_NEW_VER = 201; // C
-    public static final int LOGGED_OUT = 203; // C
-    public static final int // 	STATS							=206, //N
-            //	TOP								=207, //N
-            //	UPTIME							=208, //N
-            ENCRYPTION_ENABLED = 209; // N
-    public static final int MYLIST_ENTRY_ADDED = 210; // C
-    public static final int MYLIST_ENTRY_DELETED = 211; // C
-    public static final int FILE = 220; // C
-    //	MYLIST							=221, //C
-    //	MYLIST_STATS					=222, //N
-
-    public static final int ANIME = 230; // N
-    //	ANIME_BEST_MATCH				=231, //N
-    //	RANDOMANIME						=232, //N
-
-    public static final int EPISODE = 240; // N
-    public static final int GROUP = 250; // N
-
-    //	VOTED							=260, //N
-    //	VOTE_FOUND						=261, //N
-    //	VOTE_UPDATED					=262, //N
-    //	VOTE_REVOKED					=263, //N
-
-    public static final int /*
-							 * NOTIFICATION_ENABLED =270, //C
-							 * PUSHACK_CONFIRMED =280, //C
-							 * NOTIFYACK_SUCCESSFUL_M =281, //C
-							 * NOTIFYACK_SUCCESSFUL_N =282, //C
-							 * NOTIFICATION =290, //C
-							 * NOTIFYLIST =291, //C
-							 * NOTIFYGET_MESSAGE =292, //C
-							 * NOTIFYGET_NOTIFY =293, //C
-							 * SENDMSG_SUCCESSFUL =294, //C
-							 */
-            /*
-             * AFFIRMATIVE/NEGATIVE 3XX
-             */
-            //	PONG							=300, //C
-            API_PASSWORD_NOT_DEFINED = 309;
-    public static final int FILE_ALREADY_IN_MYLIST = 310; // C
-    public static final int MYLIST_ENTRY_EDITED = 311; // C
-    public static final int MULTIPLE_MYLIST_ENTRIES = 312; // C
-    public static final int NO_SUCH_FILE = 320; // C
-    public static final int /*
-							 * NO_SUCH_ENTRY =321, //C
-							 * MULTIPLE_FILES_FOUND =322, //N
-							 *
-							 * NO_SUCH_ANIME =330, //N
-							 * NO_SUCH_EPISODE =340, //N
-							 * NO_SUCH_GROUP =350, //N
-							 *
-							 * NO_SUCH_VOTE =360, //N
-							 * INVALID_VOTE_TYPE =361, //N
-							 * INVALID_VOTE_VALUE =362, //N
-							 * PERMVOTE_NOT_ALLOWED =363, //N
-							 * ALREADY_PERMVOTED =364, //N
-							 *
-							 * NOTIFICATION_DISABLED =370, //C
-							 * NO_SUCH_PACKET_PENDING =380, //C
-							 * NO_SUCH_ENTRY_M =381, //C
-							 * NO_SUCH_ENTRY_N =382, //C
-							 *
-							 * NO_SUCH_MESSAGE =392, //C
-							 * NO_SUCH_NOTIFY =393, //C
-							 */ NO_SUCH_USER = 394; // C
-
-    //	NO_SUCH_DATA_ENTRY				=396, //N
-
-    /*
-     * NEGATIVE 4XX
-     */
-
-    public static final int NOT_LOGGED_IN = 403; // C
-    public static final int NO_SUCH_MYLIST_FILE = 410; // C
-    public static final int NO_SUCH_MYLIST_ENTRY = 411; // C
-
-    /*
-     * CLIENT SIDE FAILURE 5XX
-     */
-
-    public static final int LOGIN_FAILED = 500; // C
-    public static final int LOGIN_FIRST = 501; // C
-    public static final int ACCESS_DENIED = 502; // C
-    public static final int CLIENT_VERSION_OUTDATED = 503; // C
-    public static final int CLIENT_BANNED = 504; // C
-    public static final int ILLEGAL_INPUT_OR_ACCESS_DENIED = 505; // C
-    public static final int INVALID_SESSION = 506; // C
-    public static final int ENCODING_NOT_SUPPORTED = 510; // M
-    public static final int BANNED = 555; // C
-    //	UNKNOWN_COMMAND					=598, //C
-
-    /*
-     * SERVER SIDE FAILURE 6XX
-     */
-
-    public static final int INTERNAL_SERVER_ERROR = 600; // C
-    public static final int SERVER_BUSY = 602;
     //	ANIDB_OUT_OF_SERVICE			=601, //C
     //	API_VIOLATION					=666; //C
 }
