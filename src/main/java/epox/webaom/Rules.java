@@ -221,9 +221,9 @@ public class Rules {
 		if (upperOp.startsWith("ASSUME ")) {
 			try {
 				if (upperOp.startsWith("ASSUME SPECIAL ")) {
-					A.ASSP = U.i(upperOp.substring(15).trim());
+					A.assumedSpecialCount = U.i(upperOp.substring(15).trim());
 				} else {
-					A.ASNO = U.i(upperOp.substring(7).trim());
+					A.assumedEpisodeCount = U.i(upperOp.substring(7).trim());
 				}
 			} catch (NumberFormatException e) {
 				A.dialog("NumberFormatException", "Parsing '" + operation + "' failed.");

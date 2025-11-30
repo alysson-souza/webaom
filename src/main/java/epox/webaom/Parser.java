@@ -106,7 +106,7 @@ public class Parser {
 			numberPart = input.substring(0, dashIndex);
 		}
 		if (totalEpisodes == 0) {
-			totalEpisodes = A.ASNO; // presume this
+			totalEpisodes = A.assumedEpisodeCount; // presume this
 		}
 		int episodeNumber;
 		String prefix = "";
@@ -117,7 +117,7 @@ public class Parser {
 			episodeNumber = U.i(numberPart.substring(1));
 			prefix += firstChar;
 			// !totalEpisodes = episodeNumber; //no total specials
-			totalEpisodes = A.ASSP;
+			totalEpisodes = A.assumedSpecialCount;
 		}
 		if (totalEpisodes < episodeNumber) {
 			totalEpisodes = episodeNumber; // just in case...
