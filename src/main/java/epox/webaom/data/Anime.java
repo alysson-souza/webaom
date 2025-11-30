@@ -109,19 +109,15 @@ public class Anime extends Base {
 	}
 
 	/** Title display priority: 0=romaji, 1=kanji, 2=english. */
-	public static int TITLE_PRIORITY = 0;
+	public static int titlePriority = 0;
 
 	public String toString() {
-		switch (TITLE_PRIORITY) {
-			case 1 :
-				return (kanjiTitle == null ? romajiTitle : kanjiTitle) + " (" + episodeCount + ":" + latestEpisode
-						+ ")";
-			case 2 :
-				return (englishTitle == null ? romajiTitle : englishTitle) + " (" + episodeCount + ":" + latestEpisode
-						+ ")";
-			default :
-				return romajiTitle + " (" + episodeCount + ":" + latestEpisode + ")";
-		}
+		return switch (titlePriority) {
+			case 1 -> (kanjiTitle == null ? romajiTitle : kanjiTitle) + " (" + episodeCount + ":" + latestEpisode + ")";
+			case 2 ->
+				(englishTitle == null ? romajiTitle : englishTitle) + " (" + episodeCount + ":" + latestEpisode + ")";
+			default -> romajiTitle + " (" + episodeCount + ":" + latestEpisode + ")";
+		};
 	}
 
 	public String serialize() {

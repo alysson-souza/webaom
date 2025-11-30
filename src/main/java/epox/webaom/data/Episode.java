@@ -51,17 +51,14 @@ public class Episode extends Base {
 	}
 
 	/** Title display priority: 0=english, 1=romaji, 2=kanji. */
-	public static int TITLE_PRIORITY = 0;
+	public static int titlePriority = 0;
 
 	public String toString() {
-		switch (TITLE_PRIORITY) {
-			case 1 :
-				return num + " - " + (rom == null ? eng : rom);
-			case 2 :
-				return num + " - " + (kan == null ? eng : kan);
-			default :
-				return num + " - " + eng;
-		}
+		return switch (titlePriority) {
+			case 1 -> num + " - " + (rom == null ? eng : rom);
+			case 2 -> num + " - " + (kan == null ? eng : kan);
+			default -> num + " - " + eng;
+		};
 	}
 
 	public String serialize() {
