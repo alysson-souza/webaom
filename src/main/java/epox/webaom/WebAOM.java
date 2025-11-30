@@ -35,24 +35,24 @@ public class WebAOM {
     }
 
     private static void launch() {
-        setMyFont(new Font("Tahoma", Font.PLAIN, 11), new Font("Times", Font.PLAIN, 11));
+        setGlobalFont(new Font("Tahoma", Font.PLAIN, 11), new Font("Times", Font.PLAIN, 11));
 
-        JFrame jf = new JFrame("WebAOM " + AppContext.S_VER + " Loading...");
-        AppContext.frame = jf;
-        AppContext.component = jf;
-        jf.setSize(800, 600);
-        jf.setDefaultCloseOperation(WindowConstants.DO_NOTHING_ON_CLOSE);
+        JFrame frame = new JFrame("WebAOM " + AppContext.S_VER + " Loading...");
+        AppContext.frame = frame;
+        AppContext.component = frame;
+        frame.setSize(800, 600);
+        frame.setDefaultCloseOperation(WindowConstants.DO_NOTHING_ON_CLOSE);
 
-        jf.setLocationRelativeTo(null);
-        jf.setVisible(true);
+        frame.setLocationRelativeTo(null);
+        frame.setVisible(true);
 
         AppContext.init();
 
-        jf.getContentPane().add(AppContext.gui, java.awt.BorderLayout.CENTER);
-        jf.setVisible(true);
-        jf.addWindowListener(new java.awt.event.WindowAdapter() {
+        frame.getContentPane().add(AppContext.gui, java.awt.BorderLayout.CENTER);
+        frame.setVisible(true);
+        frame.addWindowListener(new java.awt.event.WindowAdapter() {
             @Override
-            public void windowClosing(java.awt.event.WindowEvent e) {
+            public void windowClosing(java.awt.event.WindowEvent event) {
                 if (AppContext.shutdown(true)) {
                     System.exit(0);
                 }
@@ -61,42 +61,42 @@ public class WebAOM {
         AppContext.gui.startup();
     }
 
-    static void setMyFont(Font f0, Font f1) {
-        FontUIResource f = new FontUIResource(f0);
-        FontUIResource f2 = new FontUIResource(f1);
-        UIManager.put("Button.font", f);
-        UIManager.put("CheckBox.font", f);
-        UIManager.put("CheckBoxMenuItem.acceleratorFont", f);
-        UIManager.put("CheckBoxMenuItem.font", f);
-        UIManager.put("ComboBox.font", f);
-        UIManager.put("DesktopIcon.font", f);
-        UIManager.put("EditorPane.font", f);
-        UIManager.put("FormattedTextField.font", f);
-        UIManager.put("Label.font", f);
-        UIManager.put("List.font", f);
-        UIManager.put("Menu.font", f);
-        UIManager.put("MenuItem.acceleratorFont", f);
-        UIManager.put("MenuItem.font", f);
-        UIManager.put("OptionPane.font", f);
-        UIManager.put("Panel.font", f);
-        UIManager.put("PasswordField.font", f);
-        UIManager.put("PopupMenu.font", f);
-        UIManager.put("ProgressBar.font", f);
-        UIManager.put("RadioButton.font", f);
-        UIManager.put("RadioButtonMenuItem.acceleratorFont", f);
-        UIManager.put("RadioButtonMenuItem.font", f);
-        UIManager.put("ScrollPane.font", f);
-        UIManager.put("Slider.font", f);
-        UIManager.put("TabbedPane.font", f);
-        UIManager.put("Table.font", f2);
-        UIManager.put("TableHeader.font", f);
-        UIManager.put("TextArea.font", f);
-        UIManager.put("TextField.font", f);
-        UIManager.put("TextPane.font", f);
-        UIManager.put("TitledBorder.font", f);
-        UIManager.put("ToggleButton.font", f);
-        UIManager.put("ToolTip.font", f);
-        UIManager.put("Tree.font", f);
-        UIManager.put("Viewport.font", f);
+    static void setGlobalFont(Font primaryFont, Font tableFont) {
+        FontUIResource primaryFontResource = new FontUIResource(primaryFont);
+        FontUIResource tableFontResource = new FontUIResource(tableFont);
+        UIManager.put("Button.font", primaryFontResource);
+        UIManager.put("CheckBox.font", primaryFontResource);
+        UIManager.put("CheckBoxMenuItem.acceleratorFont", primaryFontResource);
+        UIManager.put("CheckBoxMenuItem.font", primaryFontResource);
+        UIManager.put("ComboBox.font", primaryFontResource);
+        UIManager.put("DesktopIcon.font", primaryFontResource);
+        UIManager.put("EditorPane.font", primaryFontResource);
+        UIManager.put("FormattedTextField.font", primaryFontResource);
+        UIManager.put("Label.font", primaryFontResource);
+        UIManager.put("List.font", primaryFontResource);
+        UIManager.put("Menu.font", primaryFontResource);
+        UIManager.put("MenuItem.acceleratorFont", primaryFontResource);
+        UIManager.put("MenuItem.font", primaryFontResource);
+        UIManager.put("OptionPane.font", primaryFontResource);
+        UIManager.put("Panel.font", primaryFontResource);
+        UIManager.put("PasswordField.font", primaryFontResource);
+        UIManager.put("PopupMenu.font", primaryFontResource);
+        UIManager.put("ProgressBar.font", primaryFontResource);
+        UIManager.put("RadioButton.font", primaryFontResource);
+        UIManager.put("RadioButtonMenuItem.acceleratorFont", primaryFontResource);
+        UIManager.put("RadioButtonMenuItem.font", primaryFontResource);
+        UIManager.put("ScrollPane.font", primaryFontResource);
+        UIManager.put("Slider.font", primaryFontResource);
+        UIManager.put("TabbedPane.font", primaryFontResource);
+        UIManager.put("Table.font", tableFontResource);
+        UIManager.put("TableHeader.font", primaryFontResource);
+        UIManager.put("TextArea.font", primaryFontResource);
+        UIManager.put("TextField.font", primaryFontResource);
+        UIManager.put("TextPane.font", primaryFontResource);
+        UIManager.put("TitledBorder.font", primaryFontResource);
+        UIManager.put("ToggleButton.font", primaryFontResource);
+        UIManager.put("ToolTip.font", primaryFontResource);
+        UIManager.put("Tree.font", primaryFontResource);
+        UIManager.put("Viewport.font", primaryFontResource);
     }
 }
