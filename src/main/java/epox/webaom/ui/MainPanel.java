@@ -597,10 +597,10 @@ public class MainPanel extends JPanel
 			}
 			altViewPanel.updateAlternativeView(true);
 		} else if (source == altViewPanel.animeTitleComboBox) {
-			Anime.TITLE_PRIORITY = altViewPanel.animeTitleComboBox.getSelectedIndex();
+			Anime.titlePriority = altViewPanel.animeTitleComboBox.getSelectedIndex();
 			altViewPanel.updateAlternativeView(false);
 		} else if (source == altViewPanel.episodeTitleComboBox) {
-			Episode.TITLE_PRIORITY = altViewPanel.episodeTitleComboBox.getSelectedIndex();
+			Episode.titlePriority = altViewPanel.episodeTitleComboBox.getSelectedIndex();
 			altViewPanel.updateAlternativeView(false);
 		}
 	}
