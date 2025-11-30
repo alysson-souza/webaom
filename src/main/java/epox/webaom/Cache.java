@@ -140,7 +140,7 @@ public class Cache {
         if (file.anime == null) {
             file.anime = new Anime(file.animeId);
         } else {
-            AppContext.p.remove(file.anime);
+            AppContext.animeTreeRoot.remove(file.anime);
         }
 
         file.episode = (Episode) cacheMaps[DatabaseManager.INDEX_EPISODE].get(Integer.valueOf(file.episodeId));
@@ -204,7 +204,7 @@ public class Cache {
 
     public void rebuildTree() {
         long startTime = System.currentTimeMillis();
-        AppContext.p.clear();
+        AppContext.animeTreeRoot.clear();
         Job[] jobs = AppContext.jobs.array();
         for (Job job : jobs) {
             treeAdd(job);
@@ -217,13 +217,13 @@ public class Cache {
         if (job.incompl()
                 || (hideExisting && !isMissingOrDeleted)
                 || (hideNew && isMissingOrDeleted)
-                || (job.hide(AppContext.preg))) {
+                || (job.hide(AppContext.pathRegex))) {
             return;
         }
         AniDBFile file = job.anidbFile;
         Anime anime = file.anime;
-        if (AppContext.p.has(anime)) {
-            AppContext.p.remove(anime);
+        if (AppContext.animeTreeRoot.has(anime)) {
+            AppContext.animeTreeRoot.remove(anime);
         }
         switch (treeSortMode) {
             case MODE_ANIME_FILE:
@@ -280,7 +280,7 @@ public class Cache {
         }
         anime.registerEpisode(file.episode, true);
         anime.updateCompletionPercent();
-        AppContext.p.add(anime);
+        AppContext.animeTreeRoot.add(anime);
     }
 
     public void treeRemove(Job job) {
@@ -289,8 +289,8 @@ public class Cache {
         }
         AniDBFile file = job.anidbFile;
         Anime anime = file.anime;
-        if (AppContext.p.has(anime)) {
-            AppContext.p.remove(anime);
+        if (AppContext.animeTreeRoot.has(anime)) {
+            AppContext.animeTreeRoot.remove(anime);
         }
         switch (treeSortMode) {
             case MODE_ANIME_FILE:
@@ -339,7 +339,7 @@ public class Cache {
         anime.registerEpisode(file.episode, file.episode.size() > 0);
         anime.updateCompletionPercent();
         if (anime.size() > 0) {
-            AppContext.p.add(anime);
+            AppContext.animeTreeRoot.add(anime);
         }
     }
 

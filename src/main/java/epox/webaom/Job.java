@@ -121,7 +121,7 @@ public class Job {
         } else {
             status |= H_PAUSED;
         }
-        AppContext.jobc.register(-1, -1, status & M_R, getHealth());
+        AppContext.jobCounter.register(-1, -1, status & M_R, getHealth());
     }
 
     private static String statusStr(int i) {
@@ -231,8 +231,8 @@ public class Job {
             AppContext.jobs.updateQueues(this, currentStatus, -1);
         }
 
-        // A.jobc.register(getRegVal(), currentStatus|health);
-        AppContext.jobc.register(status & M_R, getHealth(), status & M_R, health);
+        // A.jobCounter.register(getRegVal(), currentStatus|health);
+        AppContext.jobCounter.register(status & M_R, getHealth(), status & M_R, health);
         setHealth0(health);
     }
 
@@ -305,12 +305,12 @@ public class Job {
             if (test && health == H_NORMAL) {
                 AppContext.jobs.updateQueues(this, getStatus(), newStatus & M_S); // TODO pause off fix
             }
-            // A.jobc.register(getRegVal(), (newStatus|H_NORMAL)&M_R);
+            // A.jobCounter.register(getRegVal(), (newStatus|H_NORMAL)&M_R);
             health = H_NORMAL;
             if (newStatus == FINISHED && !currentFile.exists()) {
                 health = H_MISSING;
             }
-            AppContext.jobc.register(status & M_R, getHealth(), newStatus & M_R, health);
+            AppContext.jobCounter.register(status & M_R, getHealth(), newStatus & M_R, health);
             status = newStatus | health;
 
         } else {

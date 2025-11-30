@@ -48,7 +48,7 @@ public class AlternateViewTableModel extends AbstractTreeTableModel implements T
     };
 
     public AlternateViewTableModel() {
-        super(AppContext.p);
+        super(AppContext.animeTreeRoot);
     }
 
     public int getColumnCount() {
@@ -129,12 +129,12 @@ public class AlternateViewTableModel extends AbstractTreeTableModel implements T
                     return null;
             }
         }
-        if (node == AppContext.p) {
+        if (node == AppContext.animeTreeRoot) {
             switch (c) {
                 case NAME:
-                    return AppContext.p.toString();
+                    return AppContext.animeTreeRoot.toString();
                 case NUMB:
-                    return Integer.valueOf(AppContext.p.size());
+                    return Integer.valueOf(AppContext.animeTreeRoot.size());
                 default:
                     return null;
             }

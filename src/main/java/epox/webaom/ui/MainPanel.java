@@ -152,32 +152,32 @@ public class MainPanel extends JPanel
         if (AppContext.opt.loadFromFile()) {
             loadOptions(AppContext.opt);
         } else {
-            AppContext.fha.addExtension("3gp");
-            AppContext.fha.addExtension("asf");
-            AppContext.fha.addExtension("avi");
-            AppContext.fha.addExtension("dat");
-            AppContext.fha.addExtension("divx");
-            AppContext.fha.addExtension("f4v");
-            AppContext.fha.addExtension("flv");
-            AppContext.fha.addExtension("m2ts");
-            AppContext.fha.addExtension("m2v");
-            AppContext.fha.addExtension("m4v");
-            AppContext.fha.addExtension("mkv");
-            AppContext.fha.addExtension("mov");
-            AppContext.fha.addExtension("mp4");
-            AppContext.fha.addExtension("mpeg");
-            AppContext.fha.addExtension("mpg");
-            AppContext.fha.addExtension("mts");
-            AppContext.fha.addExtension("ogm");
-            AppContext.fha.addExtension("ogv");
-            AppContext.fha.addExtension("qt");
-            AppContext.fha.addExtension("ram");
-            AppContext.fha.addExtension("rm");
-            AppContext.fha.addExtension("rmvb");
-            AppContext.fha.addExtension("ts");
-            AppContext.fha.addExtension("vob");
-            AppContext.fha.addExtension("webm");
-            AppContext.fha.addExtension("wmv");
+            AppContext.fileHandler.addExtension("3gp");
+            AppContext.fileHandler.addExtension("asf");
+            AppContext.fileHandler.addExtension("avi");
+            AppContext.fileHandler.addExtension("dat");
+            AppContext.fileHandler.addExtension("divx");
+            AppContext.fileHandler.addExtension("f4v");
+            AppContext.fileHandler.addExtension("flv");
+            AppContext.fileHandler.addExtension("m2ts");
+            AppContext.fileHandler.addExtension("m2v");
+            AppContext.fileHandler.addExtension("m4v");
+            AppContext.fileHandler.addExtension("mkv");
+            AppContext.fileHandler.addExtension("mov");
+            AppContext.fileHandler.addExtension("mp4");
+            AppContext.fileHandler.addExtension("mpeg");
+            AppContext.fileHandler.addExtension("mpg");
+            AppContext.fileHandler.addExtension("mts");
+            AppContext.fileHandler.addExtension("ogm");
+            AppContext.fileHandler.addExtension("ogv");
+            AppContext.fileHandler.addExtension("qt");
+            AppContext.fileHandler.addExtension("ram");
+            AppContext.fileHandler.addExtension("rm");
+            AppContext.fileHandler.addExtension("rmvb");
+            AppContext.fileHandler.addExtension("ts");
+            AppContext.fileHandler.addExtension("vob");
+            AppContext.fileHandler.addExtension("webm");
+            AppContext.fileHandler.addExtension("wmv");
             jobsPanel.loadOptions(AppContext.opt); // default hack
         }
         try {
@@ -310,7 +310,7 @@ public class MainPanel extends JPanel
     }
 
     public void reset() {
-        synchronized (AppContext.p) {
+        synchronized (AppContext.animeTreeRoot) {
             if (isDiskIoRunning) {
                 toggleDiskIo();
             }
@@ -322,10 +322,10 @@ public class MainPanel extends JPanel
             }
             AppContext.databaseManager.shutdown();
             miscOptionsPanel.databaseUrlField.setEnabled(true);
-            AppContext.p.clear();
+            AppContext.animeTreeRoot.clear();
             AppContext.jobs.clear();
             AppContext.cache.clear();
-            AppContext.jobc.reset();
+            AppContext.jobCounter.reset();
             jobsTableModel.reset();
             jobsTable.updateUI();
             altViewPanel.altViewTreeTable.updateUI();
@@ -366,7 +366,7 @@ public class MainPanel extends JPanel
         newExtensionTextField.addActionListener(this);
 
         @SuppressWarnings("unchecked") // UniqueStringList doesn't have generics
-        final JList<String> extensionList = new JList<String>(AppContext.fha.allowedExtensions);
+        final JList<String> extensionList = new JList<String>(AppContext.fileHandler.allowedExtensions);
         extensionList.getInputMap().put(KeyStroke.getKeyStroke("DELETE"), "pressed");
         extensionList.getActionMap().put("pressed", new AbstractAction() {
             @Override
@@ -374,7 +374,7 @@ public class MainPanel extends JPanel
                 int[] selectedIndices = extensionList.getSelectedIndices();
                 java.util.Arrays.sort(selectedIndices);
                 for (int idx = selectedIndices.length - 1; idx >= 0; idx--) {
-                    AppContext.fha.removeExtension(selectedIndices[idx]);
+                    AppContext.fileHandler.removeExtension(selectedIndices[idx]);
                 }
                 extensionList.clearSelection();
             }
@@ -479,7 +479,7 @@ public class MainPanel extends JPanel
         statusProgressBar.setString("Welcome to WebAOM!");
         statusProgressBar.setStringPainted(true);
         jobProgressBar = new JProgressBar(SwingConstants.HORIZONTAL, 0, 1000);
-        jobProgressBar.setString(AppContext.S_VER);
+        jobProgressBar.setString(AppContext.VERSION);
         jobProgressBar.setStringPainted(true);
         JPanel progressPanel = new JPanel(new GridLayout(2, 1));
         progressPanel.add(statusProgressBar);
@@ -631,7 +631,7 @@ public class MainPanel extends JPanel
         } else if (source == miscOptionsPanel.databaseUrlField) {
             startDatabase();
         } else if (source == newExtensionTextField) {
-            AppContext.fha.addExtension(newExtensionTextField.getText());
+            AppContext.fileHandler.addExtension(newExtensionTextField.getText());
             newExtensionTextField.setText("");
         } else if (source == miscOptionsPanel.logFilePathField) {
             startLogging();
@@ -645,9 +645,9 @@ public class MainPanel extends JPanel
         } else if (source == altViewPanel.pathRegexField) {
             String regexPattern = altViewPanel.pathRegexField.getText();
             if (regexPattern.isEmpty()) {
-                AppContext.preg = null;
+                AppContext.pathRegex = null;
             } else {
-                AppContext.preg = regexPattern;
+                AppContext.pathRegex = regexPattern;
             }
             altViewPanel.updateAlternativeView(true);
         } else if (source == altViewPanel.animeTitleComboBox) {
@@ -798,9 +798,9 @@ public class MainPanel extends JPanel
     }
 
     public void updateProgressBar() {
-        jobProgressBar.setValue(AppContext.jobc.getProgress());
+        jobProgressBar.setValue(AppContext.jobCounter.getProgress());
         if (AppContext.frame != null) {
-            AppContext.frame.setTitle("WebAOM " + AppContext.S_VER + " " + AppContext.jobc.getStatus());
+            AppContext.frame.setTitle("WebAOM " + AppContext.VERSION + " " + AppContext.jobCounter.getStatus());
         }
         if (((updateCount++) % 10) == 0) {
             System.gc();
@@ -853,16 +853,16 @@ public class MainPanel extends JPanel
         options.setString(Options.STR_USERNAME, AppContext.userPass.get(miscOptionsPanel.isStorePasswordEnabled()));
 
         mylistOptionsPanel.saveToOptions(options);
-        AppContext.fha.saveOptions(options);
+        AppContext.fileHandler.saveOptions(options);
         connectionOptionsPanel.saveOptions(options);
         miscOptionsPanel.saveToOptions(options);
         AppContext.rules.saveToOptions(options);
         jobsPanel.saveOptions(options);
 
-        options.setString(Options.STR_PATH_REGEX, AppContext.preg);
+        options.setString(Options.STR_PATH_REGEX, AppContext.pathRegex);
         options.setString(Options.STR_FONT, AppContext.font);
         options.setString(Options.STR_LOG_HEADER, JEditorPaneLog.htmlHeader);
-        options.setString(Options.STR_LAST_DIRECTORY, AppContext.dir);
+        options.setString(Options.STR_LAST_DIRECTORY, AppContext.lastDirectory);
     }
 
     public void loadOptions(Options options) {
@@ -871,7 +871,7 @@ public class MainPanel extends JPanel
             HyperlinkBuilder.decodeColors(options.getString(Options.STR_HTML_COLORS));
             AppContext.userPass.set(options.getString(Options.STR_USERNAME));
             mylistOptionsPanel.loadFromOptions(options);
-            AppContext.fha.loadOptions(options);
+            AppContext.fileHandler.loadOptions(options);
             connectionOptionsPanel.loadOptions(options);
             miscOptionsPanel.loadFromOptions(options);
             AppContext.rules.loadFromOptions(options);
@@ -880,14 +880,14 @@ public class MainPanel extends JPanel
 
             String pathRegex = options.getString(Options.STR_PATH_REGEX);
             if (!pathRegex.isEmpty()) {
-                AppContext.preg = pathRegex;
+                AppContext.pathRegex = pathRegex;
                 altViewPanel.pathRegexField.setText(pathRegex);
             }
             AppContext.font = options.getString(Options.STR_FONT);
             logEditorPane.setHeader(options.getString(Options.STR_LOG_HEADER));
             String lastDir = options.getString(Options.STR_LAST_DIRECTORY);
             if (lastDir != null && !lastDir.isEmpty()) {
-                AppContext.dir = lastDir;
+                AppContext.lastDirectory = lastDir;
             }
         } catch (Exception ex) {
             ex.printStackTrace();
@@ -903,16 +903,16 @@ public class MainPanel extends JPanel
             return;
         }
         JFileChooser fileChooser = new JFileChooser();
-        fileChooser.setFileFilter(AppContext.fha.extensionFilter);
+        fileChooser.setFileFilter(AppContext.fileHandler.extensionFilter);
         fileChooser.setMultiSelectionEnabled(true);
-        if (AppContext.dir != null) {
-            fileChooser.setCurrentDirectory(new File(AppContext.dir));
+        if (AppContext.lastDirectory != null) {
+            fileChooser.setCurrentDirectory(new File(AppContext.lastDirectory));
         }
         int option = fileChooser.showDialog(AppContext.component, "Select File(s)");
         if (option == JFileChooser.APPROVE_OPTION) {
             selectFilesForProcessing(fileChooser.getSelectedFiles());
         } else {
-            AppContext.dir = fileChooser.getCurrentDirectory().getAbsolutePath();
+            AppContext.lastDirectory = fileChooser.getCurrentDirectory().getAbsolutePath();
         }
     }
 
@@ -924,14 +924,14 @@ public class MainPanel extends JPanel
         JFileChooser fileChooser = new JFileChooser();
         fileChooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
         fileChooser.setMultiSelectionEnabled(true);
-        if (AppContext.dir != null) {
-            fileChooser.setCurrentDirectory(new File(AppContext.dir));
+        if (AppContext.lastDirectory != null) {
+            fileChooser.setCurrentDirectory(new File(AppContext.lastDirectory));
         }
         int option = fileChooser.showDialog(AppContext.component, "Select Directory(ies) (recursive)");
         if (option == JFileChooser.APPROVE_OPTION) {
             selectFilesForProcessing(fileChooser.getSelectedFiles());
         } else {
-            AppContext.dir = fileChooser.getCurrentDirectory().getAbsolutePath();
+            AppContext.lastDirectory = fileChooser.getCurrentDirectory().getAbsolutePath();
         }
     }
 
@@ -944,9 +944,9 @@ public class MainPanel extends JPanel
             return;
         }
         if (files[0].getParent() != null) {
-            AppContext.dir = files[0].getParent();
+            AppContext.lastDirectory = files[0].getParent();
         } else {
-            AppContext.dir = files[0].getAbsolutePath();
+            AppContext.lastDirectory = files[0].getAbsolutePath();
         }
         workerThread = new RecursiveDirectoryScanner(files, false);
         workerThread.start();
@@ -1083,7 +1083,7 @@ public class MainPanel extends JPanel
                     setStatusMessage("Checking: " + file);
                 }
                 int fileCount = 0;
-                File[] files = file.listFiles(AppContext.fha.extensionFilter);
+                File[] files = file.listFiles(AppContext.fileHandler.extensionFilter);
                 if (files == null) {
                     return 0;
                 }
@@ -1092,7 +1092,7 @@ public class MainPanel extends JPanel
                 }
                 return fileCount;
             }
-            if (AppContext.fha.addFile(file)) {
+            if (AppContext.fileHandler.addFile(file)) {
                 return 1;
             }
             return 0;

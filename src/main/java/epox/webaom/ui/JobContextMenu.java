@@ -305,13 +305,13 @@ public class JobContextMenu extends JPopupMenu implements MouseListener, ActionL
         JFileChooser fileChooser = new JFileChooser();
         fileChooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
         fileChooser.setMultiSelectionEnabled(false);
-        if (AppContext.dir != null) {
-            fileChooser.setCurrentDirectory(new java.io.File(AppContext.dir));
+        if (AppContext.lastDirectory != null) {
+            fileChooser.setCurrentDirectory(new java.io.File(AppContext.lastDirectory));
         }
         int option = fileChooser.showDialog(AppContext.component, "Select Directory");
         if (option == JFileChooser.APPROVE_OPTION) {
-            AppContext.dir = fileChooser.getSelectedFile().getAbsolutePath();
-            return AppContext.dir;
+            AppContext.lastDirectory = fileChooser.getSelectedFile().getAbsolutePath();
+            return AppContext.lastDirectory;
         }
         return null;
     }

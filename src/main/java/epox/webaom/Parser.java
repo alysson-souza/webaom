@@ -139,33 +139,33 @@ public final class Parser {
     }
 
     public static void exportDB() {
-        if (AppContext.p != null) {
+        if (AppContext.animeTreeRoot != null) {
             try {
-                synchronized (AppContext.p) {
+                synchronized (AppContext.animeTreeRoot) {
                     JFileChooser fileChooser = new JFileChooser();
-                    if (AppContext.dir != null) {
-                        fileChooser.setCurrentDirectory(new File(AppContext.dir));
+                    if (AppContext.lastDirectory != null) {
+                        fileChooser.setCurrentDirectory(new File(AppContext.lastDirectory));
                     }
                     if (fileChooser.showDialog(AppContext.component, "Select File") == JFileChooser.APPROVE_OPTION) {
                         File file = fileChooser.getSelectedFile();
-                        AppContext.dir = file.getParentFile().getAbsolutePath();
+                        AppContext.lastDirectory = file.getParentFile().getAbsolutePath();
                         FileOutputStream outputStream = new FileOutputStream(file);
                         Writer writer = new OutputStreamWriter(outputStream, StandardCharsets.UTF_8);
                         writer.write("a0\r\n");
-                        AppContext.p.buildSortedChildArray();
-                        for (int animeIndex = 0; animeIndex < AppContext.p.size(); animeIndex++) {
-                            Base animeEntry = AppContext.p.get(animeIndex);
+                        AppContext.animeTreeRoot.buildSortedChildArray();
+                        for (int animeIndex = 0; animeIndex < AppContext.animeTreeRoot.size(); animeIndex++) {
+                            Base animeEntry = AppContext.animeTreeRoot.get(animeIndex);
                             animeEntry.buildSortedChildArray();
-                            writer.write("a" + animeEntry.serialize() + AppContext.S_N);
+                            writer.write("a" + animeEntry.serialize() + AppContext.LINE_SEPARATOR);
                             for (int episodeIndex = 0; episodeIndex < animeEntry.size(); episodeIndex++) {
                                 Base episodeEntry = animeEntry.get(episodeIndex);
                                 episodeEntry.buildSortedChildArray();
-                                writer.write("e" + episodeEntry.serialize() + AppContext.S_N);
+                                writer.write("e" + episodeEntry.serialize() + AppContext.LINE_SEPARATOR);
                                 for (int fileIndex = 0; fileIndex < episodeEntry.size(); fileIndex++) {
                                     AniDBFile anidbFile = (AniDBFile) episodeEntry.get(fileIndex);
-                                    writer.write("f" + anidbFile.serialize() + AppContext.S_N);
+                                    writer.write("f" + anidbFile.serialize() + AppContext.LINE_SEPARATOR);
                                     if (anidbFile.getJob() != null) {
-                                        writer.write("j" + anidbFile.getJob().serialize() + AppContext.S_N);
+                                        writer.write("j" + anidbFile.getJob().serialize() + AppContext.LINE_SEPARATOR);
                                     }
                                 }
                             }
@@ -182,16 +182,16 @@ public final class Parser {
 
     public static void importDB() throws Exception {
         AppContext.databaseManager.debug = false;
-        if (AppContext.p != null) {
+        if (AppContext.animeTreeRoot != null) {
             try {
-                synchronized (AppContext.p) {
+                synchronized (AppContext.animeTreeRoot) {
                     JFileChooser fileChooser = new JFileChooser();
-                    if (AppContext.dir != null) {
-                        fileChooser.setCurrentDirectory(new File(AppContext.dir));
+                    if (AppContext.lastDirectory != null) {
+                        fileChooser.setCurrentDirectory(new File(AppContext.lastDirectory));
                     }
                     if (fileChooser.showDialog(AppContext.component, "Select File") == JFileChooser.APPROVE_OPTION) {
                         File file = fileChooser.getSelectedFile();
-                        AppContext.dir = file.getParentFile().getAbsolutePath();
+                        AppContext.lastDirectory = file.getParentFile().getAbsolutePath();
                         FileInputStream inputStream = new FileInputStream(file);
                         BufferedReader reader =
                                 new BufferedReader(new InputStreamReader(inputStream, StandardCharsets.UTF_8));
@@ -202,7 +202,7 @@ public final class Parser {
                         } else if (!formatVersion.equals("a0")) {
                             throw new Exception("format not supported");
                         }
-                        // A.p.buildSortedChildArray();
+                        // AppContext.animeTreeRoot.buildSortedChildArray();
                         String line;
                         Anime currentAnime = null;
                         Episode currentEpisode = null;
@@ -217,7 +217,7 @@ public final class Parser {
                                 case 'a':
                                     currentAnime = new Anime(StringUtilities.split(line.substring(1), '|'));
                                     AppContext.cache.add(currentAnime, 2, DatabaseManager.INDEX_ANIME);
-                                    AppContext.p.add(currentAnime);
+                                    AppContext.animeTreeRoot.add(currentAnime);
                                     break;
                                 case 'e':
                                     currentEpisode = new Episode(StringUtilities.split(line.substring(1), '|'));

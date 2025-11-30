@@ -37,7 +37,7 @@ public class WebAOM {
     private static void launch() {
         setGlobalFont(new Font("Tahoma", Font.PLAIN, 11), new Font("Times", Font.PLAIN, 11));
 
-        JFrame frame = new JFrame("WebAOM " + AppContext.S_VER + " Loading...");
+        JFrame frame = new JFrame("WebAOM " + AppContext.VERSION + " Loading...");
         AppContext.frame = frame;
         AppContext.component = frame;
         frame.setSize(800, 600);

@@ -33,7 +33,7 @@ public class JTableJobs extends JTableSortable {
         super(tableModel);
         jobsTableModel = tableModel;
         final JobContextMenu popupMenu = new JobContextMenu(this, tableModel);
-        AppContext.com0 = popupMenu;
+        AppContext.primaryPopupMenu = popupMenu;
         addMouseListener(popupMenu);
 
         addMouseListener(new MouseAdapterJob(this, tableModel, AppContext.jobs));

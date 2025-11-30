@@ -52,7 +52,7 @@ public class AlternateViewPanel extends JPanel {
         fileVisibilityComboBox.addActionListener(actionListener);
 
         pathRegexField = new JTextField(20);
-        pathRegexField.setText(AppContext.preg);
+        pathRegexField.setText(AppContext.pathRegex);
         pathRegexField.setToolTipText("Path Regexp");
         pathRegexField.addActionListener(actionListener);
 
@@ -68,7 +68,7 @@ public class AlternateViewPanel extends JPanel {
         add(southPanel, BorderLayout.SOUTH);
 
         JobContextMenu popupMenu = new JobContextMenu(altViewTreeTable, altViewTreeTable);
-        AppContext.com1 = popupMenu;
+        AppContext.secondaryPopupMenu = popupMenu;
         altViewTreeTable.addMouseListener(popupMenu);
 
         boolean isMac = System.getProperty("os.name").toLowerCase().contains("mac");
@@ -87,7 +87,7 @@ public class AlternateViewPanel extends JPanel {
     }
 
     protected void updateAlternativeView(boolean rebuildTree) {
-        synchronized (AppContext.p) {
+        synchronized (AppContext.animeTreeRoot) {
             if (rebuildTree) {
                 AppContext.cache.rebuildTree();
             }

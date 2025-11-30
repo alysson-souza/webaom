@@ -41,12 +41,19 @@ import javax.swing.SwingUtilities;
  * This is a legacy pattern from the original codebase.
  */
 public final class AppContext {
-    public static final String S_WEB = "anidb.net";
-    public static final String S_N = "\r\n";
-    public static final String S_VER = loadVersion();
-    public static String fschema;
-    public static String dir = null;
-    public static String preg = null /* "^.*$" */;
+    /** AniDB hostname for API and web URLs. */
+    public static final String ANIDB_HOST = "anidb.net";
+    /** Line separator for file export (Windows-style CRLF). */
+    public static final String LINE_SEPARATOR = "\r\n";
+    /** Application version string with build date. */
+    public static final String VERSION = loadVersion();
+    /** HTML template for file info dialog. */
+    public static String fileSchemaTemplate;
+    /** Last used directory for file/folder dialogs. */
+    public static String lastDirectory = null;
+    /** Path regex filter for alternate view (null means show all). */
+    public static String pathRegex = null;
+
     public static String font = "";
     /** Assumed episode count for normal episodes when actual count unknown (for zero-padding). */
     public static int assumedEpisodeCount = 99;
@@ -62,14 +69,21 @@ public final class AppContext {
     public static Rules rules;
     public static Cache cache;
     public static AniDBFileClient conn;
-    public static JobCounter jobc;
+    /** Job counter for tracking job status distribution. */
+    public static JobCounter jobCounter;
+
     public static JobList jobs;
     public static AniDBConnectionSettings usetup;
     public static MainPanel gui;
-    public static FileHandler fha;
-    public static Component com0;
-    public static Component com1;
-    public static Base p = new Base();
+    /** File handler for managing file extensions and file operations. */
+    public static FileHandler fileHandler;
+    /** Primary popup menu component (jobs table context menu). */
+    public static Component primaryPopupMenu;
+    /** Secondary popup menu component (alternate view context menu). */
+    public static Component secondaryPopupMenu;
+    /** Root node of the anime tree structure for alternate view. */
+    public static Base animeTreeRoot = new Base();
+
     public static boolean autoadd = false;
     public static boolean optionsChanged = false;
     public static UserPass userPass = new UserPass(null, null, null);
@@ -98,19 +112,20 @@ public final class AppContext {
         // A.mem0 = A.getUsed();
         Thread.currentThread().setName("Main");
         jobs = new JobList();
-        jobc = new JobCounter();
+        jobCounter = new JobCounter();
         rules = new Rules();
         cache = new Cache();
         databaseManager = new DatabaseManager();
-        fha = new FileHandler();
+        fileHandler = new FileHandler();
         opt = new Options();
         dio = new DiskIOManager();
         nio = new NetworkIOManager();
         // A.mem1 = A.getUsed();
         gui = new MainPanel();
-        fschema = StringUtilities.fileToString(System.getProperty("user.home") + File.separator + ".webaom.htm");
-        if (fschema == null) {
-            fschema = AppContext.getFileString("file.htm");
+        fileSchemaTemplate =
+                StringUtilities.fileToString(System.getProperty("user.home") + File.separator + ".webaom.htm");
+        if (fileSchemaTemplate == null) {
+            fileSchemaTemplate = AppContext.getFileString("file.htm");
         }
 
         if (!font.isEmpty()) {
@@ -166,8 +181,8 @@ public final class AppContext {
         Font fo = new Font(f, Font.PLAIN, size);
         WebAOM.setGlobalFont(fo, fo);
         SwingUtilities.updateComponentTreeUI(gui);
-        SwingUtilities.updateComponentTreeUI(com0);
-        SwingUtilities.updateComponentTreeUI(com1);
+        SwingUtilities.updateComponentTreeUI(primaryPopupMenu);
+        SwingUtilities.updateComponentTreeUI(secondaryPopupMenu);
     }
 
     public static void dialog(String title, String msg) {
@@ -254,8 +269,8 @@ public final class AppContext {
         int sub1 = 0;
         Base b;
         Base c;
-        for (int i = 0; i < AppContext.p.size(); i++) {
-            b = AppContext.p.get(i);
+        for (int i = 0; i < AppContext.animeTreeRoot.size(); i++) {
+            b = AppContext.animeTreeRoot.get(i);
             if (b == null) {
                 continue;
             }
@@ -268,6 +283,6 @@ public final class AppContext {
                 }
             }
         }
-        System.out.println("@ Tree: " + AppContext.p.size() + ", " + sub0 + ", " + sub1);
+        System.out.println("@ Tree: " + AppContext.animeTreeRoot.size() + ", " + sub0 + ", " + sub1);
     }
 }
