@@ -558,7 +558,7 @@ public class JPanelMain extends JPanel
 			saveOptions(A.opt);
 			A.opt.saveToFile();
 		} else if (source == toolbarButtons[BUTTON_WIKI]) {
-			openHyperlink("http://wiki.anidb.net/w/WebAOM");
+			openHyperlink("https://wiki.anidb.net/WebAOM");
 		} else if (source == diskIoTimer) {
 			startDiskIo();
 		} else if (source == progressTimer)
@@ -764,16 +764,26 @@ public class JPanelMain extends JPanel
 	}
 
 	public void openHyperlink(String url) {
-		Runtime rt = Runtime.getRuntime();
 		try {
 			U.out(url);
 			String path = miscOptionsPanel.browserPathField.getText();
 			if (!path.isEmpty()) {
-				rt.exec(new String[]{path, url});
+				Runtime.getRuntime().exec(new String[]{path, url});
+			} else if (java.awt.Desktop.isDesktopSupported()
+					&& java.awt.Desktop.getDesktop().isSupported(java.awt.Desktop.Action.BROWSE)) {
+				java.awt.Desktop.getDesktop().browse(new java.net.URI(url));
 			} else {
-				rt.exec(new String[]{"rundll32", "url.dll,FileProtocolHandler", url});
+				// Fallback for systems without Desktop support
+				String os = System.getProperty("os.name").toLowerCase();
+				if (os.contains("mac")) {
+					Runtime.getRuntime().exec(new String[]{"open", url});
+				} else if (os.contains("win")) {
+					Runtime.getRuntime().exec(new String[]{"rundll32", "url.dll,FileProtocolHandler", url});
+				} else {
+					Runtime.getRuntime().exec(new String[]{"xdg-open", url});
+				}
 			}
-		} catch (java.io.IOException ex) {
+		} catch (Exception ex) {
 			ex.printStackTrace();
 		}
 	}
