@@ -23,10 +23,9 @@
 package epox.webaom;
 
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
 import java.util.StringTokenizer;
 
 public class Options {
@@ -101,7 +100,7 @@ public class Options {
     }
 
     public boolean existsOnDisk() {
-        return optionsFile.exists();
+        return Files.exists(optionsFile.toPath());
     }
 
     public String getFilePath() {
@@ -140,9 +139,7 @@ public class Options {
             return;
         }
         try {
-            FileOutputStream fileOutput = new FileOutputStream(optionsFile);
-            fileOutput.write(encodeAllOptions().getBytes(StandardCharsets.UTF_8));
-            fileOutput.close();
+            Files.writeString(optionsFile.toPath(), encodeAllOptions(), StandardCharsets.UTF_8);
             System.out.println("$ File written:" + optionsFile);
         } catch (IOException e) {
             e.printStackTrace();
@@ -154,18 +151,9 @@ public class Options {
             return false;
         }
         try {
-            FileInputStream fileInput = new FileInputStream(optionsFile);
-            int fileLength = (int) optionsFile.length();
-            int bytesOffset = 0;
-            int bytesRead;
-            byte[] buffer = new byte[fileLength];
-            do {
-                bytesRead = fileInput.read(buffer, bytesOffset, fileLength - bytesOffset);
-                bytesOffset += bytesRead;
-            } while (bytesRead > 0);
-            fileInput.close();
+            String content = Files.readString(optionsFile.toPath(), StandardCharsets.UTF_8);
             System.out.println("$ File read:" + optionsFile);
-            return decodeAllOptions(new String(buffer, StandardCharsets.UTF_8));
+            return decodeAllOptions(content);
         } catch (Exception e) {
             e.printStackTrace();
         }
