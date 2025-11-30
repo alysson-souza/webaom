@@ -26,7 +26,7 @@ import java.awt.Desktop;
 import java.io.File;
 import java.io.IOException;
 
-public class JobMan {
+public class JobManager {
 	public static void setPath(Job job, String path, boolean includeParent) {
 		synchronized (job) {
 			if (job.check(Job.S_DOING)) {
@@ -65,7 +65,7 @@ public class JobMan {
 					&& !newName.isEmpty()) {
 				File renamedFile = new File(job.currentFile.getParent() + File.separatorChar + newName);
 				if (job.currentFile.renameTo(renamedFile)) {
-					JobMan.setJobFile(job, renamedFile);
+					JobManager.setJobFile(job, renamedFile);
 				}
 				updateStatus(job, Job.FINISHED);
 			}
@@ -290,7 +290,7 @@ public class JobMan {
 				if (job.currentFile.renameTo(destinationFile)) {
 					moveSubtitleFiles(job.currentFile, destinationFile);
 					AppContext.deleteFile(job.currentFile.getParentFile(), cleanupMessage);
-					JobMan.setJobFile(job, destinationFile);
+					JobManager.setJobFile(job, destinationFile);
 					AppContext.gui.println("Renamed " + sourceDisplayName + " to " + destDisplayName);
 					return true;
 				}
@@ -305,7 +305,7 @@ public class JobMan {
 		// TRY TO MOVE: *NIX
 		if (job.currentFile.renameTo(destinationFile)) { // linux can't rename over partitions
 			AppContext.deleteFile(job.currentFile.getParentFile(), cleanupMessage);
-			JobMan.setJobFile(job, destinationFile);
+			JobManager.setJobFile(job, destinationFile);
 			AppContext.gui.println("Renamed" + sourceDisplayName + " to " + destDisplayName);
 			return true;
 		}

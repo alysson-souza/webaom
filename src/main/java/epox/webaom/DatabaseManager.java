@@ -25,7 +25,7 @@ package epox.webaom;
 
 import epox.av.FileInfo;
 import epox.util.StringUtilities;
-import epox.webaom.data.AFile;
+import epox.webaom.data.AniDBFile;
 import epox.webaom.data.Anime;
 import epox.webaom.data.Base;
 import epox.webaom.data.Episode;
@@ -460,7 +460,7 @@ public class DatabaseManager {
 			preparedStatement.setString(paramIndex++, episode.rom);
 			preparedStatement.setString(paramIndex++, episode.num);
 			preparedStatement.setInt(paramIndex++, entityId);
-		} else if (dataObject instanceof AFile file) {
+		} else if (dataObject instanceof AniDBFile file) {
 			preparedStatement.setInt(paramIndex++, file.animeId);
 			preparedStatement.setInt(paramIndex++, file.episodeId);
 			preparedStatement.setInt(paramIndex++, file.groupId);
@@ -738,7 +738,7 @@ public class DatabaseManager {
 
 			String defaultName = fields[4];
 			fields[4] = "" + job.mylistId;
-			job.anidbFile = new AFile(fields);
+			job.anidbFile = new AniDBFile(fields);
 			job.anidbFile.pack();
 			job.anidbFile.setJob(job);
 			job.anidbFile.defaultName = defaultName;

@@ -9,19 +9,20 @@ import epox.util.StringUtilities;
 import epox.webaom.AppContext;
 import epox.webaom.Job;
 import epox.webaom.Options;
-import epox.webaom.data.AFile;
+import epox.webaom.data.AniDBFile;
+
+import javax.swing.JCheckBox;
+import javax.swing.JPanel;
+import javax.swing.table.TableColumn;
+import javax.swing.table.TableColumnModel;
 import java.awt.BorderLayout;
 import java.awt.GridLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.Enumeration;
 import java.util.StringTokenizer;
-import javax.swing.JCheckBox;
-import javax.swing.JPanel;
-import javax.swing.table.TableColumn;
-import javax.swing.table.TableColumnModel;
 
-public class JPanelJobs extends JPanel implements ActionListener {
+public class JobsPanel extends JPanel implements ActionListener {
 	private final JTableJobs jobsTable;
 	private final JScrollTable scrollTable;
 	private final TableModelJobs tableModel;
@@ -31,7 +32,7 @@ public class JPanelJobs extends JPanel implements ActionListener {
 	private int fileStateFilterMask = 0;
 	private boolean showUnknownFiles = false;
 
-	public JPanelJobs(JTableJobs jobsTable, TableModelJobs tableModel) {
+	public JobsPanel(JTableJobs jobsTable, TableModelJobs tableModel) {
 		super(new BorderLayout());
 		this.jobsTable = jobsTable;
 		this.tableModel = tableModel;
@@ -83,10 +84,10 @@ public class JPanelJobs extends JPanel implements ActionListener {
 			statusFilterMask |= Job.D_DIO;
 		}
 		if (filterCheckboxes[INDEX_CRC_ERROR].isSelected()) {
-			fileStateFilterMask |= AFile.F_CRCERR;
+			fileStateFilterMask |= AniDBFile.F_CRCERR;
 		}
 		if (filterCheckboxes[INDEX_CENSORED].isSelected()) {
-			fileStateFilterMask |= AFile.F_UNC;
+			fileStateFilterMask |= AniDBFile.F_UNC;
 		}
 		showUnknownFiles = filterCheckboxes[INDEX_UNKNOWN].isSelected();
 

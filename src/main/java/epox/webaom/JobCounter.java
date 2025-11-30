@@ -23,7 +23,7 @@
 
 package epox.webaom;
 
-public class JobCnt {
+public class JobCounter {
 	/** Total number of jobs registered */
 	private int totalJobCount = 0;
 	/** Count of jobs by status category */

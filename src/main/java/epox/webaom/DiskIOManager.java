@@ -24,6 +24,8 @@ package epox.webaom;
 
 import epox.av.AVInfo;
 import epox.util.HashContainer;
+import jonelo.jacksum.algorithm.Edonkey;
+
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
@@ -31,9 +33,8 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.text.DecimalFormat;
-import jonelo.jacksum.algorithm.Edonkey;
 
-public class DiskIO implements Runnable {
+public class DiskIOManager implements Runnable {
 	private static final String DISK_SPACE_ERROR_MESSAGE = "There is not enough space on the disk";
 	private static final DecimalFormat DECIMAL_FORMATTER = new DecimalFormat("0.00");
 	private static final int BUFFER_SIZE = 1048576 * 3;
@@ -44,7 +45,7 @@ public class DiskIO implements Runnable {
 
 	private HashContainer hashContainer;
 
-	public DiskIO() {
+	public DiskIOManager() {
 		String cleanupPrefix = "Cleanup after ";
 		String cleanupSuffix = " moving operation.";
 		failedMoveCleanupMessage = cleanupPrefix + "failed" + cleanupSuffix;
@@ -84,7 +85,7 @@ public class DiskIO implements Runnable {
 				if (currentJob.targetFile != null) {
 					AppContext.deleteFileAndFolder(currentJob.targetFile, failedMoveCleanupMessage);
 				}
-				JobMan.updateStatus(currentJob, Job.FAILED);
+				JobManager.updateStatus(currentJob, Job.FAILED);
 				currentJob.setError(e.getMessage());
 				// A.gui.updateJobTable(currentJob);
 			}
@@ -103,11 +104,11 @@ public class DiskIO implements Runnable {
 
 	private void fileParse(Job job) throws IOException {
 		if (!AVInfo.ok()) {
-			JobMan.updateStatus(job, Job.FAILED);
+			JobManager.updateStatus(job, Job.FAILED);
 			return;
 		}
 		File file = job.getFile();
-		JobMan.updateStatus(job, Job.PARSING);
+		JobManager.updateStatus(job, Job.PARSING);
 		// A.gui.updateJobTable(job);
 		AppContext.gui.status0("Parsing " + file.getName()); // +" (#"+(job.mIid+1)+")");
 		AppContext.gui.statusProgressBar.setValue(0);
@@ -127,7 +128,7 @@ public class DiskIO implements Runnable {
 		AppContext.gui.statusProgressBar.setValue(1000);
 		AppContext.gui.println("Parsed " + HyperlinkBuilder.formatAsName(file) + " @ "
 				+ formatStats(file.length(), (endTime - startTime) / 1000f));
-		JobMan.updateStatus(job, Job.FINISHED);
+		JobManager.updateStatus(job, Job.FINISHED);
 		// A.gui.updateJobTable(job);
 	}
 
@@ -135,7 +136,7 @@ public class DiskIO implements Runnable {
 		File file = job.getFile();
 		job.fileSize = file.length();
 		if (job.fileSize < 1) {
-			JobMan.updateStatus(job, Job.FAILED);
+			JobManager.updateStatus(job, Job.FAILED);
 			job.setError("File size less than 1.");
 			// A.gui.updateJobTable(job);
 			return;
@@ -145,7 +146,7 @@ public class DiskIO implements Runnable {
 		long fileLength = file.length();
 		float progress = 0;
 
-		JobMan.updateStatus(job, Job.HASHING);
+		JobManager.updateStatus(job, Job.HASHING);
 		// A.gui.updateJobTable(job);
 		AppContext.gui.status0("Hashing " + file.getName()); // +" (#"+(job.mIid+1)+")");
 		AppContext.gui.statusProgressBar.setValue(0);
@@ -177,9 +178,9 @@ public class DiskIO implements Runnable {
 
 			AppContext.gui.println("Hashed " + HyperlinkBuilder.formatAsName(file) + " @ "
 					+ formatStats(file.length(), (endTime - startTime) / 1000f));
-			JobMan.updateStatus(job, Job.HASHED);
+			JobManager.updateStatus(job, Job.HASHED);
 		} else {
-			JobMan.updateStatus(job, Job.HASHWAIT);
+			JobManager.updateStatus(job, Job.HASHWAIT);
 		}
 		// A.gui.updateJobTable(job);
 	}
@@ -187,11 +188,11 @@ public class DiskIO implements Runnable {
 	private void fileMove(Job job) throws IOException {
 		if (job.currentFile.equals(job.targetFile)) {
 			job.targetFile = null;
-			JobMan.updateStatus(job, Job.MOVED);
+			JobManager.updateStatus(job, Job.MOVED);
 			// A.gui.updateJobTable(job);
 		}
 		if (!job.currentFile.exists()) {
-			JobMan.updateStatus(job, Job.FAILED);
+			JobManager.updateStatus(job, Job.FAILED);
 			job.setError("File does not exist.");
 			// A.gui.updateJobTable(job);
 			AppContext.gui.println(HyperlinkBuilder.formatAsError("File " + job.currentFile + " does not exist!"));
@@ -199,7 +200,7 @@ public class DiskIO implements Runnable {
 		}
 		if (!job.currentFile.canRead()) {
 			System.out.println("! Cannot read file: " + job.currentFile);
-			JobMan.updateStatus(job, Job.FAILED);
+			JobManager.updateStatus(job, Job.FAILED);
 			job.setError("File can not be read.");
 			return;
 		}
@@ -210,7 +211,7 @@ public class DiskIO implements Runnable {
 			AppContext.gui.println(HyperlinkBuilder.formatAsError(folderCreationError));
 			return;
 		}
-		JobMan.updateStatus(job, Job.MOVING);
+		JobManager.updateStatus(job, Job.MOVING);
 		// A.gui.updateJobTable(job);
 		AppContext.gui.status0("Moving " + job.currentFile.getName());
 
@@ -218,12 +219,12 @@ public class DiskIO implements Runnable {
 		boolean needsCopy = !job.targetFile.exists();
 		if (needsCopy && !fileCopy(job.currentFile, job.targetFile)) {
 			AppContext.deleteFileAndFolder(job.targetFile, abortedMoveCleanupMessage);
-			JobMan.updateStatus(job, Job.MOVEWAIT);
+			JobManager.updateStatus(job, Job.MOVEWAIT);
 			// A.gui.updateJobTable(job);
 			return;
 		}
 
-		JobMan.updateStatus(job, Job.MOVECHECK);
+		JobManager.updateStatus(job, Job.MOVECHECK);
 		// A.gui.updateJobTable(job);
 		AppContext.gui.status0("Checking " + job.currentFile.getName());
 		String checksumHex = computeFileChecksum(job.targetFile);
@@ -232,19 +233,19 @@ public class DiskIO implements Runnable {
 				AppContext.deleteFileAndFolder(job.targetFile, abortedMoveCleanupMessage);
 			}
 			if (!AppContext.gui.isDiskIoOk()) {
-				JobMan.updateStatus(job, Job.MOVEWAIT);
+				JobManager.updateStatus(job, Job.MOVEWAIT);
 			}
 		} else if (job.ed2kHash.equalsIgnoreCase(checksumHex)) {
 			AppContext.gui.println("Moved " + HyperlinkBuilder.formatAsName(job.currentFile) + " to "
 					+ HyperlinkBuilder.formatAsName(job.targetFile) + " @ "
 					+ formatStats(job.currentFile.length(), (System.currentTimeMillis() - startTime) / 1000f));
 			AppContext.deleteFileAndFolder(job.currentFile, successfulMoveCleanupMessage);
-			JobMan.setJobFile(job, job.targetFile);
+			JobManager.setJobFile(job, job.targetFile);
 			job.targetFile = null;
 			job.directoryId = -1;
-			JobMan.updateStatus(job, Job.MOVED);
+			JobManager.updateStatus(job, Job.MOVED);
 		} else {
-			JobMan.updateStatus(job, Job.FAILED);
+			JobManager.updateStatus(job, Job.FAILED);
 			if (needsCopy) {
 				job.setError("CRC check failed on copy. HW problem?");
 				AppContext.gui.println(HyperlinkBuilder

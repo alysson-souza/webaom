@@ -23,15 +23,15 @@
 package epox.webaom.net;
 
 import epox.webaom.HyperlinkBuilder;
-import epox.webaom.ui.JPanelMain;
+import epox.webaom.ui.MainPanel;
 
 /**
  * Thread that performs a ping test to the AniDB server and reports the result.
  */
 public class Pinger extends Thread {
-	private final JPanelMain mainPanel;
+	private final MainPanel mainPanel;
 
-	public Pinger(JPanelMain mainPanel) {
+	public Pinger(MainPanel mainPanel) {
 		super("Pinger");
 		this.mainPanel = mainPanel;
 		this.mainPanel.handleFatalError(true);

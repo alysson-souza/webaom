@@ -6,7 +6,7 @@ package epox.webaom.ui;
 
 import epox.webaom.AppContext;
 import epox.webaom.Job;
-import epox.webaom.JobMan;
+import epox.webaom.JobManager;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 import javax.swing.JTable;
@@ -77,28 +77,28 @@ public class KeyAdapterJob extends KeyAdapter {
 					AppContext.gui.openHyperlink(selectedJob.anidbFile.urlExport());
 					break;
 				case 'W' :
-					JobMan.openInDefaultPlayer(selectedJob);
+					JobManager.openInDefaultPlayer(selectedJob);
 					break;
 				case 'X' :
-					JobMan.openInExplorer(selectedJob);
+					JobManager.openInExplorer(selectedJob);
 					break;
 				case 'C' :
-					JobMan.runAvdump(selectedJob);
+					JobManager.runAvdump(selectedJob);
 					AppContext.gui.openHyperlink(selectedJob.anidbFile.urlFile());
 					break;
 				case 'P' :
-					JobMan.updateStatus(selectedJob, Job.H_PAUSED, true);
+					JobManager.updateStatus(selectedJob, Job.H_PAUSED, true);
 					break;
 				case 'S' :
-					JobMan.updateStatus(selectedJob, Job.IDENTIFIED, true);
+					JobManager.updateStatus(selectedJob, Job.IDENTIFIED, true);
 					break;
 				case 'I' :
 					selectedJob.anidbFile = null;
-					JobMan.updateStatus(selectedJob, Job.HASHED, true);
+					JobManager.updateStatus(selectedJob, Job.HASHED, true);
 					break;
 				case ' ' :
 				case 10 : // Enter key
-					JobMan.showInfo(selectedJob);
+					JobManager.showInfo(selectedJob);
 					break;
 				case 39 : // Right arrow key
 					if (treeTable != null) {

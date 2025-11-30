@@ -24,8 +24,8 @@ import com.sun.swing.JTreeTable;
 import com.sun.swing.TreeTableModel;
 import epox.webaom.AppContext;
 import epox.webaom.Job;
-import epox.webaom.JobMan;
-import epox.webaom.data.AFile;
+import epox.webaom.JobManager;
+import epox.webaom.data.AniDBFile;
 import epox.webaom.data.Base;
 import java.awt.Font;
 import java.awt.FontMetrics;
@@ -49,7 +49,7 @@ public class JobTreeTable extends JTreeTable implements RowModel, MouseListener 
 
 	public Job[] getJobs(int row) {
 		Object treeNode = tree.getPathForRow(row).getLastPathComponent();
-		if (treeNode instanceof AFile file) {
+		if (treeNode instanceof AniDBFile file) {
 			if (file.getJob() != null) {
 				return new Job[]{file.getJob()};
 			}
@@ -63,8 +63,8 @@ public class JobTreeTable extends JTreeTable implements RowModel, MouseListener 
 
 	private void collectJobsRecursively(ArrayList<Job> jobsList, Base parent) {
 		if (parent.size() < 1) {
-			if (parent instanceof AFile) {
-				jobsList.add(((AFile) parent).getJob());
+			if (parent instanceof AniDBFile) {
+				jobsList.add(((AniDBFile) parent).getJob());
 			}
 			return;
 		}
@@ -77,12 +77,12 @@ public class JobTreeTable extends JTreeTable implements RowModel, MouseListener 
 	public void mouseClicked(MouseEvent event) {
 		if (event.getClickCount() == 2) {
 			Object treeNode = tree.getPathForRow(getSelectedRow()).getLastPathComponent();
-			if (treeNode instanceof AFile file) {
+			if (treeNode instanceof AniDBFile file) {
 				if (file.getJob() != null) {
 					if (event.isAltDown()) {
-						JobMan.openInDefaultPlayer(file.getJob());
+						JobManager.openInDefaultPlayer(file.getJob());
 					} else {
-						JobMan.showInfo(file.getJob());
+						JobManager.showInfo(file.getJob());
 					}
 				}
 			}

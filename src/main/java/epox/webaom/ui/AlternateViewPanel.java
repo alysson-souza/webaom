@@ -17,7 +17,7 @@ import java.awt.BorderLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 
-public class JPanelAlt extends JPanel {
+public class AlternateViewPanel extends JPanel {
 	public JobTreeTable altViewTreeTable;
 	public JComboBox<String> sortModeComboBox;
 	public JComboBox<String> fileVisibilityComboBox;
@@ -25,11 +25,11 @@ public class JPanelAlt extends JPanel {
 	public JComboBox<String> episodeTitleComboBox;
 	public JTextField pathRegexField;
 
-	public JPanelAlt(ActionListener actionListener) {
-		TableModelAlt tableModel = new TableModelAlt();
+	public AlternateViewPanel(ActionListener actionListener) {
+		AlternateViewTableModel tableModel = new AlternateViewTableModel();
 		altViewTreeTable = new JobTreeTable(tableModel);
 		tableModel.formatTable(altViewTreeTable.getColumnModel());
-		new HeaderListenerAlt(altViewTreeTable);
+		new AlternateViewHeaderListener(altViewTreeTable);
 
 		JScrollPane scrollPane = new JScrollPane(altViewTreeTable);
 		scrollPane.getViewport().setBackground(java.awt.Color.white);

@@ -24,7 +24,7 @@
 package epox.webaom;
 
 import epox.util.StringUtilities;
-import epox.webaom.data.AFile;
+import epox.webaom.data.AniDBFile;
 import epox.webaom.data.AnimeGroup;
 import epox.webaom.data.Anime;
 import epox.webaom.data.Base;
@@ -90,7 +90,7 @@ public class Cache {
 		if (job == null || job.anidbFile == null) {
 			return null;
 		}
-		AFile file = job.anidbFile;
+		AniDBFile file = job.anidbFile;
 		try {
 			file.anime = (Anime) get(file.animeId, DatabaseManager.INDEX_ANIME);
 			if (file.groupId != 0) {
@@ -110,13 +110,13 @@ public class Cache {
 		}
 	}
 
-	public AFile parseFile(String[] fields, Job job) {
+	public AniDBFile parseFile(String[] fields, Job job) {
 		if (fields.length != 34) {
 			System.out.println("Unexpected response! len=" + fields.length);
 			job.setError("Unexpected response from server.");
 			return null;
 		}
-		AFile file = new AFile(fields);
+		AniDBFile file = new AniDBFile(fields);
 		int fieldIndex = 20;
 		// create/retrieve data objects
 		file.anime = (Anime) cacheMaps[DatabaseManager.INDEX_ANIME].get(Integer.valueOf(file.animeId));
@@ -201,7 +201,7 @@ public class Cache {
 				|| (job.hide(AppContext.preg))) {
 			return;
 		}
-		AFile file = job.anidbFile;
+		AniDBFile file = job.anidbFile;
 		Anime anime = file.anime;
 		if (AppContext.p.has(anime)) {
 			AppContext.p.remove(anime);
@@ -264,7 +264,7 @@ public class Cache {
 		if (job.incompl()) {
 			return;
 		}
-		AFile file = job.anidbFile;
+		AniDBFile file = job.anidbFile;
 		Anime anime = file.anime;
 		if (AppContext.p.has(anime)) {
 			AppContext.p.remove(anime);

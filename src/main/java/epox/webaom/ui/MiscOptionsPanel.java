@@ -27,18 +27,19 @@ import epox.util.HashContainer;
 import epox.util.TTH;
 import epox.webaom.AppContext;
 import epox.webaom.Options;
+
+import javax.swing.JCheckBox;
+import javax.swing.JLabel;
+import javax.swing.JPanel;
+import javax.swing.JTextField;
 import java.awt.Component;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.Insets;
 import java.io.File;
 import java.util.StringTokenizer;
-import javax.swing.JCheckBox;
-import javax.swing.JLabel;
-import javax.swing.JPanel;
-import javax.swing.JTextField;
 
-public class JPanelOptDiv extends JPanel {
+public class MiscOptionsPanel extends JPanel {
 	public static final int HASH_ED2K = 0;
 	public static final int HASH_CRC32 = 1;
 	public static final int HASH_MD5 = 2;
@@ -74,7 +75,7 @@ public class JPanelOptDiv extends JPanel {
 	private final JCheckBox autoSaveCheckBox;
 	private final JCheckBox autoRenameCheckBox;
 
-	public JPanelOptDiv() {
+	public MiscOptionsPanel() {
 		super(new GridBagLayout());
 
 		hashDirectoriesField = new JTextField();

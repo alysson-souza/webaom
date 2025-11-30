@@ -25,7 +25,7 @@ package epox.webaom.ui;
 
 import epox.webaom.Job;
 import epox.webaom.JobList;
-import epox.webaom.JobMan;
+import epox.webaom.JobManager;
 
 import javax.swing.JTable;
 import java.awt.event.MouseAdapter;
@@ -48,9 +48,9 @@ public class MouseAdapterJob extends MouseAdapter {
 			if (rowIndex >= 0 && rowIndex < jobList.size()) {
 				Job job = jobList.get(rowIndex);
 				if (event.isAltDown()) {
-					JobMan.openInDefaultPlayer(job);
+					JobManager.openInDefaultPlayer(job);
 				} else {
-					JobMan.showInfo(job);
+					JobManager.showInfo(job);
 				}
 			}
 		}

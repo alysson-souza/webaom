@@ -56,7 +56,7 @@ import java.util.Arrays;
 import java.util.StringTokenizer;
 import java.util.Vector;
 
-public class JPanelOptRls extends JPanel implements Action, ActionListener, ItemListener {
+public class RulesOptionsPanel extends JPanel implements Action, ActionListener, ItemListener {
 	protected final JTextArea rulesTextArea;
 	private final JRadioButton renameRadioButton;
 	private final JRadioButton moveRadioButton;
@@ -67,7 +67,7 @@ public class JPanelOptRls extends JPanel implements Action, ActionListener, Item
 	protected JTable replacementsTable;
 	protected ReplacementTableModel replacementsTableModel;
 
-	public JPanelOptRls(Rules rules) {
+	public RulesOptionsPanel(Rules rules) {
 		super(new BorderLayout());
 		// super(new GridLayout(2,1));
 		this.rules = rules;
