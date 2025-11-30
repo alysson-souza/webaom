@@ -72,6 +72,7 @@ public class JPanelOptDiv extends JPanel {
 	private final JCheckBox autoLoadDatabaseCheckBox;
 	private final JCheckBox autoLogCheckBox;
 	private final JCheckBox autoSaveCheckBox;
+	private final JCheckBox autoRenameCheckBox;
 
 	public JPanelOptDiv() {
 		super(new GridBagLayout());
@@ -94,6 +95,8 @@ public class JPanelOptDiv extends JPanel {
 		autoLogCheckBox.setToolTipText("Start logging to disk on startup");
 		autoSaveCheckBox = new JCheckBox("Auto save");
 		autoSaveCheckBox.setToolTipText("Save options on exit without asking");
+		autoRenameCheckBox = new JCheckBox("Auto rename");
+		autoRenameCheckBox.setToolTipText("Automatically rename/move files after identification");
 		storePasswordCheckBox = new JCheckBox("Store password");
 		storePasswordCheckBox.setToolTipText("Do you want to store your password on disk? (not cleartext)");
 
@@ -123,6 +126,7 @@ public class JPanelOptDiv extends JPanel {
 		booleanOptionsPanel.add(autoLoadDatabaseCheckBox, constraints);
 		booleanOptionsPanel.add(autoLogCheckBox, constraints);
 		booleanOptionsPanel.add(autoSaveCheckBox, constraints);
+		booleanOptionsPanel.add(autoRenameCheckBox, constraints);
 		booleanOptionsPanel.add(storePasswordCheckBox, constraints);
 
 		constraints.gridwidth = GridBagConstraints.REMAINDER;
@@ -177,6 +181,7 @@ public class JPanelOptDiv extends JPanel {
 		options.setBoolean(Options.BOOL_AUTO_LOAD_DATABASE, autoLoadDatabaseCheckBox.isSelected());
 		options.setBoolean(Options.BOOL_AUTO_LOGIN, autoLogCheckBox.isSelected());
 		options.setBoolean(Options.BOOL_AUTO_SAVE, autoSaveCheckBox.isSelected());
+		options.setBoolean(Options.BOOL_AUTO_RENAME, autoRenameCheckBox.isSelected());
 
 		options.setString(Options.STR_HASH_DIRECTORY, hashDirectoriesField.getText());
 		options.setString(Options.STR_BROWSER, browserPathField.getText());
@@ -193,6 +198,7 @@ public class JPanelOptDiv extends JPanel {
 		autoLoadDatabaseCheckBox.setSelected(options.getBoolean(Options.BOOL_AUTO_LOAD_DATABASE));
 		autoLogCheckBox.setSelected(options.getBoolean(Options.BOOL_AUTO_LOGIN));
 		autoSaveCheckBox.setSelected(options.getBoolean(Options.BOOL_AUTO_SAVE));
+		autoRenameCheckBox.setSelected(options.getBoolean(Options.BOOL_AUTO_RENAME));
 
 		hashDirectoriesField.setText(options.getString(Options.STR_HASH_DIRECTORY));
 		browserPathField.setText(options.getString(Options.STR_BROWSER));
