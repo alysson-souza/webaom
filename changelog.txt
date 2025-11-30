@@ -1,6 +1,13 @@
 Please note that this version is marked "unstable", meaning it can be broken from time
 to time. Do at least check the changelog for relevant info before using it.
 
+2.2.0 30.11.2025:
+*Added "Auto rename" option to disable automatic file renaming after identification.
+*Fixed embedded database not working.
+*Fixed Help button not working on macOS and Linux.
+*Fixed !mystats and !anime commands in Chii emulator.
+*Updated database drivers.
+
 2.1.1 29.11.2025:
 *Fixed drag-and-drop operations.
 
