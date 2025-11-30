@@ -88,28 +88,6 @@ public final class StringUtilities {
     }
 
     /**
-     * Replaces all occurrences of a source string with a destination string.
-     *
-     * @param text
-     *            the original text
-     * @param source
-     *            the substring to find
-     * @param destination
-     *            the replacement string
-     * @return the text with all replacements made
-     */
-    public static String replace(String text, String source, String destination) {
-        int sourceLength = source.length();
-        int destLength = destination.length();
-        int index = text.indexOf(source);
-        while (index >= 0) {
-            text = text.substring(0, index) + destination + text.substring(index + sourceLength);
-            index = text.indexOf(source, index + destLength);
-        }
-        return text;
-    }
-
-    /**
      * Extracts the content between XML/HTML opening and closing tags.
      *
      * @param text

@@ -353,7 +353,7 @@ public class DatabaseManager {
                     } else {
                         // MySQL - convert serial to auto_increment
                         schemaSql = AppContext.getFileString("db00.sql");
-                        schemaSql = StringUtilities.replace(schemaSql, "serial", "integer NOT NULL auto_increment");
+                        schemaSql = schemaSql.replace("serial", "integer NOT NULL auto_increment");
                     }
                     executeStatements(schemaSql, silent);
                 }
@@ -537,8 +537,8 @@ public class DatabaseManager {
             path = "";
         }
         try {
-            path = StringUtilities.replace(path, "\\", "\\\\");
-            path = StringUtilities.replace(path, "'", "\\'");
+            path = path.replace("\\", "\\\\");
+            path = path.replace("'", "\\'");
             Object cachedId = directoryIdCache.get(path);
             if (cachedId != null) {
                 return (Integer) cachedId;
@@ -782,7 +782,7 @@ public class DatabaseManager {
         if (value == null) {
             return "NULL";
         }
-        return "'" + StringUtilities.replace(value, "'", "\\'") + "'";
+        return "'" + value.replace("'", "\\'") + "'";
     }
 
     /**

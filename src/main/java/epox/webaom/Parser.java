@@ -242,9 +242,7 @@ public final class Parser {
                                         line = line.substring(1);
                                         if (isLegacyFormat) {
                                             currentJob = new Job(
-                                                    new File(File.separatorChar
-                                                            + StringUtilities.replace(line, "/", "")),
-                                                    Job.FINISHED);
+                                                    new File(File.separatorChar + line.replace("/", "")), Job.FINISHED);
                                             currentJob.originalName = line;
                                             currentJob.ed2kHash = currentFile.ed2kHash;
                                             currentJob.fileSize = currentFile.getTotalSize();

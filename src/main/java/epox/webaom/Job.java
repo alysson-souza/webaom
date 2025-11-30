@@ -376,12 +376,12 @@ public class Job {
                         continue;
                     }
                     String converted = avFileInfo.convert(tagContent, i);
-                    processedAvInfo = StringUtilities.replace(processedAvInfo, tagContent, converted);
+                    processedAvInfo = processedAvInfo.replace(tagContent, converted);
                 }
             } else {
                 processedAvInfo = "";
             }
-            template = StringUtilities.replace(template, avInfoBlock, processedAvInfo);
+            template = template.replace(avInfoBlock, processedAvInfo);
         }
         return StringUtilities.replaceCCCode(template, genMap());
     }
