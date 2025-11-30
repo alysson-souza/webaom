@@ -99,6 +99,7 @@ public class AConR {
 		data = U.htmldesc(data);
 	}
 
+	@Override
 	public String toString() {
 		return code + " " + message + " [" + data + "]";
 	}

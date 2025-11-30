@@ -95,7 +95,7 @@ public class ACon implements ActionListener {
 	}
 
 	public void actionPerformed(ActionEvent event) {
-		if (!settings.nat) {
+		if (!settings.natEnabled) {
 			return;
 		}
 		try {
@@ -206,10 +206,10 @@ public class ACon implements ActionListener {
 				session = response.data;
 				if (response.data.length() > 5) {
 					session = response.data.substring(0, 5);
-					if (settings.nat) {
+					if (settings.natEnabled) {
 						try {
 							int port = Integer.parseInt(response.data.substring(1 + response.data.lastIndexOf(':')));
-							if (port != settings.lport) {
+							if (port != settings.localPort) {
 								// 3 min
 								int natKeepAliveInterval = 3 * 1000 * 60;
 								keepAliveTimer.setDelay(natKeepAliveInterval);
@@ -272,8 +272,8 @@ public class ACon implements ActionListener {
 	//////////////////////////////////// CORE////////////////////////////////////
 	public boolean connect() {
 		try {
-			socket = new DatagramSocket(settings.lport);
-			socket.setSoTimeout(settings.tout);
+			socket = new DatagramSocket(settings.localPort);
+			socket.setSoTimeout(settings.timeoutMillis);
 			serverAddress = InetAddress.getByName(settings.host);
 			serverAddress.getHostAddress();
 			connected = true;
@@ -319,7 +319,7 @@ public class ACon implements ActionListener {
 	private AConR sendWithRetry(String operation, String param, boolean wait) throws AConEx {
 		int timeoutCount = 0;
 		AConR response;
-		while (timeoutCount++ < settings.max_tout && !shutdown) {
+		while (timeoutCount++ < settings.maxTimeouts && !shutdown) {
 			try {
 				response = sendWithSession(operation, param, wait);
 				if (!operation.equals("LOGOUT")
@@ -331,7 +331,7 @@ public class ACon implements ActionListener {
 			} catch (SocketTimeoutException ex) {
 				generateTag();
 				error("Operation Failed: TIMEOUT or SERVER BUSY. Try #" + timeoutCount);
-				settings.delay += 100;
+				settings.packetDelay += 100;
 				// keepAliveTimer.start();
 			} catch (IOException ex) {
 				ex.printStackTrace();
@@ -364,9 +364,9 @@ public class ACon implements ActionListener {
 			try {
 				long timeDelta = System.currentTimeMillis() - timestamp;
 				timeDelta = (timeDelta / 100) * 100; // round down to nearest 100
-				if (timeDelta < settings.delay) {
-					debug("- Sleep: " + (settings.delay - timeDelta));
-					Thread.sleep(settings.delay - timeDelta);
+				if (timeDelta < settings.packetDelay) {
+					debug("- Sleep: " + (settings.packetDelay - timeDelta));
+					Thread.sleep(settings.packetDelay - timeDelta);
 				}
 			} catch (InterruptedException ex) {
 				throw new AConEx(AConEx.CLIENT_SYSTEM, "Java: " + ex.getMessage());
@@ -395,7 +395,7 @@ public class ACon implements ActionListener {
 			}
 		}
 
-		DatagramPacket outPacket = new DatagramPacket(outData, length, serverAddress, settings.rport);
+		DatagramPacket outPacket = new DatagramPacket(outData, length, serverAddress, settings.remotePort);
 		timestamp = System.currentTimeMillis();
 
 		socket.send(outPacket);

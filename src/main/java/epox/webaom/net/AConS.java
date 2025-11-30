@@ -4,40 +4,58 @@
  */
 package epox.webaom.net;
 
+/**
+ * AniDB connection settings. Holds configuration for UDP API communication.
+ */
 public class AConS {
+
+	/** AniDB API server hostname */
 	public String host;
-	public int rport;
-	public int lport;
-	public int tout;
-	public int max_tout;
-	public int delay;
-	public boolean nat;
+
+	/** Remote server port */
+	public int remotePort;
+
+	/** Local port to bind for UDP communication */
+	public int localPort;
+
+	/** Connection timeout in milliseconds */
+	public int timeoutMillis;
+
+	/** Maximum number of timeout retries before giving up */
+	public int maxTimeouts;
+
+	/** Delay between packets in milliseconds */
+	public int packetDelay;
+
+	/** Whether NAT traversal check is enabled */
+	public boolean natEnabled;
 
 	/**
-	 * Constructor
+	 * Constructor for AniDB connection settings.
 	 *
-	 * @param h
-	 *            host string
-	 * @param rp
-	 *            remote port
-	 * @param lp
-	 *            local port
-	 * @param to
-	 *            time out in sec
-	 * @param del
-	 *            packet delay
-	 * @param max
-	 *            maximum timeouts
-	 * @param n
-	 *            enable nat check
+	 * @param host
+	 *            AniDB API server hostname
+	 * @param remotePort
+	 *            Remote server port
+	 * @param localPort
+	 *            Local port to bind for UDP communication
+	 * @param timeoutSeconds
+	 *            Connection timeout in seconds (will be converted to milliseconds)
+	 * @param packetDelay
+	 *            Delay between packets in milliseconds
+	 * @param maxTimeouts
+	 *            Maximum number of timeout retries
+	 * @param natEnabled
+	 *            Whether to enable NAT traversal check
 	 */
-	public AConS(String h, int rp, int lp, int to, int del, int max, boolean n) {
-		host = h;
-		rport = rp;
-		lport = lp;
-		tout = to * 1000;
-		delay = del;
-		max_tout = max;
-		nat = n;
+	public AConS(String host, int remotePort, int localPort, int timeoutSeconds, int packetDelay, int maxTimeouts,
+			boolean natEnabled) {
+		this.host = host;
+		this.remotePort = remotePort;
+		this.localPort = localPort;
+		this.timeoutMillis = timeoutSeconds * 1000;
+		this.packetDelay = packetDelay;
+		this.maxTimeouts = maxTimeouts;
+		this.natEnabled = natEnabled;
 	}
 }
