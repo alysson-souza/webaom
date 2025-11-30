@@ -1,31 +1,27 @@
-// Copyright (C) 2005-2006 epoximator
-//
-// This program is free software; you can redistribute it and/or
-// modify it under the terms of the GNU General Public License
-// as published by the Free Software Foundation; either version 2
-// of the License, or (at your option) any later version.
-//
-// This program is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-// GNU General Public License for more details.
-//
-// You should have received a copy of the GNU General Public License
-// along with this program; if not, write to the Free Software
-// Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
-
 /*
- * Created on 02.08.05
+ * WebAOM - Web Anime-O-Matic
+ * Copyright (C) 2005-2010 epoximator 2025 Alysson Souza
  *
- * @version 	03 (1.14,1.10,1.09)
- * @author 		epoximator
+ * This program is free software; you can redistribute it and/or modify it under
+ * the terms of the GNU General Public License version 2 as published by the Free
+ * Software Foundation.
+ *
+ * This program is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+ * FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License along with
+ * this program; if not, see <https://www.gnu.org/licenses/>.
  */
+
 package epox.webaom;
 
 import epox.webaom.ui.TableModelJobs;
 import java.io.File;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.LinkedHashMap;
 
 public class JobList {
@@ -148,6 +144,54 @@ public class JobList {
         Job job = jobsList.remove(index);
         filePathSet.remove(job.getFile());
         return job;
+    }
+
+    public synchronized int removeJobs(Collection<Job> jobsToRemove) {
+        if (jobsToRemove == null || jobsToRemove.isEmpty()) {
+            return 0;
+        }
+        HashSet<Job> removalSet = new HashSet<>();
+        for (Job job : jobsToRemove) {
+            if (job != null) {
+                removalSet.add(job);
+            }
+        }
+        if (removalSet.isEmpty()) {
+            return 0;
+        }
+        ArrayList<Job> removedJobs = new ArrayList<>();
+        Iterator<Job> iterator = jobsList.iterator();
+        while (iterator.hasNext()) {
+            Job job = iterator.next();
+            if (removalSet.contains(job)) {
+                iterator.remove();
+                filePathSet.remove(job.getFile());
+                removedJobs.add(job);
+            }
+        }
+        if (removedJobs.isEmpty()) {
+            return 0;
+        }
+        HashSet<Job> removedSet = new HashSet<>(removedJobs);
+        if (filteredJobs != null) {
+            ArrayList<Job> filtered = new ArrayList<>(filteredJobs.length);
+            for (Job job : filteredJobs) {
+                if (!removedSet.contains(job)) {
+                    filtered.add(job);
+                }
+            }
+            filteredJobs = filtered.toArray(new Job[0]);
+        }
+        for (LinkedHashMap<Job, Job> queue : jobQueues) {
+            queue.keySet().removeAll(removedSet);
+        }
+        for (Job job : removedJobs) {
+            AppContext.jobCounter.unregister(job.getStatus(), job.getHealth());
+        }
+        if (tableModel != null) {
+            tableModel.fireTableDataChanged();
+        }
+        return removedJobs.size();
     }
 
     public synchronized Job[] array() {

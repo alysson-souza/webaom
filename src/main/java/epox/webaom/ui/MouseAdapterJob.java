@@ -1,24 +1,17 @@
-// Copyright (C) 2005-2006 epoximator
-//
-// This program is free software; you can redistribute it and/or
-// modify it under the terms of the GNU General Public License
-// as published by the Free Software Foundation; either version 2
-// of the License, or (at your option) any later version.
-//
-// This program is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-// GNU General Public License for more details.
-//
-// You should have received a copy of the GNU General Public License
-// along with this program; if not, write to the Free Software
-// Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
-
 /*
- * Created on 02.09.05
+ * WebAOM - Web Anime-O-Matic
+ * Copyright (C) 2005-2010 epoximator 2025 Alysson Souza
  *
- * @version 	1.09
- * @author 		epoximator
+ * This program is free software; you can redistribute it and/or modify it under
+ * the terms of the GNU General Public License version 2 as published by the Free
+ * Software Foundation.
+ *
+ * This program is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+ * FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License along with
+ * this program; if not, see <https://www.gnu.org/licenses/>.
  */
 
 package epox.webaom.ui;
@@ -41,9 +34,14 @@ public class MouseAdapterJob extends MouseAdapter {
         this.jobList = jobList;
     }
 
+    @Override
     public void mouseClicked(MouseEvent event) {
         if (event.getClickCount() == 2) {
-            int rowIndex = tableModel.convertRow(table.getSelectedRow())[0];
+            int selectedRow = table.getSelectedRow();
+            if (selectedRow < 0) {
+                return;
+            }
+            int rowIndex = tableModel.convertRow(table.convertRowIndexToModel(selectedRow))[0];
             if (rowIndex >= 0 && rowIndex < jobList.size()) {
                 Job job = jobList.get(rowIndex);
                 if (event.isAltDown()) {

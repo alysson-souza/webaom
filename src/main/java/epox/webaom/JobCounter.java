@@ -1,27 +1,22 @@
-// Copyright (C) 2005-2006 epoximator
-//
-// This program is free software; you can redistribute it and/or
-// modify it under the terms of the GNU General Public License
-// as published by the Free Software Foundation; either version 2
-// of the License, or (at your option) any later version.
-//
-// This program is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-// GNU General Public License for more details.
-//
-// You should have received a copy of the GNU General Public License
-// along with this program; if not, write to the Free Software
-// Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
-
 /*
- * Created on 24.10.05
+ * WebAOM - Web Anime-O-Matic
+ * Copyright (C) 2005-2010 epoximator 2025 Alysson Souza
  *
- * @version 	01 (1.14)
- * @author 		epoximator
+ * This program is free software; you can redistribute it and/or modify it under
+ * the terms of the GNU General Public License version 2 as published by the Free
+ * Software Foundation.
+ *
+ * This program is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+ * FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License along with
+ * this program; if not, see <https://www.gnu.org/licenses/>.
  */
 
 package epox.webaom;
+
+import java.util.Arrays;
 
 public class JobCounter {
     /** Index for finished jobs count */
@@ -52,9 +47,13 @@ public class JobCounter {
     }
 
     public synchronized String getStatus() {
-        String statusText = "";
+        StringBuilder statusText = new StringBuilder();
         for (int index = 0; index < STATUS_COUNT; index++) {
-            statusText += STATUS_NAMES[index] + "=" + statusCounts[index] + " ";
+            statusText
+                    .append(STATUS_NAMES[index])
+                    .append("=")
+                    .append(statusCounts[index])
+                    .append(" ");
         }
         return statusText + " tot=" + totalJobCount;
     }
@@ -90,9 +89,20 @@ public class JobCounter {
     }
 
     public synchronized void reset() {
-        for (int index = 0; index < STATUS_COUNT; index++) {
-            statusCounts[index] = 0;
-        }
+        Arrays.fill(statusCounts, 0);
         totalJobCount = 0;
+    }
+
+    /**
+     * Remove a job from the counters when it is deleted from the list.
+     *
+     * @param status the job status flags
+     * @param health the job health flags
+     */
+    public synchronized void unregister(int status, int health) {
+        updateCount(status, health, false);
+        if (totalJobCount > 0) {
+            totalJobCount--;
+        }
     }
 }
