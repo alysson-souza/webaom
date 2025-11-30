@@ -22,10 +22,24 @@ repositories {
 	mavenCentral()
 }
 
+// Dependency configurations for different JAR variants
+configurations {
+	h2Only
+	allDrivers
+}
+
 dependencies {
+	// H2 is always included (embedded database)
+	runtimeOnly 'com.h2database:h2:2.4.240'
+	h2Only 'com.h2database:h2:2.4.240'
+
+	// External database drivers (PostgreSQL, MySQL)
 	runtimeOnly 'org.postgresql:postgresql:42.7.8'
 	runtimeOnly 'com.mysql:mysql-connector-j:9.5.0'
-	runtimeOnly 'com.h2database:h2:2.4.240'
+
+	allDrivers 'com.h2database:h2:2.4.240'
+	allDrivers 'org.postgresql:postgresql:42.7.8'
+	allDrivers 'com.mysql:mysql-connector-j:9.5.0'
 }
 
 tasks.register('generateVersionProperties') {
@@ -59,6 +73,70 @@ jar {
 	}
 
 	duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+}
+
+// Lite JAR with H2 only (smaller, for most users)
+tasks.register('jarLite', Jar) {
+	dependsOn classes, generateVersionProperties
+	group = 'build'
+	description = 'Creates a lite JAR with H2 database only'
+
+	archiveClassifier = 'lite'
+
+	manifest {
+		attributes(
+				'Main-Class': 'epox.webaom.WebAOM',
+				'Implementation-Title': 'WebAOM',
+				'Implementation-Version': version,
+				'Created-By': 'epoximator',
+				'Specification-Title': 'WebAOM',
+				'Specification-Version': version,
+				'Specification-Vendor': 'epoximator'
+				)
+	}
+
+	from sourceSets.main.output
+	from("${layout.buildDirectory.get()}/resources/main")
+
+	from {
+		configurations.h2Only.collect { it.isDirectory() ? it : zipTree(it) }
+	}
+
+	duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+}
+
+// Full JAR with all database drivers
+tasks.register('jarFull', Jar) {
+	dependsOn classes, generateVersionProperties
+	group = 'build'
+	description = 'Creates a full JAR with all database drivers (H2, PostgreSQL, MySQL)'
+
+	archiveClassifier = 'full'
+
+	manifest {
+		attributes(
+				'Main-Class': 'epox.webaom.WebAOM',
+				'Implementation-Title': 'WebAOM',
+				'Implementation-Version': version,
+				'Created-By': 'epoximator',
+				'Specification-Title': 'WebAOM',
+				'Specification-Version': version,
+				'Specification-Vendor': 'epoximator'
+				)
+	}
+
+	from sourceSets.main.output
+	from("${layout.buildDirectory.get()}/resources/main")
+
+	from {
+		configurations.allDrivers.collect { it.isDirectory() ? it : zipTree(it) }
+	}
+
+	duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+}
+
+tasks.named('build') {
+	dependsOn jarLite, jarFull
 }
 
 tasks.withType(JavaCompile).configureEach {
@@ -135,7 +213,7 @@ tasks.register('jlink', Exec) {
 }
 
 tasks.register('jpackage', Exec) {
-	dependsOn build, jlink
+	dependsOn jarLite, jlink
 	group = 'distribution'
 	description = 'Creates native application package for the current platform'
 
@@ -151,7 +229,7 @@ tasks.register('jpackage', Exec) {
 		'--input',
 		"${layout.buildDirectory.get()}/libs",
 		'--main-jar',
-		"webaom-${version}.jar",
+		"webaom-${version}-lite.jar",
 		'--name',
 		appName,
 		'--app-version',
@@ -216,6 +294,18 @@ tasks.register('jpackage', Exec) {
 	commandLine args
 
 	doFirst {
+		// Unmount any existing WebAOM volumes to prevent hdiutil conflicts
+		if (System.getProperty('os.name').toLowerCase().contains('mac')) {
+			try {
+				[
+					'hdiutil',
+					'detach',
+					'/Volumes/WebAOM',
+					'-force',
+					'-quiet'
+				].execute().waitFor()
+			} catch (Exception ignored) {}
+		}
 		outputDir.mkdirs()
 		println "Creating ${packageType} package with minimal runtime..."
 	}
@@ -226,7 +316,7 @@ tasks.register('jpackage', Exec) {
 }
 
 tasks.register('jpackageAppImage', Exec) {
-	dependsOn build, jlink
+	dependsOn jarLite, jlink
 	group = 'distribution'
 	description = 'Creates a portable app-image (no installer) for the current platform'
 
@@ -237,7 +327,7 @@ tasks.register('jpackageAppImage', Exec) {
 		'--input',
 		"${layout.buildDirectory.get()}/libs",
 		'--main-jar',
-		"webaom-${version}.jar",
+		"webaom-${version}-lite.jar",
 		'--name',
 		appName,
 		'--app-version',
