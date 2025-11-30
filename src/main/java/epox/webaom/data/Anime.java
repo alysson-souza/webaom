@@ -30,7 +30,7 @@ import epox.webaom.ui.AlternateViewTableModel;
 /**
  * Represents an anime entry from AniDB with metadata and episode tracking.
  */
-public class Anime extends Base {
+public class Anime extends AniDBEntity {
     /** Title display priority: 0=romaji, 1=kanji, 2=english. */
     public static int titlePriority = 0;
     /** Primary sort column index (positive = ascending, negative = descending). */
@@ -226,7 +226,8 @@ public class Anime extends Base {
         return (char) (62 + transitions);
     }
 
-    public int compareTo(Object o) {
+    @Override
+    public int compareTo(AniDBEntity o) {
         int result = compareBy(o, primarySortColumn);
         if (result == 0 && primarySortColumn != secondarySortColumn) {
             return compareBy(o, secondarySortColumn);
@@ -243,7 +244,7 @@ public class Anime extends Base {
      *            the column index (negative for descending)
      * @return comparison result
      */
-    public int compareBy(Object obj, int column) {
+    public int compareBy(AniDBEntity obj, int column) {
         if (obj instanceof Anime a) {
             Anime b = this;
             if (column < 0) {
@@ -260,7 +261,7 @@ public class Anime extends Base {
                 case AlternateViewTableModel.NUMB:
                     return b.size() - a.size();
                 case AlternateViewTableModel.SIZE:
-                    return (int) ((b.totalSize - a.totalSize) / 100000);
+                    return (int) ((b.getTotalSize() - a.getTotalSize()) / 100000);
                 case AlternateViewTableModel.PRCT:
                     return a.getCompletionPercent() - b.getCompletionPercent();
                 case AlternateViewTableModel.LAST:

@@ -26,7 +26,7 @@ import epox.util.StringUtilities;
 import epox.webaom.AppContext;
 import epox.webaom.Job;
 
-public class AniDBFile extends Base {
+public class AniDBFile extends AniDBEntity {
     public static final int F_CRCOK = 1;
     public static final int F_CRCERR = 2;
     public static final int F_ISV2 = 4;
@@ -122,7 +122,7 @@ public class AniDBFile extends Base {
         lengthInSeconds = StringUtilities.i(fields[index++]);
     }
 
-    public static Base getInst(String[] s) {
+    public static AniDBEntity getInst(String[] s) {
         return new AniDBFile(s);
     }
 

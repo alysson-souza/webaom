@@ -25,9 +25,9 @@ package epox.webaom;
 
 import epox.av.FileInfo;
 import epox.util.StringUtilities;
+import epox.webaom.data.AniDBEntity;
 import epox.webaom.data.AniDBFile;
 import epox.webaom.data.Anime;
-import epox.webaom.data.Base;
 import epox.webaom.data.Episode;
 import epox.webaom.data.Group;
 import epox.webaom.util.PlatformPaths;
@@ -472,7 +472,7 @@ public class DatabaseManager {
             preparedStatement.setInt(paramIndex++, file.groupId);
             preparedStatement.setString(paramIndex++, file.defaultName);
             preparedStatement.setInt(paramIndex++, file.state);
-            preparedStatement.setLong(paramIndex++, file.totalSize);
+            preparedStatement.setLong(paramIndex++, file.getTotalSize());
             preparedStatement.setInt(paramIndex++, file.lengthInSeconds);
             preparedStatement.setString(paramIndex++, file.ed2kHash);
             preparedStatement.setString(paramIndex++, file.md5Hash);
@@ -585,7 +585,7 @@ public class DatabaseManager {
      *            the entity type (INDEX_ANIME, INDEX_EPISODE, or INDEX_GROUP)
      * @return the retrieved entity, or null if not found
      */
-    public synchronized Base getGeneric(int entityId, int entityType) {
+    public synchronized AniDBEntity getGeneric(int entityId, int entityType) {
         if (!isInitialized) {
             return null;
         }

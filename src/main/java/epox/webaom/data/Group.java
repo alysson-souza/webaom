@@ -25,7 +25,7 @@ package epox.webaom.data;
 /**
  * Represents a fansub/release group from AniDB.
  */
-public class Group extends Base {
+public class Group extends AniDBEntity {
     /** Singleton representing no group (raw release). */
     public static final Group NONE = new Group(0);
     /** Full group name. */

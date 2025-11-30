@@ -8,7 +8,7 @@ package epox.webaom.data;
  * Represents a file system path in the data tree.
  * Used for organizing files by their parent directory.
  */
-public class Path extends Base {
+public class Path extends AniDBEntity {
     private final String pathString;
 
     public Path(String path) {

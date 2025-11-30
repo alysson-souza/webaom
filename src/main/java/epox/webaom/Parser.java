@@ -23,9 +23,9 @@
 package epox.webaom;
 
 import epox.util.StringUtilities;
+import epox.webaom.data.AniDBEntity;
 import epox.webaom.data.AniDBFile;
 import epox.webaom.data.Anime;
-import epox.webaom.data.Base;
 import epox.webaom.data.Episode;
 import epox.webaom.data.Group;
 import java.io.BufferedReader;
@@ -154,11 +154,11 @@ public final class Parser {
                         writer.write("a0\r\n");
                         AppContext.animeTreeRoot.buildSortedChildArray();
                         for (int animeIndex = 0; animeIndex < AppContext.animeTreeRoot.size(); animeIndex++) {
-                            Base animeEntry = AppContext.animeTreeRoot.get(animeIndex);
+                            AniDBEntity animeEntry = AppContext.animeTreeRoot.get(animeIndex);
                             animeEntry.buildSortedChildArray();
                             writer.write("a" + animeEntry.serialize() + AppContext.LINE_SEPARATOR);
                             for (int episodeIndex = 0; episodeIndex < animeEntry.size(); episodeIndex++) {
-                                Base episodeEntry = animeEntry.get(episodeIndex);
+                                AniDBEntity episodeEntry = animeEntry.get(episodeIndex);
                                 episodeEntry.buildSortedChildArray();
                                 writer.write("e" + episodeEntry.serialize() + AppContext.LINE_SEPARATOR);
                                 for (int fileIndex = 0; fileIndex < episodeEntry.size(); fileIndex++) {
@@ -247,7 +247,7 @@ public final class Parser {
                                                 Job.FINISHED);
                                         currentJob.originalName = line;
                                         currentJob.ed2kHash = currentFile.ed2kHash;
-                                        currentJob.fileSize = currentFile.totalSize;
+                                        currentJob.fileSize = currentFile.getTotalSize();
                                     } else {
                                         currentJob = new Job(StringUtilities.split(line, '|'));
                                     }
