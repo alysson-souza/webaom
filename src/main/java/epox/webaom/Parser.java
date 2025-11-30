@@ -28,6 +28,8 @@ import epox.webaom.data.Anime;
 import epox.webaom.data.Base;
 import epox.webaom.data.Episode;
 import epox.webaom.data.Group;
+
+import javax.swing.JFileChooser;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
@@ -37,9 +39,11 @@ import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.io.Writer;
 import java.nio.charset.StandardCharsets;
-import javax.swing.JFileChooser;
 
-public class Parser {
+public final class Parser {
+	private Parser() {
+	}
+
 	public static Group parseGroup(String[] fields) {
 		if (fields == null) {
 			return null;
@@ -125,9 +129,8 @@ public class Parser {
 		String paddedNumber = prefix
 				+ ZERO_PADDING_PREFIXES[log10(totalEpisodes) - log10(episodeNumber > 0 ? episodeNumber : 1)]
 				+ episodeNumber;
-		if (dashIndex >= 0)
-		// return paddedNumber+separator+pad(input.substring(dashIndex+1), totalEpisodes);
-		{
+		if (dashIndex >= 0) {
+			// return paddedNumber+separator+pad(input.substring(dashIndex+1), totalEpisodes);
 			return paddedNumber + separator + input.substring(dashIndex + 1);
 		}
 		return paddedNumber;
@@ -254,6 +257,8 @@ public class Parser {
 									currentFile.setJob(currentJob);
 									AppContext.jobs.add(currentJob);
 									AppContext.databaseManager.update(0, currentJob, DatabaseManager.INDEX_JOB);
+									break;
+								default :
 									break;
 							}
 						}

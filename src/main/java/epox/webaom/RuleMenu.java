@@ -128,7 +128,7 @@ public class RuleMenu extends DefaultHandler {
 	 * f.setVisible(true);
 	 *
 	 * handler.m_tf.
-	 * setText("IF A(Naruto);G(zx) DO FAIL //Do not rename file if it is Naruto\nDO ADD '%eng (%ann) - %enr - %epn ' //Add the base, same for all files\nIF D(japanese);S(english) DO ADD '(SUB)' //Add (SUB) if the file is subbed in english\nIF D(japanese);S(none) DO ADD '(RAW)' //Add (RAW) if the file is not subbed.\nIF G(!unknown) DO ADD '[%grp]' //Add group name if it is not unknown\nDO ADD '(%CRC)' //Always add crc"
+	 * setText("IF A(Naruto);G(zx) DO FAIL //Do not rename file if it is Naruto\nDO ADD '%eng (%ann) - %enr - %epn ' //Add the base, same for all files\nIF D(japanese);S(english) DO ADD '(SUB)' //Add (SUB) if the file is subbed in english\nIF D(japanese);S(NONE) DO ADD '(RAW)' //Add (RAW) if the file is not subbed.\nIF G(!unknown) DO ADD '[%grp]' //Add group name if it is not unknown\nDO ADD '(%CRC)' //Always add crc"
 	 * );
 	 *
 	 *

@@ -96,7 +96,7 @@ public class Cache {
 			if (file.groupId != 0) {
 				file.group = (Group) get(file.groupId, DatabaseManager.INDEX_GROUP);
 			} else {
-				file.group = Group.none;
+				file.group = Group.NONE;
 			}
 			file.episode = (Episode) get(file.episodeId, DatabaseManager.INDEX_EPISODE);
 			if (addToTree) {
@@ -224,7 +224,7 @@ public class Cache {
 				break;
 			case MODE_ANIME_GROUP_FILE : {
 				if (file.groupId < 1) {
-					file.group = Group.none;
+					file.group = Group.NONE;
 				}
 				Base groupNode = anime.get(file.group.getKey());
 				if (groupNode != null) {
@@ -284,7 +284,7 @@ public class Cache {
 				break;
 			case MODE_ANIME_GROUP_FILE : {
 				if (file.groupId < 1) {
-					file.group = Group.none;
+					file.group = Group.NONE;
 				}
 				Base groupNode = anime.get(file.group.getKey());
 				if (groupNode != null) {

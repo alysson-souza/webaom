@@ -56,9 +56,11 @@ public class DatabaseManager {
 	/** Total count of cache indices (array size). */
 	public static final int INDEX_COUNT = 5;
 	/** SQL query for loading jobs with file, episode, and directory data. */
-	private static final String SQL_JOB_QUERY = "select"
-			+ " d.name,j.name,j.status,j.orig,j.ed2k,j.md5,j.sha1,j.tth,j.crc32,j.size,j.did,j.uid,j.lid,j.avxml,f.fid,f.aid,f.eid,f.gid,f.def_name,f.state,f.size,f.ed2k,f.md5,f.sha1,f.crc32,f.dublang,f.sublang,f.quality,f.ripsource,f.audio,f.video,f.resolution,f.ext,f.len,e.eid,e.number,e.english,e.romaji,e.kanji"
-			+ " from dtb d,jtb j,ftb f,etb e where d.did=j.did and j.fid=f.fid and f.eid=e.eid";
+	private static final String SQL_JOB_QUERY = "select d.name,j.name,j.status,j.orig,j.ed2k,j.md5,j.sha1,j.tth,"
+			+ "j.crc32,j.size,j.did,j.uid,j.lid,j.avxml,f.fid,f.aid,f.eid,f.gid,f.def_name,f.state,f.size,"
+			+ "f.ed2k,f.md5,f.sha1,f.crc32,f.dublang,f.sublang,f.quality,f.ripsource,f.audio,f.video,"
+			+ "f.resolution,f.ext,f.len,e.eid,e.number,e.english,e.romaji,e.kanji "
+			+ "from dtb d,jtb j,ftb f,etb e where d.did=j.did and j.fid=f.fid and f.eid=e.eid";
 	private Connection con = null;
 	/** Cache mapping directory paths to their database IDs. */
 	private final HashMap<String, Integer> directoryIdCache = new HashMap<String, Integer>();
@@ -220,8 +222,8 @@ public class DatabaseManager {
 			updateStatements[INDEX_EPISODE] = con
 					.prepareStatement("update etb set english=?,kanji=?,romaji=?,number=? where eid=?");
 			updateStatements[INDEX_FILE] = con.prepareStatement("update ftb set"
-					+ " aid=?,eid=?,gid=?,def_name=?,state=?,size=?,len=?,ed2k=?,md5=?,sha1=?,crc32=?,dublang=?,sublang=?,quality=?,ripsource=?,audio=?,video=?,resolution=?,ext=?"
-					+ " where fid=?");
+					+ " aid=?,eid=?,gid=?,def_name=?,state=?,size=?,len=?,ed2k=?,md5=?,sha1=?,crc32=?,dublang=?,sublang=?,"
+					+ "quality=?,ripsource=?,audio=?,video=?,resolution=?,ext=? where fid=?");
 			updateStatements[INDEX_GROUP] = con.prepareStatement("update gtb set name=?,short=? where gid=?");
 			updateStatements[INDEX_JOB] = con.prepareStatement(
 					"update jtb set" + " name=?,did=?,status=?,md5=?,sha1=?,tth=?,crc32=?,fid=?,lid=?,avxml=?"
@@ -233,8 +235,8 @@ public class DatabaseManager {
 			insertStatements[INDEX_EPISODE] = con
 					.prepareStatement("insert into etb (english,kanji,romaji,number,eid) values (?,?,?,?,?)");
 			insertStatements[INDEX_FILE] = con.prepareStatement("insert into ftb"
-					+ " (aid,eid,gid,def_name,state,size,len,ed2k,md5,sha1,crc32,dublang,sublang,quality,ripsource,audio,video,resolution,ext,fid)"
-					+ " values (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)");
+					+ " (aid,eid,gid,def_name,state,size,len,ed2k,md5,sha1,crc32,dublang,sublang,quality,ripsource,audio,"
+					+ "video,resolution,ext,fid) values (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)");
 			insertStatements[INDEX_GROUP] = con.prepareStatement("insert into gtb (name,short,gid) values (?,?,?)");
 			insertStatements[INDEX_JOB] = con.prepareStatement(
 					"insert into jtb" + " (name,did,status,md5,sha1,tth,crc32,fid,lid,avxml,size,ed2k,orig,uid)"
@@ -292,7 +294,7 @@ public class DatabaseManager {
 				if (version < 2) {
 					executeStatements(AppContext.getFileString("db02.sql"), silent);
 				}
-			} else { // new system or none db defined
+			} else { // new system or NONE db defined
 				rs = query("select ver from vtb;", silent);
 				if (rs != null && rs.next()) {
 					int version = rs.getInt(1);

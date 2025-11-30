@@ -133,7 +133,9 @@ public class MainPanel extends JPanel
 	public Thread workerThread;
 
 	public MainPanel() {
-		isKilled = isDiskIoRunning = isNetworkIoRunning = false;
+		isKilled = false;
+		isDiskIoRunning = false;
+		isNetworkIoRunning = false;
 		initializeComponents();
 
 		jobScrollDownRunnable = new JobScrollDown();
@@ -560,9 +562,8 @@ public class MainPanel extends JPanel
 			openHyperlink("https://wiki.anidb.net/WebAOM");
 		} else if (source == diskIoTimer) {
 			startDiskIo();
-		} else if (source == progressTimer)
-		// System.err.println(A.frame.getFocusOwner());
-		{
+		} else if (source == progressTimer) {
+			// System.err.println(A.frame.getFocusOwner());
 			updateProgressBar();
 		} else if (source == unfreezeTimer) {
 			isKilled = false;

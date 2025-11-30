@@ -115,6 +115,8 @@ public class ReplacementTableModel extends AbstractTableModel {
 				case COLUMN_DESTINATION :
 					rowData.destination = getValidatedDestination(value);
 					break;
+				default :
+					break;
 			}
 		}
 	}

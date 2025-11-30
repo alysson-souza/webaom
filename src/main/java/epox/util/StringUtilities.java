@@ -37,11 +37,14 @@ import java.util.Locale;
  * @author JV
  * @version X
  */
-public class StringUtilities {
+public final class StringUtilities {
 	/** Date formatter for time display (German locale, medium format) */
 	private static final DateFormat TIME_FORMAT = DateFormat.getTimeInstance(DateFormat.MEDIUM, Locale.GERMANY);
 	/** Decimal formatter for two decimal places */
 	private static final DecimalFormat DECIMAL_FORMAT = new DecimalFormat("0.00");
+
+	private StringUtilities() {
+	}
 
 	/**
 	 * Returns the current time formatted as a string.
