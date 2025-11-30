@@ -20,12 +20,21 @@
  */
 package epox.webaom.data;
 
+/**
+ * Represents a mylist entry for AniDB.
+ * Contains metadata about how a file is stored in the user's collection.
+ */
 public class Mylist {
-	public int stt;
-	public int vie;
-	public String sto;
-	public String sou;
-	public String oth;
+	/** File state: 0=unknown, 1=on HDD, 2=on CD, 3=deleted. */
+	public int state;
+	/** Viewed status: 0=not viewed, 1=viewed. */
+	public int viewed;
+	/** Storage location (e.g., "External HDD", "DVD-R"). */
+	public String storage;
+	/** Source of the file (e.g., "Nyaa", "IRC"). */
+	public String source;
+	/** Other/additional notes. */
+	public String other;
 
 	/*
 	 * public static final int S_UNKNOWN = 0,

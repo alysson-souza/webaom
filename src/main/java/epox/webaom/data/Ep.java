@@ -24,29 +24,37 @@ package epox.webaom.data;
 
 import epox.util.U;
 
+/**
+ * Represents an episode entry from AniDB.
+ */
 public class Ep extends Base {
+	/** Episode number/code (e.g., "1", "S1", "C2"). */
 	public String num;
+	/** Romaji title. */
 	public String rom;
+	/** Kanji/Japanese title. */
 	public String kan;
+	/** English title. */
 	public String eng;
 
 	public Ep(int id) {
 		this.id = id;
 	}
 
-	public Ep(String[] s) {
-		int i = 0;
-		id = U.i(s[i++]);
-		num = s[i++].intern();
-		eng = s[i++];
-		rom = U.n(s[i++]);
-		kan = U.n(s[i++]);
+	public Ep(String[] fields) {
+		int index = 0;
+		id = U.i(fields[index++]);
+		num = fields[index++].intern();
+		eng = fields[index++];
+		rom = U.n(fields[index++]);
+		kan = U.n(fields[index++]);
 	}
 
-	public static int TPRI = 0;
+	/** Title display priority: 0=english, 1=romaji, 2=kanji. */
+	public static int TITLE_PRIORITY = 0;
 
 	public String toString() {
-		switch (TPRI) {
+		switch (TITLE_PRIORITY) {
 			case 1 :
 				return num + " - " + (rom == null ? eng : rom);
 			case 2 :
@@ -56,29 +64,19 @@ public class Ep extends Base {
 		}
 	}
 
-	/*
-	 * public String toString(){
-	 * return num+eng+kan+rom;
-	 * }
-	 */
 	public String serialize() {
 		return "" + id + S + num + S + eng + S + rom + S + kan;
 	}
 
 	public int compareTo(Object obj) {
-		if (obj instanceof Ep e) {
-			/* if(mBs==e.mBs) */ try {
-				int a = Integer.parseInt(num);
-				int b = Integer.parseInt(e.num);
-				// if(a==b) return english.compareTo(e.english);
-				return a - b;
-			} catch (Exception x) {
-				return num.compareTo(((Ep) obj).num);
+		if (obj instanceof Ep other) {
+			try {
+				int thisNum = Integer.parseInt(num);
+				int otherNum = Integer.parseInt(other.num);
+				return thisNum - otherNum;
+			} catch (Exception ex) {
+				return num.compareTo(other.num);
 			}
-			/*
-			 * if(mBs&&!e.mBs) return -1;
-			 * return 1;
-			 */
 		}
 		return super.compareTo(obj);
 	}

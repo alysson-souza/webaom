@@ -22,18 +22,31 @@
  */
 package epox.swing;
 
+/**
+ * Interface for logging output. Provides methods for general output and status messages.
+ */
 public interface Log {
-	void println(Object o);
-
-	void status0(String str);
-
-	void status1(String str);
-} /*
-	 * class DebugLog implements Log{
-	 * public void println(String str){
-	 * System.out.println(str);
-	 * }
-	 * public void status0(String str){}
-	 * public void status1(String str){}
-	 * }
+	/**
+	 * Prints a message followed by a newline.
+	 *
+	 * @param message
+	 *            the message to print
 	 */
+	void println(Object message);
+
+	/**
+	 * Displays a primary status message.
+	 *
+	 * @param message
+	 *            the status message
+	 */
+	void status0(String message);
+
+	/**
+	 * Displays a secondary status message.
+	 *
+	 * @param message
+	 *            the status message
+	 */
+	void status1(String message);
+}

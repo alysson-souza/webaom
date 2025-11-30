@@ -444,14 +444,14 @@ public class DB {
 	private int fillPreparedStatement(int paramIndex, PreparedStatement preparedStatement, int entityId,
 			Object dataObject, boolean isInsert) throws SQLException {
 		if (dataObject instanceof Anime anime) {
-			preparedStatement.setString(paramIndex++, anime.rom);
-			preparedStatement.setString(paramIndex++, anime.kan);
-			preparedStatement.setString(paramIndex++, anime.eng);
-			preparedStatement.setInt(paramIndex++, anime.yea);
-			preparedStatement.setInt(paramIndex++, anime.eps);
-			preparedStatement.setInt(paramIndex++, anime.lep);
-			preparedStatement.setString(paramIndex++, anime.typ);
-			preparedStatement.setString(paramIndex++, anime.cat);
+			preparedStatement.setString(paramIndex++, anime.romajiTitle);
+			preparedStatement.setString(paramIndex++, anime.kanjiTitle);
+			preparedStatement.setString(paramIndex++, anime.englishTitle);
+			preparedStatement.setInt(paramIndex++, anime.year);
+			preparedStatement.setInt(paramIndex++, anime.episodeCount);
+			preparedStatement.setInt(paramIndex++, anime.latestEpisode);
+			preparedStatement.setString(paramIndex++, anime.type);
+			preparedStatement.setString(paramIndex++, anime.categories);
 			preparedStatement.setInt(paramIndex++, entityId);
 		} else if (dataObject instanceof Ep episode) {
 			preparedStatement.setString(paramIndex++, episode.eng);
@@ -460,29 +460,33 @@ public class DB {
 			preparedStatement.setString(paramIndex++, episode.num);
 			preparedStatement.setInt(paramIndex++, entityId);
 		} else if (dataObject instanceof AFile file) {
-			preparedStatement.setInt(paramIndex++, file.aid);
-			preparedStatement.setInt(paramIndex++, file.eid);
-			preparedStatement.setInt(paramIndex++, file.gid);
-			preparedStatement.setString(paramIndex++, file.def);
-			preparedStatement.setInt(paramIndex++, file.stt);
-			preparedStatement.setLong(paramIndex++, file.mLs);
-			preparedStatement.setInt(paramIndex++, file.len);
-			preparedStatement.setString(paramIndex++, file.ed2);
-			preparedStatement.setString(paramIndex++, file.md5);
-			preparedStatement.setString(paramIndex++, file.sha);
-			preparedStatement.setString(paramIndex++, file.crc);
-			preparedStatement.setString(paramIndex++, file.dub);
-			preparedStatement.setString(paramIndex++, file.sub);
-			preparedStatement.setString(paramIndex++, file.qua);
-			preparedStatement.setString(paramIndex++, file.rip);
-			preparedStatement.setString(paramIndex++, file.aud);
-			preparedStatement.setString(paramIndex++, file.vid);
-			preparedStatement.setString(paramIndex++, file.res);
-			preparedStatement.setString(paramIndex++, file.ext);
-			preparedStatement.setInt(paramIndex++, file.fid);
+			preparedStatement.setInt(paramIndex++, file.animeId);
+			preparedStatement.setInt(paramIndex++, file.episodeId);
+			preparedStatement.setInt(paramIndex++, file.groupId);
+			preparedStatement.setString(paramIndex++, file.defaultName);
+			preparedStatement.setInt(paramIndex++, file.state);
+			preparedStatement.setLong(paramIndex++, file.totalSize);
+			preparedStatement.setInt(paramIndex++, file.lengthInSeconds);
+			preparedStatement.setString(paramIndex++, file.ed2kHash);
+			preparedStatement.setString(paramIndex++, file.md5Hash);
+			preparedStatement.setString(paramIndex++, file.shaHash);
+			preparedStatement.setString(paramIndex++, file.crcHash);
+			preparedStatement.setString(paramIndex++, file.dubLanguage);
+			preparedStatement.setString(paramIndex++, file.subLanguage);
+			preparedStatement.setString(paramIndex++, file.quality);
+			preparedStatement.setString(paramIndex++, file.ripSource);
+			preparedStatement.setString(paramIndex++, file.audioCodec);
+			preparedStatement.setString(paramIndex++, file.videoCodec);
+			preparedStatement.setString(paramIndex++, file.resolution);
+			preparedStatement.setString(paramIndex++, file.extension);
+			preparedStatement.setInt(paramIndex++, file.fileId);
 		} else if (dataObject instanceof Group group) {
 			preparedStatement.setString(paramIndex++, group.name);
-			preparedStatement.setString(paramIndex++, group.sname);
+			preparedStatement.setString(paramIndex++, group.shortName);
+			preparedStatement.setInt(paramIndex++, entityId);
+		} else if (dataObject instanceof Group group) {
+			preparedStatement.setString(paramIndex++, group.name);
+			preparedStatement.setString(paramIndex++, group.shortName);
 			preparedStatement.setInt(paramIndex++, entityId);
 		} else if (dataObject instanceof Job job) {
 			if (job.directoryId < 1) {
@@ -495,7 +499,7 @@ public class DB {
 			preparedStatement.setString(paramIndex++, job.sha1Hash);
 			preparedStatement.setString(paramIndex++, job.tthHash);
 			preparedStatement.setString(paramIndex++, job.crc32Hash);
-			preparedStatement.setInt(paramIndex++, job.anidbFile != null ? job.anidbFile.fid : 0);
+			preparedStatement.setInt(paramIndex++, job.anidbFile != null ? job.anidbFile.fileId : 0);
 			preparedStatement.setInt(paramIndex++, job.mylistId);
 			preparedStatement.setString(paramIndex++, job.avFileInfo == null ? null : job.avFileInfo.m_xml);
 			if (job.currentFile.exists()) {
@@ -595,7 +599,7 @@ public class DB {
 				ResultSet rs = query("select name,short from gtb where gid=" + entityId + ";", false);
 				if (rs.first()) {
 					group.name = rs.getString(1);
-					group.sname = rs.getString(2);
+					group.shortName = rs.getString(2);
 					log("{ " + group);
 					return group;
 				}
@@ -736,7 +740,7 @@ public class DB {
 			job.anidbFile = new AFile(fields);
 			job.anidbFile.pack();
 			job.anidbFile.setJob(job);
-			job.anidbFile.def = defaultName;
+			job.anidbFile.defaultName = defaultName;
 			job.anidbFile.pack();
 			fields = new String[5];
 			for (int fieldIndex = 0; fieldIndex < fields.length; fieldIndex++) {

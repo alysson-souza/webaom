@@ -39,26 +39,26 @@ public class HeaderListenerAlt extends HeaderListener {
 	public HeaderListenerAlt(JTreeTableR treeTable) {
 		super(null, null, null);
 		this.treeTable = treeTable;
-		m_r = new SortButtonRenderer();
+		sortButtonRenderer = new SortButtonRenderer();
 		TableColumnModel columnModel = treeTable.getColumnModel();
 		for (int columnIndex = 0; columnIndex < columnModel.getColumnCount(); columnIndex++) {
-			columnModel.getColumn(columnIndex).setHeaderRenderer(m_r);
+			columnModel.getColumn(columnIndex).setHeaderRenderer(sortButtonRenderer);
 		}
 
-		m_h = treeTable.getTableHeader();
-		m_h.addMouseListener(this);
+		tableHeader = treeTable.getTableHeader();
+		tableHeader.addMouseListener(this);
 	}
 
 	@Override
 	public void mouseClicked(MouseEvent event) {
-		int clickedColumn = m_h.columnAtPoint(event.getPoint());
-		int sortColumn = m_h.getTable().convertColumnIndexToModel(clickedColumn) + 1;
+		int clickedColumn = tableHeader.columnAtPoint(event.getPoint());
+		int sortColumn = tableHeader.getTable().convertColumnIndexToModel(clickedColumn) + 1;
 		if (currentSortColumn == sortColumn) {
 			sortColumn *= -1; // Toggle sort direction
 		}
 		currentSortColumn = sortColumn;
 		synchronized (treeTable) {
-			Anime.setCol(sortColumn);
+			Anime.setSortColumn(sortColumn);
 			treeTable.updateUI();
 		}
 	}

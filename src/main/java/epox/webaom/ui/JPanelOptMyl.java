@@ -108,11 +108,11 @@ public class JPanelOptMyl extends JPanel {
 
 	public Mylist getMylistData() {
 		Mylist mylist = new Mylist();
-		mylist.stt = stateComboBox.getSelectedIndex();
-		mylist.vie = watchedCheckBox.isSelected() ? 1 : 0;
-		mylist.sto = storageField.getText();
-		mylist.sou = sourceField.getText();
-		mylist.oth = otherInfoArea.getText();
+		mylist.state = stateComboBox.getSelectedIndex();
+		mylist.viewed = watchedCheckBox.isSelected() ? 1 : 0;
+		mylist.storage = storageField.getText();
+		mylist.source = sourceField.getText();
+		mylist.other = otherInfoArea.getText();
 		return mylist;
 	}
 

@@ -27,88 +27,92 @@ import javax.swing.table.TableColumn;
 import javax.swing.table.TableColumnModel;
 
 public class HeaderListener extends MouseAdapter {
-	protected JTableHeader m_h;
-	protected TableColumnModel m_c;
-	protected SortButtonRenderer m_r;
-	protected JPopupMenu m_pop = null;
+	protected JTableHeader tableHeader;
+	protected TableColumnModel columnModel;
+	protected SortButtonRenderer sortButtonRenderer;
+	protected JPopupMenu columnPopup = null;
 
 	public HeaderListener(JTableHeader header, TableColumnModel columns, SortButtonRenderer renderer) {
-		m_h = header;
-		m_c = columns;
-		m_r = renderer;
-		m_pop = null;
+		tableHeader = header;
+		columnModel = columns;
+		sortButtonRenderer = renderer;
+		columnPopup = null;
 	}
 
 	public void setMask(long mask) {
-		if (m_c != null) {
-			m_pop = new JPopupMenu();
-			for (int i = 0; i < m_c.getColumnCount(); i++) {
-				TableColumn c = m_c.getColumn(i);
-				JCheckBoxMenuItem mi = new JCheckBoxMenuItem(c.getHeaderValue().toString(),
-						(1L << i & mask) == 1L << i);
-				mi.addActionListener(new ColumnAction(m_c, c, mi));
-				m_pop.add(mi);
+		if (columnModel != null) {
+			columnPopup = new JPopupMenu();
+			for (int index = 0; index < columnModel.getColumnCount(); index++) {
+				TableColumn column = columnModel.getColumn(index);
+				JCheckBoxMenuItem menuItem = new JCheckBoxMenuItem(column.getHeaderValue().toString(),
+						(1L << index & mask) == 1L << index);
+				menuItem.addActionListener(new ColumnAction(columnModel, column, menuItem));
+				columnPopup.add(menuItem);
 			}
-			for (int i = m_c.getColumnCount() - 1; i >= 0; i--) {
-				if ((1L << i & mask) != 1L << i) {
-					m_c.removeColumn(m_c.getColumn(i));
+			for (int index = columnModel.getColumnCount() - 1; index >= 0; index--) {
+				if ((1L << index & mask) != 1L << index) {
+					columnModel.removeColumn(columnModel.getColumn(index));
 				}
 			}
 		}
 	}
 
 	private class ColumnAction implements ActionListener {
-		private final TableColumnModel m;
-		private final TableColumn c;
-		private final JCheckBoxMenuItem b;
+		private final TableColumnModel model;
+		private final TableColumn column;
+		private final JCheckBoxMenuItem menuItem;
 
-		ColumnAction(TableColumnModel m, TableColumn c, JCheckBoxMenuItem b) {
-			this.m = m;
-			this.c = c;
-			this.b = b;
+		ColumnAction(TableColumnModel model, TableColumn column, JCheckBoxMenuItem menuItem) {
+			this.model = model;
+			this.column = column;
+			this.menuItem = menuItem;
 		}
 
-		public void actionPerformed(ActionEvent e) {
-			if (b.isSelected()) {
-				m.addColumn(c);
-			} else if (m.getColumnCount() > 1) {
-				m.removeColumn(c);
+		@Override
+		public void actionPerformed(ActionEvent event) {
+			if (menuItem.isSelected()) {
+				model.addColumn(column);
+			} else if (model.getColumnCount() > 1) {
+				model.removeColumn(column);
 			} else {
-				b.setSelected(true);
+				menuItem.setSelected(true);
 			}
 		}
 	}
 
-	public void mouseClicked(MouseEvent e) {
-		if (e.getButton() == MouseEvent.BUTTON1) {
-			int c = m_h.columnAtPoint(e.getPoint());
-			int s = m_h.getTable().convertColumnIndexToModel(c);
+	@Override
+	public void mouseClicked(MouseEvent event) {
+		if (event.getButton() == MouseEvent.BUTTON1) {
+			int columnIndex = tableHeader.columnAtPoint(event.getPoint());
+			int modelIndex = tableHeader.getTable().convertColumnIndexToModel(columnIndex);
 			try {
-				((TableModelSortable) m_h.getTable().getModel()).sortByColumn(s);
-			} catch (Exception x) {
+				((TableModelSortable) tableHeader.getTable().getModel()).sortByColumn(modelIndex);
+			} catch (Exception ignored) {
 				// don't care
 			}
-		} else if (m_pop != null) {
-			m_pop.show(m_h, e.getX(), e.getY());
+		} else if (columnPopup != null) {
+			columnPopup.show(tableHeader, event.getX(), event.getY());
 		}
 	}
 
-	public void mousePressed(MouseEvent e) {
-		if (e.getButton() == MouseEvent.BUTTON1) {
-			int col = m_h.columnAtPoint(e.getPoint());
-			m_r.setPressedColumn(col);
-			m_h.repaint();
+	@Override
+	public void mousePressed(MouseEvent event) {
+		if (event.getButton() == MouseEvent.BUTTON1) {
+			int columnIndex = tableHeader.columnAtPoint(event.getPoint());
+			sortButtonRenderer.setPressedColumn(columnIndex);
+			tableHeader.repaint();
 
-			if (m_h.getTable().isEditing()) {
-				m_h.getTable().getCellEditor().stopCellEditing();
+			if (tableHeader.getTable().isEditing()) {
+				tableHeader.getTable().getCellEditor().stopCellEditing();
 			}
 		}
 	}
 
-	public void mouseReleased(MouseEvent e) {
-		if (e.getButton() == MouseEvent.BUTTON1) {
-			m_r.setPressedColumn(-1);
-			m_h.repaint();
+	@Override
+	public void mouseReleased(MouseEvent event) {
+		if (event.getButton() == MouseEvent.BUTTON1) {
+			sortButtonRenderer.setPressedColumn(-1);
+			tableHeader.repaint();
 		}
 	}
 }

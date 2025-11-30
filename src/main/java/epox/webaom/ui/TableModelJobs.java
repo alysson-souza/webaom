@@ -119,33 +119,33 @@ public class TableModelJobs extends TableModelSortable implements RowModel {
 
 		switch (column) {
 			case FIDN :
-				return Integer.valueOf(job.anidbFile.fid);
+				return Integer.valueOf(job.anidbFile.fileId);
 			case AIDN :
-				return Integer.valueOf(job.anidbFile.aid);
+				return Integer.valueOf(job.anidbFile.animeId);
 			case EIDN :
-				return Integer.valueOf(job.anidbFile.eid);
+				return Integer.valueOf(job.anidbFile.episodeId);
 			case GIDN :
-				return Integer.valueOf(job.anidbFile.gid);
+				return Integer.valueOf(job.anidbFile.groupId);
 			case FLEN :
-				return Integer.valueOf(job.anidbFile.len);
+				return Integer.valueOf(job.anidbFile.lengthInSeconds);
 			case FDUB :
-				return defaultString(job.anidbFile.dub);
+				return defaultString(job.anidbFile.dubLanguage);
 			case FSUB :
-				return defaultString(job.anidbFile.sub);
+				return defaultString(job.anidbFile.subLanguage);
 			case FSRC :
-				return defaultString(job.anidbFile.rip);
+				return defaultString(job.anidbFile.ripSource);
 			case FQUA :
-				return defaultString(job.anidbFile.qua);
+				return defaultString(job.anidbFile.quality);
 			case FRES :
-				return defaultString(job.anidbFile.res);
+				return defaultString(job.anidbFile.resolution);
 			case FVID :
-				return defaultString(job.anidbFile.vid);
+				return defaultString(job.anidbFile.videoCodec);
 			case FAUD :
-				return defaultString(job.anidbFile.aud);
+				return defaultString(job.anidbFile.audioCodec);
 			case FMDS :
-				return defaultString(job.anidbFile.mds());
+				return defaultString(job.anidbFile.getMissingDataStrict());
 			case FMDA :
-				return defaultString(job.anidbFile.mda());
+				return defaultString(job.anidbFile.getMissingDataAdditional());
 			default :
 				break;
 		}
@@ -153,21 +153,21 @@ public class TableModelJobs extends TableModelSortable implements RowModel {
 		if (job.anidbFile.anime != null) {
 			switch (column) {
 				case AYEA :
-					return Integer.valueOf(job.anidbFile.anime.yea);
+					return Integer.valueOf(job.anidbFile.anime.year);
 				case AEPS :
-					return Integer.valueOf(job.anidbFile.anime.eps);
+					return Integer.valueOf(job.anidbFile.anime.episodeCount);
 				case ALEP :
-					return Integer.valueOf(job.anidbFile.anime.lep);
+					return Integer.valueOf(job.anidbFile.anime.latestEpisode);
 				case AROM :
-					return defaultString(job.anidbFile.anime.rom);
+					return defaultString(job.anidbFile.anime.romajiTitle);
 				case AKAN :
-					return defaultString(job.anidbFile.anime.kan);
+					return defaultString(job.anidbFile.anime.kanjiTitle);
 				case AENG :
-					return defaultString(job.anidbFile.anime.eng);
+					return defaultString(job.anidbFile.anime.englishTitle);
 				case ATYP :
-					return defaultString(job.anidbFile.anime.typ);
+					return defaultString(job.anidbFile.anime.type);
 				case AYEN :
-					return Integer.valueOf(job.anidbFile.anime.yen);
+					return Integer.valueOf(job.anidbFile.anime.endYear);
 				default :
 					break;
 			}
@@ -193,7 +193,7 @@ public class TableModelJobs extends TableModelSortable implements RowModel {
 				case GNAM :
 					return defaultString(job.anidbFile.group.name);
 				case GSHO :
-					return defaultString(job.anidbFile.group.sname);
+					return defaultString(job.anidbFile.group.shortName);
 				default :
 					break;
 			}

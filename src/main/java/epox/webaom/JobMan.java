@@ -174,7 +174,7 @@ public class JobMan {
 					}
 					break;
 				case Job.IDENTIFIED :
-					if (job.anidbFile == null || job.anidbFile.fid == 0 || !updatePath(job)) {
+					if (job.anidbFile == null || job.anidbFile.fileId == 0 || !updatePath(job)) {
 						newStatus = Job.FAILED;
 					} else if (A.autoadd && job.mylistId == 0) {
 						newStatus = Job.ADDWAIT;
@@ -185,7 +185,7 @@ public class JobMan {
 					}
 					break;
 				case Job.ADDED :
-					if (job.anidbFile == null || job.anidbFile.fid == 0) {
+					if (job.anidbFile == null || job.anidbFile.fileId == 0) {
 						return;
 					}
 					if (job.targetFile != null) {

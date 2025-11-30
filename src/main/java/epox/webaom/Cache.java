@@ -91,13 +91,13 @@ public class Cache {
 		}
 		AFile file = job.anidbFile;
 		try {
-			file.anime = (Anime) get(file.aid, DB.INDEX_ANIME);
-			if (file.gid != 0) {
-				file.group = (Group) get(file.gid, DB.INDEX_GROUP);
+			file.anime = (Anime) get(file.animeId, DB.INDEX_ANIME);
+			if (file.groupId != 0) {
+				file.group = (Group) get(file.groupId, DB.INDEX_GROUP);
 			} else {
 				file.group = Group.none;
 			}
-			file.ep = (Ep) get(file.eid, DB.INDEX_EPISODE);
+			file.ep = (Ep) get(file.episodeId, DB.INDEX_EPISODE);
 			if (addToTree) {
 				treeAdd(job);
 			}
@@ -118,61 +118,61 @@ public class Cache {
 		AFile file = new AFile(fields);
 		int fieldIndex = 20;
 		// create/retrieve data objects
-		file.anime = (Anime) cacheMaps[DB.INDEX_ANIME].get(Integer.valueOf(file.aid));
+		file.anime = (Anime) cacheMaps[DB.INDEX_ANIME].get(Integer.valueOf(file.animeId));
 		if (file.anime == null) {
-			file.anime = new Anime(file.aid);
+			file.anime = new Anime(file.animeId);
 		} else {
 			A.p.remove(file.anime);
 		}
 
-		file.ep = (Ep) cacheMaps[DB.INDEX_EPISODE].get(Integer.valueOf(file.eid));
+		file.ep = (Ep) cacheMaps[DB.INDEX_EPISODE].get(Integer.valueOf(file.episodeId));
 		if (file.ep == null) {
-			file.ep = new Ep(file.eid);
+			file.ep = new Ep(file.episodeId);
 		}
 
-		file.group = (Group) cacheMaps[DB.INDEX_GROUP].get(Integer.valueOf(file.gid));
+		file.group = (Group) cacheMaps[DB.INDEX_GROUP].get(Integer.valueOf(file.groupId));
 		if (file.group == null) {
-			file.group = new Group(file.gid);
+			file.group = new Group(file.groupId);
 		}
 
 		// set group data
 		file.group.name = fields[fieldIndex++];
-		file.group.sname = fields[fieldIndex++];
+		file.group.shortName = fields[fieldIndex++];
 		// set episode data
 		file.ep.num = fields[fieldIndex++];
 		file.ep.eng = fields[fieldIndex++];
 		file.ep.rom = U.n(fields[fieldIndex++]);
 		file.ep.kan = U.n(fields[fieldIndex++]);
 		// set anime data
-		file.anime.eps = Integer.parseInt(fields[fieldIndex++]);
-		file.anime.lep = Integer.parseInt(fields[fieldIndex++]);
+		file.anime.episodeCount = Integer.parseInt(fields[fieldIndex++]);
+		file.anime.latestEpisode = Integer.parseInt(fields[fieldIndex++]);
 
 		try {
-			file.anime.yea = Integer.parseInt(fields[fieldIndex++].substring(0, 4));
+			file.anime.year = Integer.parseInt(fields[fieldIndex++].substring(0, 4));
 		} catch (Exception ex) {
-			file.anime.yea = 0;
+			file.anime.year = 0;
 		}
 		try {
-			file.anime.yen = Integer.parseInt(fields[fieldIndex - 1].substring(5, 9));
+			file.anime.endYear = Integer.parseInt(fields[fieldIndex - 1].substring(5, 9));
 		} catch (Exception ex) {
-			file.anime.yen = file.anime.yea;
+			file.anime.endYear = file.anime.year;
 		}
-		file.anime.typ = fields[fieldIndex++];
-		file.anime.rom = fields[fieldIndex++];
-		file.anime.kan = U.n(fields[fieldIndex++]);
-		file.anime.eng = U.n(fields[fieldIndex++]);
-		file.anime.cat = fields[fieldIndex++];
+		file.anime.type = fields[fieldIndex++];
+		file.anime.romajiTitle = fields[fieldIndex++];
+		file.anime.kanjiTitle = U.n(fields[fieldIndex++]);
+		file.anime.englishTitle = U.n(fields[fieldIndex++]);
+		file.anime.categories = fields[fieldIndex++];
 		file.anime.init();
 		// wrap up
-		file.def = file.anime.rom + " - " + file.ep.num + " - " + file.ep.eng + " - ["
-				+ ((file.gid > 0) ? file.group.sname : "RAW") + "]";
+		file.defaultName = file.anime.romajiTitle + " - " + file.ep.num + " - " + file.ep.eng + " - ["
+				+ ((file.groupId > 0) ? file.group.shortName : "RAW") + "]";
 		file.pack();
 
 		// update cache/db
 		add(file.anime, 2, DB.INDEX_ANIME);
 		add(file.ep, 2, DB.INDEX_EPISODE);
 		add(file.group, 2, DB.INDEX_GROUP);
-		A.db.update(file.fid, file, DB.INDEX_FILE);
+		A.db.update(file.fileId, file, DB.INDEX_FILE);
 
 		// update data tree
 		job.anidbFile = file;
@@ -222,7 +222,7 @@ public class Cache {
 			}
 				break;
 			case MODE_ANIME_GROUP_FILE : {
-				if (file.gid < 1) {
+				if (file.groupId < 1) {
 					file.group = Group.none;
 				}
 				Base groupNode = anime.get(file.group.getKey());
@@ -254,8 +254,8 @@ public class Cache {
 			}
 				break;
 		}
-		anime.regEp(file.ep, true);
-		anime.updatePct();
+		anime.registerEpisode(file.ep, true);
+		anime.updateCompletionPercent();
 		A.p.add(anime);
 	}
 
@@ -282,7 +282,7 @@ public class Cache {
 			}
 				break;
 			case MODE_ANIME_GROUP_FILE : {
-				if (file.gid < 1) {
+				if (file.groupId < 1) {
 					file.group = Group.none;
 				}
 				Base groupNode = anime.get(file.group.getKey());
@@ -308,8 +308,8 @@ public class Cache {
 			}
 				break;
 		}
-		anime.regEp(file.ep, file.ep.size() > 0);
-		anime.updatePct();
+		anime.registerEpisode(file.ep, file.ep.size() > 0);
+		anime.updateCompletionPercent();
 		if (anime.size() > 0) {
 			A.p.add(anime);
 		}

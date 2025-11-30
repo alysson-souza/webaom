@@ -24,42 +24,49 @@ import javax.swing.table.AbstractTableModel;
 import javax.swing.table.JTableHeader;
 import javax.swing.table.TableColumnModel;
 
+/**
+ * A JTable with sortable columns. Clicking on column headers sorts the data.
+ */
 public class JTableSortable extends JTable {
-	public HeaderListener m_hl;
+	/** Header click listener for sorting columns */
+	public HeaderListener headerListener;
 
-	public JTableSortable(AbstractTableModel mod) {
-		super(mod);
+	/** Flag to trigger row height recalculation on next paint */
+	private boolean needsRowHeightCalculation = true;
 
-		SortButtonRenderer r = new SortButtonRenderer();
+	public JTableSortable(AbstractTableModel model) {
+		super(model);
 
-		TableColumnModel m = this.getColumnModel();
-		for (int i = 0; i < m.getColumnCount(); i++) {
-			m.getColumn(i).setHeaderRenderer(r);
+		SortButtonRenderer renderer = new SortButtonRenderer();
+
+		TableColumnModel columnModel = this.getColumnModel();
+		for (int index = 0; index < columnModel.getColumnCount(); index++) {
+			columnModel.getColumn(index).setHeaderRenderer(renderer);
 		}
 
-		JTableHeader h = getTableHeader();
-		m_hl = new HeaderListener(h, m, r);
-		h.addMouseListener(m_hl);
+		JTableHeader header = getTableHeader();
+		headerListener = new HeaderListener(header, columnModel, renderer);
+		header.addMouseListener(headerListener);
 	}
 
-	private void calcRowHeight(Graphics g) {
-		Font f = getFont();
-		FontMetrics fm = g.getFontMetrics(f);
-		setRowHeight(fm.getHeight() + 3);
+	private void calculateRowHeight(Graphics graphics) {
+		Font font = getFont();
+		FontMetrics fontMetrics = graphics.getFontMetrics(font);
+		setRowHeight(fontMetrics.getHeight() + 3);
 	}
 
-	private boolean needCalcRowHeight = true;
-
-	public void paint(Graphics g) {
-		if (needCalcRowHeight) {
-			calcRowHeight(g);
-			needCalcRowHeight = false;
+	@Override
+	public void paint(Graphics graphics) {
+		if (needsRowHeightCalculation) {
+			calculateRowHeight(graphics);
+			needsRowHeightCalculation = false;
 		}
-		super.paint(g);
+		super.paint(graphics);
 	}
 
-	public void setFont(Font f) {
-		needCalcRowHeight = true;
-		super.setFont(f);
+	@Override
+	public void setFont(Font font) {
+		needsRowHeightCalculation = true;
+		super.setFont(font);
 	}
 }

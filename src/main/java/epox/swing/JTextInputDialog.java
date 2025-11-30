@@ -31,46 +31,50 @@ import javax.swing.JDialog;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
 
+/**
+ * Simple dialog for text or integer input.
+ */
 public class JTextInputDialog extends JDialog implements ActionListener {
-	private final JTextField jtf;
-	private final JButton ok;
-	private final JButton cl;
-	private String val = null;
-	private int num = -1;
+	private final JTextField inputField;
+	private final JButton okButton;
+	private final JButton cancelButton;
+	private String inputValue = null;
+	private int numericValue = -1;
 
-	public JTextInputDialog(Frame f, String t, String v /* , boolean n */) {
-		super(f, t, true);
-		jtf = new JTextField(v);
-		// if(n) num = 0;
-		ok = new JButton("OK");
-		cl = new JButton("Cancel");
-		jtf.addActionListener(this);
-		ok.addActionListener(this);
-		cl.addActionListener(this);
-		JPanel p = new JPanel();
-		p.add(ok);
-		p.add(cl);
-		JPanel q = new JPanel();
-		q.add(jtf);
-		add(q, BorderLayout.CENTER);
-		add(p, BorderLayout.SOUTH);
+	public JTextInputDialog(Frame parent, String title, String defaultValue) {
+		super(parent, title, true);
+		inputField = new JTextField(defaultValue);
+		okButton = new JButton("OK");
+		cancelButton = new JButton("Cancel");
+		inputField.addActionListener(this);
+		okButton.addActionListener(this);
+		cancelButton.addActionListener(this);
+		JPanel buttonPanel = new JPanel();
+		buttonPanel.add(okButton);
+		buttonPanel.add(cancelButton);
+		JPanel inputPanel = new JPanel();
+		inputPanel.add(inputField);
+		add(inputPanel, BorderLayout.CENTER);
+		add(buttonPanel, BorderLayout.SOUTH);
 		pack();
-		Dimension d = java.awt.Toolkit.getDefaultToolkit().getScreenSize();
-		Rectangle r = getBounds();
-		setBounds(d.width / 2 - r.width / 2, d.height / 2 - r.height / 2, r.width, r.height);
+		Dimension screenSize = java.awt.Toolkit.getDefaultToolkit().getScreenSize();
+		Rectangle bounds = getBounds();
+		int centeredX = screenSize.width / 2 - bounds.width / 2;
+		int centeredY = screenSize.height / 2 - bounds.height / 2;
+		setBounds(centeredX, centeredY, bounds.width, bounds.height);
 	}
 
-	public void actionPerformed(ActionEvent e) {
-		if (e.getSource() == ok || e.getSource() == jtf) {
-			val = jtf.getText();
-			if (num == 0) {
+	@Override
+	public void actionPerformed(ActionEvent event) {
+		if (event.getSource() == okButton || event.getSource() == inputField) {
+			inputValue = inputField.getText();
+			if (numericValue == 0) {
 				try {
-					num = Integer.parseInt(val.trim());
-				} catch (NumberFormatException x) {
-					// don't care
-					num = 0;
+					numericValue = Integer.parseInt(inputValue.trim());
+				} catch (NumberFormatException ignored) {
+					numericValue = 0;
 				}
-				if (num > 0) {
+				if (numericValue > 0) {
 					dispose();
 				} else {
 					setTitle("Only positive integers allowed.");
@@ -85,12 +89,12 @@ public class JTextInputDialog extends JDialog implements ActionListener {
 
 	public String getStr() {
 		setVisible(true);
-		return num == 0 ? null : val;
+		return numericValue == 0 ? null : inputValue;
 	}
 
 	public int getInt() {
-		num = 0;
+		numericValue = 0;
 		setVisible(true);
-		return num;
+		return numericValue;
 	}
 }

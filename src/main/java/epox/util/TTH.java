@@ -26,26 +26,35 @@ package epox.util;
 import com.bitzi.util.Base32;
 import com.bitzi.util.TigerTree;
 
+/**
+ * Tiger Tree Hash (TTH) implementation as a Jacksum checksum algorithm.
+ * Computes the TTH hash used by various P2P networks.
+ */
 public class TTH extends jonelo.jacksum.algorithm.AbstractChecksum {
-	private final TigerTree tt;
+	/** The underlying Tiger Tree hash algorithm */
+	private final TigerTree tigerTree;
 
 	public TTH() {
-		tt = new TigerTree();
+		tigerTree = new TigerTree();
 	}
 
-	public void update(byte[] buffer, int offset, int len) {
-		tt.update(buffer, offset, len);
+	@Override
+	public void update(byte[] buffer, int offset, int length) {
+		tigerTree.update(buffer, offset, length);
 	}
 
+	@Override
 	public void reset() {
-		tt.reset();
+		tigerTree.reset();
 	}
 
-	public void update(int b) {
-		tt.update((byte) b);
+	@Override
+	public void update(int byteValue) {
+		tigerTree.update((byte) byteValue);
 	}
 
+	@Override
 	public String getHexValue() {
-		return Base32.encode(tt.digest()).toLowerCase();
+		return Base32.encode(tigerTree.digest()).toLowerCase();
 	}
 }

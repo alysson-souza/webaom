@@ -596,10 +596,10 @@ public class JPanelMain extends JPanel
 			}
 			altViewPanel.updateAlternativeView(true);
 		} else if (source == altViewPanel.animeTitleComboBox) {
-			Anime.TPRI = altViewPanel.animeTitleComboBox.getSelectedIndex();
+			Anime.TITLE_PRIORITY = altViewPanel.animeTitleComboBox.getSelectedIndex();
 			altViewPanel.updateAlternativeView(false);
 		} else if (source == altViewPanel.episodeTitleComboBox) {
-			Ep.TPRI = altViewPanel.episodeTitleComboBox.getSelectedIndex();
+			Ep.TITLE_PRIORITY = altViewPanel.episodeTitleComboBox.getSelectedIndex();
 			altViewPanel.updateAlternativeView(false);
 		}
 	}
@@ -790,7 +790,7 @@ public class JPanelMain extends JPanel
 		A.usetup = new AConS(getHost(), getRemotePort(), getLocalPort(), connectionOptionsPanel.getTimeout(),
 				connectionOptionsPanel.getDelayMillis(), 3, connectionOptionsPanel.isNatKeepAliveEnabled());
 		AConE connection = new AConE(this, A.usetup);
-		connection.set(A.up.usr, A.up.psw, A.up.key);
+		connection.set(A.up.username, A.up.password, A.up.apiKey);
 		return connection;
 	}
 

@@ -5,38 +5,40 @@
 package epox.util;
 
 public class Bits {
-	private final int mIlen;
-	private final byte[] mBuse;
+	/** Total number of bits in this bit set. */
+	private final int length;
+	/** Byte array storing the bit values (each byte holds 8 bits). */
+	private final byte[] bitStorage;
 
-	public Bits(int len) {
-		mIlen = len;
-		mBuse = new byte[(len + 7) / 8];
+	public Bits(int length) {
+		this.length = length;
+		this.bitStorage = new byte[(length + 7) / 8];
 	}
 
-	public boolean get(int i) {
-		if (i >= mIlen) {
+	public boolean get(int index) {
+		if (index >= length) {
 			return false;
 		}
-		return (1 & (mBuse[i / 8] >> (i % 8))) == 1;
+		return (1 & (bitStorage[index / 8] >> (index % 8))) == 1;
 	}
 
 	/**
 	 * Sets the value at specified index.
 	 *
-	 * @param i
+	 * @param index
 	 *            Index of bit.
-	 * @param b
+	 * @param value
 	 *            Value of bit.
 	 * @return false if the index is out of bounds.
 	 */
-	public boolean set(int i, boolean b) {
-		if (i >= mIlen) {
+	public boolean set(int index, boolean value) {
+		if (index >= length) {
 			return false;
 		}
-		if (b) {
-			mBuse[i / 8] |= (byte) (1 << (i % 8));
+		if (value) {
+			bitStorage[index / 8] |= (byte) (1 << (index % 8));
 		} else {
-			mBuse[i / 8] &= (byte) ~(1 << (i % 8));
+			bitStorage[index / 8] &= (byte) ~(1 << (index % 8));
 		}
 		return true;
 	}
@@ -44,35 +46,36 @@ public class Bits {
 	/**
 	 * Set/unset, the next unset/set bit from 'left to right'/'right to left'.
 	 *
-	 * @param b
-	 *            Set/unset
+	 * @param shouldSet
+	 *            true to set the next unset bit, false to unset the last set bit
 	 * @return true if one bit was changed.
 	 */
-	public boolean fill(boolean b) {
-		if (b) {
-			for (int i = 0; i < mIlen; i++) {
-				if (!get(i)) {
-					set(i, true);
+	public boolean fill(boolean shouldSet) {
+		if (shouldSet) {
+			for (int index = 0; index < length; index++) {
+				if (!get(index)) {
+					set(index, true);
 					return true;
 				}
 			}
 			return false;
 		}
-		for (int i = mIlen - 1; i >= 0; i--) {
-			if (get(i)) {
-				set(i, false);
+		for (int index = length - 1; index >= 0; index--) {
+			if (get(index)) {
+				set(index, false);
 				return true;
 			}
 		}
 		return false;
 	}
 
+	@Override
 	public String toString() {
-		StringBuffer sb = new StringBuffer(mIlen);
-		for (int i = 0; i < mIlen; i++) {
-			sb.append(get(i) ? 1 : 0);
+		StringBuilder builder = new StringBuilder(length);
+		for (int index = 0; index < length; index++) {
+			builder.append(get(index) ? 1 : 0);
 		}
-		return sb.toString();
+		return builder.toString();
 	}
 
 	/**
@@ -80,14 +83,14 @@ public class Bits {
 	 *
 	 * @return Number of set bits.
 	 */
-	public int cnt() {
-		int x = 0;
-		for (int i = 0; i < mIlen; i++) {
-			if (get(i)) {
-				x++;
+	public int countSetBits() {
+		int count = 0;
+		for (int index = 0; index < length; index++) {
+			if (get(index)) {
+				count++;
 			}
 		}
-		return x;
+		return count;
 	}
 
 	/**
@@ -105,39 +108,53 @@ public class Bits {
 	 * @return The value of the last bit.
 	 */
 	public boolean last() {
-		return get(mIlen - 1);
+		return get(length - 1);
 	}
 
+	/**
+	 * Counts the number of transitions between 0 and 1 (or 1 and 0).
+	 *
+	 * @return Number of bit value changes in the sequence.
+	 */
 	public int switchCount() {
-		// if(mIlen<1) return 0;
-		boolean b = get(0);
-		int n = 0;
-		for (int i = 1; i < mIlen; i++) {
-			if (get(i) != b) {
-				n++;
-				b = !b;
+		boolean currentValue = get(0);
+		int transitions = 0;
+		for (int index = 1; index < length; index++) {
+			if (get(index) != currentValue) {
+				transitions++;
+				currentValue = !currentValue;
 			}
 		}
-		return n;
+		return transitions;
 	}
 
-	public boolean holex() {
-		boolean f = false;
-		for (int i = mIlen - 1; i >= 0; i--) {
-			if (f) {
-				if (!get(i)) {
+	/**
+	 * Checks if there is a "hole" (unset bit) before the last set bit.
+	 * Scans from right to left, and returns true if an unset bit is found
+	 * after encountering a set bit.
+	 *
+	 * @return true if there is a gap in the set bits.
+	 */
+	public boolean hasHole() {
+		boolean foundSetBit = false;
+		for (int index = length - 1; index >= 0; index--) {
+			if (foundSetBit) {
+				if (!get(index)) {
 					return true;
 				}
-			} else if (get(i) && !f) {
-				f = true;
+			} else if (get(index)) {
+				foundSetBit = true;
 			}
 		}
 		return false;
 	}
 
+	/**
+	 * Clears all bits, setting them to 0.
+	 */
 	public void reset() {
-		for (int i = 0; i < mBuse.length; i++) {
-			mBuse[i] = 0;
+		for (int index = 0; index < bitStorage.length; index++) {
+			bitStorage[index] = 0;
 		}
 	}
 }

@@ -167,9 +167,9 @@ public class NetIO implements Runnable {
 				fileData = A.conn.retrieveFileData(job.fileSize, job.ed2kHash, job.getFile().getName());
 			}
 			if (fileData != null && A.cache.parseFile(fileData, job) != null) {
-				job.mylistId = job.anidbFile.lid;
+				job.mylistId = job.anidbFile.mylistEntryId;
 				job.anidbFile.setJob(job);
-				String fileName = Hyper.formatAsName(job.anidbFile.def);
+				String fileName = Hyper.formatAsName(job.anidbFile.defaultName);
 				String animeLink = Hyper.createHyperlink(job.anidbFile.urlAnime(), "a");
 				String epLink = Hyper.createHyperlink(job.anidbFile.urlEp(), "e");
 				String fileLink = Hyper.createHyperlink(job.anidbFile.urlFile(), "f");
@@ -180,13 +180,13 @@ public class NetIO implements Runnable {
 			}
 		} else {
 			if (job.anidbFile.group == null) {
-				job.anidbFile.group = (Group) A.cache.get(job.anidbFile.gid, DB.INDEX_GROUP);
+				job.anidbFile.group = (Group) A.cache.get(job.anidbFile.groupId, DB.INDEX_GROUP);
 			}
 			if (job.anidbFile.ep == null) {
-				job.anidbFile.ep = (Ep) A.cache.get(job.anidbFile.eid, DB.INDEX_EPISODE);
+				job.anidbFile.ep = (Ep) A.cache.get(job.anidbFile.episodeId, DB.INDEX_EPISODE);
 			}
 			if (job.anidbFile.group == null) {
-				job.anidbFile.anime = (Anime) A.cache.get(job.anidbFile.aid, DB.INDEX_ANIME);
+				job.anidbFile.anime = (Anime) A.cache.get(job.anidbFile.animeId, DB.INDEX_ANIME);
 			}
 			JobMan.updateStatus(job, Job.IDENTIFIED);
 		}

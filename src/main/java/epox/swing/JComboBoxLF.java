@@ -13,37 +13,45 @@ import javax.swing.SwingUtilities;
 import javax.swing.UIManager;
 import javax.swing.UIManager.LookAndFeelInfo;
 
+/**
+ * JComboBox for selecting the application's Look and Feel. Displays installed L&F options and applies selection
+ * immediately.
+ */
 public class JComboBoxLF extends JComboBox {
-	protected static final LookAndFeelInfo[] lf = UIManager.getInstalledLookAndFeels();
+	/** Array of installed look and feel options */
+	protected static final LookAndFeelInfo[] LOOK_AND_FEELS = UIManager.getInstalledLookAndFeels();
 
-	public JComboBoxLF(final Component c) {
+	public JComboBoxLF(final Component rootComponent) {
 		super(new DefaultComboBoxModel() {
+			@Override
 			public Object getElementAt(int index) {
-				return lf[index].getName();
+				return LOOK_AND_FEELS[index].getName();
 			}
 
+			@Override
 			public int getSize() {
-				return lf.length;
+				return LOOK_AND_FEELS.length;
 			}
 		});
 		addActionListener(new ActionListener() {
-			public void actionPerformed(ActionEvent e) {
+			@Override
+			public void actionPerformed(ActionEvent event) {
 				try {
-					UIManager.setLookAndFeel(lf[getSelectedIndex()].getClassName());
-				} catch (Exception x) {
-					x.printStackTrace();
+					UIManager.setLookAndFeel(LOOK_AND_FEELS[getSelectedIndex()].getClassName());
+				} catch (Exception ex) {
+					ex.printStackTrace();
 				}
-				SwingUtilities.updateComponentTreeUI(c);
+				SwingUtilities.updateComponentTreeUI(rootComponent);
 			}
 		});
-		String s = UIManager.getLookAndFeel().getClass().getCanonicalName();
-		int i;
-		for (i = 0; i < lf.length; i++) {
-			if (s.equals(lf[i].getClassName())) {
+		String currentLookAndFeel = UIManager.getLookAndFeel().getClass().getCanonicalName();
+		int selectedIndex;
+		for (selectedIndex = 0; selectedIndex < LOOK_AND_FEELS.length; selectedIndex++) {
+			if (currentLookAndFeel.equals(LOOK_AND_FEELS[selectedIndex].getClassName())) {
 				break;
 			}
 		}
-		setSelectedIndex(i);
+		setSelectedIndex(selectedIndex);
 		setToolTipText("Select wanted look and feel here.");
 	}
 }
