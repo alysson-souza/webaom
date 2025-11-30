@@ -13,6 +13,7 @@ WebAOM!
 *Added platform-appropriate default locations for log files and database.
 *Added directory memory to file and directory pickers across sessions.
 *Fixed "Add to mylist" failing when file is already in mylist.
+*Fixed Source condition in rule helper menu.
 *Fixed Help button not working on macOS and Linux.
 *Fixed "Watch Now" and "Explore Folder" not working on macOS and Linux.
 *Fixed drag-and-drop operations with visual feedback.
