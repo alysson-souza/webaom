@@ -14,6 +14,7 @@ to time. Do at least check the changelog for relevant info before using it.
 *Added directory memory to file and directory pickers across sessions.
 *Fixed "Add to mylist" failing when file is already in mylist.
 *Fixed Help button not working on macOS and Linux.
+*Fixed "Watch Now" and "Explore Folder" not working on macOS and Linux.
 *Fixed drag-and-drop operations with visual feedback.
 *Fixed embedded database not working.
 *Fixed credential loading from saved options.

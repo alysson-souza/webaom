@@ -85,7 +85,14 @@ public final class JobManager {
             return;
         }
         try {
-            if (Desktop.isDesktopSupported()) {
+            String os = System.getProperty("os.name").toLowerCase();
+            if (os.contains("mac")) {
+                new ProcessBuilder("open", job.getFile().getAbsolutePath()).start();
+            } else if (os.contains("win")) {
+                new ProcessBuilder("cmd", "/c", "start", "", job.getFile().getAbsolutePath()).start();
+            } else if (os.contains("nix") || os.contains("nux")) {
+                new ProcessBuilder("xdg-open", job.getFile().getAbsolutePath()).start();
+            } else if (Desktop.isDesktopSupported()) {
                 Desktop.getDesktop().open(job.getFile());
             }
         } catch (IOException ex) {
@@ -98,7 +105,14 @@ public final class JobManager {
             return;
         }
         try {
-            if (Desktop.isDesktopSupported()) {
+            String os = System.getProperty("os.name").toLowerCase();
+            if (os.contains("mac")) {
+                new ProcessBuilder("open", "-R", job.getFile().getAbsolutePath()).start();
+            } else if (os.contains("win")) {
+                new ProcessBuilder("explorer", "/select,", job.getFile().getAbsolutePath()).start();
+            } else if (os.contains("nix") || os.contains("nux")) {
+                new ProcessBuilder("xdg-open", job.getFile().getParentFile().getAbsolutePath()).start();
+            } else if (Desktop.isDesktopSupported()) {
                 Desktop.getDesktop().open(job.getFile().getParentFile());
             }
         } catch (IOException ex) {
