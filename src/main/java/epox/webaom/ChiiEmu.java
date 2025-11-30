@@ -103,7 +103,11 @@ public class ChiiEmu implements CommandModel {
 				return formatMyStats(aniDbConnection.send("MYLISTSTATS", null, true).data);
 			}
 			if (commandText.startsWith("!mylist")) {
-				return queryByIdOrName("MYLIST", "aid=", "aname=", commandText.substring(7).trim());
+				String param = commandText.substring(7).trim();
+				if (param.isEmpty()) {
+					return "Usage: !mylist <anime name or id>";
+				}
+				return formatMyList(queryByIdOrName("MYLIST", "aid=", "aname=", param));
 			}
 			if (commandText.startsWith("!anime")) {
 				return formatAnime(queryByIdOrName("ANIME", "aid=", "aname=", commandText.substring(6).trim()));
@@ -271,15 +275,39 @@ public class ChiiEmu implements CommandModel {
 
 		public String formatGroup(String response) {
 			String[] fields = U.split(response, '|');
-			if (fields.length != 9) {
+			if (fields.length < 9) {
 				return response;
 			}
+			// Fields: gid|rating|votes|acount|fcount|name|short|irc channel|irc server|url|...
 			String ratingText = ((float) Integer.parseInt(fields[1]) / 100) + " (" + fields[2] + " votes)";
 			String databaseText = fields[3] + " animes/" + fields[4] + " files";
-			String groupDescription = "GROUP: " + fields[5] + " [" + fields[6] + "] (" + fields[0] + "), irc: "
-					+ fields[7] + ", rating: " + ratingText + ", db: " + databaseText + ", url: " + fields[8]
-					+ ", https://anidb.net/g" + fields[0];
+			String ircInfo = !fields[7].isEmpty() ? fields[7] + "@" + fields[8] : "";
+			String urlInfo = fields.length > 9 && !fields[9].isEmpty() ? fields[9] : "";
+			String groupDescription = "GROUP: " + fields[5] + " [" + fields[6] + "] (" + fields[0] + "), " + "rating: "
+					+ ratingText + ", db: " + databaseText + (!ircInfo.isEmpty() ? ", irc: " + ircInfo : "")
+					+ (!urlInfo.isEmpty() ? ", url: " + urlInfo : "") + " https://anidb.net/g" + fields[0];
 			return groupDescription;
+		}
+
+		public String formatMyList(String response) {
+			String[] fields = U.split(response, '|');
+			if (fields.length < 6) {
+				return response;
+			}
+			// Fields: name|eps|special eps|???|???|eps in mylist|watched eps|state|...
+			String animeName = fields[0];
+			String totalEps = fields[1].isEmpty() ? "?" : fields[1];
+			String epsInList = fields[5].isEmpty() ? "0" : fields[5];
+			String watchedEps = fields.length > 6 && !fields[6].isEmpty() ? fields[6] : "";
+			String state = fields.length > 7 && !fields[7].isEmpty() ? fields[7] : "";
+			String result = "MYLIST: " + animeName + " - " + epsInList + "/" + totalEps + " eps";
+			if (!watchedEps.isEmpty()) {
+				result += ", watched: " + watchedEps;
+			}
+			if (!state.isEmpty()) {
+				result += " (" + state + ")";
+			}
+			return result;
 		}
 
 		public String formatTop(String response) {
