@@ -36,6 +36,7 @@ import java.net.SocketException;
 import java.net.SocketTimeoutException;
 import java.net.UnknownHostException;
 import java.security.MessageDigest;
+import java.util.logging.Logger;
 import java.util.zip.DataFormatException;
 import java.util.zip.Inflater;
 import javax.crypto.Cipher;
@@ -43,18 +44,19 @@ import javax.crypto.spec.SecretKeySpec;
 import javax.swing.Timer;
 
 public class AniDBConnection implements ActionListener {
+    private static final Logger LOGGER = Logger.getLogger(AniDBConnection.class.getName());
     public static final String DEFAULT_HOST = "api.anidb.net";
     public static final int DEFAULT_REMOTE_PORT = 9000;
     public static final int DEFAULT_LOCAL_PORT = 45678;
+    private static final int TAG_LENGTH = 5;
+    private static final int KEEP_ALIVE_INTERVAL = 3 * 1000 * 60 * 10; // 30 min
 
-    public static boolean shutdown = false;
+    private static boolean shutdown = false;
     private static int remainingLoginAttempts = 2;
-    private final int tagLength = 5;
-    private final int keepAliveInterval = 3 * 1000 * 60 * 10; // 30 min
     private final Timer keepAliveTimer;
     private final AniDBConnectionSettings settings;
     private final Log log;
-    public boolean authenticated = false;
+    private boolean authenticated = false;
     protected String session = null;
     protected String currentTag = null;
     private int tagCounter = 0;
@@ -74,16 +76,17 @@ public class AniDBConnection implements ActionListener {
         this.log = log;
         this.settings = settings;
         generateTag();
-        keepAliveTimer = new Timer(keepAliveInterval, this); // +1000
+        keepAliveTimer = new Timer(KEEP_ALIVE_INTERVAL, this);
     }
 
     private void generateTag() {
         tagCounter++;
-        currentTag = "" + tagCounter;
-        while (currentTag.length() < tagLength) {
-            currentTag = "0" + currentTag;
+        StringBuilder sb = new StringBuilder(String.valueOf(tagCounter));
+        while (sb.length() < TAG_LENGTH) {
+            sb.insert(0, '0');
         }
-        currentTag = 't' + currentTag;
+        sb.insert(0, 't');
+        currentTag = sb.toString();
     }
 
     public void actionPerformed(ActionEvent event) {
@@ -92,7 +95,7 @@ public class AniDBConnection implements ActionListener {
         }
         try {
             long now = System.currentTimeMillis();
-            if ((now - timestamp) > keepAliveInterval) {
+            if ((now - timestamp) > KEEP_ALIVE_INTERVAL) {
                 ping();
             }
         } catch (SocketTimeoutException ex) {
@@ -103,16 +106,24 @@ public class AniDBConnection implements ActionListener {
         }
     }
 
-    /////////////////////////////////// PASSW////////////////////////////////////
+    // PASSW
     public void set(String username, String password, String apiKey) {
         userPass = new UserPass(username, password, apiKey);
     }
 
-    private void decrementLoginAttempts() {
+    private static void decrementLoginAttempts() {
         remainingLoginAttempts--;
     }
 
-    /////////////////////////////////// DEBUG////////////////////////////////////
+    public static void setShutdown(boolean value) {
+        shutdown = value;
+    }
+
+    public static boolean isShutdown() {
+        return shutdown;
+    }
+
+    // DEBUG
     protected void error(String message) {
         debug(message);
         lastError = message;
@@ -124,45 +135,46 @@ public class AniDBConnection implements ActionListener {
     }
 
     protected void debug(String message) {
-        System.out.println(message);
+        LOGGER.fine(message);
     }
 
     public String getLastError() {
         return lastError;
     }
 
-    ////////////////////////////// BASIC COMMANDS////////////////////////////////
+    // BASIC COMMANDS
     public boolean isLoggedIn() {
         return authenticated;
     }
 
-    public int ping() throws Exception {
+    public int ping() throws IOException, AniDBException {
         sendRaw("PING", true);
         return (int) timeUsed;
     }
 
-    public int encrypt() throws Exception {
+    @SuppressWarnings("java:S5542") // ECB mode required by AniDB protocol
+    public int encrypt() throws IOException, AniDBException {
         if (userPass.apiKey == null || userPass.apiKey.isEmpty()) {
             return ping();
         }
         AniDBConnectionResponse response = sendWithSession("ENCRYPT", "user=" + userPass.username + "&type=1", true);
-        if (response.code == AniDBConnectionResponse.ENCRYPTION_ENABLED) {
+        if (response != null && response.code == AniDBConnectionResponse.ENCRYPTION_ENABLED) {
             try {
                 MessageDigest digest = MessageDigest.getInstance("MD5");
                 digest.update(userPass.apiKey.getBytes());
                 digest.update(response.data.getBytes());
                 byte[] keyBytes = digest.digest();
                 encryptionKey = new SecretKeySpec(keyBytes, "AES");
-                cipher = Cipher.getInstance("AES");
+                cipher = Cipher.getInstance("AES/ECB/PKCS5Padding");
                 return (int) timeUsed;
             } catch (Exception ex) {
-                ex.printStackTrace();
+                LOGGER.warning("Encryption setup failed: " + ex.getMessage());
                 encryptionKey = null;
                 cipher = null;
             }
-        } else if (response.code == AniDBConnectionResponse.API_PASSWORD_NOT_DEFINED) {
+        } else if (response != null && response.code == AniDBConnectionResponse.API_PASSWORD_NOT_DEFINED) {
             throw new AniDBException(AniDBException.ENCRYPTION, "AniPass not defined. Check your profile settings.");
-        } else if (response.code == AniDBConnectionResponse.NO_SUCH_USER) {
+        } else if (response != null && response.code == AniDBConnectionResponse.NO_SUCH_USER) {
             throw new AniDBException(AniDBException.ENCRYPTION, "No such user. Check username.");
         }
         return -1;
@@ -179,11 +191,9 @@ public class AniDBConnection implements ActionListener {
     }
 
     public boolean login() throws AniDBException {
-        if (userPass == null) {
-            if (!showLoginDialog()) {
-                error("User Abort");
-                return false;
-            }
+        if (userPass == null && !showLoginDialog()) {
+            error("User Abort");
+            return false;
         }
         if (remainingAuthAttempts <= 0) {
             throw new AniDBException(AniDBException.CLIENT_BUG, "Invalid session.");
@@ -192,41 +202,57 @@ public class AniDBConnection implements ActionListener {
         AniDBConnectionResponse response =
                 send("AUTH", "user=" + userPass.username + "&pass=" + userPass.password + versionParams, true);
         remainingAuthAttempts--;
+        return handleLoginResponse(response);
+    }
+
+    private boolean handleLoginResponse(AniDBConnectionResponse response) throws AniDBException {
         switch (response.code) {
             case AniDBConnectionResponse.LOGIN_ACCEPTED_NEW_VER:
                 AppContext.dialog("Note", AniDBException.defaultMsg(AniDBException.CLIENT_OUTDATED));
-            case AniDBConnectionResponse.LOGIN_ACCEPTED: {
-                session = response.data;
-                if (response.data.length() > 5) {
-                    session = response.data.substring(0, 5);
-                    if (settings.natEnabled) {
-                        try {
-                            int port = Integer.parseInt(response.data.substring(1 + response.data.lastIndexOf(':')));
-                            if (port != settings.localPort) {
-                                // 3 min
-                                int natKeepAliveInterval = 3 * 1000 * 60;
-                                keepAliveTimer.setDelay(natKeepAliveInterval);
-                                debug("! Nat detected.");
-                            }
-                        } catch (Exception ex) {
-                            ex.printStackTrace();
-                        }
-                    }
-                } else {
-                    session = response.data;
-                }
-                authenticated = true;
-                remainingAuthAttempts = 2;
+            // fall through
+            case AniDBConnectionResponse.LOGIN_ACCEPTED:
+                handleSuccessfulLogin(response);
                 return true;
-            }
             case AniDBConnectionResponse.LOGIN_FAILED:
                 error("Login Failed");
-                if (showLoginDialog()) {
-                    return login();
-                }
-                return false;
+                return retryLoginIfAllowed();
             default:
                 error(response.message);
+        }
+        return false;
+    }
+
+    private void handleSuccessfulLogin(AniDBConnectionResponse response) {
+        session = response.data;
+        if (response.data.length() > 5) {
+            session = response.data.substring(0, 5);
+            handleNatDetection(response);
+        } else {
+            session = response.data;
+        }
+        authenticated = true;
+        remainingAuthAttempts = 2;
+    }
+
+    private void handleNatDetection(AniDBConnectionResponse response) {
+        if (!settings.natEnabled) {
+            return;
+        }
+        try {
+            int port = Integer.parseInt(response.data.substring(1 + response.data.lastIndexOf(':')));
+            if (port != settings.localPort) {
+                int natKeepAliveInterval = 3 * 1000 * 60; // 3 min
+                keepAliveTimer.setDelay(natKeepAliveInterval);
+                debug("! Nat detected.");
+            }
+        } catch (NumberFormatException ex) {
+            LOGGER.warning("NAT detection failed: " + ex.getMessage());
+        }
+    }
+
+    private boolean retryLoginIfAllowed() throws AniDBException {
+        if (showLoginDialog()) {
+            return login();
         }
         return false;
     }
@@ -249,10 +275,10 @@ public class AniDBConnection implements ActionListener {
             return false;
         }
         switch (response.code) {
-            case AniDBConnectionResponse.LOGGED_OUT:
-            case AniDBConnectionResponse.NOT_LOGGED_IN:
-            case AniDBConnectionResponse.INVALID_SESSION:
-            case AniDBConnectionResponse.LOGIN_FIRST:
+            case AniDBConnectionResponse.LOGGED_OUT,
+                    AniDBConnectionResponse.NOT_LOGGED_IN,
+                    AniDBConnectionResponse.INVALID_SESSION,
+                    AniDBConnectionResponse.LOGIN_FIRST:
                 authenticated = false;
                 encoding = "ascii";
                 return true;
@@ -262,7 +288,7 @@ public class AniDBConnection implements ActionListener {
         return false;
     }
 
-    //////////////////////////////////// CORE////////////////////////////////////
+    // CORE
     public boolean connect() {
         try {
             socket = new DatagramSocket(settings.localPort);
@@ -272,7 +298,7 @@ public class AniDBConnection implements ActionListener {
             connected = true;
             return true;
         } catch (SocketException ex) {
-            ex.printStackTrace();
+            LOGGER.warning("SocketException: " + ex.getMessage());
             error("SocketException: " + ex.getMessage());
         } catch (UnknownHostException ex) {
             error("Unknown Host: " + settings.host);
@@ -316,7 +342,8 @@ public class AniDBConnection implements ActionListener {
         while (timeoutCount++ < settings.maxTimeouts && !shutdown) {
             try {
                 response = sendWithSession(operation, param, wait);
-                if (!operation.equals("LOGOUT")
+                if (response != null
+                        && !operation.equals("LOGOUT")
                         && (response.code == AniDBConnectionResponse.LOGIN_FIRST
                                 || response.code == AniDBConnectionResponse.INVALID_SESSION)) {
                     login();
@@ -327,9 +354,8 @@ public class AniDBConnection implements ActionListener {
                 generateTag();
                 error("Operation Failed: TIMEOUT or SERVER BUSY. Try #" + timeoutCount);
                 settings.packetDelay += 100;
-                // keepAliveTimer.start();
             } catch (IOException ex) {
-                ex.printStackTrace();
+                LOGGER.warning("IO Exception: " + ex.getMessage());
                 error("Operation Failed: IOEXCEPT: " + ex.getMessage());
             }
         }
@@ -365,6 +391,7 @@ public class AniDBConnection implements ActionListener {
                     Thread.sleep(settings.packetDelay - timeDelta);
                 }
             } catch (InterruptedException ex) {
+                Thread.currentThread().interrupt();
                 throw new AniDBException(AniDBException.CLIENT_SYSTEM, "Java: " + ex.getMessage());
             }
         }
@@ -387,7 +414,7 @@ public class AniDBConnection implements ActionListener {
                 outData = cipher.doFinal(outData);
                 length = outData.length;
             } catch (Exception ex) {
-                ex.printStackTrace();
+                LOGGER.warning("Encryption failed: " + ex.getMessage());
             }
         }
 
@@ -449,7 +476,7 @@ public class AniDBConnection implements ActionListener {
                 decompressor.end();
                 buffer = result;
             } catch (DataFormatException ex) {
-                ex.printStackTrace();
+                LOGGER.warning("Decompression failed: " + ex.getMessage());
             }
         }
         try {
@@ -458,7 +485,7 @@ public class AniDBConnection implements ActionListener {
             String responseString = new String(rawData, encoding);
             responseString = responseString.substring(0, responseString.length() - 1);
             debug("< " + responseString);
-            return new AniDBConnectionResponse(currentTag, tagLength, responseString);
+            return new AniDBConnectionResponse(currentTag, TAG_LENGTH, responseString);
         } catch (TagMismatchException ex) {
             debug("! Wrong tag! Should be: " + currentTag);
             return receive();

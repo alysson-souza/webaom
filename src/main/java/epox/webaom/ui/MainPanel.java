@@ -62,6 +62,7 @@ import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
 import java.io.File;
 import java.util.List;
+import java.util.logging.Logger;
 import javax.swing.AbstractAction;
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
@@ -90,6 +91,7 @@ import javax.swing.event.HyperlinkListener;
 
 public class MainPanel extends JPanel
         implements Log, ActionListener, HyperlinkListener, ChangeListener, DropTargetListener {
+    private static final Logger LOGGER = Logger.getLogger(MainPanel.class.getName());
     private static final int BUTTON_WIKI = 0;
     private static final int BUTTON_SELECT_FILES = 1;
     private static final int BUTTON_SELECT_DIRS = 2;
@@ -297,14 +299,15 @@ public class MainPanel extends JPanel
 
     public void shutdown() {
         logEditorPane.closeLogFile();
-        if (networkIoThread != null && AppContext.conn != null && AppContext.conn.authenticated) {
-            AniDBConnection.shutdown = true;
+        if (networkIoThread != null && AppContext.conn != null && AppContext.conn.isLoggedIn()) {
+            AniDBConnection.setShutdown(true);
             toolbarButtons[BUTTON_CONNECTION].setEnabled(false); // disable the button
             isNetworkIoRunning = false;
             try {
                 networkIoThread.join();
             } catch (InterruptedException ex) {
-                ex.printStackTrace();
+                Thread.currentThread().interrupt();
+                LOGGER.warning("Interrupted during shutdown: " + ex.getMessage());
             }
         }
     }
