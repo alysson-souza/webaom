@@ -636,11 +636,11 @@ public class MainPanel extends JPanel
         } else if (source == miscOptionsPanel.logFilePathField) {
             startLogging();
         } else if (source == altViewPanel.sortModeComboBox) {
-            Cache.treeSortMode = altViewPanel.sortModeComboBox.getSelectedIndex();
+            Cache.setTreeSortMode(altViewPanel.sortModeComboBox.getSelectedIndex());
             altViewPanel.updateAlternativeView(true);
         } else if (source == altViewPanel.fileVisibilityComboBox) {
-            Cache.hideNew = altViewPanel.fileVisibilityComboBox.getSelectedIndex() == 1;
-            Cache.hideExisting = altViewPanel.fileVisibilityComboBox.getSelectedIndex() == 2;
+            Cache.setHideNew(altViewPanel.fileVisibilityComboBox.getSelectedIndex() == 1);
+            Cache.setHideExisting(altViewPanel.fileVisibilityComboBox.getSelectedIndex() == 2);
             altViewPanel.updateAlternativeView(true);
         } else if (source == altViewPanel.pathRegexField) {
             String regexPattern = altViewPanel.pathRegexField.getText();

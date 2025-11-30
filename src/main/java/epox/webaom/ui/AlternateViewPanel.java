@@ -33,8 +33,8 @@ public class AlternateViewPanel extends JPanel {
         JScrollPane scrollPane = new JScrollPane(altViewTreeTable);
         scrollPane.getViewport().setBackground(java.awt.Color.white);
 
-        sortModeComboBox = new JComboBox<>(Cache.SORT_MODE_LABELS);
-        sortModeComboBox.setSelectedIndex(Cache.treeSortMode);
+        sortModeComboBox = new JComboBox<>(Cache.getSortModeLabels());
+        sortModeComboBox.setSelectedIndex(Cache.getTreeSortMode());
         sortModeComboBox.setEditable(false);
         sortModeComboBox.addActionListener(actionListener);
 

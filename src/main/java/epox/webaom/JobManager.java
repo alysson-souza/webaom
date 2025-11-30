@@ -336,7 +336,7 @@ public final class JobManager {
     }
 
     public static void setJobFile(Job job, File file) {
-        if (Cache.treeSortMode == Cache.MODE_ANIME_FOLDER_FILE) {
+        if (Cache.getTreeSortMode() == Cache.MODE_ANIME_FOLDER_FILE) {
             AppContext.cache.treeRemove(job);
             job.currentFile = file;
             AppContext.cache.treeAdd(job);
