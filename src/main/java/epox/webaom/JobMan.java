@@ -223,6 +223,9 @@ public class JobMan {
 	}
 
 	public static boolean updatePath(Job job) {
+		if (!A.opt.getBoolean(Options.BOOL_AUTO_RENAME)) {
+			return true; // Skip automatic renaming
+		}
 		if (job.incompl()) {
 			job.setError("Extensive fileinfo not available.");
 			A.gui.println(job.currentFile + " cannot be renamed: Extensive fileinfo not available.");

@@ -45,6 +45,8 @@ public class Options {
 	public Options() {
 		String homeDirectory = System.getProperty("user.home");
 		optionsFile = new File(homeDirectory + File.separator + ".webaom");
+		// Default auto-rename to true to preserve existing behavior
+		booleanOptions[BOOL_AUTO_RENAME] = true;
 	}
 
 	public boolean existsOnDisk() {
@@ -168,7 +170,8 @@ public class Options {
 
 	private void decodeBooleans(String encodedBooleans) {
 		char[] characters = encodedBooleans.toCharArray();
-		for (int index = 0; index < BOOLEAN_OPTIONS_COUNT; index++) {
+		int count = Math.min(characters.length, BOOLEAN_OPTIONS_COUNT);
+		for (int index = 0; index < count; index++) {
 			booleanOptions[index] = (characters[index] == '1');
 		}
 	}
@@ -223,7 +226,9 @@ public class Options {
 	public static final int BOOL_AUTO_LOAD_DATABASE = 10;
 	public static final int BOOL_AUTO_LOGIN = 11;
 	public static final int BOOL_AUTO_SAVE = 12;
-	public static final int BOOLEAN_OPTIONS_COUNT = 13;
+	/** When disabled, files won't be automatically renamed/moved after identification. */
+	public static final int BOOL_AUTO_RENAME = 13;
+	public static final int BOOLEAN_OPTIONS_COUNT = 14;
 
 	// Integer option indices
 	public static final int INT_REMOTE_PORT = 0;
