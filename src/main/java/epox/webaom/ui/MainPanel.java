@@ -950,6 +950,7 @@ public class MainPanel extends JPanel
         } else {
             AppContext.lastDirectory = files[0].getAbsolutePath();
         }
+        switchToJobsTab();
         workerThread = new RecursiveDirectoryScanner(files, false);
         workerThread.start();
     }
@@ -969,7 +970,6 @@ public class MainPanel extends JPanel
     public void dragEnter(DropTargetDragEvent dragEvent) {
         if (dragEvent.getTransferable().isDataFlavorSupported(DataFlavor.javaFileListFlavor)) {
             dragEvent.acceptDrag(DnDConstants.ACTION_COPY);
-            switchToJobsTab();
 
             if (jobsPanel != null) {
                 if (originalJobsBorder == null) {
