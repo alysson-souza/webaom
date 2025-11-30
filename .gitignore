@@ -18,10 +18,10 @@ gradle-app.setting
 # IDE and editor files
 .idea/*
 !.idea/codeStyles/
-!.idea/checkstyle-idea.xml
 !.idea/inspectionProfiles/
 !.idea/vcs.xml
 !.idea/compiler.xml
+!.idea/sonarlint.xml
 *.iml
 *.iws
 *.ipr
