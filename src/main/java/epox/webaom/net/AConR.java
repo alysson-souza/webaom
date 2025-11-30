@@ -147,6 +147,7 @@ public class AConR {
 	API_PASSWORD_NOT_DEFINED = 309;
 	public static final int FILE_ALREADY_IN_MYLIST = 310; // C
 	public static final int MYLIST_ENTRY_EDITED = 311; // C
+	public static final int MULTIPLE_MYLIST_ENTRIES = 312; // C
 	public static final int NO_SUCH_FILE = 320; // C
 	public static final int/*
 							 * NO_SUCH_ENTRY =321, //C
