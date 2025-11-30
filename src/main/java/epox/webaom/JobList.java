@@ -22,11 +22,11 @@
  */
 package epox.webaom;
 
-import epox.util.LinkedHash;
 import epox.webaom.ui.TableModelJobs;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.LinkedHashMap;
 
 public class JobList {
     public static final int QUEUE_ERROR = 0;
@@ -34,7 +34,7 @@ public class JobList {
     public static final int QUEUE_NETWORK_IO = 2;
     private final ArrayList<Job> jobsList;
     private final HashSet<File> filePathSet;
-    private final LinkedHash[] jobQueues;
+    private final LinkedHashMap<Job, Job>[] jobQueues;
     public TableModelJobs tableModel = null;
     private Job[] filteredJobs = null;
 
@@ -42,9 +42,9 @@ public class JobList {
         jobsList = new ArrayList<>();
         filePathSet = new HashSet<>();
 
-        jobQueues = new LinkedHash[3];
+        jobQueues = new LinkedHashMap[3];
         for (int i = 0; i < jobQueues.length; i++) {
-            jobQueues[i] = new LinkedHash();
+            jobQueues[i] = new LinkedHashMap<>();
         }
     }
 
@@ -74,7 +74,7 @@ public class JobList {
         filteredJobs = null;
         jobsList.clear();
         filePathSet.clear();
-        for (LinkedHash jobQueue : jobQueues) {
+        for (LinkedHashMap<Job, Job> jobQueue : jobQueues) {
             jobQueue.clear();
         }
     }
@@ -164,11 +164,13 @@ public class JobList {
     }
 
     public Job getJobDio() {
-        return (Job) jobQueues[QUEUE_DISK_IO].getFirst();
+        LinkedHashMap<Job, Job> queue = jobQueues[QUEUE_DISK_IO];
+        return queue.isEmpty() ? null : queue.values().iterator().next();
     }
 
     public Job getJobNio() {
-        return (Job) jobQueues[QUEUE_NETWORK_IO].getFirst();
+        LinkedHashMap<Job, Job> queue = jobQueues[QUEUE_NETWORK_IO];
+        return queue.isEmpty() ? null : queue.values().iterator().next();
     }
 
     public boolean workForDio() {
@@ -205,7 +207,7 @@ public class JobList {
             return;
         }
         if (shouldAdd) {
-            jobQueues[queueType].addLast(job);
+            jobQueues[queueType].putIfAbsent(job, job);
         } else {
             jobQueues[queueType].remove(job);
         }
