@@ -24,10 +24,10 @@
 package epox.webaom;
 
 import epox.util.StringUtilities;
+import epox.webaom.data.AniDBEntity;
 import epox.webaom.data.AniDBFile;
 import epox.webaom.data.Anime;
 import epox.webaom.data.AnimeGroup;
-import epox.webaom.data.Base;
 import epox.webaom.data.Episode;
 import epox.webaom.data.Group;
 import epox.webaom.data.Path;
@@ -78,21 +78,21 @@ public class Cache {
         }
     }
 
-    public void add(Base baseObject, int updateMode, int cacheType) {
-        Integer id = Integer.valueOf(baseObject.id);
+    public void add(AniDBEntity baseObject, int updateMode, int cacheType) {
+        Integer id = Integer.valueOf(baseObject.getId());
         if (!cacheMaps[cacheType].containsKey(id)) {
             cacheMaps[cacheType].put(id, baseObject);
             if (updateMode == 1) {
-                AppContext.databaseManager.update(baseObject.id, baseObject, cacheType);
+                AppContext.databaseManager.update(baseObject.getId(), baseObject, cacheType);
             }
         }
         if (updateMode == 2) {
-            AppContext.databaseManager.update(baseObject.id, baseObject, cacheType);
+            AppContext.databaseManager.update(baseObject.getId(), baseObject, cacheType);
         }
     }
 
-    public Base get(int id, int cacheType) {
-        Base baseObject = cacheMaps[cacheType].get(Integer.valueOf(id));
+    public AniDBEntity get(int id, int cacheType) {
+        AniDBEntity baseObject = cacheMaps[cacheType].get(Integer.valueOf(id));
         if (baseObject == null) {
             baseObject = AppContext.databaseManager.getGeneric(id, cacheType);
             if (baseObject != null) {
@@ -248,7 +248,7 @@ public class Cache {
                     if (file.groupId < 1) {
                         file.group = Group.NONE;
                     }
-                    Base groupNode = anime.get(file.group.getKey());
+                    AniDBEntity groupNode = anime.get(file.group.getKey());
                     if (groupNode != null) {
                         anime.remove(groupNode);
                     } else {
@@ -264,7 +264,7 @@ public class Cache {
             case MODE_ANIME_FOLDER_FILE:
                 {
                     String parentPath = job.getFile().getParent();
-                    Base folderNode = anime.get(parentPath);
+                    AniDBEntity folderNode = anime.get(parentPath);
                     if (folderNode != null) {
                         anime.remove(folderNode);
                     } else {
@@ -312,7 +312,7 @@ public class Cache {
                     if (file.groupId < 1) {
                         file.group = Group.NONE;
                     }
-                    Base groupNode = anime.get(file.group.getKey());
+                    AniDBEntity groupNode = anime.get(file.group.getKey());
                     if (groupNode != null) {
                         anime.remove(groupNode);
                         groupNode.remove(file);
@@ -325,7 +325,7 @@ public class Cache {
             case MODE_ANIME_FOLDER_FILE:
                 {
                     String parentPath = job.getFile().getParent();
-                    Base folderNode = anime.get(parentPath);
+                    AniDBEntity folderNode = anime.get(parentPath);
                     if (folderNode != null) {
                         anime.remove(folderNode);
                         folderNode.remove(file);
@@ -343,8 +343,8 @@ public class Cache {
         }
     }
 
-    /** Internal HashMap for caching Base objects by ID. */
-    protected class CacheMap extends HashMap<Integer, Base> {
+    /** Internal HashMap for caching AniDBEntity objects by ID. */
+    protected class CacheMap extends HashMap<Integer, AniDBEntity> {
         //
     }
 }

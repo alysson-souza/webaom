@@ -27,7 +27,7 @@ import epox.util.StringUtilities;
 /**
  * Represents an episode entry from AniDB.
  */
-public class Episode extends Base {
+public class Episode extends AniDBEntity {
     /** Title display priority: 0=english, 1=romaji, 2=kanji. */
     public static int titlePriority = 0;
     /** Episode number/code (e.g., "1", "S1", "C2"). */
@@ -64,7 +64,8 @@ public class Episode extends Base {
         return "" + id + S + num + S + eng + S + rom + S + kan;
     }
 
-    public int compareTo(Object obj) {
+    @Override
+    public int compareTo(AniDBEntity obj) {
         if (obj instanceof Episode other) {
             try {
                 int thisNum = Integer.parseInt(num);

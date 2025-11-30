@@ -25,8 +25,8 @@ import com.sun.swing.TreeTableModel;
 import epox.webaom.AppContext;
 import epox.webaom.Job;
 import epox.webaom.JobManager;
+import epox.webaom.data.AniDBEntity;
 import epox.webaom.data.AniDBFile;
-import epox.webaom.data.Base;
 import java.awt.Font;
 import java.awt.FontMetrics;
 import java.awt.Graphics;
@@ -57,13 +57,13 @@ public class JobTreeTable extends JTreeTable implements RowModel, MouseListener 
             }
         } else {
             ArrayList<Job> jobsList = new ArrayList<>();
-            collectJobsRecursively(jobsList, (Base) treeNode);
+            collectJobsRecursively(jobsList, (AniDBEntity) treeNode);
             return jobsList.toArray(new Job[0]);
         }
         return null;
     }
 
-    private void collectJobsRecursively(ArrayList<Job> jobsList, Base parent) {
+    private void collectJobsRecursively(ArrayList<Job> jobsList, AniDBEntity parent) {
         if (parent.size() < 1) {
             if (parent instanceof AniDBFile) {
                 jobsList.add(((AniDBFile) parent).getJob());

@@ -16,7 +16,7 @@
 
 /*
  * Created on 25.des.2005 16:37:58
- * Filename: aParent.java
+ * Filename: AniDBEntity.java
  */
 package epox.webaom.data;
 
@@ -24,66 +24,83 @@ import epox.util.StringUtilities;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.Objects;
+import java.util.logging.Logger;
 
-public class Base implements Comparable {
+/**
+ * Base class for all AniDB data entities (Anime, Episode, Group, File, etc.).
+ * Provides hierarchical parent-child relationships and serialization support.
+ */
+public class AniDBEntity implements Comparable<AniDBEntity> {
+    private static final Logger LOGGER = Logger.getLogger(AniDBEntity.class.getName());
+
     /** Separator character used for serialization. */
     protected static final char S = '|';
     /** Map of child objects keyed by their unique identifier. */
-    private final HashMap<Object, Base> childMap = new HashMap<>();
+    private final HashMap<Object, AniDBEntity> childMap = new HashMap<>();
     /** Unique identifier for this object. */
-    public int id;
+    protected int id;
     /** Total size in bytes (aggregated from children). */
-    public long totalSize;
+    protected long totalSize;
     /** Sorted array of children (populated by buildSortedChildArray()). */
     private Object[] sortedChildren = null;
 
-    public static Base getInst(String[] arg) {
-        if (arg == null) {
-            return null;
-        }
-        return null;
+    public int getId() {
+        return id;
     }
 
-    public Base get(int index) {
+    public void setId(int id) {
+        this.id = id;
+    }
+
+    public long getTotalSize() {
+        return totalSize;
+    }
+
+    public void setTotalSize(long totalSize) {
+        this.totalSize = totalSize;
+    }
+
+    public AniDBEntity get(int index) {
         if (sortedChildren == null) {
             return null;
         }
-        return (Base) sortedChildren[index];
+        return (AniDBEntity) sortedChildren[index];
     }
 
-    public boolean has(Base child) {
+    public boolean has(AniDBEntity child) {
         return childMap.containsKey(child.getKey());
     }
 
-    public Base get(Object key) {
+    public AniDBEntity get(Object key) {
         return childMap.get(key);
     }
 
-    public void add(Base child) {
+    public void add(AniDBEntity child) {
         Object key = child.getKey();
-        if (!childMap.containsKey(key)) {
-            childMap.put(key, child);
+        AniDBEntity existing = childMap.putIfAbsent(key, child);
+        if (existing == null) {
             totalSize += child.totalSize;
-        } // else U.err("Base: Tried to add ex obj: "+child+" ("+this+")");
+        }
     }
 
-    public void remove(Base child) {
+    public void remove(AniDBEntity child) {
         Object key = child.getKey();
-        if (childMap.containsKey(key)) {
-            childMap.remove(key);
+        AniDBEntity removed = childMap.remove(key);
+        if (removed != null) {
             totalSize -= child.totalSize;
             if (totalSize < 0) {
-                StringUtilities.err("Base: Negative size: " + child + " (" + this + ")");
+                StringUtilities.err("AniDBEntity: Negative size: " + child + " (" + this + ")");
                 totalSize = 0;
             }
         } else {
-            StringUtilities.err("Base: Tried to remove non ex obj: " + child + " (" + this + ")");
+            StringUtilities.err("AniDBEntity: Tried to remove non ex obj: " + child + " (" + this + ")");
         }
     }
 
     public void clear() {
         totalSize = 0;
-        Iterator<Base> it = childMap.values().iterator();
+        Iterator<AniDBEntity> it = childMap.values().iterator();
         while (it.hasNext()) {
             it.next().clear();
         }
@@ -92,8 +109,8 @@ public class Base implements Comparable {
     }
 
     public void dump(String prefix) {
-        System.out.println(prefix + this);
-        Iterator<Base> it = childMap.values().iterator();
+        LOGGER.info(() -> prefix + this);
+        Iterator<AniDBEntity> it = childMap.values().iterator();
         while (it.hasNext()) {
             it.next().dump(prefix + ".");
         }
@@ -115,8 +132,26 @@ public class Base implements Comparable {
         Arrays.sort(sortedChildren);
     }
 
-    public int compareTo(Object other) {
+    @Override
+    public int compareTo(AniDBEntity other) {
         return toString().compareTo(other.toString());
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj) {
+            return true;
+        }
+        if (obj == null || getClass() != obj.getClass()) {
+            return false;
+        }
+        AniDBEntity other = (AniDBEntity) obj;
+        return id == other.id;
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(id);
     }
 
     public Object getKey() {

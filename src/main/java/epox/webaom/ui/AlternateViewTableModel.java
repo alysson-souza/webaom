@@ -24,10 +24,10 @@ import com.sun.swing.AbstractTreeTableModel;
 import com.sun.swing.TreeTableModel;
 import epox.util.StringUtilities;
 import epox.webaom.AppContext;
+import epox.webaom.data.AniDBEntity;
 import epox.webaom.data.AniDBFile;
 import epox.webaom.data.Anime;
 import epox.webaom.data.AnimeGroup;
-import epox.webaom.data.Base;
 import epox.webaom.data.Episode;
 import epox.webaom.data.Path;
 import javax.swing.SwingConstants;
@@ -64,10 +64,10 @@ public class AlternateViewTableModel extends AbstractTreeTableModel implements T
     }
 
     public Object getValueAt(Object node, int c) {
-        if (node instanceof Base g) {
+        if (node instanceof AniDBEntity g) {
             switch (c) {
                 case SIZE:
-                    return StringUtilities.sbyte(g.totalSize);
+                    return StringUtilities.sbyte(g.getTotalSize());
                 default:
                     return null;
             }
@@ -144,15 +144,15 @@ public class AlternateViewTableModel extends AbstractTreeTableModel implements T
     }
 
     public Object getChild(Object parent, int index) {
-        if (parent instanceof Base) {
-            return ((Base) parent).get(index);
+        if (parent instanceof AniDBEntity) {
+            return ((AniDBEntity) parent).get(index);
         }
         StringUtilities.err(parent);
         return null;
     }
 
     public int getChildCount(Object parent) {
-        Base p = (Base) parent;
+        AniDBEntity p = (AniDBEntity) parent;
         p.buildSortedChildArray();
 
         return p.size();

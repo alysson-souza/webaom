@@ -24,7 +24,7 @@ package epox.webaom;
 
 import epox.util.StringUtilities;
 import epox.util.UserPass;
-import epox.webaom.data.Base;
+import epox.webaom.data.AniDBEntity;
 import epox.webaom.net.AniDBConnectionSettings;
 import epox.webaom.net.AniDBFileClient;
 import epox.webaom.ui.MainPanel;
@@ -82,7 +82,7 @@ public final class AppContext {
     /** Secondary popup menu component (alternate view context menu). */
     public static Component secondaryPopupMenu;
     /** Root node of the anime tree structure for alternate view. */
-    public static Base animeTreeRoot = new Base();
+    public static AniDBEntity animeTreeRoot = new AniDBEntity();
 
     public static boolean autoadd = false;
     public static boolean optionsChanged = false;
@@ -267,8 +267,8 @@ public final class AppContext {
 
         int sub0 = 0;
         int sub1 = 0;
-        Base b;
-        Base c;
+        AniDBEntity b;
+        AniDBEntity c;
         for (int i = 0; i < AppContext.animeTreeRoot.size(); i++) {
             b = AppContext.animeTreeRoot.get(i);
             if (b == null) {
