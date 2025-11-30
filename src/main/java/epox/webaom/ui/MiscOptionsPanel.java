@@ -23,15 +23,16 @@
 package epox.webaom.ui;
 
 import epox.swing.JComboBoxLF;
-import epox.util.HashContainer;
 import epox.util.TTH;
 import epox.webaom.AppContext;
+import epox.webaom.DiskIOManager;
 import epox.webaom.Options;
 import java.awt.Component;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.Insets;
 import java.io.File;
+import java.util.LinkedHashMap;
 import java.util.StringTokenizer;
 import javax.swing.JCheckBox;
 import javax.swing.JLabel;
@@ -205,33 +206,26 @@ public class MiscOptionsPanel extends JPanel {
         logFilePathField.setText(options.getString(Options.STR_LOG_FILE));
     }
 
-    public HashContainer getHashContainer() {
+    public LinkedHashMap<String, DiskIOManager.ChecksumData> getChecksums() {
         try {
-            int selectedCount = 0;
-            for (JCheckBox hashCheckBox : hashCheckBoxes) {
-                if (hashCheckBox.isSelected()) {
-                    selectedCount++;
-                }
-            }
-            HashContainer hashContainer = new HashContainer(selectedCount);
-            int hashIndex = 0;
+            LinkedHashMap<String, DiskIOManager.ChecksumData> checksums = new LinkedHashMap<>();
 
             if (hashCheckBoxes[HASH_ED2K].isSelected()) {
-                hashContainer.add(hashIndex++, "ed2k", new jonelo.jacksum.algorithm.Edonkey());
+                checksums.put("ed2k", new DiskIOManager.ChecksumData("ed2k", new jonelo.jacksum.algorithm.Edonkey()));
             }
             if (hashCheckBoxes[HASH_CRC32].isSelected()) {
-                hashContainer.add(hashIndex++, "crc32", new jonelo.jacksum.algorithm.Crc32());
+                checksums.put("crc32", new DiskIOManager.ChecksumData("crc32", new jonelo.jacksum.algorithm.Crc32()));
             }
             if (hashCheckBoxes[HASH_MD5].isSelected()) {
-                hashContainer.add(hashIndex++, "md5", new com.twmacinta.util.MD5());
+                checksums.put("md5", new DiskIOManager.ChecksumData("md5", new com.twmacinta.util.MD5()));
             }
             if (hashCheckBoxes[HASH_SHA1].isSelected()) {
-                hashContainer.add(hashIndex++, "sha1", new jonelo.jacksum.algorithm.MD("SHA-1"));
+                checksums.put("sha1", new DiskIOManager.ChecksumData("sha1", new jonelo.jacksum.algorithm.MD("SHA-1")));
             }
             if (hashCheckBoxes[HASH_TTH].isSelected()) {
-                hashContainer.add(hashIndex++, "tth", new TTH());
+                checksums.put("tth", new DiskIOManager.ChecksumData("tth", new TTH()));
             }
-            return hashContainer;
+            return checksums;
         } catch (java.security.NoSuchAlgorithmException e) {
             e.printStackTrace();
         }
