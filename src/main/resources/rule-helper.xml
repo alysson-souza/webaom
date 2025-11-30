@@ -22,7 +22,7 @@
         <elem title="Group" value="G()">Checks group id, name and short name</elem>
         <elem title="Episode Number" value="E()">Checks episode number</elem>
         <elem title="Quality" value="Q()">Checks quality string</elem>
-        <elem title="Source" value="S()">Checks source string</elem>
+        <elem title="Source" value="R()">Checks source string</elem>
         <elem title="Type" value="T()">Checks type string</elem>
         <elem title="Year" value="Y()">Checks year. Range is possible: Y(2000-2002)</elem>
         <elem title="Dub Language" value="D()">Checks the two first audio languages</elem>
