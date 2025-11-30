@@ -52,6 +52,7 @@ public class Episode extends AniDBEntity {
         kan = StringUtilities.n(fields[index++]);
     }
 
+    @Override
     public String toString() {
         return switch (titlePriority) {
             case 1 -> num + " - " + (rom == null ? eng : rom);
@@ -60,6 +61,7 @@ public class Episode extends AniDBEntity {
         };
     }
 
+    @Override
     public String serialize() {
         return "" + id + S + num + S + eng + S + rom + S + kan;
     }
