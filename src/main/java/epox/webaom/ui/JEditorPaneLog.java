@@ -25,9 +25,9 @@ package epox.webaom.ui;
 
 import epox.swing.JTextInputDialog;
 import epox.swing.Log;
-import epox.util.U;
-import epox.webaom.A;
-import epox.webaom.Hyper;
+import epox.util.StringUtilities;
+import epox.webaom.AppContext;
+import epox.webaom.HyperlinkBuilder;
 import epox.webaom.util.PlatformPaths;
 import java.awt.event.ActionEvent;
 import java.io.IOException;
@@ -71,7 +71,7 @@ public class JEditorPaneLog extends JEditorPane implements Log, Action {
 	}
 
 	public void println(Object message) {
-		String formattedTime = Hyper.formatAsNumber(U.time());
+		String formattedTime = HyperlinkBuilder.formatAsNumber(StringUtilities.time());
 		StringBuffer logLine = new StringBuffer(256);
 		logLine.append('[');
 		logLine.append(formattedTime);
@@ -97,14 +97,14 @@ public class JEditorPaneLog extends JEditorPane implements Log, Action {
 			// Ensure the parent directory exists
 			if (!PlatformPaths.ensureParentDirectoryExists(filePath)) {
 				String errorMessage = "Failed to create log directory for: " + filePath;
-				A.dialog("Log Error", errorMessage);
+				AppContext.dialog("Log Error", errorMessage);
 				return false;
 			}
 
 			logOutputStream = new PrintStream(new AppendFileStream(filePath), true, StandardCharsets.UTF_8);
 			return true;
 		} catch (IOException ioException) {
-			A.dialog("Log Error", ioException.getMessage());
+			AppContext.dialog("Log Error", ioException.getMessage());
 			return false;
 		}
 	}
@@ -159,7 +159,7 @@ public class JEditorPaneLog extends JEditorPane implements Log, Action {
 	}
 
 	public void actionPerformed(ActionEvent event) {
-		setHeader((new JTextInputDialog(A.frame, "Edit header", htmlHeader)).getStr());
+		setHeader((new JTextInputDialog(AppContext.frame, "Edit header", htmlHeader)).getStr());
 	}
 
 	public void setHeader(String newHeader) {

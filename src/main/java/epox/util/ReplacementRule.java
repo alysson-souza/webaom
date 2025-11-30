@@ -30,7 +30,7 @@ import java.util.Vector;
  * Represents a source-to-destination mapping rule with an enabled/disabled state.
  * Used for character replacement rules in file renaming.
  */
-public class DSData {
+public class ReplacementRule {
 	/** The source pattern to match */
 	public String source;
 	/** The destination string to replace the source with */
@@ -38,7 +38,7 @@ public class DSData {
 	/** Whether this mapping rule is enabled */
 	public Boolean enabled;
 
-	public DSData(String sourcePattern, String destinationPattern, boolean isEnabled) {
+	public ReplacementRule(String sourcePattern, String destinationPattern, boolean isEnabled) {
 		source = sourcePattern;
 		destination = destinationPattern;
 		enabled = Boolean.valueOf(isEnabled);
@@ -59,7 +59,7 @@ public class DSData {
 	 * Parses a source-destination pair from encoded strings.
 	 * Lines starting with '#' indicate a disabled rule.
 	 */
-	public static DSData parse(String sourceString, String destinationString) {
+	public static ReplacementRule parse(String sourceString, String destinationString) {
 		boolean isDisabled = sourceString.startsWith("#");
 		if (isDisabled) {
 			sourceString = sourceString.substring(1);
@@ -67,15 +67,15 @@ public class DSData {
 		if (destinationString.equals("\\0")) {
 			destinationString = "";
 		}
-		return new DSData(sourceString, destinationString, !isDisabled);
+		return new ReplacementRule(sourceString, destinationString, !isDisabled);
 	}
 
 	/**
 	 * Encodes a vector of DSData rules into a single delimited string.
 	 */
-	public static String encode(Vector<DSData> rulesList) {
+	public static String encode(Vector<ReplacementRule> rulesList) {
 		String encodedResult = "";
-		DSData currentRule;
+		ReplacementRule currentRule;
 		for (int i = 0; i < rulesList.size(); i++) {
 			currentRule = rulesList.elementAt(i);
 			if (!currentRule.source.equals("")) {
@@ -88,7 +88,7 @@ public class DSData {
 	/**
 	 * Decodes an encoded string into a vector of DSData rules.
 	 */
-	public static String decode(Vector<DSData> rulesList, String encodedString) {
+	public static String decode(Vector<ReplacementRule> rulesList, String encodedString) {
 		rulesList.clear();
 		StringTokenizer tokenizer = new StringTokenizer(encodedString, Options.FIELD_SEPARATOR);
 		while (tokenizer.hasMoreTokens()) {

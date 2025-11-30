@@ -24,8 +24,12 @@ package epox.webaom.net;
 
 import epox.swing.Log;
 import epox.util.UserPass;
-import epox.webaom.A;
+import epox.webaom.AppContext;
 import epox.webaom.ui.JDialogLogin;
+
+import javax.crypto.Cipher;
+import javax.crypto.spec.SecretKeySpec;
+import javax.swing.Timer;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.IOException;
@@ -38,11 +42,8 @@ import java.net.UnknownHostException;
 import java.security.MessageDigest;
 import java.util.zip.DataFormatException;
 import java.util.zip.Inflater;
-import javax.crypto.Cipher;
-import javax.crypto.spec.SecretKeySpec;
-import javax.swing.Timer;
 
-public class ACon implements ActionListener {
+public class AniDBConnection implements ActionListener {
 	public static final String DEFAULT_HOST = "api.anidb.net";
 	public static final int DEFAULT_REMOTE_PORT = 9000;
 	public static final int DEFAULT_LOCAL_PORT = 45678;
@@ -69,7 +70,7 @@ public class ACon implements ActionListener {
 	private InetAddress serverAddress;
 	private final Timer keepAliveTimer;
 
-	private final AConS settings;
+	private final AniDBConnectionSettings settings;
 
 	protected String session = null;
 	protected String currentTag = null;
@@ -78,7 +79,7 @@ public class ACon implements ActionListener {
 
 	private final Log log;
 
-	public ACon(Log log, AConS settings) {
+	public AniDBConnection(Log log, AniDBConnectionSettings settings) {
 		this.log = log;
 		this.settings = settings;
 		generateTag();
@@ -153,8 +154,8 @@ public class ACon implements ActionListener {
 		if (userPass.apiKey == null || userPass.apiKey.isEmpty()) {
 			return ping();
 		}
-		AConR response = sendWithSession("ENCRYPT", "user=" + userPass.username + "&type=1", true);
-		if (response.code == AConR.ENCRYPTION_ENABLED) {
+		AniDBConnectionResponse response = sendWithSession("ENCRYPT", "user=" + userPass.username + "&type=1", true);
+		if (response.code == AniDBConnectionResponse.ENCRYPTION_ENABLED) {
 			try {
 				MessageDigest digest = MessageDigest.getInstance("MD5");
 				digest.update(userPass.apiKey.getBytes());
@@ -168,17 +169,17 @@ public class ACon implements ActionListener {
 				encryptionKey = null;
 				cipher = null;
 			}
-		} else if (response.code == AConR.API_PASSWORD_NOT_DEFINED) {
-			throw new AConEx(AConEx.ENCRYPTION, "AniPass not defined. Check your profile settings.");
-		} else if (response.code == AConR.NO_SUCH_USER) {
-			throw new AConEx(AConEx.ENCRYPTION, "No such user. Check username.");
+		} else if (response.code == AniDBConnectionResponse.API_PASSWORD_NOT_DEFINED) {
+			throw new AniDBException(AniDBException.ENCRYPTION, "AniPass not defined. Check your profile settings.");
+		} else if (response.code == AniDBConnectionResponse.NO_SUCH_USER) {
+			throw new AniDBException(AniDBException.ENCRYPTION, "No such user. Check username.");
 		}
 		return -1;
 	}
 
-	private boolean showLoginDialog() throws AConEx {
+	private boolean showLoginDialog() throws AniDBException {
 		if (remainingLoginAttempts <= 0) {
-			throw new AConEx(AConEx.CLIENT_USER, "Access Denied! No more login attempts allowed.");
+			throw new AniDBException(AniDBException.CLIENT_USER, "Access Denied! No more login attempts allowed.");
 		}
 		decrementLoginAttempts();
 		error("Logins left: " + remainingLoginAttempts);
@@ -186,7 +187,7 @@ public class ACon implements ActionListener {
 		return userPass != null;
 	}
 
-	public boolean login() throws AConEx {
+	public boolean login() throws AniDBException {
 		if (userPass == null) {
 			if (!showLoginDialog()) {
 				error("User Abort");
@@ -194,15 +195,16 @@ public class ACon implements ActionListener {
 			}
 		}
 		if (remainingAuthAttempts <= 0) {
-			throw new AConEx(AConEx.CLIENT_BUG, "Invalid session.");
+			throw new AniDBException(AniDBException.CLIENT_BUG, "Invalid session.");
 		}
 		String versionParams = "&protover=3&client=webaom&clientver=119&nat=1&comp=1&enc=utf8";
-		AConR response = send("AUTH", "user=" + userPass.username + "&pass=" + userPass.password + versionParams, true);
+		AniDBConnectionResponse response = send("AUTH",
+				"user=" + userPass.username + "&pass=" + userPass.password + versionParams, true);
 		remainingAuthAttempts--;
 		switch (response.code) {
-			case AConR.LOGIN_ACCEPTED_NEW_VER :
-				A.dialog("Note", AConEx.defaultMsg(AConEx.CLIENT_OUTDATED));
-			case AConR.LOGIN_ACCEPTED : {
+			case AniDBConnectionResponse.LOGIN_ACCEPTED_NEW_VER :
+				AppContext.dialog("Note", AniDBException.defaultMsg(AniDBException.CLIENT_OUTDATED));
+			case AniDBConnectionResponse.LOGIN_ACCEPTED : {
 				session = response.data;
 				if (response.data.length() > 5) {
 					session = response.data.substring(0, 5);
@@ -226,7 +228,7 @@ public class ACon implements ActionListener {
 				remainingAuthAttempts = 2;
 				return true;
 			}
-			case AConR.LOGIN_FAILED :
+			case AniDBConnectionResponse.LOGIN_FAILED :
 				error("Login Failed");
 				if (showLoginDialog()) {
 					return login();
@@ -238,7 +240,7 @@ public class ACon implements ActionListener {
 		return false;
 	}
 
-	public boolean logout() throws AConEx {
+	public boolean logout() throws AniDBException {
 		if (shutdown) {
 			if (authenticated && session != null) { // last chance logout
 				String command = "LOGOUT s=" + session;
@@ -251,15 +253,15 @@ public class ACon implements ActionListener {
 			}
 			return true;
 		}
-		AConR response = send("LOGOUT", null, true);
+		AniDBConnectionResponse response = send("LOGOUT", null, true);
 		if (response == null) {
 			return false;
 		}
 		switch (response.code) {
-			case AConR.LOGGED_OUT :
-			case AConR.NOT_LOGGED_IN :
-			case AConR.INVALID_SESSION :
-			case AConR.LOGIN_FIRST :
+			case AniDBConnectionResponse.LOGGED_OUT :
+			case AniDBConnectionResponse.NOT_LOGGED_IN :
+			case AniDBConnectionResponse.INVALID_SESSION :
+			case AniDBConnectionResponse.LOGIN_FIRST :
 				authenticated = false;
 				encoding = "ascii";
 				return true;
@@ -299,31 +301,32 @@ public class ACon implements ActionListener {
 		}
 	}
 
-	public synchronized AConR send(String operation, String param, boolean wait) throws AConEx {
+	public synchronized AniDBConnectionResponse send(String operation, String param, boolean wait)
+			throws AniDBException {
 		if (operation == null) {
-			throw new AConEx(AConEx.CLIENT_BUG);
+			throw new AniDBException(AniDBException.CLIENT_BUG);
 		}
 		return sendWithRetry(operation, param, wait);
 	}
 
-	public synchronized String send(String command, boolean wait) throws AConEx {
+	public synchronized String send(String command, boolean wait) throws AniDBException {
 		if (command == null) {
-			throw new AConEx(AConEx.CLIENT_BUG);
+			throw new AniDBException(AniDBException.CLIENT_BUG);
 		}
 
 		String[] parts = command.split(" ", 2);
-		AConR response = sendWithRetry(parts[0], parts.length > 1 ? parts[1] : null, wait);
+		AniDBConnectionResponse response = sendWithRetry(parts[0], parts.length > 1 ? parts[1] : null, wait);
 		return response.code + " " + response.message + (response.data != null ? "\n" + response.data : "");
 	}
 
-	private AConR sendWithRetry(String operation, String param, boolean wait) throws AConEx {
+	private AniDBConnectionResponse sendWithRetry(String operation, String param, boolean wait) throws AniDBException {
 		int timeoutCount = 0;
-		AConR response;
+		AniDBConnectionResponse response;
 		while (timeoutCount++ < settings.maxTimeouts && !shutdown) {
 			try {
 				response = sendWithSession(operation, param, wait);
-				if (!operation.equals("LOGOUT")
-						&& (response.code == AConR.LOGIN_FIRST || response.code == AConR.INVALID_SESSION)) {
+				if (!operation.equals("LOGOUT") && (response.code == AniDBConnectionResponse.LOGIN_FIRST
+						|| response.code == AniDBConnectionResponse.INVALID_SESSION)) {
 					login();
 					return sendWithSession(operation, param, wait);
 				}
@@ -338,10 +341,11 @@ public class ACon implements ActionListener {
 				error("Operation Failed: IOEXCEPT: " + ex.getMessage());
 			}
 		}
-		throw new AConEx(AConEx.ANIDB_UNREACHABLE, getLastError());
+		throw new AniDBException(AniDBException.ANIDB_UNREACHABLE, getLastError());
 	}
 
-	private AConR sendWithSession(String operation, String param, boolean wait) throws IOException, AConEx {
+	private AniDBConnectionResponse sendWithSession(String operation, String param, boolean wait)
+			throws IOException, AniDBException {
 		if (param != null) {
 			if (session != null) {
 				param += "&s=" + session;
@@ -358,7 +362,7 @@ public class ACon implements ActionListener {
 		return sendRaw(operation + " " + param, wait);
 	}
 
-	private AConR sendRaw(String command, boolean wait) throws IOException, AConEx {
+	private AniDBConnectionResponse sendRaw(String command, boolean wait) throws IOException, AniDBException {
 		keepAliveTimer.stop();
 		if (wait) {
 			try {
@@ -369,7 +373,7 @@ public class ACon implements ActionListener {
 					Thread.sleep(settings.packetDelay - timeDelta);
 				}
 			} catch (InterruptedException ex) {
-				throw new AConEx(AConEx.CLIENT_SYSTEM, "Java: " + ex.getMessage());
+				throw new AniDBException(AniDBException.CLIENT_SYSTEM, "Java: " + ex.getMessage());
 			}
 		}
 		String censoredCommand = command;
@@ -411,14 +415,14 @@ public class ACon implements ActionListener {
 		}
 
 		if (!shutdown) { // wait
-			AConR response = receive();
+			AniDBConnectionResponse response = receive();
 			keepAliveTimer.start();
 			return response;
 		}
 		return null;
 	}
 
-	private AConR receive() throws IOException, AConEx {
+	private AniDBConnectionResponse receive() throws IOException, AniDBException {
 		if (shutdown) {
 			return null;
 		}
@@ -441,7 +445,7 @@ public class ACon implements ActionListener {
 				debug("! Decryption failed: " + ex.getMessage());
 				encryptionKey = null;
 				cipher = null;
-				throw new AConEx(AConEx.ENCRYPTION);
+				throw new AniDBException(AniDBException.ENCRYPTION);
 			}
 		}
 		if (buffer.length > 1 && buffer[0] == 0 && buffer[1] == 0) {
@@ -462,8 +466,8 @@ public class ACon implements ActionListener {
 			String responseString = new String(rawData, encoding);
 			responseString = responseString.substring(0, responseString.length() - 1);
 			debug("< " + responseString);
-			return new AConR(currentTag, tagLength, responseString);
-		} catch (TagEx ex) {
+			return new AniDBConnectionResponse(currentTag, tagLength, responseString);
+		} catch (TagMismatchException ex) {
 			debug("! Wrong tag! Should be: " + currentTag);
 			return receive();
 		}

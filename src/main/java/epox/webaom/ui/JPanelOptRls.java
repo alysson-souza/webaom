@@ -24,8 +24,8 @@
 package epox.webaom.ui;
 
 import epox.swing.JTableSortable;
-import epox.util.DSData;
-import epox.webaom.A;
+import epox.util.ReplacementRule;
+import epox.webaom.AppContext;
 import epox.webaom.RuleMenu;
 import epox.webaom.Rules;
 import epox.webaom.WebAOM;
@@ -65,7 +65,7 @@ public class JPanelOptRls extends JPanel implements Action, ActionListener, Item
 	private final Rules rules;
 
 	protected JTable replacementsTable;
-	protected TableModelDS replacementsTableModel;
+	protected ReplacementTableModel replacementsTableModel;
 
 	public JPanelOptRls(Rules rules) {
 		super(new BorderLayout());
@@ -116,7 +116,7 @@ public class JPanelOptRls extends JPanel implements Action, ActionListener, Item
 		topPanel.add(radioButtonPanel, BorderLayout.NORTH);
 		topPanel.add(new JScrollPane(rulesTextArea));
 		// BOTTOM
-		replacementsTableModel = new TableModelDS(rules.illegalCharReplacements, "From", "To");
+		replacementsTableModel = new ReplacementTableModel(rules.illegalCharReplacements, "From", "To");
 		replacementsTable = new JTableSortable(replacementsTableModel);
 		// replacementsTable.setShowGrid(false);
 		replacementsTable.setGridColor(Color.lightGray);
@@ -135,7 +135,7 @@ public class JPanelOptRls extends JPanel implements Action, ActionListener, Item
 			}
 		});
 
-		TableModelDS.formatTable(replacementsTable);
+		ReplacementTableModel.formatTable(replacementsTable);
 
 		JScrollPane tableScrollPane = new JScrollPane(replacementsTable);
 		tableScrollPane.getViewport().setBackground(Color.white);
@@ -193,7 +193,7 @@ public class JPanelOptRls extends JPanel implements Action, ActionListener, Item
 				continue;
 			}
 			if (!currentLine.contains("DO ")) {
-				A.dialog("Error in script @ line" + lineNumber, "All lines must include ' DO '.");
+				AppContext.dialog("Error in script @ line" + lineNumber, "All lines must include ' DO '.");
 				return;
 			}
 		}
@@ -212,7 +212,7 @@ public class JPanelOptRls extends JPanel implements Action, ActionListener, Item
 		}
 	}
 
-	private void removeElements(Vector<DSData> dataVector, int[] selectedRows) {
+	private void removeElements(Vector<ReplacementRule> dataVector, int[] selectedRows) {
 		Arrays.sort(selectedRows);
 		for (int index = selectedRows.length - 1; index >= 0; index--) {
 			if (selectedRows[index] >= dataVector.size()) {
@@ -221,18 +221,18 @@ public class JPanelOptRls extends JPanel implements Action, ActionListener, Item
 			dataVector.removeElementAt(selectedRows[index]);
 		}
 		if (dataVector.size() <= 0) {
-			dataVector.add(new DSData("", "", false));
+			dataVector.add(new ReplacementRule("", "", false));
 		}
 	}
 
-	protected void moveElement(JTable table, Vector<DSData> dataVector, int direction) {
+	protected void moveElement(JTable table, Vector<ReplacementRule> dataVector, int direction) {
 		int selectedIndex = table.getSelectedRow();
 		int targetIndex = direction + selectedIndex;
 		if (targetIndex >= dataVector.size() || targetIndex < 0) {
 			return;
 		}
 		try {
-			DSData removedElement = dataVector.remove(selectedIndex);
+			ReplacementRule removedElement = dataVector.remove(selectedIndex);
 			dataVector.insertElementAt(removedElement, targetIndex);
 			table.setRowSelectionInterval(targetIndex, targetIndex);
 			table.updateUI();

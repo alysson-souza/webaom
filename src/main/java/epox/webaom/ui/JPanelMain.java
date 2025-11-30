@@ -25,20 +25,20 @@ package epox.webaom.ui;
 import epox.swing.JPanelCommand;
 import epox.swing.JPanelDebug;
 import epox.swing.Log;
-import epox.util.U;
-import epox.webaom.A;
+import epox.util.StringUtilities;
+import epox.webaom.AppContext;
 import epox.webaom.Cache;
 import epox.webaom.ChiiEmu;
-import epox.webaom.Hyper;
+import epox.webaom.HyperlinkBuilder;
 import epox.webaom.Job;
 import epox.webaom.JobMan;
 import epox.webaom.Options;
 import epox.webaom.Parser;
 import epox.webaom.data.Anime;
-import epox.webaom.data.Ep;
-import epox.webaom.net.ACon;
-import epox.webaom.net.AConE;
-import epox.webaom.net.AConS;
+import epox.webaom.data.Episode;
+import epox.webaom.net.AniDBConnection;
+import epox.webaom.net.AniDBFileClient;
+import epox.webaom.net.AniDBConnectionSettings;
 import epox.webaom.net.Pinger;
 import epox.webaom.startup.StartupIssue;
 import epox.webaom.startup.StartupValidator;
@@ -142,36 +142,36 @@ public class JPanelMain extends JPanel
 		guiUpdateTimer = new Timer(500, this);
 
 		progressTimer.start();
-		if (A.opt.loadFromFile()) {
-			loadOptions(A.opt);
+		if (AppContext.opt.loadFromFile()) {
+			loadOptions(AppContext.opt);
 		} else {
-			A.fha.addExtension("3gp");
-			A.fha.addExtension("asf");
-			A.fha.addExtension("avi");
-			A.fha.addExtension("dat");
-			A.fha.addExtension("divx");
-			A.fha.addExtension("f4v");
-			A.fha.addExtension("flv");
-			A.fha.addExtension("m2ts");
-			A.fha.addExtension("m2v");
-			A.fha.addExtension("m4v");
-			A.fha.addExtension("mkv");
-			A.fha.addExtension("mov");
-			A.fha.addExtension("mp4");
-			A.fha.addExtension("mpeg");
-			A.fha.addExtension("mpg");
-			A.fha.addExtension("mts");
-			A.fha.addExtension("ogm");
-			A.fha.addExtension("ogv");
-			A.fha.addExtension("qt");
-			A.fha.addExtension("ram");
-			A.fha.addExtension("rm");
-			A.fha.addExtension("rmvb");
-			A.fha.addExtension("ts");
-			A.fha.addExtension("vob");
-			A.fha.addExtension("webm");
-			A.fha.addExtension("wmv");
-			jobsPanel.loadOptions(A.opt); // default hack
+			AppContext.fha.addExtension("3gp");
+			AppContext.fha.addExtension("asf");
+			AppContext.fha.addExtension("avi");
+			AppContext.fha.addExtension("dat");
+			AppContext.fha.addExtension("divx");
+			AppContext.fha.addExtension("f4v");
+			AppContext.fha.addExtension("flv");
+			AppContext.fha.addExtension("m2ts");
+			AppContext.fha.addExtension("m2v");
+			AppContext.fha.addExtension("m4v");
+			AppContext.fha.addExtension("mkv");
+			AppContext.fha.addExtension("mov");
+			AppContext.fha.addExtension("mp4");
+			AppContext.fha.addExtension("mpeg");
+			AppContext.fha.addExtension("mpg");
+			AppContext.fha.addExtension("mts");
+			AppContext.fha.addExtension("ogm");
+			AppContext.fha.addExtension("ogv");
+			AppContext.fha.addExtension("qt");
+			AppContext.fha.addExtension("ram");
+			AppContext.fha.addExtension("rm");
+			AppContext.fha.addExtension("rmvb");
+			AppContext.fha.addExtension("ts");
+			AppContext.fha.addExtension("vob");
+			AppContext.fha.addExtension("webm");
+			AppContext.fha.addExtension("wmv");
+			jobsPanel.loadOptions(AppContext.opt); // default hack
 		}
 		try {
 			Thread[] threads = new Thread[Thread.activeCount()];
@@ -188,7 +188,7 @@ public class JPanelMain extends JPanel
 
 	public void startup() {
 		// Validate startup configuration and collect any issues
-		List<StartupIssue> startupIssues = StartupValidator.validateStartup(A.opt);
+		List<StartupIssue> startupIssues = StartupValidator.validateStartup(AppContext.opt);
 
 		// Try to start logging if enabled
 		if (miscOptionsPanel.isAutoLogEnabled()) {
@@ -243,8 +243,8 @@ public class JPanelMain extends JPanel
 
 	public void shutdown() {
 		logEditorPane.closeLogFile();
-		if (networkIoThread != null && A.conn != null && A.conn.authenticated) {
-			ACon.shutdown = true;
+		if (networkIoThread != null && AppContext.conn != null && AppContext.conn.authenticated) {
+			AniDBConnection.shutdown = true;
 			toolbarButtons[BUTTON_CONNECTION].setEnabled(false); // disable the button
 			isNetworkIoRunning = false;
 			try {
@@ -256,7 +256,7 @@ public class JPanelMain extends JPanel
 	}
 
 	public void reset() {
-		synchronized (A.p) {
+		synchronized (AppContext.p) {
 			if (isDiskIoRunning) {
 				toggleDiskIo();
 			}
@@ -266,12 +266,12 @@ public class JPanelMain extends JPanel
 			} catch (Exception ex) {
 				// Ignore timeout exception
 			}
-			A.db.shutdown();
+			AppContext.databaseManager.shutdown();
 			miscOptionsPanel.databaseUrlField.setEnabled(true);
-			A.p.clear();
-			A.jobs.clear();
-			A.cache.clear();
-			A.jobc.reset();
+			AppContext.p.clear();
+			AppContext.jobs.clear();
+			AppContext.cache.clear();
+			AppContext.jobc.reset();
 			jobsTableModel.reset();
 			jobsTable.updateUI();
 			altViewPanel.altViewTreeTable.updateUI();
@@ -312,7 +312,7 @@ public class JPanelMain extends JPanel
 		newExtensionTextField.addActionListener(this);
 
 		@SuppressWarnings("unchecked") // UniqueStringList doesn't have generics
-		final JList<String> extensionList = new JList<String>(A.fha.allowedExtensions);
+		final JList<String> extensionList = new JList<String>(AppContext.fha.allowedExtensions);
 		extensionList.getInputMap().put(KeyStroke.getKeyStroke("DELETE"), "pressed");
 		extensionList.getActionMap().put("pressed", new AbstractAction() {
 			@Override
@@ -320,7 +320,7 @@ public class JPanelMain extends JPanel
 				int[] selectedIndices = extensionList.getSelectedIndices();
 				java.util.Arrays.sort(selectedIndices);
 				for (int idx = selectedIndices.length - 1; idx >= 0; idx--) {
-					A.fha.removeExtension(selectedIndices[idx]);
+					AppContext.fha.removeExtension(selectedIndices[idx]);
 				}
 				extensionList.clearSelection();
 			}
@@ -378,7 +378,7 @@ public class JPanelMain extends JPanel
 		jobsScrollBar = logScrollPane.getVerticalScrollBar();
 
 		//////////////////////////////// INFO PANE///////////////////////////////
-		JTextArea infoTextArea = new JTextArea(A.getFileString("info.txt"));
+		JTextArea infoTextArea = new JTextArea(AppContext.getFileString("info.txt"));
 		infoTextArea.setEditable(false);
 		infoTextArea.setMargin(new Insets(2, 2, 2, 2));
 
@@ -386,11 +386,11 @@ public class JPanelMain extends JPanel
 		hashTextArea = new JTextArea();
 
 		/////////////////////////////// RULES PANE///////////////////////////////
-		rulesOptionsPanel = new JPanelOptRls(A.rules);
+		rulesOptionsPanel = new JPanelOptRls(AppContext.rules);
 
 		//////////////////////////////// JOBS PANE///////////////////////////////
-		jobsTableModel = new TableModelJobs(A.jobs);
-		A.jobs.tableModel = jobsTableModel;
+		jobsTableModel = new TableModelJobs(AppContext.jobs);
+		AppContext.jobs.tableModel = jobsTableModel;
 		jobsTable = new JTableJobs(jobsTableModel);
 		TableModelJobs.formatTable(jobsTable);
 		jobsPanel = new JPanelJobs(jobsTable, jobsTableModel);
@@ -399,7 +399,7 @@ public class JPanelMain extends JPanel
 		altViewPanel = new JPanelAlt(this);
 
 		////////////////////////////// CHII EMULATOR/////////////////////////////
-		ChiiEmu chiiEmulator = new ChiiEmu(A.conn);
+		ChiiEmu chiiEmulator = new ChiiEmu(AppContext.conn);
 		JPanelCommand commandPanel = new JPanelCommand(chiiEmulator, "Chii Emulator - AniDB IRC bot commands\n"
 				+ "Commands: !uptime !mystats !anime !group !randomanime !mylist !state !watched !storage !font\n"
 				+ "Raw API: Start with '?' (e.g. ?PING) - session is added automatically.\n");
@@ -423,7 +423,7 @@ public class JPanelMain extends JPanel
 		statusProgressBar.setString("Welcome to WebAOM!");
 		statusProgressBar.setStringPainted(true);
 		jobProgressBar = new JProgressBar(SwingConstants.HORIZONTAL, 0, 1000);
-		jobProgressBar.setString(A.S_VER);
+		jobProgressBar.setString(AppContext.S_VER);
 		jobProgressBar.setStringPainted(true);
 		JPanel progressPanel = new JPanel(new GridLayout(2, 1));
 		progressPanel.add(statusProgressBar);
@@ -463,7 +463,7 @@ public class JPanelMain extends JPanel
 		if (!isKilled()) {
 			connectionOptionsPanel.setEnabled(enabled);
 			autoAddToMylistCheckbox.setEnabled(enabled);
-			mylistOptionsPanel.setEnabled(enabled && A.autoadd);
+			mylistOptionsPanel.setEnabled(enabled && AppContext.autoadd);
 		}
 	}
 
@@ -553,8 +553,8 @@ public class JPanelMain extends JPanel
 			workerThread = new ExportImportThread(true);
 			workerThread.start();
 		} else if (source == toolbarButtons[BUTTON_SAVE]) {
-			saveOptions(A.opt);
-			A.opt.saveToFile();
+			saveOptions(AppContext.opt);
+			AppContext.opt.saveToFile();
 		} else if (source == toolbarButtons[BUTTON_WIKI]) {
 			openHyperlink("https://wiki.anidb.net/WebAOM");
 		} else if (source == diskIoTimer) {
@@ -576,7 +576,7 @@ public class JPanelMain extends JPanel
 		} else if (source == miscOptionsPanel.databaseUrlField) {
 			startDatabase();
 		} else if (source == newExtensionTextField) {
-			A.fha.addExtension(newExtensionTextField.getText());
+			AppContext.fha.addExtension(newExtensionTextField.getText());
 			newExtensionTextField.setText("");
 		} else if (source == miscOptionsPanel.logFilePathField) {
 			startLogging();
@@ -590,16 +590,16 @@ public class JPanelMain extends JPanel
 		} else if (source == altViewPanel.pathRegexField) {
 			String regexPattern = altViewPanel.pathRegexField.getText();
 			if (regexPattern.isEmpty()) {
-				A.preg = null;
+				AppContext.preg = null;
 			} else {
-				A.preg = regexPattern;
+				AppContext.preg = regexPattern;
 			}
 			altViewPanel.updateAlternativeView(true);
 		} else if (source == altViewPanel.animeTitleComboBox) {
 			Anime.TITLE_PRIORITY = altViewPanel.animeTitleComboBox.getSelectedIndex();
 			altViewPanel.updateAlternativeView(false);
 		} else if (source == altViewPanel.episodeTitleComboBox) {
-			Ep.TITLE_PRIORITY = altViewPanel.episodeTitleComboBox.getSelectedIndex();
+			Episode.TITLE_PRIORITY = altViewPanel.episodeTitleComboBox.getSelectedIndex();
 			altViewPanel.updateAlternativeView(false);
 		}
 	}
@@ -611,7 +611,7 @@ public class JPanelMain extends JPanel
 	}
 
 	private void startDatabase() {
-		if (A.db.isConnected() || workerThread != null) {
+		if (AppContext.databaseManager.isConnected() || workerThread != null) {
 			return;
 		}
 		workerThread = new DatabaseInitThread(miscOptionsPanel.databaseUrlField);
@@ -621,8 +621,8 @@ public class JPanelMain extends JPanel
 	public void stateChanged(ChangeEvent event) {
 		Object source = event.getSource();
 		if (source == autoAddToMylistCheckbox) {
-			A.autoadd = autoAddToMylistCheckbox.isSelected();
-			mylistOptionsPanel.setEnabled(A.autoadd);
+			AppContext.autoadd = autoAddToMylistCheckbox.isSelected();
+			mylistOptionsPanel.setEnabled(AppContext.autoadd);
 		}
 	}
 
@@ -641,15 +641,15 @@ public class JPanelMain extends JPanel
 
 	private void startDiskIo() {
 		if (diskIoThread == null) {
-			if (!A.jobs.workForDio()) {
+			if (!AppContext.jobs.workForDio()) {
 				Thread recursiveWorker = new RecursiveDirectoryScanner(miscOptionsPanel.getHashDirectories(), true);
 				recursiveWorker.start();
 				Thread.yield();
-				if (!A.jobs.workForDio()) {
+				if (!AppContext.jobs.workForDio()) {
 					return;
 				}
 			}
-			diskIoThread = new Thread(A.dio, "DiskIO");
+			diskIoThread = new Thread(AppContext.dio, "DiskIO");
 			diskIoThread.start();
 		}
 	}
@@ -679,7 +679,7 @@ public class JPanelMain extends JPanel
 				return false;
 			}
 			// A.conn = getConnection();
-			networkIoThread = new Thread(A.nio, "NetIO");
+			networkIoThread = new Thread(AppContext.nio, "NetIO");
 			networkIoThread.start();
 			return true;
 		}
@@ -703,11 +703,11 @@ public class JPanelMain extends JPanel
 	}
 
 	public void showMessage(String msg) {
-		A.dialog("Message", msg);
+		AppContext.dialog("Message", msg);
 	}
 
 	public void showMessage(String title, String msg) {
-		JOptionPane.showMessageDialog(A.component, msg, title, JOptionPane.WARNING_MESSAGE);
+		JOptionPane.showMessageDialog(AppContext.component, msg, title, JOptionPane.WARNING_MESSAGE);
 	}
 
 	protected class JobScrollDown implements Runnable {
@@ -752,9 +752,9 @@ public class JPanelMain extends JPanel
 	}
 
 	public void updateProgressBar() {
-		jobProgressBar.setValue(A.jobc.getProgress());
-		if (A.frame != null) {
-			A.frame.setTitle("WebAOM " + A.S_VER + " " + A.jobc.getStatus());
+		jobProgressBar.setValue(AppContext.jobc.getProgress());
+		if (AppContext.frame != null) {
+			AppContext.frame.setTitle("WebAOM " + AppContext.S_VER + " " + AppContext.jobc.getStatus());
 		}
 		if (((updateCount++) % 10) == 0) {
 			System.gc();
@@ -763,7 +763,7 @@ public class JPanelMain extends JPanel
 
 	public void openHyperlink(String url) {
 		try {
-			U.out(url);
+			StringUtilities.out(url);
 			String path = miscOptionsPanel.browserPathField.getText();
 			if (!path.isEmpty()) {
 				Runtime.getRuntime().exec(new String[]{path, url});
@@ -786,51 +786,52 @@ public class JPanelMain extends JPanel
 		}
 	}
 
-	public AConE createConnection() {
-		A.usetup = new AConS(getHost(), getRemotePort(), getLocalPort(), connectionOptionsPanel.getTimeout(),
-				connectionOptionsPanel.getDelayMillis(), 3, connectionOptionsPanel.isNatKeepAliveEnabled());
-		AConE connection = new AConE(this, A.usetup);
-		connection.set(A.userPass.username, A.userPass.password, A.userPass.apiKey);
+	public AniDBFileClient createConnection() {
+		AppContext.usetup = new AniDBConnectionSettings(getHost(), getRemotePort(), getLocalPort(),
+				connectionOptionsPanel.getTimeout(), connectionOptionsPanel.getDelayMillis(), 3,
+				connectionOptionsPanel.isNatKeepAliveEnabled());
+		AniDBFileClient connection = new AniDBFileClient(this, AppContext.usetup);
+		connection.set(AppContext.userPass.username, AppContext.userPass.password, AppContext.userPass.apiKey);
 		return connection;
 	}
 
 	/////////////////////////////////// OPTIONS//////////////////////////////////
 	public void saveOptions(Options options) {
 		options.setBoolean(Options.BOOL_ADD_FILE, autoAddToMylistCheckbox.isSelected());
-		options.setString(Options.STR_HTML_COLORS, Hyper.encodeColors());
-		options.setString(Options.STR_USERNAME, A.userPass.get(miscOptionsPanel.isStorePasswordEnabled()));
+		options.setString(Options.STR_HTML_COLORS, HyperlinkBuilder.encodeColors());
+		options.setString(Options.STR_USERNAME, AppContext.userPass.get(miscOptionsPanel.isStorePasswordEnabled()));
 
 		mylistOptionsPanel.saveToOptions(options);
-		A.fha.saveOptions(options);
+		AppContext.fha.saveOptions(options);
 		connectionOptionsPanel.saveOptions(options);
 		miscOptionsPanel.saveToOptions(options);
-		A.rules.saveToOptions(options);
+		AppContext.rules.saveToOptions(options);
 		jobsPanel.saveOptions(options);
 
-		options.setString(Options.STR_PATH_REGEX, A.preg);
-		options.setString(Options.STR_FONT, A.font);
+		options.setString(Options.STR_PATH_REGEX, AppContext.preg);
+		options.setString(Options.STR_FONT, AppContext.font);
 		options.setString(Options.STR_LOG_HEADER, JEditorPaneLog.htmlHeader);
 	}
 
 	public void loadOptions(Options options) {
 		try {
 			autoAddToMylistCheckbox.setSelected(options.getBoolean(Options.BOOL_ADD_FILE));
-			Hyper.decodeColors(options.getString(Options.STR_HTML_COLORS));
-			A.userPass.set(options.getString(Options.STR_USERNAME));
+			HyperlinkBuilder.decodeColors(options.getString(Options.STR_HTML_COLORS));
+			AppContext.userPass.set(options.getString(Options.STR_USERNAME));
 			mylistOptionsPanel.loadFromOptions(options);
-			A.fha.loadOptions(options);
+			AppContext.fha.loadOptions(options);
 			connectionOptionsPanel.loadOptions(options);
 			miscOptionsPanel.loadFromOptions(options);
-			A.rules.loadFromOptions(options);
+			AppContext.rules.loadFromOptions(options);
 			jobsPanel.loadOptions(options);
 			rulesOptionsPanel.updateRules();
 
 			String pathRegex = options.getString(Options.STR_PATH_REGEX);
 			if (!pathRegex.isEmpty()) {
-				A.preg = pathRegex;
+				AppContext.preg = pathRegex;
 				altViewPanel.pathRegexField.setText(pathRegex);
 			}
-			A.font = options.getString(Options.STR_FONT);
+			AppContext.font = options.getString(Options.STR_FONT);
 			logEditorPane.setHeader(options.getString(Options.STR_LOG_HEADER));
 		} catch (Exception ex) {
 			ex.printStackTrace();
@@ -846,16 +847,16 @@ public class JPanelMain extends JPanel
 			return;
 		}
 		JFileChooser fileChooser = new JFileChooser();
-		fileChooser.setFileFilter(A.fha.extensionFilter);
+		fileChooser.setFileFilter(AppContext.fha.extensionFilter);
 		fileChooser.setMultiSelectionEnabled(true);
-		if (A.dir != null) {
-			fileChooser.setCurrentDirectory(new File(A.dir));
+		if (AppContext.dir != null) {
+			fileChooser.setCurrentDirectory(new File(AppContext.dir));
 		}
-		int option = fileChooser.showDialog(A.component, "Select File(s)");
+		int option = fileChooser.showDialog(AppContext.component, "Select File(s)");
 		if (option == JFileChooser.APPROVE_OPTION) {
 			selectFilesForProcessing(fileChooser.getSelectedFiles());
 		} else {
-			A.dir = fileChooser.getCurrentDirectory().getAbsolutePath();
+			AppContext.dir = fileChooser.getCurrentDirectory().getAbsolutePath();
 		}
 	}
 
@@ -867,29 +868,29 @@ public class JPanelMain extends JPanel
 		JFileChooser fileChooser = new JFileChooser();
 		fileChooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
 		fileChooser.setMultiSelectionEnabled(true);
-		if (A.dir != null) {
-			fileChooser.setCurrentDirectory(new File(A.dir));
+		if (AppContext.dir != null) {
+			fileChooser.setCurrentDirectory(new File(AppContext.dir));
 		}
-		int option = fileChooser.showDialog(A.component, "Select Directory(ies) (recursive)");
+		int option = fileChooser.showDialog(AppContext.component, "Select Directory(ies) (recursive)");
 		if (option == JFileChooser.APPROVE_OPTION) {
 			selectFilesForProcessing(fileChooser.getSelectedFiles());
 		} else {
-			A.dir = fileChooser.getCurrentDirectory().getAbsolutePath();
+			AppContext.dir = fileChooser.getCurrentDirectory().getAbsolutePath();
 		}
 	}
 
 	public void selectFilesForProcessing(File[] files) {
 		if (workerThread != null) {
-			A.dialog("Message", "There is already a thread like this running.");
+			AppContext.dialog("Message", "There is already a thread like this running.");
 			return;
 		}
 		if (files.length <= 0) {
 			return;
 		}
 		if (files[0].getParent() != null) {
-			A.dir = files[0].getParent();
+			AppContext.dir = files[0].getParent();
 		} else {
-			A.dir = files[0].getAbsolutePath();
+			AppContext.dir = files[0].getAbsolutePath();
 		}
 		workerThread = new RecursiveDirectoryScanner(files, false);
 		workerThread.start();
@@ -948,7 +949,7 @@ public class JPanelMain extends JPanel
 					setStatusMessage("Checking: " + file);
 				}
 				int fileCount = 0;
-				File[] files = file.listFiles(A.fha.extensionFilter);
+				File[] files = file.listFiles(AppContext.fha.extensionFilter);
 				if (files == null) {
 					return 0;
 				}
@@ -957,7 +958,7 @@ public class JPanelMain extends JPanel
 				}
 				return fileCount;
 			}
-			if (A.fha.addFile(file)) {
+			if (AppContext.fha.addFile(file)) {
 				return 1;
 			}
 			return 0;
@@ -977,33 +978,33 @@ public class JPanelMain extends JPanel
 		public void run() {
 			guiUpdateTimer.stop();
 			databasePathField.setEnabled(false);
-			if (A.db.initialize(databasePathField.getText())) {
+			if (AppContext.databaseManager.initialize(databasePathField.getText())) {
 				long startTime = System.currentTimeMillis();
 				// A.mem3 = A.getUsed();
-				A.db.getJobs();
-				Object[] jobArray = A.jobs.array();
+				AppContext.databaseManager.getJobs();
+				Object[] jobArray = AppContext.jobs.array();
 				Job job;
 
 				// A.mem4 = A.getUsed();
 
-				A.db.debug = false;
+				AppContext.databaseManager.debug = false;
 				for (Object o : jobArray) {
 					job = (Job) o;
 					job.isFresh = false;
-					A.cache.gatherInfo(job, false);
+					AppContext.cache.gatherInfo(job, false);
 					if (job.getStatus() == Job.MOVEWAIT) {
 						JobMan.updatePath(job);
 					}
 					// updateJobTable(job);
 				}
 				int elapsedMs = (int) (System.currentTimeMillis() - startTime);
-				println("Loaded db in " + Hyper.formatAsNumber(elapsedMs) + " ms. "
-						+ Hyper.formatAsNumber(A.jobs.size()) + " files found.");
+				println("Loaded db in " + HyperlinkBuilder.formatAsNumber(elapsedMs) + " ms. "
+						+ HyperlinkBuilder.formatAsNumber(AppContext.jobs.size()) + " files found.");
 				altViewPanel.updateAlternativeView(true);
 			} else {
 				databasePathField.setEnabled(true);
 			}
-			A.db.debug = true;
+			AppContext.databaseManager.debug = true;
 			workerThread = null;
 
 			guiUpdateTimer.start();

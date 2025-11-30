@@ -19,7 +19,7 @@ package epox.webaom.data;
 import java.util.HashMap;
 import java.util.Map;
 
-public class AMap extends HashMap<String, String> {
+public class AttributeMap extends HashMap<String, String> {
 	public String put(String key, String value) {
 		if (value == null) {
 			return null;

@@ -4,7 +4,7 @@
  */
 package epox.webaom.ui;
 
-import epox.webaom.A;
+import epox.webaom.AppContext;
 import epox.webaom.Job;
 import epox.webaom.JobMan;
 import java.awt.event.KeyAdapter;
@@ -13,14 +13,14 @@ import javax.swing.JTable;
 
 public class KeyAdapterJob extends KeyAdapter {
 	private final JTable table;
-	private final JTreeTableR treeTable;
+	private final JobTreeTable treeTable;
 	private final RowModel rowModel;
 
 	public KeyAdapterJob(JTable table, RowModel rowModel) {
 		this.table = table;
 		this.rowModel = rowModel;
-		if (table instanceof JTreeTableR) {
-			this.treeTable = (JTreeTableR) table;
+		if (table instanceof JobTreeTable) {
+			this.treeTable = (JobTreeTable) table;
 		} else {
 			this.treeTable = null;
 		}
@@ -31,17 +31,17 @@ public class KeyAdapterJob extends KeyAdapter {
 			int keyCode = event.getKeyCode();
 			switch (keyCode) {
 				case 'R' :
-					A.gui.altViewPanel.updateAlternativeView(true);
+					AppContext.gui.altViewPanel.updateAlternativeView(true);
 					return;
 				case 'D' :
-					A.p.dump("@ ");
+					AppContext.p.dump("@ ");
 					return; // A.jobs.dumpHashSet();
 				case 'B' :
-					A.dumpStats();
+					AppContext.dumpStats();
 					return;
 				case 'L' :
-					A.p.clear();
-					A.gui.altViewPanel.updateAlternativeView(false);
+					AppContext.p.clear();
+					AppContext.gui.altViewPanel.updateAlternativeView(false);
 					return;
 			}
 			int selectedRow = table.getSelectedRow();
@@ -56,25 +56,25 @@ public class KeyAdapterJob extends KeyAdapter {
 			boolean eventConsumed = true;
 			switch (keyCode) {
 				case 'A' :
-					A.gui.openHyperlink(selectedJob.anidbFile.urlAnime());
+					AppContext.gui.openHyperlink(selectedJob.anidbFile.urlAnime());
 					break;
 				case 'M' :
-					A.gui.openHyperlink(selectedJob.anidbFile.urlMylist());
+					AppContext.gui.openHyperlink(selectedJob.anidbFile.urlMylist());
 					break;
 				case 'N' :
-					A.gui.openHyperlink(selectedJob.anidbFile.urlMylistE(selectedJob.mylistId));
+					AppContext.gui.openHyperlink(selectedJob.anidbFile.urlMylistE(selectedJob.mylistId));
 					break;
 				case 'E' :
-					A.gui.openHyperlink(selectedJob.anidbFile.urlEp());
+					AppContext.gui.openHyperlink(selectedJob.anidbFile.urlEp());
 					break;
 				case 'G' :
-					A.gui.openHyperlink(selectedJob.anidbFile.urlGroup());
+					AppContext.gui.openHyperlink(selectedJob.anidbFile.urlGroup());
 					break;
 				case 'F' :
-					A.gui.openHyperlink(selectedJob.anidbFile.urlFile());
+					AppContext.gui.openHyperlink(selectedJob.anidbFile.urlFile());
 					break;
 				case 'K' :
-					A.gui.openHyperlink(selectedJob.anidbFile.urlExport());
+					AppContext.gui.openHyperlink(selectedJob.anidbFile.urlExport());
 					break;
 				case 'W' :
 					JobMan.openInDefaultPlayer(selectedJob);
@@ -84,7 +84,7 @@ public class KeyAdapterJob extends KeyAdapter {
 					break;
 				case 'C' :
 					JobMan.runAvdump(selectedJob);
-					A.gui.openHyperlink(selectedJob.anidbFile.urlFile());
+					AppContext.gui.openHyperlink(selectedJob.anidbFile.urlFile());
 					break;
 				case 'P' :
 					JobMan.updateStatus(selectedJob, Job.H_PAUSED, true);

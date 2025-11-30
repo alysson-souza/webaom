@@ -22,9 +22,9 @@
  */
 package epox.webaom;
 
-import epox.util.DSData;
-import epox.util.U;
-import epox.webaom.data.AMap;
+import epox.util.ReplacementRule;
+import epox.util.StringUtilities;
+import epox.webaom.data.AttributeMap;
 import java.io.File;
 import java.util.StringTokenizer;
 import java.util.Vector;
@@ -38,25 +38,25 @@ public class Rules {
 	public static final String TRUNC = "TRUNCATE<";
 
 	/** Characters to replace in filenames (illegal filesystem characters) */
-	public Vector<DSData> illegalCharReplacements;
+	public Vector<ReplacementRule> illegalCharReplacements;
 	private String renameRulesScript;
 	private String moveRulesScript;
-	private AMap tagValueMap = null;
+	private AttributeMap tagValueMap = null;
 
 	// private int mItruncate = 0;
 
 	public Rules() {
 		illegalCharReplacements = new Vector<>();
-		illegalCharReplacements.add(new DSData("`", "'", true));
-		illegalCharReplacements.add(new DSData("\"", "", true));
-		illegalCharReplacements.add(new DSData("<", "", true));
-		illegalCharReplacements.add(new DSData(">", "", true));
-		illegalCharReplacements.add(new DSData("|", "", true));
-		illegalCharReplacements.add(new DSData("/", "", true));
-		illegalCharReplacements.add(new DSData(":", "", true));
-		illegalCharReplacements.add(new DSData("\\", "", true));
-		illegalCharReplacements.add(new DSData("?", "", true));
-		illegalCharReplacements.add(new DSData("*", "", true));
+		illegalCharReplacements.add(new ReplacementRule("`", "'", true));
+		illegalCharReplacements.add(new ReplacementRule("\"", "", true));
+		illegalCharReplacements.add(new ReplacementRule("<", "", true));
+		illegalCharReplacements.add(new ReplacementRule(">", "", true));
+		illegalCharReplacements.add(new ReplacementRule("|", "", true));
+		illegalCharReplacements.add(new ReplacementRule("/", "", true));
+		illegalCharReplacements.add(new ReplacementRule(":", "", true));
+		illegalCharReplacements.add(new ReplacementRule("\\", "", true));
+		illegalCharReplacements.add(new ReplacementRule("?", "", true));
+		illegalCharReplacements.add(new ReplacementRule("*", "", true));
 
 		renameRulesScript = "#RENAME\n" + "#DO SET '%ann - %enr - %epn '\n" + "#IF G(!unknown) DO ADD '[%grp]'\n"
 				+ "#ELSE DO ADD '[RAW]'";
@@ -80,23 +80,23 @@ public class Rules {
 	}
 
 	private String replaceOldTags(String script) {
-		script = U.replace(script, "%year", "%yea");
-		script = U.replace(script, "%type", "%typ");
-		script = U.replace(script, "%qual", "%qua");
-		script = U.replace(script, "%ed2k", "%ed2");
+		script = StringUtilities.replace(script, "%year", "%yea");
+		script = StringUtilities.replace(script, "%type", "%typ");
+		script = StringUtilities.replace(script, "%qual", "%qua");
+		script = StringUtilities.replace(script, "%ed2k", "%ed2");
 		return script;
 	}
 
 	public void loadFromOptions(Options options) {
 		renameRulesScript = replaceOldTags(options.getString(Options.STR_RENAME_RULES));
 		moveRulesScript = replaceOldTags(options.getString(Options.STR_MOVE_RULES));
-		DSData.decode(illegalCharReplacements, options.getString(Options.STR_REPLACE_RULES));
+		ReplacementRule.decode(illegalCharReplacements, options.getString(Options.STR_REPLACE_RULES));
 	}
 
 	public void saveToOptions(Options options) {
 		options.setString(Options.STR_RENAME_RULES, renameRulesScript);
 		options.setString(Options.STR_MOVE_RULES, moveRulesScript);
-		options.setString(Options.STR_REPLACE_RULES, DSData.encode(illegalCharReplacements));
+		options.setString(Options.STR_REPLACE_RULES, ReplacementRule.encode(illegalCharReplacements));
 	}
 
 	public File apply(Job job) {
@@ -129,7 +129,7 @@ public class Rules {
 		}
 
 		String abs = path + File.separator + name;
-		abs = U.replace(abs, File.separator + File.separator, File.separator);
+		abs = StringUtilities.replace(abs, File.separator + File.separator, File.separator);
 
 		if (path.startsWith("\\\\")) {
 			abs = "\\" + abs;
@@ -221,12 +221,12 @@ public class Rules {
 		if (upperOp.startsWith("ASSUME ")) {
 			try {
 				if (upperOp.startsWith("ASSUME SPECIAL ")) {
-					A.assumedSpecialCount = U.i(upperOp.substring(15).trim());
+					AppContext.assumedSpecialCount = StringUtilities.i(upperOp.substring(15).trim());
 				} else {
-					A.assumedEpisodeCount = U.i(upperOp.substring(7).trim());
+					AppContext.assumedEpisodeCount = StringUtilities.i(upperOp.substring(7).trim());
 				}
 			} catch (NumberFormatException e) {
-				A.dialog("NumberFormatException", "Parsing '" + operation + "' failed.");
+				AppContext.dialog("NumberFormatException", "Parsing '" + operation + "' failed.");
 			}
 			return false;
 		}
@@ -236,7 +236,7 @@ public class Rules {
 			if (closeIndex > 0 && commaIndex > 0 && commaIndex < closeIndex) {
 				sections.add(new Section(upperOp.substring(0, closeIndex + 1)));
 			} else {
-				A.gui.println(Hyper.formatAsError("Invalid rule element: " + operation));
+				AppContext.gui.println(HyperlinkBuilder.formatAsError("Invalid rule element: " + operation));
 			}
 			return false;
 		}
@@ -316,8 +316,8 @@ public class Rules {
 				}
 			}
 			case 'E' : // Episode
-				return matchesPattern(job.anidbFile.ep.num, testValue)
-						|| matchesPattern(job.anidbFile.ep.eng, testValue);
+				return matchesPattern(job.anidbFile.episode.num, testValue)
+						|| matchesPattern(job.anidbFile.episode.eng, testValue);
 			case 'C' : // Codec
 				return job.anidbFile.videoCodec.equalsIgnoreCase(testValue)
 						|| containsIgnoreCase(job.anidbFile.audioCodec, testValue);
@@ -395,7 +395,7 @@ public class Rules {
 		try {
 			return text.matches(pattern);
 		} catch (PatternSyntaxException e) {
-			A.dialog("Error", e.getMessage());
+			AppContext.dialog("Error", e.getMessage());
 			return false;
 		}
 	}
@@ -417,11 +417,11 @@ public class Rules {
 	}
 
 	private static String applyReplacements(String text, Vector replacements) {
-		DSData replacement;
+		ReplacementRule replacement;
 		for (int index = 0; index < replacements.size(); index++) {
-			replacement = (DSData) replacements.elementAt(index);
+			replacement = (ReplacementRule) replacements.elementAt(index);
 			if (replacement.enabled) {
-				text = U.replace(text, replacement.source, replacement.destination);
+				text = StringUtilities.replace(text, replacement.source, replacement.destination);
 			}
 		}
 		return text;
@@ -443,7 +443,7 @@ public class Rules {
 				if (commaIndex < truncateStart || commaIndex > closeIndex) {
 					break;
 				}
-				maxLength = U.i(text.substring(truncateStart + TRUNC.length(), commaIndex));
+				maxLength = StringUtilities.i(text.substring(truncateStart + TRUNC.length(), commaIndex));
 				suffix = text.substring(commaIndex + 1, closeIndex);
 				if (truncateStart > maxLength + suffix.length()) {
 					text = text.substring(0, maxLength - suffix.length()) + suffix + text.substring(closeIndex + 1);

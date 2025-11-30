@@ -22,7 +22,7 @@
  */
 package epox.webaom.net;
 
-public class AConEx extends Exception {
+public class AniDBException extends Exception {
 	public static final int CLIENT_BANNED = 0;
 	public static final int CLIENT_OUTDATED = 1;
 	public static final int CLIENT_BUG = 2;
@@ -35,11 +35,11 @@ public class AConEx extends Exception {
 
 	private final int code;
 
-	public AConEx(int code) {
+	public AniDBException(int code) {
 		this(code, defaultMsg(code));
 	}
 
-	public AConEx(int code, String msg) {
+	public AniDBException(int code, String msg) {
 		super(msg);
 		this.code = code;
 	}

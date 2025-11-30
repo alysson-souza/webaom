@@ -48,9 +48,9 @@ public class FileHandler {
 	}
 
 	public synchronized boolean addFile(File file) {
-		if ((allowedExtensions.includes(getExtension(file)) || allowedExtensions.getSize() == 0) && !A.jobs.has(file)
-				&& !isFileLocked(file)) {
-			Job job = A.jobs.add(file);
+		if ((allowedExtensions.includes(getExtension(file)) || allowedExtensions.getSize() == 0)
+				&& !AppContext.jobs.has(file) && !isFileLocked(file)) {
+			Job job = AppContext.jobs.add(file);
 			if (job != null) {
 				job.updateHealth(Job.H_PAUSED);
 				return true;

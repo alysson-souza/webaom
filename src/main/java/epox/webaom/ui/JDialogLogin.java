@@ -22,9 +22,9 @@
  */
 package epox.webaom.ui;
 
-import epox.util.U;
+import epox.util.StringUtilities;
 import epox.util.UserPass;
-import epox.webaom.A;
+import epox.webaom.AppContext;
 import java.awt.Dimension;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
@@ -52,14 +52,14 @@ public class JDialogLogin extends JDialog implements ActionListener {
 	private String apiPassText;
 
 	public JDialogLogin() {
-		super(A.frame, "Enter your AniDB username and password.", true);
+		super(AppContext.frame, "Enter your AniDB username and password.", true);
 		init();
 	}
 
 	private void init() {
-		usernameField = new JTextField(A.userPass.username, 20);
-		passwordField = new JPasswordField(A.userPass.password, 20);
-		apiPassField = new JTextField(A.userPass.apiKey, 20);
+		usernameField = new JTextField(AppContext.userPass.username, 20);
+		passwordField = new JPasswordField(AppContext.userPass.password, 20);
+		apiPassField = new JTextField(AppContext.userPass.apiKey, 20);
 		apiPassField.setToolTipText("Use blank if you don't care about encryption");
 		okButton = new JButton("OK");
 		okButton.setToolTipText("<html>Login is required to access the <i>AniDB UDP Service</i> which"
@@ -129,14 +129,14 @@ public class JDialogLogin extends JDialog implements ActionListener {
 			okButton.setText("Username too short - OK");
 		} else if (usernameText.length() > 16) {
 			okButton.setText("Username too long - OK");
-		} else if (!U.alfanum(usernameText)) {
+		} else if (!StringUtilities.alfanum(usernameText)) {
 			okButton.setText("Only letters and digits - OK");
 		} else if (passwordText.length() < 4) {
 			okButton.setText("Password too short - OK");
 		} else {
-			A.userPass.username = usernameText;
-			A.userPass.password = passwordText;
-			A.userPass.apiKey = apiPassText;
+			AppContext.userPass.username = usernameText;
+			AppContext.userPass.password = passwordText;
+			AppContext.userPass.apiKey = apiPassText;
 			success = true;
 			dispose();
 		}

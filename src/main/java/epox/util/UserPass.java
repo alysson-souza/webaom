@@ -52,7 +52,7 @@ public class UserPass {
 	 */
 	public void set(String encoded) {
 		try {
-			String[] parts = U.split(encoded, ':');
+			String[] parts = StringUtilities.split(encoded, ':');
 			username = parts[0];
 			if (parts.length >= 2) {
 				password = decrypt(parts[1]);

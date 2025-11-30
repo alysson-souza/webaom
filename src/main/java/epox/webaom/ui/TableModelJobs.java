@@ -173,16 +173,16 @@ public class TableModelJobs extends TableModelSortable implements RowModel {
 			}
 		}
 
-		if (job.anidbFile.ep != null) {
+		if (job.anidbFile.episode != null) {
 			switch (column) {
 				case ENUM :
-					return defaultString(job.anidbFile.ep.num);
+					return defaultString(job.anidbFile.episode.num);
 				case EENG :
-					return defaultString(job.anidbFile.ep.eng);
+					return defaultString(job.anidbFile.episode.eng);
 				case EKAN :
-					return defaultString(job.anidbFile.ep.kan);
+					return defaultString(job.anidbFile.episode.kan);
 				case EROM :
-					return defaultString(job.anidbFile.ep.rom);
+					return defaultString(job.anidbFile.episode.rom);
 				default :
 					break;
 			}

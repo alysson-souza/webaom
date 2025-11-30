@@ -109,9 +109,9 @@ public class JobList {
 	public synchronized Job add(File file) {
 		if (filePathSet.add(file)) { // TODO if update then check against existing files
 			Job job = new Job(file, Job.HASHWAIT);
-			int status = A.db.getJob(job, false);
+			int status = AppContext.databaseManager.getJob(job, false);
 			if (status >= 0 && job.anidbFile != null) {
-				A.cache.gatherInfo(job, true);
+				AppContext.cache.gatherInfo(job, true);
 				job.setStatus(status, false);
 			}
 			addJobInternal(job);
@@ -189,15 +189,15 @@ public class JobList {
 			return;
 		}
 		int queueType = -1;
-		if (A.bitcmp(status, Job.S_DO) || A.bitcmp(status, Job.S_DOING)) {
-			if (A.bitcmp(status, Job.D_DIO)) {
+		if (AppContext.bitcmp(status, Job.S_DO) || AppContext.bitcmp(status, Job.S_DOING)) {
+			if (AppContext.bitcmp(status, Job.D_DIO)) {
 				queueType = QUEUE_DISK_IO;
-			} else if (A.bitcmp(status, Job.D_NIO)) {
+			} else if (AppContext.bitcmp(status, Job.D_NIO)) {
 				queueType = QUEUE_NETWORK_IO;
 			} else {
 				return;
 			}
-		} else if (A.bitcmp(status, Job.FAILED) || A.bitcmp(status, Job.UNKNOWN)) {
+		} else if (AppContext.bitcmp(status, Job.FAILED) || AppContext.bitcmp(status, Job.UNKNOWN)) {
 			queueType = QUEUE_ERROR;
 		} else {
 			return;

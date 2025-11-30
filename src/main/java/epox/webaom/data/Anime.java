@@ -24,7 +24,7 @@
 package epox.webaom.data;
 
 import epox.util.Bits;
-import epox.util.U;
+import epox.util.StringUtilities;
 import epox.webaom.ui.TableModelAlt;
 
 /**
@@ -78,21 +78,21 @@ public class Anime extends Base {
 
 	public Anime(String[] fields) {
 		int index = 0;
-		id = U.i(fields[index++]);
-		episodeCount = U.i(fields[index++]);
-		latestEpisode = U.i(fields[index++]);
-		year = U.i(fields[index++].substring(0, 4));
+		id = StringUtilities.i(fields[index++]);
+		episodeCount = StringUtilities.i(fields[index++]);
+		latestEpisode = StringUtilities.i(fields[index++]);
+		year = StringUtilities.i(fields[index++].substring(0, 4));
 		if (fields[index - 1].length() == 9) { // Data is from AniDB in XXXX-YYYY format
-			endYear = U.i(fields[index - 1].substring(5, 9));
+			endYear = StringUtilities.i(fields[index - 1].substring(5, 9));
 		} else if (fields.length == 10) { // Data is from serialize file
-			endYear = U.i(fields[9].substring(0, 4));
+			endYear = StringUtilities.i(fields[9].substring(0, 4));
 		} else { // Data is from AniDB in XXXX format
 			endYear = year;
 		}
 		type = fields[index++];
 		romajiTitle = fields[index++];
-		kanjiTitle = U.n(fields[index++]);
-		englishTitle = U.n(fields[index++]);
+		kanjiTitle = StringUtilities.n(fields[index++]);
+		englishTitle = StringUtilities.n(fields[index++]);
 		categories = fields[index++];
 
 		init();
@@ -148,7 +148,7 @@ public class Anime extends Base {
 	 * @param watched
 	 *            true if watched, false if unwatched
 	 */
-	public void registerEpisode(Ep episode, boolean watched) {
+	public void registerEpisode(Episode episode, boolean watched) {
 		if (Character.isDigit(episode.num.charAt(0))) {
 			try {
 				setOrFill(Integer.parseInt(episode.num), watched);
@@ -176,12 +176,12 @@ public class Anime extends Base {
 					int dashIndex = episode.eng.indexOf('-');
 
 					if (dashIndex > 0) {
-						int startEp = U.i(episode.eng.substring(9, dashIndex));
+						int startEp = StringUtilities.i(episode.eng.substring(9, dashIndex));
 						int spaceIndex = episode.eng.indexOf(' ', dashIndex);
 						if (spaceIndex < dashIndex) {
 							spaceIndex = episode.eng.length();
 						}
-						int endEp = U.i(episode.eng.substring(dashIndex + 1, spaceIndex));
+						int endEp = StringUtilities.i(episode.eng.substring(dashIndex + 1, spaceIndex));
 						for (int epIndex = startEp - 1; epIndex < endEp; epIndex++) {
 							episodeProgress.set(epIndex, watched);
 						}

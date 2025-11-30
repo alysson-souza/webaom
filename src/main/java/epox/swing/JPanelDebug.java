@@ -23,8 +23,8 @@
 
 package epox.swing;
 
-import epox.util.U;
-import epox.webaom.A;
+import epox.util.StringUtilities;
+import epox.webaom.AppContext;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
@@ -53,7 +53,8 @@ public class JPanelDebug extends JPanel {
 		super(new java.awt.BorderLayout());
 		textArea = new JTextArea();
 		textArea.setMargin(new java.awt.Insets(2, 2, 2, 2));
-		textArea.append("Please report bugs at https://github.com/alysson-souza/webaom - Version:" + A.S_VER + "\r\n");
+		textArea.append(
+				"Please report bugs at https://github.com/alysson-souza/webaom - Version:" + AppContext.S_VER + "\r\n");
 		JScrollPane scroll = new JScrollPane(textArea);
 		scrollBar = scroll.getVerticalScrollBar();
 		add(scroll);
@@ -122,8 +123,8 @@ public class JPanelDebug extends JPanel {
 				startTime = currentTime;
 
 			} else {
-				String prefix = "[" + U.time() + "|" + nf.format((float) (currentTime - startTime) / 1000) + "] "
-						+ Thread.currentThread().getName() + ": ";
+				String prefix = "[" + StringUtilities.time() + "|" + nf.format((float) (currentTime - startTime) / 1000)
+						+ "] " + Thread.currentThread().getName() + ": ";
 
 				if (text.indexOf('\n') < 0) {
 					if (isNewLine) {
@@ -132,7 +133,7 @@ public class JPanelDebug extends JPanel {
 					textArea.append(text);
 					isNewLine = false;
 				} else {
-					String[] lines = U.split(text, '\n');
+					String[] lines = StringUtilities.split(text, '\n');
 					for (String line : lines) {
 						if (isNewLine) {
 							textArea.append(prefix);

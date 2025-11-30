@@ -43,7 +43,7 @@ public class JobMan {
 			File newFile = new File(destinationFolder + File.separator + fileName);
 			if (job.getHealth() == Job.H_MISSING) {
 				job.find(newFile);
-				A.db.update(0, job, DB.INDEX_JOB);
+				AppContext.databaseManager.update(0, job, DatabaseManager.INDEX_JOB);
 			} else if (updatePath(job, newFile)) {
 				if (job.targetFile != null) {
 					newStatus = Job.MOVEWAIT;
@@ -51,7 +51,7 @@ public class JobMan {
 					newStatus = Job.FINISHED;
 				}
 				job.setStatus(newStatus, true);
-				A.db.update(0, job, DB.INDEX_JOB);
+				AppContext.databaseManager.update(0, job, DatabaseManager.INDEX_JOB);
 			}
 		}
 	}
@@ -142,10 +142,11 @@ public class JobMan {
 						newStatus = Job.FINISHED;
 					}
 					if (job.isFresh) {
-						if (A.db.isConnected() && !A.db.update(0, job, DB.INDEX_JOB)) { // add job to db, if it exist...
-							newStatus = A.db.getJob(job, true); // then retrieve
+						if (AppContext.databaseManager.isConnected()
+								&& !AppContext.databaseManager.update(0, job, DatabaseManager.INDEX_JOB)) { // add job to db, if it exist...
+							newStatus = AppContext.databaseManager.getJob(job, true); // then retrieve
 							if (newStatus >= 0) { // if job exist in db... (should be true, always)
-								A.cache.gatherInfo(job, true); // retrieve info (like anime, group, etc.)
+								AppContext.cache.gatherInfo(job, true); // retrieve info (like anime, group, etc.)
 								// File old = job.nfile; //copy the original location (little abuse
 								// of nfile)
 								job.targetFile = null;
@@ -179,7 +180,7 @@ public class JobMan {
 				case Job.IDENTIFIED :
 					if (job.anidbFile == null || job.anidbFile.fileId == 0 || !updatePath(job)) {
 						newStatus = Job.FAILED;
-					} else if (A.autoadd && job.mylistId == 0) {
+					} else if (AppContext.autoadd && job.mylistId == 0) {
 						newStatus = Job.ADDWAIT;
 					} else if (job.targetFile != null) {
 						newStatus = Job.MOVEWAIT;
@@ -220,21 +221,21 @@ public class JobMan {
 			}
 			job.setStatus(newStatus, true);
 			if (!job.isFresh && job.check(Job.F_DB)) {
-				A.db.update(0, job, DB.INDEX_JOB);
+				AppContext.databaseManager.update(0, job, DatabaseManager.INDEX_JOB);
 			}
 		}
 	}
 
 	public static boolean updatePath(Job job) {
-		if (!A.opt.getBoolean(Options.BOOL_AUTO_RENAME)) {
+		if (!AppContext.opt.getBoolean(Options.BOOL_AUTO_RENAME)) {
 			return true; // Skip automatic renaming
 		}
 		if (job.incompl()) {
 			job.setError("Extensive fileinfo not available.");
-			A.gui.println(job.currentFile + " cannot be renamed: Extensive fileinfo not available.");
+			AppContext.gui.println(job.currentFile + " cannot be renamed: Extensive fileinfo not available.");
 			return false;
 		}
-		return updatePath(job, A.rules.apply(job));
+		return updatePath(job, AppContext.rules.apply(job));
 	}
 
 	public static boolean updatePath(Job job, File destinationFile) { // only want to use renameTo if same partition
@@ -251,23 +252,23 @@ public class JobMan {
 			}
 			isNormalMove = false;
 		}
-		String sourceDisplayName = Hyper.formatAsName(job.currentFile);
-		String destDisplayName = Hyper.formatAsName(destinationFile);
+		String sourceDisplayName = HyperlinkBuilder.formatAsName(job.currentFile);
+		String destDisplayName = HyperlinkBuilder.formatAsName(destinationFile);
 		// SOURCE FILE HEALTHY?
 		if (!job.currentFile.exists()) {
 			job.setError("File does not exist.");
-			A.gui.println(sourceDisplayName + " cannot be moved. File not found.");
+			AppContext.gui.println(sourceDisplayName + " cannot be moved. File not found.");
 			return false;
 		}
 		// DESTINATION FILE HEALTHY?
 		if (isNormalMove && destinationFile.exists()) {
 			if (job.currentFile.length() == destinationFile.length()) { // could be the same
 				job.targetFile = destinationFile;
-				A.gui.println(sourceDisplayName + " will be moved to " + destDisplayName + " later.");
+				AppContext.gui.println(sourceDisplayName + " will be moved to " + destDisplayName + " later.");
 				return true;
 			}
 			job.setError("File cannot be moved. Destination file already exists!");
-			A.gui.println(sourceDisplayName + " cannot be moved to " + destDisplayName
+			AppContext.gui.println(sourceDisplayName + " cannot be moved to " + destDisplayName
 					+ ": Destination file already exists!");
 			return false;
 		}
@@ -275,10 +276,10 @@ public class JobMan {
 		File parentFolder = destinationFile.getParentFile();
 		if (!parentFolder.exists() && !parentFolder.mkdirs()) {
 			job.setError("Folder " + parentFolder + " cannot be created!");
-			A.gui.println("Folder " + parentFolder + " cannot be created!");
+			AppContext.gui.println("Folder " + parentFolder + " cannot be created!");
 			return false;
 		}
-		A.jobs.addPath(destinationFile);
+		AppContext.jobs.addPath(destinationFile);
 		job.directoryId = -1;
 		// TRY TO MOVE: WINDOWS
 		String sourcePath = job.currentFile.getAbsolutePath().toLowerCase();
@@ -288,44 +289,44 @@ public class JobMan {
 			if (sourcePath.charAt(0) == destPath.charAt(0)) {
 				if (job.currentFile.renameTo(destinationFile)) {
 					moveSubtitleFiles(job.currentFile, destinationFile);
-					A.deleteFile(job.currentFile.getParentFile(), cleanupMessage);
+					AppContext.deleteFile(job.currentFile.getParentFile(), cleanupMessage);
 					JobMan.setJobFile(job, destinationFile);
-					A.gui.println("Renamed " + sourceDisplayName + " to " + destDisplayName);
+					AppContext.gui.println("Renamed " + sourceDisplayName + " to " + destDisplayName);
 					return true;
 				}
-				A.gui.println(Hyper.formatAsError("Renaming failed!") + " (" + sourceDisplayName + " to "
-						+ destDisplayName + ")");
+				AppContext.gui.println(HyperlinkBuilder.formatAsError("Renaming failed!") + " (" + sourceDisplayName
+						+ " to " + destDisplayName + ")");
 				return false;
 			}
 			job.targetFile = destinationFile;
-			A.gui.println(sourceDisplayName + " will be moved to " + destDisplayName + " later.");
+			AppContext.gui.println(sourceDisplayName + " will be moved to " + destDisplayName + " later.");
 			return true;
 		}
 		// TRY TO MOVE: *NIX
 		if (job.currentFile.renameTo(destinationFile)) { // linux can't rename over partitions
-			A.deleteFile(job.currentFile.getParentFile(), cleanupMessage);
+			AppContext.deleteFile(job.currentFile.getParentFile(), cleanupMessage);
 			JobMan.setJobFile(job, destinationFile);
-			A.gui.println("Renamed" + sourceDisplayName + " to " + destDisplayName);
+			AppContext.gui.println("Renamed" + sourceDisplayName + " to " + destDisplayName);
 			return true;
 		}
 		job.targetFile = destinationFile;
-		A.gui.println(sourceDisplayName + " will be moved to " + destDisplayName + " later.");
+		AppContext.gui.println(sourceDisplayName + " will be moved to " + destDisplayName + " later.");
 		return true;
 		// THE END
 	}
 
 	public static void setJobFile(Job job, File file) {
 		if (Cache.treeSortMode == Cache.MODE_ANIME_FOLDER_FILE) {
-			A.cache.treeRemove(job);
+			AppContext.cache.treeRemove(job);
 			job.currentFile = file;
-			A.cache.treeAdd(job);
+			AppContext.cache.treeAdd(job);
 		} else {
 			job.currentFile = file;
 		}
 	}
 
 	public static void showInfo(Job job) {
-		A.dialog2(job.currentFile.getName(), job.convert(A.fschema));
+		AppContext.dialog2(job.currentFile.getName(), job.convert(AppContext.fschema));
 	}
 
 	private static void moveSubtitleFiles(File sourceFile, File destinationFile) {

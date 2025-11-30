@@ -4,8 +4,8 @@
  */
 package epox.av;
 
-import epox.util.U;
-import epox.webaom.data.AMap;
+import epox.util.StringUtilities;
+import epox.webaom.data.AttributeMap;
 import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
 import org.xml.sax.XMLReader;
@@ -18,9 +18,9 @@ import java.io.StringReader;
 import java.util.Vector;
 
 public class FileInfo {
-	public Vector<AMap> vid;
-	public Vector<AMap> aud;
-	public Vector<AMap> sub;
+	public Vector<AttributeMap> vid;
+	public Vector<AttributeMap> aud;
+	public Vector<AttributeMap> sub;
 	public String m_xml = null;
 
 	public FileInfo(String xml) throws IOException {
@@ -30,9 +30,9 @@ public class FileInfo {
 		byXml(xml);
 	}
 
-	private static void dump(Vector<AMap> v) {
-		for (AMap aMap : v) {
-			String[][] a = aMap.toArray();
+	private static void dump(Vector<AttributeMap> v) {
+		for (AttributeMap attributeMap : v) {
+			String[][] a = attributeMap.toArray();
 			for (String[] strings : a) {
 				System.out.println(strings[0] + ": " + strings[1]);
 			}
@@ -54,7 +54,7 @@ public class FileInfo {
 		int tcnt = 1;
 		String name = null;
 		String id = null;
-		AMap m;
+		AttributeMap m;
 
 		/*
 		 * private void o(Object o){
@@ -78,7 +78,7 @@ public class FileInfo {
 			}
 
 			if (ctyp > 0) {
-				m = new AMap();
+				m = new AttributeMap();
 				String d = attributes.getValue("default");
 				m.put("def", d != null && d.equals("1") ? "default" : "");
 				m.put("num", tcnt++);
@@ -178,7 +178,7 @@ public class FileInfo {
 		if (schema == null) {
 			return null;
 		}
-		Vector<AMap> v = null;
+		Vector<AttributeMap> v = null;
 		switch (type) {
 			case 0 :
 				v = vid;
@@ -194,7 +194,7 @@ public class FileInfo {
 		}
 		StringBuilder sb = new StringBuilder(schema.length() * v.size());
 		for (int j = 0; j < v.size(); j++) {
-			String s = U.replaceCCCode(schema, v.get(j));
+			String s = StringUtilities.replaceCCCode(schema, v.get(j));
 			if (j > 0) {
 				sb.append('\n');
 			}

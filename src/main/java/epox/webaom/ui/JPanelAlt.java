@@ -4,7 +4,7 @@
  */
 package epox.webaom.ui;
 
-import epox.webaom.A;
+import epox.webaom.AppContext;
 import epox.webaom.Cache;
 
 import javax.swing.AbstractAction;
@@ -18,7 +18,7 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 
 public class JPanelAlt extends JPanel {
-	public JTreeTableR altViewTreeTable;
+	public JobTreeTable altViewTreeTable;
 	public JComboBox<String> sortModeComboBox;
 	public JComboBox<String> fileVisibilityComboBox;
 	public JComboBox<String> animeTitleComboBox;
@@ -27,7 +27,7 @@ public class JPanelAlt extends JPanel {
 
 	public JPanelAlt(ActionListener actionListener) {
 		TableModelAlt tableModel = new TableModelAlt();
-		altViewTreeTable = new JTreeTableR(tableModel);
+		altViewTreeTable = new JobTreeTable(tableModel);
 		tableModel.formatTable(altViewTreeTable.getColumnModel());
 		new HeaderListenerAlt(altViewTreeTable);
 
@@ -53,7 +53,7 @@ public class JPanelAlt extends JPanel {
 		fileVisibilityComboBox.addActionListener(actionListener);
 
 		pathRegexField = new JTextField(20);
-		pathRegexField.setText(A.preg);
+		pathRegexField.setText(AppContext.preg);
 		pathRegexField.setToolTipText("Path Regexp");
 		pathRegexField.addActionListener(actionListener);
 
@@ -68,8 +68,8 @@ public class JPanelAlt extends JPanel {
 		add(scrollPane, BorderLayout.CENTER);
 		add(southPanel, BorderLayout.SOUTH);
 
-		JPopupMenuM popupMenu = new JPopupMenuM(altViewTreeTable, altViewTreeTable);
-		A.com1 = popupMenu;
+		JobContextMenu popupMenu = new JobContextMenu(altViewTreeTable, altViewTreeTable);
+		AppContext.com1 = popupMenu;
 		altViewTreeTable.addMouseListener(popupMenu);
 
 		altViewTreeTable.getInputMap().put(KeyStroke.getKeyStroke("F5"), "refresh");
@@ -82,9 +82,9 @@ public class JPanelAlt extends JPanel {
 	}
 
 	protected void updateAlternativeView(boolean rebuildTree) {
-		synchronized (A.p) {
+		synchronized (AppContext.p) {
 			if (rebuildTree) {
-				A.cache.rebuildTree();
+				AppContext.cache.rebuildTree();
 			}
 			altViewTreeTable.updateUI();
 		}

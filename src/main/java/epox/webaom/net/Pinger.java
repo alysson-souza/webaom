@@ -22,7 +22,7 @@
  */
 package epox.webaom.net;
 
-import epox.webaom.Hyper;
+import epox.webaom.HyperlinkBuilder;
 import epox.webaom.ui.JPanelMain;
 
 /**
@@ -40,7 +40,7 @@ public class Pinger extends Thread {
 
 	@Override
 	public void run() {
-		ACon connection = null;
+		AniDBConnection connection = null;
 		try {
 			connection = mainPanel.createConnection();
 			if (connection.connect()) {
@@ -53,13 +53,13 @@ public class Pinger extends Thread {
 			}
 		} catch (java.net.SocketTimeoutException e) {
 			String errorMessage = "AniDB is not reachable";
-			mainPanel.println(Hyper.formatAsError(errorMessage + "."));
+			mainPanel.println(HyperlinkBuilder.formatAsError(errorMessage + "."));
 			mainPanel.showMessage(errorMessage);
 		} catch (NumberFormatException e) {
 			mainPanel.showMessage("Invalid number." + e.getMessage());
 		} catch (Exception e) {
 			e.printStackTrace();
-			mainPanel.println(Hyper.formatAsError(e.getMessage() + "."));
+			mainPanel.println(HyperlinkBuilder.formatAsError(e.getMessage() + "."));
 			mainPanel.showMessage(e.getMessage() + ".");
 		}
 		if (connection != null) {

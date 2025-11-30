@@ -22,11 +22,11 @@
  */
 package epox.webaom;
 
-import epox.util.U;
+import epox.util.StringUtilities;
 import epox.webaom.data.AFile;
 import epox.webaom.data.Anime;
 import epox.webaom.data.Base;
-import epox.webaom.data.Ep;
+import epox.webaom.data.Episode;
 import epox.webaom.data.Group;
 import java.io.BufferedReader;
 import java.io.File;
@@ -50,11 +50,11 @@ public class Parser {
 		return group;
 	}
 
-	public static Ep parseEpisode(String[] fields) {
+	public static Episode parseEpisode(String[] fields) {
 		if (fields == null) {
 			return null;
 		}
-		Ep episode = new Ep(Integer.parseInt(fields[0]));
+		Episode episode = new Episode(Integer.parseInt(fields[0]));
 		episode.num = fields[5];
 		episode.eng = fields[6];
 		episode.rom = fields[7];
@@ -106,18 +106,18 @@ public class Parser {
 			numberPart = input.substring(0, dashIndex);
 		}
 		if (totalEpisodes == 0) {
-			totalEpisodes = A.assumedEpisodeCount; // presume this
+			totalEpisodes = AppContext.assumedEpisodeCount; // presume this
 		}
 		int episodeNumber;
 		String prefix = "";
 		char firstChar = numberPart.charAt(0);
 		if (Character.isDigit(firstChar)) {
-			episodeNumber = U.i(numberPart);
+			episodeNumber = StringUtilities.i(numberPart);
 		} else {
-			episodeNumber = U.i(numberPart.substring(1));
+			episodeNumber = StringUtilities.i(numberPart.substring(1));
 			prefix += firstChar;
 			// !totalEpisodes = episodeNumber; //no total specials
-			totalEpisodes = A.assumedSpecialCount;
+			totalEpisodes = AppContext.assumedSpecialCount;
 		}
 		if (totalEpisodes < episodeNumber) {
 			totalEpisodes = episodeNumber; // just in case...
@@ -138,33 +138,33 @@ public class Parser {
 	}
 
 	public static void exportDB() {
-		if (A.p != null) {
+		if (AppContext.p != null) {
 			try {
-				synchronized (A.p) {
+				synchronized (AppContext.p) {
 					JFileChooser fileChooser = new JFileChooser();
-					if (A.dir != null) {
-						fileChooser.setCurrentDirectory(new File(A.dir));
+					if (AppContext.dir != null) {
+						fileChooser.setCurrentDirectory(new File(AppContext.dir));
 					}
-					if (fileChooser.showDialog(A.component, "Select File") == JFileChooser.APPROVE_OPTION) {
+					if (fileChooser.showDialog(AppContext.component, "Select File") == JFileChooser.APPROVE_OPTION) {
 						File file = fileChooser.getSelectedFile();
-						A.dir = file.getParentFile().getAbsolutePath();
+						AppContext.dir = file.getParentFile().getAbsolutePath();
 						FileOutputStream outputStream = new FileOutputStream(file);
 						Writer writer = new OutputStreamWriter(outputStream, StandardCharsets.UTF_8);
 						writer.write("a0\r\n");
-						A.p.buildSortedChildArray();
-						for (int animeIndex = 0; animeIndex < A.p.size(); animeIndex++) {
-							Base animeEntry = A.p.get(animeIndex);
+						AppContext.p.buildSortedChildArray();
+						for (int animeIndex = 0; animeIndex < AppContext.p.size(); animeIndex++) {
+							Base animeEntry = AppContext.p.get(animeIndex);
 							animeEntry.buildSortedChildArray();
-							writer.write("a" + animeEntry.serialize() + A.S_N);
+							writer.write("a" + animeEntry.serialize() + AppContext.S_N);
 							for (int episodeIndex = 0; episodeIndex < animeEntry.size(); episodeIndex++) {
 								Base episodeEntry = animeEntry.get(episodeIndex);
 								episodeEntry.buildSortedChildArray();
-								writer.write("e" + episodeEntry.serialize() + A.S_N);
+								writer.write("e" + episodeEntry.serialize() + AppContext.S_N);
 								for (int fileIndex = 0; fileIndex < episodeEntry.size(); fileIndex++) {
 									AFile anidbFile = (AFile) episodeEntry.get(fileIndex);
-									writer.write("f" + anidbFile.serialize() + A.S_N);
+									writer.write("f" + anidbFile.serialize() + AppContext.S_N);
 									if (anidbFile.getJob() != null) {
-										writer.write("j" + anidbFile.getJob().serialize() + A.S_N);
+										writer.write("j" + anidbFile.getJob().serialize() + AppContext.S_N);
 									}
 								}
 							}
@@ -180,17 +180,17 @@ public class Parser {
 	}
 
 	public static void importDB() throws Exception {
-		A.db.debug = false;
-		if (A.p != null) {
+		AppContext.databaseManager.debug = false;
+		if (AppContext.p != null) {
 			try {
-				synchronized (A.p) {
+				synchronized (AppContext.p) {
 					JFileChooser fileChooser = new JFileChooser();
-					if (A.dir != null) {
-						fileChooser.setCurrentDirectory(new File(A.dir));
+					if (AppContext.dir != null) {
+						fileChooser.setCurrentDirectory(new File(AppContext.dir));
 					}
-					if (fileChooser.showDialog(A.component, "Select File") == JFileChooser.APPROVE_OPTION) {
+					if (fileChooser.showDialog(AppContext.component, "Select File") == JFileChooser.APPROVE_OPTION) {
 						File file = fileChooser.getSelectedFile();
-						A.dir = file.getParentFile().getAbsolutePath();
+						AppContext.dir = file.getParentFile().getAbsolutePath();
 						FileInputStream inputStream = new FileInputStream(file);
 						BufferedReader reader = new BufferedReader(
 								new InputStreamReader(inputStream, StandardCharsets.UTF_8));
@@ -204,54 +204,56 @@ public class Parser {
 						// A.p.buildSortedChildArray();
 						String line;
 						Anime currentAnime = null;
-						Ep currentEpisode = null;
+						Episode currentEpisode = null;
 						AFile currentFile = null;
 						Job currentJob = null;
 						while (reader.ready()) {
-							line = U.htmldesc(reader.readLine());
+							line = StringUtilities.htmldesc(reader.readLine());
 							if (line.isEmpty()) {
 								continue;
 							}
 							switch (line.charAt(0)) {
 								case 'a' :
-									currentAnime = new Anime(U.split(line.substring(1), '|'));
-									A.cache.add(currentAnime, 2, DB.INDEX_ANIME);
-									A.p.add(currentAnime);
+									currentAnime = new Anime(StringUtilities.split(line.substring(1), '|'));
+									AppContext.cache.add(currentAnime, 2, DatabaseManager.INDEX_ANIME);
+									AppContext.p.add(currentAnime);
 									break;
 								case 'e' :
-									currentEpisode = new Ep(U.split(line.substring(1), '|'));
-									A.cache.add(currentEpisode, 2, DB.INDEX_EPISODE);
+									currentEpisode = new Episode(StringUtilities.split(line.substring(1), '|'));
+									AppContext.cache.add(currentEpisode, 2, DatabaseManager.INDEX_EPISODE);
 									break;
 								case 'f' :
-									String[] fields = U.split(line.substring(1), '|');
+									String[] fields = StringUtilities.split(line.substring(1), '|');
 									currentFile = new AFile(fields);
 									Group group = new Group(currentFile.groupId);
 									group.name = fields[20];
 									group.shortName = fields[21];
-									A.cache.add(group, 1, DB.INDEX_GROUP);
+									AppContext.cache.add(group, 1, DatabaseManager.INDEX_GROUP);
 									currentFile.anime = currentAnime;
-									currentFile.ep = currentEpisode;
+									currentFile.episode = currentEpisode;
 									currentFile.group = group;
 									currentFile.defaultName = currentAnime.romajiTitle + " - " + currentEpisode.num
 											+ " - " + currentEpisode.eng + " - ["
 											+ ((currentFile.groupId > 0) ? group.shortName : "RAW") + "]";
-									A.db.update(currentFile.fileId, currentFile, DB.INDEX_FILE);
+									AppContext.databaseManager.update(currentFile.fileId, currentFile,
+											DatabaseManager.INDEX_FILE);
 									break;
 								case 'j' :
 									line = line.substring(1);
 									if (isLegacyFormat) {
-										currentJob = new Job(new File(File.separatorChar + U.replace(line, "/", "")),
+										currentJob = new Job(
+												new File(File.separatorChar + StringUtilities.replace(line, "/", "")),
 												Job.FINISHED);
 										currentJob.originalName = line;
 										currentJob.ed2kHash = currentFile.ed2kHash;
 										currentJob.fileSize = currentFile.totalSize;
 									} else {
-										currentJob = new Job(U.split(line, '|'));
+										currentJob = new Job(StringUtilities.split(line, '|'));
 									}
 									currentJob.anidbFile = currentFile;
 									currentFile.setJob(currentJob);
-									A.jobs.add(currentJob);
-									A.db.update(0, currentJob, DB.INDEX_JOB);
+									AppContext.jobs.add(currentJob);
+									AppContext.databaseManager.update(0, currentJob, DatabaseManager.INDEX_JOB);
 									break;
 							}
 						}
@@ -262,6 +264,6 @@ public class Parser {
 				ex.printStackTrace();
 			}
 		}
-		A.db.debug = true;
+		AppContext.databaseManager.debug = true;
 	}
 }

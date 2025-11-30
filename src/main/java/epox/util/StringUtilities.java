@@ -37,7 +37,7 @@ import java.util.Locale;
  * @author JV
  * @version X
  */
-public class U {
+public class StringUtilities {
 	/** Date formatter for time display (German locale, medium format) */
 	private static final DateFormat TIME_FORMAT = DateFormat.getTimeInstance(DateFormat.MEDIUM, Locale.GERMANY);
 	/** Decimal formatter for two decimal places */
