@@ -83,7 +83,9 @@ public class AniDBFileClient extends AniDBConnection {
                 return Integer.parseInt(response.data);
             case AniDBConnectionResponse.FILE_ALREADY_IN_MYLIST:
                 error(job.anidbFile.defaultName + " is already in mylist.");
-                return Integer.parseInt(response.data);
+                // Response format: {lid}|{fid}|{eid}|{aid}|{gid}|{date}|{state}|...
+                String[] fields = StringUtilities.split(response.data, '|');
+                return Integer.parseInt(fields[0]);
             case AniDBConnectionResponse.NO_SUCH_MYLIST_FILE:
                 error(job.anidbFile.defaultName + " was not found in AniDB.");
             case AniDBConnectionResponse.MYLIST_ENTRY_EDITED:
