@@ -19,57 +19,11 @@ package epox.swing;
 import javax.swing.table.AbstractTableModel;
 
 /**
- * Abstract table model that supports sorting by column. Maintains an index array for row mapping.
+ * Abstract table model base class. Sorting is handled by JTable's built-in TableRowSorter.
  */
 public abstract class TableModelSortable extends AbstractTableModel {
-    /** Sorter for comparing and reordering rows */
-    private final TableSorter tableSorter = new TableSorter(this);
-    /** Index mapping from sorted row to original row */
-    protected int[] sortedRowIndices;
-    /** Currently sorted column index, -1 if not sorted */
-    private int sortColumn;
 
     public void reset() {
-        sortColumn = -1;
-        tableSorter.reset();
-        sortedRowIndices = null;
-    }
-
-    protected int getRowIndex(int row) {
-        try {
-            return sortedRowIndices[row];
-        } catch (NullPointerException ex) {
-            return row;
-        } catch (ArrayIndexOutOfBoundsException ex) {
-            return row;
-        }
-    }
-
-    public void sortByColumn(int column) {
-        sortColumn = column;
-        sort(false);
-    }
-
-    public void sort(boolean refresh) {
-        if (sortColumn < 0) {
-            return;
-        }
-        tableSorter.sort(getIndexes(), sortColumn, refresh);
-
-        fireTableDataChanged();
-    }
-
-    private int[] getIndexes() {
-        int rowCount = getRowCount();
-        if (sortedRowIndices != null && sortedRowIndices.length == rowCount) {
-            return sortedRowIndices;
-        }
-
-        sortedRowIndices = new int[rowCount];
-        for (int index = 0; index < rowCount; index++) {
-            sortedRowIndices[index] = index;
-        }
-
-        return sortedRowIndices;
+        // Subclasses can override to reset state
     }
 }

@@ -186,7 +186,7 @@ public class JobsPanel extends JPanel implements ActionListener {
         if (visibilityMask == 0) {
             visibilityMask = TableModelJobs.MASK;
         }
-        jobsTable.headerListener.setMask(visibilityMask);
+        jobsTable.getHeaderListener().setMask(visibilityMask);
     }
 
     public void update() {
@@ -205,8 +205,7 @@ public class JobsPanel extends JPanel implements ActionListener {
 
     private void applyFilter() {
         AppContext.jobs.filter(statusFilterMask, fileStateFilterMask, showUnknownFiles);
-        tableModel.sort(true);
-        // tableModel.fireTableDataChanged(); // <- unselects rows
+        tableModel.fireTableDataChanged();
         jobsTable.updateUI();
     }
 }

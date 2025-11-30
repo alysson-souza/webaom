@@ -76,8 +76,6 @@ public class TableModelJobs extends TableModelSortable implements RowModel {
     }
 
     public Object getValueAt(int row, int columnIndex) {
-        row = getRowIndex(row);
-
         if (columnIndex < 1 || row != currentRowIndex) {
             currentRowIndex = row;
             currentJob = jobList.get(row);
@@ -253,7 +251,7 @@ public class TableModelJobs extends TableModelSortable implements RowModel {
     }
 
     public int[] convertRow(int row) {
-        return new int[] {getRowIndex(row)};
+        return new int[] {row};
     }
 
     public Job[] getJobs(int row) {
@@ -261,8 +259,6 @@ public class TableModelJobs extends TableModelSortable implements RowModel {
     }
 
     public void convertRows(int[] rows) {
-        for (int i = 0; i < rows.length; i++) {
-            rows[i] = getRowIndex(rows[i]);
-        }
+        // No-op: with TableRowSorter, view-to-model conversion is done by JTable
     }
 }

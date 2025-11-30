@@ -20,30 +20,24 @@
  */
 package epox.webaom.ui;
 
-import epox.swing.HeaderListener;
-import epox.swing.SortButtonRenderer;
 import epox.webaom.data.Anime;
+import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
-import javax.swing.table.TableColumnModel;
+import javax.swing.table.JTableHeader;
 
 /**
  * Header click listener for the alternate (tree-based) file view. Handles column sorting by clicking column headers.
  */
-public class AlternateViewHeaderListener extends HeaderListener {
+public class AlternateViewHeaderListener extends MouseAdapter {
     /** The tree table this listener manages */
     protected JobTreeTable treeTable;
+    /** Table header for mouse events */
+    protected JTableHeader tableHeader;
     /** Current sort column index (positive = ascending, negative = descending) */
     private int currentSortColumn = 0;
 
     public AlternateViewHeaderListener(JobTreeTable treeTable) {
-        super(null, null, null);
         this.treeTable = treeTable;
-        sortButtonRenderer = new SortButtonRenderer();
-        TableColumnModel columnModel = treeTable.getColumnModel();
-        for (int columnIndex = 0; columnIndex < columnModel.getColumnCount(); columnIndex++) {
-            columnModel.getColumn(columnIndex).setHeaderRenderer(sortButtonRenderer);
-        }
-
         tableHeader = treeTable.getTableHeader();
         tableHeader.addMouseListener(this);
     }

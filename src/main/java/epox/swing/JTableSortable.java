@@ -21,15 +21,14 @@ import java.awt.FontMetrics;
 import java.awt.Graphics;
 import javax.swing.JTable;
 import javax.swing.table.AbstractTableModel;
-import javax.swing.table.JTableHeader;
-import javax.swing.table.TableColumnModel;
+import javax.swing.table.TableRowSorter;
 
 /**
- * A JTable with sortable columns. Clicking on column headers sorts the data.
+ * A JTable with sortable columns. Uses built-in TableRowSorter for sorting.
  */
 public class JTableSortable extends JTable {
-    /** Header click listener for sorting columns */
-    public HeaderListener headerListener;
+    /** Header click listener for column visibility menu */
+    private transient HeaderListener headerListener;
 
     /** Flag to trigger row height recalculation on next paint */
     private boolean needsRowHeightCalculation = true;
@@ -37,16 +36,13 @@ public class JTableSortable extends JTable {
     public JTableSortable(AbstractTableModel model) {
         super(model);
 
-        SortButtonRenderer renderer = new SortButtonRenderer();
+        // Use built-in TableRowSorter for sorting
+        TableRowSorter<AbstractTableModel> sorter = new TableRowSorter<>(model);
+        setRowSorter(sorter);
 
-        TableColumnModel columnModel = this.getColumnModel();
-        for (int index = 0; index < columnModel.getColumnCount(); index++) {
-            columnModel.getColumn(index).setHeaderRenderer(renderer);
-        }
-
-        JTableHeader header = getTableHeader();
-        headerListener = new HeaderListener(header, columnModel, renderer);
-        header.addMouseListener(headerListener);
+        // Keep HeaderListener for column visibility popup (right-click)
+        headerListener = new HeaderListener(getTableHeader(), getColumnModel());
+        getTableHeader().addMouseListener(headerListener);
     }
 
     private void calculateRowHeight(Graphics graphics) {
@@ -68,5 +64,9 @@ public class JTableSortable extends JTable {
     public void setFont(Font font) {
         needsRowHeightCalculation = true;
         super.setFont(font);
+    }
+
+    public HeaderListener getHeaderListener() {
+        return headerListener;
     }
 }
