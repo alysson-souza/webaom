@@ -34,286 +34,290 @@ import java.text.DecimalFormat;
 import jonelo.jacksum.algorithm.Edonkey;
 
 public class DiskIO implements Runnable {
-	private static final String S_OUTS = "There is not enough space on the disk";
-	private static final DecimalFormat _DF = new DecimalFormat("0.00");
-	private static final int I_BSIZ = 1048576 * 3;
-	private static final byte[] m_buf = new byte[I_BSIZ];
-	private static String mSfail;
-	private static String mSabrt;
-	private static String mSsucc;
+	private static final String DISK_SPACE_ERROR_MESSAGE = "There is not enough space on the disk";
+	private static final DecimalFormat DECIMAL_FORMATTER = new DecimalFormat("0.00");
+	private static final int BUFFER_SIZE = 1048576 * 3;
+	private static final byte[] READ_BUFFER = new byte[BUFFER_SIZE];
+	private static String failedMoveCleanupMessage;
+	private static String abortedMoveCleanupMessage;
+	private static String successfulMoveCleanupMessage;
 
-	private HashContainer m_hc;
+	private HashContainer hashContainer;
 
 	public DiskIO() {
-		String s0 = "Cleanup after ";
-		String s1 = " moving operation.";
-		mSfail = s0 + "failed" + s1;
-		mSabrt = s0 + "aborted" + s1;
-		mSsucc = s0 + "successful" + s1;
+		String cleanupPrefix = "Cleanup after ";
+		String cleanupSuffix = " moving operation.";
+		failedMoveCleanupMessage = cleanupPrefix + "failed" + cleanupSuffix;
+		abortedMoveCleanupMessage = cleanupPrefix + "aborted" + cleanupSuffix;
+		successfulMoveCleanupMessage = cleanupPrefix + "successful" + cleanupSuffix;
 	}
 
 	public void run() {
-		A.gui.setEnabled_dio(false);
-		Job j = null;
+		A.gui.setDiskIoOptionsEnabled(false);
+		Job currentJob = null;
 		try {
-			m_hc = A.gui.jpOdiv.getHashContainer();
+			hashContainer = A.gui.miscOptionsPanel.getHashContainer();
 			A.gui.status0("DiskIO thread started.");
-			while (A.gui.dioOK() && (j = A.jobs.getJobDio()) != null) {
-				// !A.nr_dio = j.mIid;
-				switch (j.getStatus()) {
+			while (A.gui.isDiskIoOk() && (currentJob = A.jobs.getJobDio()) != null) {
+				// !A.nr_dio = currentJob.mIid;
+				switch (currentJob.getStatus()) {
 					case Job.HASHWAIT :
-						fileHash(j);
+						fileHash(currentJob);
 						break;
 					case Job.MOVEWAIT :
-						fileMove(j);
+						fileMove(currentJob);
 						break;
 					case Job.PARSEWAIT :
-						fileParse(j);
+						fileParse(currentJob);
 						break;
 					default :
-						A.dialog("INF LOOP", "Illegal status: " + j.getStatusText());
+						A.dialog("INF LOOP", "Illegal status: " + currentJob.getStatusText());
 						A.gui.kill();
 				}
 				// !A.nr_dio = -1;
-				A.gui.jpb0.setValue(0);
+				A.gui.statusProgressBar.setValue(0);
 			}
 			A.gui.status0("DiskIO thread terminated.");
 		} catch (IOException e) {
 			e.printStackTrace();
-			if (j != null) {
-				if (j.m_fn != null) {
-					A.deleteFileAndFolder(j.m_fn, mSfail);
+			if (currentJob != null) {
+				if (currentJob.targetFile != null) {
+					A.deleteFileAndFolder(currentJob.targetFile, failedMoveCleanupMessage);
 				}
-				JobMan.updateStatus(j, Job.FAILED);
-				j.setError(e.getMessage());
-				// A.gui.updateJobTable(j);
+				JobMan.updateStatus(currentJob, Job.FAILED);
+				currentJob.setError(e.getMessage());
+				// A.gui.updateJobTable(currentJob);
 			}
 
-			String msg = e.getMessage();
-			A.gui.println(Hyper.error(msg));
-			A.gui.status0(msg);
-			if (A.gui.dioOK()) {
-				A.gui.dioToggle();
+			String errorMessage = e.getMessage();
+			A.gui.println(Hyper.formatAsError(errorMessage));
+			A.gui.status0(errorMessage);
+			if (A.gui.isDiskIoOk()) {
+				A.gui.toggleDiskIo();
 			}
 		}
 		// !A.nr_dio = -1;
-		A.gui.mWdio = null;
-		A.gui.setEnabled_dio(true);
+		A.gui.diskIoThread = null;
+		A.gui.setDiskIoOptionsEnabled(true);
 	}
 
-	private void fileParse(Job j) throws IOException {
+	private void fileParse(Job job) throws IOException {
 		if (!AVInfo.ok()) {
-			JobMan.updateStatus(j, Job.FAILED);
+			JobMan.updateStatus(job, Job.FAILED);
 			return;
 		}
-		File file = j.getFile();
-		JobMan.updateStatus(j, Job.PARSING);
-		// A.gui.updateJobTable(j);
-		A.gui.status0("Parsing " + file.getName()); // +" (#"+(j.mIid+1)+")");
-		A.gui.jpb0.setValue(0);
+		File file = job.getFile();
+		JobMan.updateStatus(job, Job.PARSING);
+		// A.gui.updateJobTable(job);
+		A.gui.status0("Parsing " + file.getName()); // +" (#"+(job.mIid+1)+")");
+		A.gui.statusProgressBar.setValue(0);
 
-		AVInfo av = new AVInfo(file);
-		long t0 = System.currentTimeMillis();
-		float p = av.parse();
-		while (A.gui.dioOK() && p >= 0) {
-			A.gui.jpb0.setValue((int) (10 * p));
-			p = av.parse();
+		AVInfo avInfo = new AVInfo(file);
+		long startTime = System.currentTimeMillis();
+		float parseProgress = avInfo.parse();
+		while (A.gui.isDiskIoOk() && parseProgress >= 0) {
+			A.gui.statusProgressBar.setValue((int) (10 * parseProgress));
+			parseProgress = avInfo.parse();
 		}
-		if (p < 0) {
-			j.m_fi = av.build();
+		if (parseProgress < 0) {
+			job.avFileInfo = avInfo.build();
 		}
-		av.close();
-		long t1 = System.currentTimeMillis();
-		A.gui.jpb0.setValue(1000);
-		A.gui.println("Parsed " + Hyper.name(file) + " @ " + stats(file.length(), (t1 - t0) / 1000f));
-		JobMan.updateStatus(j, Job.FINISHED);
-		// A.gui.updateJobTable(j);
+		avInfo.close();
+		long endTime = System.currentTimeMillis();
+		A.gui.statusProgressBar.setValue(1000);
+		A.gui.println("Parsed " + Hyper.formatAsName(file) + " @ "
+				+ formatStats(file.length(), (endTime - startTime) / 1000f));
+		JobMan.updateStatus(job, Job.FINISHED);
+		// A.gui.updateJobTable(job);
 	}
 
-	private void fileHash(Job j) throws IOException {
-		File file = j.getFile();
-		j.mLs = file.length();
-		if (j.mLs < 1) {
-			JobMan.updateStatus(j, Job.FAILED);
-			j.setError("File size less than 1.");
-			// A.gui.updateJobTable(j);
+	private void fileHash(Job job) throws IOException {
+		File file = job.getFile();
+		job.fileSize = file.length();
+		if (job.fileSize < 1) {
+			JobMan.updateStatus(job, Job.FAILED);
+			job.setError("File size less than 1.");
+			// A.gui.updateJobTable(job);
 			return;
 		}
-		int last_read;
-		long tot_read = 0;
-		long len = file.length();
-		float prog = 0;
+		int bytesRead;
+		long totalBytesRead = 0;
+		long fileLength = file.length();
+		float progress = 0;
 
-		JobMan.updateStatus(j, Job.HASHING);
-		// A.gui.updateJobTable(j);
-		A.gui.status0("Hashing " + file.getName()); // +" (#"+(j.mIid+1)+")");
-		A.gui.jpb0.setValue(0);
+		JobMan.updateStatus(job, Job.HASHING);
+		// A.gui.updateJobTable(job);
+		A.gui.status0("Hashing " + file.getName()); // +" (#"+(job.mIid+1)+")");
+		A.gui.statusProgressBar.setValue(0);
 
-		long t0 = System.currentTimeMillis();
-		InputStream in = new FileInputStream(file);
-		while (A.gui.dioOK() && (last_read = in.read(m_buf)) != -1) {
-			m_hc.update(m_buf, 0, last_read);
-			tot_read += last_read;
-			prog = (float) tot_read / len;
-			A.gui.jpb0.setValue((int) (1000 * prog));
+		long startTime = System.currentTimeMillis();
+		InputStream inputStream = new FileInputStream(file);
+		while (A.gui.isDiskIoOk() && (bytesRead = inputStream.read(READ_BUFFER)) != -1) {
+			hashContainer.update(READ_BUFFER, 0, bytesRead);
+			totalBytesRead += bytesRead;
+			progress = (float) totalBytesRead / fileLength;
+			A.gui.statusProgressBar.setValue((int) (1000 * progress));
 		}
-		in.close();
-		m_hc.finalizeHashes();
-		long t1 = System.currentTimeMillis();
-		A.gui.jpb0.setValue(0);
+		inputStream.close();
+		hashContainer.finalizeHashes();
+		long endTime = System.currentTimeMillis();
+		A.gui.statusProgressBar.setValue(0);
 
-		if (prog == 1) {
-			j._ed2 = m_hc.getHex("ed2k");
-			j._md5 = m_hc.getHex("md5");
-			j._sha = m_hc.getHex("sha1");
-			j._tth = m_hc.getHex("tth");
-			j._crc = m_hc.getHex("crc32");
+		if (progress == 1) {
+			job.ed2kHash = hashContainer.getHex("ed2k");
+			job.md5Hash = hashContainer.getHex("md5");
+			job.sha1Hash = hashContainer.getHex("sha1");
+			job.tthHash = hashContainer.getHex("tth");
+			job.crc32Hash = hashContainer.getHex("crc32");
 
-			String link = "ed2k://|file|" + file.getName() + "|" + file.length() + "|" + j._ed2 + "|";
+			String ed2kLink = "ed2k://|file|" + file.getName() + "|" + file.length() + "|" + job.ed2kHash + "|";
 
-			A.gui.printHash(link);
-			A.gui.printHash(m_hc.toString());
+			A.gui.printHash(ed2kLink);
+			A.gui.printHash(hashContainer.toString());
 
-			A.gui.println("Hashed " + Hyper.name(file) + " @ " + stats(file.length(), (t1 - t0) / 1000f));
-			JobMan.updateStatus(j, Job.HASHED);
+			A.gui.println("Hashed " + Hyper.formatAsName(file) + " @ "
+					+ formatStats(file.length(), (endTime - startTime) / 1000f));
+			JobMan.updateStatus(job, Job.HASHED);
 		} else {
-			JobMan.updateStatus(j, Job.HASHWAIT);
+			JobMan.updateStatus(job, Job.HASHWAIT);
 		}
-		// A.gui.updateJobTable(j);
+		// A.gui.updateJobTable(job);
 	}
 
-	private void fileMove(Job j) throws IOException {
-		if (j.m_fc.equals(j.m_fn)) {
-			j.m_fn = null;
-			JobMan.updateStatus(j, Job.MOVED);
-			// A.gui.updateJobTable(j);
+	private void fileMove(Job job) throws IOException {
+		if (job.currentFile.equals(job.targetFile)) {
+			job.targetFile = null;
+			JobMan.updateStatus(job, Job.MOVED);
+			// A.gui.updateJobTable(job);
 		}
-		if (!j.m_fc.exists()) {
-			JobMan.updateStatus(j, Job.FAILED);
-			j.setError("File does not exist.");
-			// A.gui.updateJobTable(j);
-			A.gui.println(Hyper.error("File " + j.m_fc + " does not exist!"));
+		if (!job.currentFile.exists()) {
+			JobMan.updateStatus(job, Job.FAILED);
+			job.setError("File does not exist.");
+			// A.gui.updateJobTable(job);
+			A.gui.println(Hyper.formatAsError("File " + job.currentFile + " does not exist!"));
 			return;
 		}
-		if (!j.m_fc.canRead()) {
-			System.out.println("! Cannot read file: " + j.m_fc);
-			JobMan.updateStatus(j, Job.FAILED);
-			j.setError("File can not be read.");
+		if (!job.currentFile.canRead()) {
+			System.out.println("! Cannot read file: " + job.currentFile);
+			JobMan.updateStatus(job, Job.FAILED);
+			job.setError("File can not be read.");
 			return;
 		}
-		File parent = j.m_fn.getParentFile();
-		if (!parent.exists() && !parent.mkdirs()) {
-			String s = "Folder " + parent + " cannot be created!";
-			j.setError(s);
-			A.gui.println(Hyper.error(s));
+		File parentDirectory = job.targetFile.getParentFile();
+		if (!parentDirectory.exists() && !parentDirectory.mkdirs()) {
+			String folderCreationError = "Folder " + parentDirectory + " cannot be created!";
+			job.setError(folderCreationError);
+			A.gui.println(Hyper.formatAsError(folderCreationError));
 			return;
 		}
-		JobMan.updateStatus(j, Job.MOVING);
-		// A.gui.updateJobTable(j);
-		A.gui.status0("Moving " + j.m_fc.getName());
+		JobMan.updateStatus(job, Job.MOVING);
+		// A.gui.updateJobTable(job);
+		A.gui.status0("Moving " + job.currentFile.getName());
 
-		long t0 = System.currentTimeMillis();
-		boolean copy = !j.m_fn.exists();
-		if (copy && !fileCopy(j.m_fc, j.m_fn)) {
-			A.deleteFileAndFolder(j.m_fn, mSabrt);
-			JobMan.updateStatus(j, Job.MOVEWAIT);
-			// A.gui.updateJobTable(j);
+		long startTime = System.currentTimeMillis();
+		boolean needsCopy = !job.targetFile.exists();
+		if (needsCopy && !fileCopy(job.currentFile, job.targetFile)) {
+			A.deleteFileAndFolder(job.targetFile, abortedMoveCleanupMessage);
+			JobMan.updateStatus(job, Job.MOVEWAIT);
+			// A.gui.updateJobTable(job);
 			return;
 		}
 
-		JobMan.updateStatus(j, Job.MOVECHECK);
-		// A.gui.updateJobTable(j);
-		A.gui.status0("Checking " + j.m_fc.getName());
-		String sum = fileCheck(j.m_fn);
-		if (sum == null) { // canceled
-			if (copy) {
-				A.deleteFileAndFolder(j.m_fn, mSabrt);
+		JobMan.updateStatus(job, Job.MOVECHECK);
+		// A.gui.updateJobTable(job);
+		A.gui.status0("Checking " + job.currentFile.getName());
+		String checksumHex = computeFileChecksum(job.targetFile);
+		if (checksumHex == null) { // canceled
+			if (needsCopy) {
+				A.deleteFileAndFolder(job.targetFile, abortedMoveCleanupMessage);
 			}
-			if (!A.gui.dioOK()) {
-				JobMan.updateStatus(j, Job.MOVEWAIT);
+			if (!A.gui.isDiskIoOk()) {
+				JobMan.updateStatus(job, Job.MOVEWAIT);
 			}
-		} else if (j._ed2.equalsIgnoreCase(sum)) {
-			A.gui.println("Moved " + Hyper.name(j.m_fc) + " to " + Hyper.name(j.m_fn) + " @ "
-					+ stats(j.m_fc.length(), (System.currentTimeMillis() - t0) / 1000f));
-			A.deleteFileAndFolder(j.m_fc, mSsucc);
-			JobMan.setJobFile(j, j.m_fn);
-			j.m_fn = null;
-			j.mIdid = -1;
-			JobMan.updateStatus(j, Job.MOVED);
+		} else if (job.ed2kHash.equalsIgnoreCase(checksumHex)) {
+			A.gui.println("Moved " + Hyper.formatAsName(job.currentFile) + " to " + Hyper.formatAsName(job.targetFile)
+					+ " @ " + formatStats(job.currentFile.length(), (System.currentTimeMillis() - startTime) / 1000f));
+			A.deleteFileAndFolder(job.currentFile, successfulMoveCleanupMessage);
+			JobMan.setJobFile(job, job.targetFile);
+			job.targetFile = null;
+			job.directoryId = -1;
+			JobMan.updateStatus(job, Job.MOVED);
 		} else {
-			JobMan.updateStatus(j, Job.FAILED);
-			if (copy) {
-				j.setError("CRC check failed on copy. HW problem?");
-				A.gui.println(Hyper.error(j.m_fc + " was not moved! CRC check failed. HW problem?"));
+			JobMan.updateStatus(job, Job.FAILED);
+			if (needsCopy) {
+				job.setError("CRC check failed on copy. HW problem?");
+				A.gui.println(Hyper.formatAsError(job.currentFile + " was not moved! CRC check failed. HW problem?"));
 			} else {
-				j.setError("CRC check failed on copy. Destination file does already exist, but with"
+				job.setError("CRC check failed on copy. Destination file does already exist, but with"
 						+ " wrong CRC. Handle this manually.");
-				A.gui.println(Hyper.error(j.m_fc + " was not moved! Destination file '" + j.m_fn
-						+ "' does already exist, but with wrong CRC. Handle this" + " manually."));
+				A.gui.println(Hyper.formatAsError(job.currentFile + " was not moved! Destination file '"
+						+ job.targetFile + "' does already exist, but with wrong CRC. Handle this" + " manually."));
 			}
 		}
-		// A.gui.updateJobTable(j);
+		// A.gui.updateJobTable(job);
 	}
 
-	private String stats(long len, float time) {
-		return Hyper.number(_DF.format(len / time / 1048576)) + " MB/s (" + Hyper.number(len + "") + " bytes in "
-				+ Hyper.number(_DF.format(time)) + " seconds)";
+	private String formatStats(long fileSizeBytes, float elapsedTimeSeconds) {
+		String speedText = DECIMAL_FORMATTER.format(fileSizeBytes / elapsedTimeSeconds / 1048576);
+		String timeText = DECIMAL_FORMATTER.format(elapsedTimeSeconds);
+		return Hyper.formatAsNumber(speedText) + " MB/s (" + Hyper.formatAsNumber(fileSizeBytes + "") + " bytes in "
+				+ Hyper.formatAsNumber(timeText) + " seconds)";
 	}
 
-	private boolean fileCopy(File a, File b) throws IOException {
-		int num_read;
-		long tot_read = 0;
-		long len = a.length();
-		float prog = 0;
+	private boolean fileCopy(File sourceFile, File destinationFile) throws IOException {
+		int bytesRead;
+		long totalBytesRead = 0;
+		long fileLength = sourceFile.length();
+		float progress = 0;
 
-		InputStream fi = new FileInputStream(a);
-		OutputStream fo = new FileOutputStream(b);
+		InputStream inputStream = new FileInputStream(sourceFile);
+		OutputStream outputStream = new FileOutputStream(destinationFile);
 
-		A.gui.jpb0.setValue(0);
+		A.gui.statusProgressBar.setValue(0);
 		try {
-			while (A.gui.dioOK() && (num_read = fi.read(m_buf)) != -1) {
-				fo.write(m_buf, 0, num_read);
-				tot_read += num_read;
-				prog = (float) tot_read / len;
-				A.gui.jpb0.setValue((int) (1000 * prog));
+			while (A.gui.isDiskIoOk() && (bytesRead = inputStream.read(READ_BUFFER)) != -1) {
+				outputStream.write(READ_BUFFER, 0, bytesRead);
+				totalBytesRead += bytesRead;
+				progress = (float) totalBytesRead / fileLength;
+				A.gui.statusProgressBar.setValue((int) (1000 * progress));
 			}
-			fo.close();
-			fi.close();
+			outputStream.close();
+			inputStream.close();
 		} catch (IOException e) {
-			if (e.getMessage().equals(S_OUTS)) {
-				A.dialog("IOException", S_OUTS + ":\n" + b);
+			if (e.getMessage().equals(DISK_SPACE_ERROR_MESSAGE)) {
+				A.dialog("IOException", DISK_SPACE_ERROR_MESSAGE + ":\n" + destinationFile);
 			} else {
 				throw e;
 			}
 		}
-		return prog == 1;
+		return progress == 1;
 	}
 
-	private String fileCheck(File f) throws IOException {
-		Edonkey ed;
+	private String computeFileChecksum(File file) throws IOException {
+		Edonkey edonkeyHash;
 		try {
-			ed = new Edonkey();
+			edonkeyHash = new Edonkey();
 		} catch (java.security.NoSuchAlgorithmException e) {
 			e.printStackTrace();
 			return null;
 		}
-		int num_read;
-		long tot_read = 0;
-		long len = f.length();
-		float prog = 0;
-		InputStream in = new FileInputStream(f);
-		A.gui.jpb0.setValue(0);
-		while (A.gui.dioOK() && (num_read = in.read(m_buf)) != -1) {
-			ed.update(m_buf, 0, num_read);
-			tot_read += num_read;
-			prog = (float) tot_read / len;
-			A.gui.jpb0.setValue((int) (1000 * prog));
+		int bytesRead;
+		long totalBytesRead = 0;
+		long fileLength = file.length();
+		float progress = 0;
+		InputStream inputStream = new FileInputStream(file);
+		A.gui.statusProgressBar.setValue(0);
+		while (A.gui.isDiskIoOk() && (bytesRead = inputStream.read(READ_BUFFER)) != -1) {
+			edonkeyHash.update(READ_BUFFER, 0, bytesRead);
+			totalBytesRead += bytesRead;
+			progress = (float) totalBytesRead / fileLength;
+			A.gui.statusProgressBar.setValue((int) (1000 * progress));
 		}
-		in.close();
-		if (prog < 1) {
+		inputStream.close();
+		if (progress < 1) {
 			return null;
 		}
 		// return crc.getHexValue();
-		return ed.getHexValue();
+		return edonkeyHash.getHexValue();
 	}
 }

@@ -134,15 +134,15 @@ public class A {
 	public static boolean shutdown(boolean opx) {
 		if (opx) {
 			Options o = new Options();
-			if (o.onDisk()) {
-				gui.opts(o);
+			if (o.existsOnDisk()) {
+				gui.saveOptions(o);
 				if (!A.opt.equals(o)) {
-					if (o.getB(Options.B_AUTOSAV)) {
-						o.save();
+					if (o.getBoolean(Options.BOOL_AUTO_SAVE)) {
+						o.saveToFile();
 					} else {
 						switch (yes_no_cancel("The options has changed", "Do you want to save them?")) {
 							case 0 :
-								o.save();
+								o.saveToFile();
 								break;
 							case -1 :
 							case 2 :

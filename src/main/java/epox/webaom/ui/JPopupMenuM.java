@@ -38,25 +38,26 @@ import javax.swing.JPopupMenu;
 import javax.swing.JTable;
 
 public class JPopupMenuM extends JPopupMenu implements MouseListener, ActionListener {
-	protected final JTable jt;
-	protected final RowModel jlm;
+	protected final JTable table;
+	protected final RowModel rowModel;
 	protected MenuWorker worker = null;
-	private String dir = null;
-	private final JMenuItem[] items;
+	/** Last directory selected in the folder chooser dialog. */
+	private String lastSelectedDirectory = null;
+	private final JMenuItem[] menuItems;
 
-	public JPopupMenuM(final JTable jt, final RowModel jlm) {
-		this.jt = jt;
-		this.jlm = jlm;
+	public JPopupMenuM(final JTable table, final RowModel rowModel) {
+		this.table = table;
+		this.rowModel = rowModel;
 
-		items = new JMenuItem[iCommands];
-		for (int i = 0; i < iCommands; i++) {
-			if (separator(i)) {
+		menuItems = new JMenuItem[MENU_ITEM_COUNT];
+		for (int index = 0; index < MENU_ITEM_COUNT; index++) {
+			if (separator(index)) {
 				this.addSeparator();
 			} else {
-				items[i] = new JMenuItem(commandText(i));
-				items[i].addActionListener(this);
-				items[i].setActionCommand("" + i);
-				this.add(items[i]);
+				menuItems[index] = new JMenuItem(commandText(index));
+				menuItems[index].addActionListener(this);
+				menuItems[index].setActionCommand("" + index);
+				this.add(menuItems[index]);
 			}
 		}
 	}
@@ -64,185 +65,200 @@ public class JPopupMenuM extends JPopupMenu implements MouseListener, ActionList
 	public void stop() {
 		try {
 			worker.run = false;
-		} catch (Exception e) {
+		} catch (Exception ignored) {
 			// don't care
 		}
 	}
 
-	public void mouseEntered(MouseEvent e) {
-		/* don't care */ }
+	@Override
+	public void mouseEntered(MouseEvent event) {
+		/* don't care */
+	}
 
-	public void mouseExited(MouseEvent e) {
-		/* don't care */ }
+	@Override
+	public void mouseExited(MouseEvent event) {
+		/* don't care */
+	}
 
-	public void mousePressed(MouseEvent e) {
-		if (jt instanceof JTableJobs) {
-			((JTableJobs) jt).upd = false;
+	@Override
+	public void mousePressed(MouseEvent event) {
+		if (table instanceof JTableJobs) {
+			((JTableJobs) table).updateEnabled = false;
 		}
 	}
 
-	public void mouseReleased(MouseEvent e) {
-		if (jt instanceof JTableJobs) {
-			((JTableJobs) jt).upd = true;
+	@Override
+	public void mouseReleased(MouseEvent event) {
+		if (table instanceof JTableJobs) {
+			((JTableJobs) table).updateEnabled = true;
 		}
 	}
 
-	public void mouseClicked(MouseEvent e) {
-		if (worker == null && (e.getModifiers() & InputEvent.BUTTON3_MASK) == InputEvent.BUTTON3_MASK) {
-			items[REMOVE_DB].setEnabled(A.db._ok());
-			items[PARSE].setEnabled(AVInfo.ok());
+	@Override
+	public void mouseClicked(MouseEvent event) {
+		if (worker == null && (event.getModifiers() & InputEvent.BUTTON3_MASK) == InputEvent.BUTTON3_MASK) {
+			menuItems[REMOVE_DB].setEnabled(A.db.isConnected());
+			menuItems[PARSE].setEnabled(AVInfo.ok());
 			this.updateUI();
-			show(jt, e.getX(), e.getY());
+			show(table, event.getX(), event.getY());
 		}
 	}
 
-	public void actionPerformed(ActionEvent e) {
-		if (jt.getSelectedRowCount() > 0) {
-			worker = new MenuWorker(Integer.parseInt(e.getActionCommand()));
+	@Override
+	public void actionPerformed(ActionEvent event) {
+		if (table.getSelectedRowCount() > 0) {
+			worker = new MenuWorker(Integer.parseInt(event.getActionCommand()));
 		}
 	}
 
 	private class MenuWorker extends Thread {
-		int cmd;
-		public boolean run = true;
+		int commandId;
+		boolean run = true;
 
-		public MenuWorker(int c) {
+		MenuWorker(int command) {
 			super("pMenu");
-			cmd = c;
+			commandId = command;
 			start();
 		}
 
+		@Override
 		@SuppressWarnings("checkstyle:NoWhitespaceBefore")
 		public void run() {
-			ie : if (single(cmd)) {
+			ie : if (single(commandId)) {
 				try {
-					commandSingle(cmd, jlm.getJobs(jt.getSelectedRow())[0]);
-				} catch (ArrayIndexOutOfBoundsException e) {
-					//
+					commandSingle(commandId, rowModel.getJobs(table.getSelectedRow())[0]);
+				} catch (ArrayIndexOutOfBoundsException ignored) {
+					// Selection may be empty
 				}
 			} else {
-				String arg = null;
-				if (cmd == SET_FOLDER || cmd == SET_PAR_FLD) {
-					arg = getFolder();
-					if (arg == null) {
+				String folderPath = null;
+				if (commandId == SET_FOLDER || commandId == SET_PAR_FLD) {
+					folderPath = getFolder();
+					if (folderPath == null) {
 						break ie;
 					}
 				}
-				int[] rows = jt.getSelectedRows();
+				int[] selectedRows = table.getSelectedRows();
 
-				jt.clearSelection();
-				for (int i = 0; i < rows.length && run; i++) {
-					command(cmd, jlm.getJobs(rows[i]), arg);
+				table.clearSelection();
+				for (int index = 0; index < selectedRows.length && run; index++) {
+					command(commandId, rowModel.getJobs(selectedRows[index]), folderPath);
 				}
 			}
 			worker = null;
 		}
 	}
 
-	void command(int cmd, Job[] rows, String arg) {
-		if (rows.length < 1) {
+	void command(int commandId, Job[] jobs, String folderPath) {
+		if (jobs.length < 1) {
 			return;
 		}
-		if (cmd == EDIT_PATH) {
-			arg = new JTextInputDialog(A.frame, "Edit path", rows[0].getFile().getParent()).getStr();
-			if (arg == null || arg.length() < 2) {
+		if (commandId == EDIT_PATH) {
+			folderPath = new JTextInputDialog(A.frame, "Edit path", jobs[0].getFile().getParent()).getStr();
+			if (folderPath == null || folderPath.length() < 2) {
 				return;
 			}
 		}
-		for (int i = 0; i < rows.length; i++) {
-			if (rows[i] != null) {
-				command0(cmd, rows[i], arg);
+		for (int index = 0; index < jobs.length; index++) {
+			if (jobs[index] != null) {
+				executeCommand(commandId, jobs[index], folderPath);
 			}
 		}
 	}
 
-	void command0(int cmd, Job j, String arg) {
-		switch (cmd) {
+	void executeCommand(int commandId, Job job, String folderPath) {
+		switch (commandId) {
 			case PAUSE :
-				JobMan.updateStatus(j, Job.H_PAUSED, true);
+				JobMan.updateStatus(job, Job.H_PAUSED, true);
 				break;
 			case REHASH :
-				JobMan.updateStatus(j, Job.HASHWAIT, true);
+				JobMan.updateStatus(job, Job.HASHWAIT, true);
 				break;
 			case REID :
-				j.m_fa = null;
-				JobMan.updateStatus(j, Job.HASHED, true);
+				job.anidbFile = null;
+				JobMan.updateStatus(job, Job.HASHED, true);
 				break;
 			case READD :
-				JobMan.updateStatus(j, Job.ADDWAIT, true);
+				JobMan.updateStatus(job, Job.ADDWAIT, true);
 				break;
 			case REMOVE :
-				JobMan.updateStatus(j, Job.REMWAIT, true);
+				JobMan.updateStatus(job, Job.REMWAIT, true);
 				break;
 			case APPLY_RULES :
-				JobMan.updateStatus(j, Job.IDENTIFIED, true);
+				JobMan.updateStatus(job, Job.IDENTIFIED, true);
 				break;
 			case SET_FINISHED :
-				JobMan.updateStatus(j, Job.FINISHED, true);
+				JobMan.updateStatus(job, Job.FINISHED, true);
 				break;
 			case SET_FOLDER :
-				if (arg != null) {
-					JobMan.setPath(j, arg, false);
+				if (folderPath != null) {
+					JobMan.setPath(job, folderPath, false);
 				}
 				break;
 			case SET_PAR_FLD :
-				if (arg != null) {
-					JobMan.setPath(j, arg, true);
+				if (folderPath != null) {
+					JobMan.setPath(job, folderPath, true);
 				}
 				break;
 			case REMOVE_DB :
-				JobMan.updateStatus(j, Job.H_DELETED, true);
+				JobMan.updateStatus(job, Job.H_DELETED, true);
 				break;
 			case RESTORE_NAME :
-				JobMan.restoreName(j);
+				JobMan.restoreName(job);
 				break;
 			case EDIT_PATH :
-				if (arg != null) {
-					JobMan.setPath(j, arg, false);
+				if (folderPath != null) {
+					JobMan.setPath(job, folderPath, false);
 				}
 				break;
 			case PARSE :
-				JobMan.updateStatus(j, Job.PARSEWAIT, true);
+				JobMan.updateStatus(job, Job.PARSEWAIT, true);
+				break;
+			default :
+				// Unknown command - no action needed
 				break;
 		}
 	}
 
-	void commandSingle(int cmd, Job j) {
-		switch (cmd) {
+	void commandSingle(int commandId, Job job) {
+		switch (commandId) {
 			case SHOW_INFO :
-				JobMan.showInfo(j);
+				JobMan.showInfo(job);
 				break;
 			case WATCH_NOW :
-				JobMan.c_watch(j);
+				JobMan.openInDefaultPlayer(job);
 				break;
 			case EXPLORER :
-				JobMan.c_expl(j);
+				JobMan.openInExplorer(job);
 				break;
 			case EDIT_NAME :
-				JobMan.setName(j, new JTextInputDialog(A.frame, "Edit name", j.getFile().getName()).getStr());
+				String currentName = job.getFile().getName();
+				JobMan.setName(job, new JTextInputDialog(A.frame, "Edit name", currentName).getStr());
 				break;
 			case SET_FID :
-				j.mIfid = new JTextInputDialog(A.frame, "Insert fid", "").getInt();
-				if (j.mIfid > 0) {
-					j.m_fa = null;
-					JobMan.updateStatus(j, Job.HASHED);
-					// jlm.updateRow(j);
+				job.fileIdOverride = new JTextInputDialog(A.frame, "Insert fid", "").getInt();
+				if (job.fileIdOverride > 0) {
+					job.anidbFile = null;
+					JobMan.updateStatus(job, Job.HASHED);
 				}
+				break;
+			default :
+				// Unknown command - no action needed
 				break;
 		}
 	}
 
 	String getFolder() {
-		JFileChooser fc = new JFileChooser();
-		fc.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
-		fc.setMultiSelectionEnabled(false);
-		if (dir != null) {
-			fc.setCurrentDirectory(new java.io.File(dir));
+		JFileChooser fileChooser = new JFileChooser();
+		fileChooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
+		fileChooser.setMultiSelectionEnabled(false);
+		if (lastSelectedDirectory != null) {
+			fileChooser.setCurrentDirectory(new java.io.File(lastSelectedDirectory));
 		}
-		int option = fc.showDialog(A.component, "Select Directory");
+		int option = fileChooser.showDialog(A.component, "Select Directory");
 		if (option == JFileChooser.APPROVE_OPTION) {
-			dir = fc.getSelectedFile().getAbsolutePath();
-			return dir;
+			lastSelectedDirectory = fileChooser.getSelectedFile().getAbsolutePath();
+			return lastSelectedDirectory;
 		}
 		return null;
 	}
@@ -269,10 +285,10 @@ public class JPopupMenuM extends JPopupMenu implements MouseListener, ActionList
 	private static final int PARSE = 19;
 	private static final int SET_FID = 20;
 	private static final int REMOVE_DB = 21;
-	private static final int iCommands = 22;
+	private static final int MENU_ITEM_COUNT = 22;
 
-	public static String commandText(int i) {
-		switch (i) {
+	public static String commandText(int commandId) {
+		switch (commandId) {
 			case APPLY_RULES :
 				return "Apply Rules";
 			case SHOW_INFO :
@@ -314,8 +330,8 @@ public class JPopupMenuM extends JPopupMenu implements MouseListener, ActionList
 		}
 	}
 
-	public static boolean separator(int i) {
-		switch (i) {
+	public static boolean separator(int commandId) {
+		switch (commandId) {
 			case SEPARATOR_0 :
 			case SEPARATOR_1 :
 			case SEPARATOR_2 :
@@ -326,8 +342,9 @@ public class JPopupMenuM extends JPopupMenu implements MouseListener, ActionList
 		}
 	}
 
-	public static boolean single(int i) {
-		switch (i) {
+	/** Returns true if the command only applies to a single selected job. */
+	public static boolean single(int commandId) {
+		switch (commandId) {
 			case SHOW_INFO :
 			case WATCH_NOW :
 			case EXPLORER :

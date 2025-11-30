@@ -31,27 +31,28 @@ import java.io.InputStream;
 import java.util.StringTokenizer;
 
 public class FileHandler {
-	public UniqueStringList m_ext;
-	public FileFilter1 m_ff;
+	public UniqueStringList allowedExtensions;
+	public ExtensionFileFilter extensionFilter;
 
 	public FileHandler() {
-		m_ext = new UniqueStringList(Options.S_SEP);
-		m_ff = new FileFilter1();
+		allowedExtensions = new UniqueStringList(Options.FIELD_SEPARATOR);
+		extensionFilter = new ExtensionFileFilter();
 	}
 
-	public synchronized void addExt(String str) {
-		m_ext.add(str);
+	public synchronized void addExtension(String extension) {
+		allowedExtensions.add(extension);
 	}
 
-	public synchronized void removeExt(int i) {
-		m_ext.removeElementAt(i);
+	public synchronized void removeExtension(int index) {
+		allowedExtensions.removeElementAt(index);
 	}
 
 	public synchronized boolean addFile(File file) {
-		if ((m_ext.includes(getExtension(file)) || m_ext.getSize() == 0) && !A.jobs.has(file) && !locked(file)) {
-			Job j = A.jobs.add(file);
-			if (j != null) {
-				j.updateHealth(Job.H_PAUSED);
+		if ((allowedExtensions.includes(getExtension(file)) || allowedExtensions.getSize() == 0) && !A.jobs.has(file)
+				&& !isFileLocked(file)) {
+			Job job = A.jobs.add(file);
+			if (job != null) {
+				job.updateHealth(Job.H_PAUSED);
 				return true;
 			}
 		}
@@ -59,48 +60,49 @@ public class FileHandler {
 	}
 
 	protected String getExtension(File file) {
-		int i = file.getName().lastIndexOf(".");
-		if (i < 0) {
+		int dotIndex = file.getName().lastIndexOf(".");
+		if (dotIndex < 0) {
 			return null;
 		}
-		return file.getName().substring(i + 1).toLowerCase();
+		return file.getName().substring(dotIndex + 1).toLowerCase();
 	}
 
-	private boolean locked(File f) {
+	private boolean isFileLocked(File file) {
 		try {
-			InputStream fis = new FileInputStream(f);
-			fis.close();
+			InputStream inputStream = new FileInputStream(file);
+			inputStream.close();
 			return false;
 		} catch (FileNotFoundException e) {
-			// e.printStackTrace();
+			// File not found means it's inaccessible
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
 		return true;
 	}
 
-	public synchronized void opts(Options o) {
-		String ext = "";
-		Object[] t = m_ext.getStrings();
-		for (int i = 0; i < t.length; i++) {
-			ext += t[i] + Options.S_SEP;
+	public synchronized void saveOptions(Options options) {
+		String extensionList = "";
+		Object[] extensions = allowedExtensions.getStrings();
+		for (int i = 0; i < extensions.length; i++) {
+			extensionList += extensions[i] + Options.FIELD_SEPARATOR;
 		}
-		o.setS(Options.S_EXTENSN, ext);
+		options.setString(Options.STR_EXTENSIONS, extensionList);
 	}
 
-	public synchronized void optl(Options o) {
-		StringTokenizer st = new StringTokenizer(o.getS(Options.S_EXTENSN), Options.S_SEP);
-		while (st.hasMoreTokens()) {
-			m_ext.add(st.nextToken());
+	public synchronized void loadOptions(Options options) {
+		StringTokenizer tokenizer = new StringTokenizer(options.getString(Options.STR_EXTENSIONS),
+				Options.FIELD_SEPARATOR);
+		while (tokenizer.hasMoreTokens()) {
+			allowedExtensions.add(tokenizer.nextToken());
 		}
 	}
 
-	protected class FileFilter1 extends javax.swing.filechooser.FileFilter implements java.io.FileFilter {
+	protected class ExtensionFileFilter extends javax.swing.filechooser.FileFilter implements java.io.FileFilter {
 		public boolean accept(File file) {
 			if (file.isDirectory()) {
 				return true;
 			}
-			return m_ext.includes(getExtension(file)) || m_ext.getSize() == 0;
+			return allowedExtensions.includes(getExtension(file)) || allowedExtensions.getSize() == 0;
 		}
 
 		public String getDescription() {

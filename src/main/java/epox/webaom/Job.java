@@ -30,128 +30,124 @@ import java.io.File;
 
 public class Job {
 	// Size, int=4, long=1, pointer=4, string=7 -> 4*4+1*8+4*8+7*8= 112 bytes / calc = 108 bytes
-	private static final char S = '|';
-	private int mIst;
-	public int mIdid;
-	public int mIlid = 0;
-	public int mIfid = 0; // TODO remove rIlid
-	public boolean mBf = true; // fresh
-	public long mLs;
-	public File m_fc;
-	public File m_fn;
-	public AFile m_fa;
-	public FileInfo m_fi;
-	public String mSo;
-	public String mSe;
-	public String _ed2;
-	public String _md5;
-	public String _sha;
-	public String _tth;
-	public String _crc;
+	private static final char FIELD_SEPARATOR = '|';
+	private int status;
+	public int directoryId;
+	public int mylistId = 0;
+	public int fileIdOverride = 0;
+	public boolean isFresh = true;
+	public long fileSize;
+	public File currentFile;
+	public File targetFile;
+	public AFile anidbFile;
+	public FileInfo avFileInfo;
+	public String originalName;
+	public String errorMessage;
+	public String ed2kHash;
+	public String md5Hash;
+	public String sha1Hash;
+	public String tthHash;
+	public String crc32Hash;
 
 	public String serialize() {
-		return "" + getStatus() + S + m_fc + S + mLs + S + _ed2 + S + _md5 + S + _sha + S + _tth + S + _crc + S + mSo;
+		return "" + getStatus() + FIELD_SEPARATOR + currentFile + FIELD_SEPARATOR + fileSize + FIELD_SEPARATOR
+				+ ed2kHash + FIELD_SEPARATOR + md5Hash + FIELD_SEPARATOR + sha1Hash + FIELD_SEPARATOR + tthHash
+				+ FIELD_SEPARATOR + crc32Hash + FIELD_SEPARATOR + originalName;
 	}
 
-	public Job(String[] s) {
-		this(new File(s[1]), U.i(s[0]));
-		int i = 2;
-		mLs = Long.parseLong(s[i++]);
-		_ed2 = s[i++];
-		_md5 = U.n(s[i++]);
-		_sha = U.n(s[i++]);
-		_tth = U.n(s[i++]);
-		_crc = U.n(s[i++]);
-		mSo = s[i++];
+	public Job(String[] serializedData) {
+		this(new File(serializedData[1]), U.i(serializedData[0]));
+		int index = 2;
+		fileSize = Long.parseLong(serializedData[index++]);
+		ed2kHash = serializedData[index++];
+		md5Hash = U.n(serializedData[index++]);
+		sha1Hash = U.n(serializedData[index++]);
+		tthHash = U.n(serializedData[index++]);
+		crc32Hash = U.n(serializedData[index++]);
+		originalName = serializedData[index++];
 	}
 
-	public Job(File f, int status) {
-		mIst = status;
-		m_fc = f;
-		m_fn = null;
-		m_fa = null;
-		_ed2 = _md5 = _sha = _tth = _crc = null;
+	public Job(File file, int initialStatus) {
+		status = initialStatus;
+		currentFile = file;
+		targetFile = null;
+		anidbFile = null;
+		ed2kHash = md5Hash = sha1Hash = tthHash = crc32Hash = null;
 
-		mLs = f.length();
-		mSo = f.getName();
+		fileSize = file.length();
+		originalName = file.getName();
 
-		if (!m_fc.exists()) {
-			mIst |= H_MISSING;
+		if (!currentFile.exists()) {
+			status |= H_MISSING;
 		} else {
-			mIst |= H_PAUSED;
+			status |= H_PAUSED;
 		}
-		A.jobc.register(-1, -1, mIst & M_R, getHealth());
+		A.jobc.register(-1, -1, status & M_R, getHealth());
 	}
 
 	public String toString() {
-		return m_fc.getName() + ": " + getStatusText();
+		return currentFile.getName() + ": " + getStatusText();
 	}
 
-	public boolean hide(String s) {
-		if (s == null || s.isEmpty()) {
+	public boolean hide(String pattern) {
+		if (pattern == null || pattern.isEmpty()) {
 			return false;
 		}
-		if (s.charAt(0) == '!') {
-			return m_fc.getAbsolutePath().matches(s.substring(1));
+		if (pattern.charAt(0) == '!') {
+			return currentFile.getAbsolutePath().matches(pattern.substring(1));
 		}
-		return !m_fc.getAbsolutePath().matches(s);
+		return !currentFile.getAbsolutePath().matches(pattern);
 	}
 
-	/*
-	 * public String toString(){
-	 * return mSo+mSe+_ed2+_md5+_sha+_tth+_crc+m_fc+m_fa;
-	 * }
-	 */
 	public File getFile() {
-		return m_fc;
+		return currentFile;
 	}
 
 	public String getExtension() {
-		if (m_fa == null || m_fa.ext == null) {
-			String s = m_fc.getName();
-			int i = s.lastIndexOf('.');
-			if (i < 1) {
-				System.out.println("No ext: " + s);
+		if (anidbFile == null || anidbFile.ext == null) {
+			String fileName = currentFile.getName();
+			int dotIndex = fileName.lastIndexOf('.');
+			if (dotIndex < 1) {
+				System.out.println("No ext: " + fileName);
 				return "unk";
 			}
-			return s.substring(i + 1);
+			return fileName.substring(dotIndex + 1);
 		}
-		return m_fa.ext;
+		return anidbFile.ext;
 	}
 
 	public int getStatus() {
-		return mIst & M_S;
+		return status & M_S;
 	}
 
 	public int getHealth() {
-		return mIst & M_H;
+		return status & M_H;
 	}
 
-	public boolean check(int s) {
-		return (mIst & s) == s;
+	public boolean check(int statusFlags) {
+		return (status & statusFlags) == statusFlags;
 	}
 
-	public boolean checkOr(int s) {
-		return (mIst & s) > 0;
+	public boolean checkOr(int statusFlags) {
+		return (status & statusFlags) > 0;
 	}
 
-	public boolean checkSep(int s, int f, boolean u) {
-		// System.err.println(Integer.toHexString(mIst&Job.M_SS)+"
-		// "+Integer.toHexString(s&Job.M_SS));
-		boolean b = (mIst & M_SS & s) > 0 && (mIst & M_H & s) > 0 && ((s & M_D) < 1 || (mIst & M_D & s) > 0);
-		if (u) {
-			return m_fa == null && b;
+	public boolean checkSep(int statusFlags, int fileFlags, boolean unknownOnly) {
+		boolean matches = (status & M_SS & statusFlags) > 0 && (status & M_H & statusFlags) > 0
+				&& ((statusFlags & M_D) < 1 || (status & M_D & statusFlags) > 0);
+		if (unknownOnly) {
+			return anidbFile == null && matches;
 		}
-		return b && (f < 1 || (m_fa != null && (m_fa.stt & f) > 0));
+		return matches && (fileFlags < 1 || (anidbFile != null && (anidbFile.stt & fileFlags) > 0));
 	}
 
-	public boolean isLocked(int s) {
-		int h = getHealth();
-		if (h < H_MISSING) {
+	public boolean isLocked(int targetStatus) {
+		int health = getHealth();
+		if (health < H_MISSING) {
 			return false;
 		}
-		if (h == H_MISSING) {
-			switch (s) {
+		if (health == H_MISSING) {
+			switch (targetStatus) {
 				case FINISHED :
 				case ADDWAIT :
 				case REMWAIT :
@@ -162,11 +158,11 @@ public class Job {
 	}
 
 	public boolean isCorrupt() {
-		return m_fa != null && ((m_fa.stt & AFile.F_CRCERR) == AFile.F_CRCERR);
+		return anidbFile != null && ((anidbFile.stt & AFile.F_CRCERR) == AFile.F_CRCERR);
 	}
 
 	public boolean incompl() {
-		return m_fa == null || m_fa.anime == null || m_fa.ep == null;
+		return anidbFile == null || anidbFile.anime == null || anidbFile.ep == null;
 	}
 
 	public String getStatusText() {
@@ -176,13 +172,13 @@ public class Job {
 		return statusStr(getStatus()) + " [" + statusStr(getHealth()) + "]";
 	}
 
-	public void setStatus(int status, boolean test) {
+	public void setStatus(int newStatus, boolean test) {
 		int health = getHealth();
 		if (test) {
-			// if(health>H_PAUSED&&!(status==FINISHED||status==REMWAIT||status==ADDWAIT))
-			// &&(status&F_PD)==0)//extra check, could be removed maybe
+			// if(health>H_PAUSED&&!(newStatus==FINISHED||newStatus==REMWAIT||newStatus==ADDWAIT))
+			// &&(newStatus&F_PD)==0)//extra check, could be removed maybe
 			//	return;
-			if (isLocked(status)) {
+			if (isLocked(newStatus)) {
 				return;
 			}
 			if (health == H_PAUSED || health == H_MISSING) {
@@ -190,50 +186,50 @@ public class Job {
 			}
 			health = getHealth();
 		}
-		if ((status & F_DB) == F_DB) { // only for main status
+		if ((newStatus & F_DB) == F_DB) { // only for main status
 			if (test && health == H_NORMAL) {
-				A.jobs.updateQueues(this, getStatus(), status & M_S); // TODO pause off fix
+				A.jobs.updateQueues(this, getStatus(), newStatus & M_S); // TODO pause off fix
 			}
-			// A.jobc.register(getRegVal(), (status|H_NORMAL)&M_R);
+			// A.jobc.register(getRegVal(), (newStatus|H_NORMAL)&M_R);
 			health = H_NORMAL;
-			if (status == FINISHED && !m_fc.exists()) {
+			if (newStatus == FINISHED && !currentFile.exists()) {
 				health = H_MISSING;
 			}
-			A.jobc.register(mIst & M_R, getHealth(), status & M_R, health);
-			mIst = status | health;
+			A.jobc.register(status & M_R, getHealth(), newStatus & M_R, health);
+			status = newStatus | health;
 
 		} else {
-			mIst = status | H_NORMAL;
+			status = newStatus | H_NORMAL;
 		}
 	}
 
 	private void setHealth(int health) {
-		int s = getStatus();
+		int currentStatus = getStatus();
 		if (!check(H_NORMAL) && health == H_NORMAL) {
-			A.jobs.updateQueues(this, 0, s);
+			A.jobs.updateQueues(this, 0, currentStatus);
 		} else if (check(H_NORMAL) && health != H_NORMAL) {
-			A.jobs.updateQueues(this, s, -1);
+			A.jobs.updateQueues(this, currentStatus, -1);
 		}
 
-		// A.jobc.register(getRegVal(), s|health);
-		A.jobc.register(mIst & M_R, getHealth(), mIst & M_R, health);
+		// A.jobc.register(getRegVal(), currentStatus|health);
+		A.jobc.register(status & M_R, getHealth(), status & M_R, health);
 		setHealth0(health);
 	}
 
 	public void setHealth0(int health) {
-		mIst = (mIst & M_S) | health;
+		status = (status & M_S) | health;
 	}
 
-	public void setError(String str) {
-		mSe = str;
+	public void setError(String errorText) {
+		errorMessage = errorText;
 	}
 
-	public void updateHealth(int i) {
-		if (i != H_DELETED && checkOr(H_MISSING | H_DELETED)) {
+	public void updateHealth(int healthUpdate) {
+		if (healthUpdate != H_DELETED && checkOr(H_MISSING | H_DELETED)) {
 			return;
 		}
 		int health = getHealth();
-		switch (i) {
+		switch (healthUpdate) {
 			case H_PAUSED :
 				if (health == H_NORMAL) {
 					health = H_PAUSED; // turn pause on
@@ -243,8 +239,8 @@ public class Job {
 				break;
 			case H_DELETED :
 				if (health == H_DELETED) {
-					health = (m_fc.exists() ? H_NORMAL : H_MISSING);
-					A.db.update(0, this, DB.I_J);
+					health = (currentFile.exists() ? H_NORMAL : H_MISSING);
+					A.db.update(0, this, DB.INDEX_JOB);
 				} else {
 					health = H_DELETED; // delete
 					A.db.removeJob(this);
@@ -257,13 +253,13 @@ public class Job {
 		setHealth(health);
 	}
 
-	public void find(File f) {
+	public void find(File file) {
 		if (!check(H_MISSING)) {
 			return;
 		}
-		JobMan.setJobFile(this, f);
-		setHealth0(f.exists() ? H_PAUSED : H_MISSING);
-		mIdid = -1;
+		JobMan.setJobFile(this, file);
+		setHealth0(file.exists() ? H_PAUSED : H_MISSING);
+		directoryId = -1;
 	}
 
 	/// STATIC
@@ -369,111 +365,109 @@ public class Job {
 		}
 	}
 
-	public String convert(String s) {
-		// s = s.trim();
-
-		String avi0 = U.getInTag(s, "avinfo");
-		if (avi0 != null) {
-			String avi1 = avi0;
-			if (m_fi != null) {
-				String[] t = new String[]{"vid", "aud", "sub"};
+	public String convert(String template) {
+		String avInfoBlock = U.getInTag(template, "avinfo");
+		if (avInfoBlock != null) {
+			String processedAvInfo = avInfoBlock;
+			if (avFileInfo != null) {
+				String[] tags = new String[]{"vid", "aud", "sub"};
 				for (int i = 0; i < 3; i++) {
-					String s0 = U.getInTag(avi1, t[i]);
-					if (s0 == null) {
+					String tagContent = U.getInTag(processedAvInfo, tags[i]);
+					if (tagContent == null) {
 						continue;
 					}
-					String s1 = m_fi.convert(s0, i);
-					avi1 = U.replace(avi1, s0, s1);
+					String converted = avFileInfo.convert(tagContent, i);
+					processedAvInfo = U.replace(processedAvInfo, tagContent, converted);
 				}
 			} else {
-				avi1 = "";
+				processedAvInfo = "";
 			}
-			s = U.replace(s, avi0, avi1);
+			template = U.replace(template, avInfoBlock, processedAvInfo);
 		}
-		return U.replaceCCCode(s, genMap());
+		return U.replaceCCCode(template, genMap());
 	}
 
 	public AMap genMap() {
 		AMap am = new AMap();
 
-		am.put("fil", m_fc.getName());
-		am.put("pat", m_fc.getParent());
-		am.put("new", ((m_fn != null) ? m_fn.toString() : ""));
-		am.put("ori", mSo);
-		am.put("siz", mLs);
+		am.put("fil", currentFile.getName());
+		am.put("pat", currentFile.getParent());
+		am.put("new", ((targetFile != null) ? targetFile.toString() : ""));
+		am.put("ori", originalName);
+		am.put("siz", fileSize);
 		String stat = getStatusText();
-		if (check(Job.FAILED) && mSe != null) {
-			stat += ". " + mSe;
+		if (check(Job.FAILED) && errorMessage != null) {
+			stat += ". " + errorMessage;
 		}
 		am.put("sta", stat);
 
-		if (m_fa != null) {
-			am.put("aid", m_fa.aid);
-			am.put("eid", m_fa.eid);
-			am.put("fid", m_fa.fid);
-			am.put("gid", m_fa.gid);
-			am.put("lid", mIlid);
-			am.put("ver", m_fa.getVersion());
-			am.put("ula", m_fa.urlAnime());
-			am.put("ule", m_fa.urlEp());
-			am.put("ulf", m_fa.urlFile());
-			am.put("ulg", m_fa.urlGroup());
-			am.put("ulx", m_fa.urlMylistE(mIlid));
-			am.put("ulm", m_fa.urlMylist());
-			am.put("uly", m_fa.urlYear());
-			am.put("ed2", m_fa.ed2.toLowerCase());
-			am.put("ED2", m_fa.ed2.toUpperCase());
-			am.put("cen", m_fa.getCensored());
-			am.put("inv", m_fa.getInvalid());
-			am.put("dub", m_fa.dub);
-			am.put("sub", m_fa.sub);
-			am.put("src", m_fa.rip);
-			am.put("res", m_fa.res);
-			am.put("vid", m_fa.vid);
-			am.put("aud", m_fa.aud);
-			am.put("qua", m_fa.qua);
+		if (anidbFile != null) {
+			am.put("aid", anidbFile.aid);
+			am.put("eid", anidbFile.eid);
+			am.put("fid", anidbFile.fid);
+			am.put("gid", anidbFile.gid);
+			am.put("lid", mylistId);
+			am.put("ver", anidbFile.getVersion());
+			am.put("ula", anidbFile.urlAnime());
+			am.put("ule", anidbFile.urlEp());
+			am.put("ulf", anidbFile.urlFile());
+			am.put("ulg", anidbFile.urlGroup());
+			am.put("ulx", anidbFile.urlMylistE(mylistId));
+			am.put("ulm", anidbFile.urlMylist());
+			am.put("uly", anidbFile.urlYear());
+			am.put("ed2", anidbFile.ed2.toLowerCase());
+			am.put("ED2", anidbFile.ed2.toUpperCase());
+			am.put("cen", anidbFile.getCensored());
+			am.put("inv", anidbFile.getInvalid());
+			am.put("dub", anidbFile.dub);
+			am.put("sub", anidbFile.sub);
+			am.put("src", anidbFile.rip);
+			am.put("res", anidbFile.res);
+			am.put("vid", anidbFile.vid);
+			am.put("aud", anidbFile.aud);
+			am.put("qua", anidbFile.qua);
 
-			if (m_fa.sha != null) {
-				am.put("sha", m_fa.sha.toLowerCase());
-				am.put("SHA", m_fa.sha.toUpperCase());
+			if (anidbFile.sha != null) {
+				am.put("sha", anidbFile.sha.toLowerCase());
+				am.put("SHA", anidbFile.sha.toUpperCase());
 			}
-			if (m_fa.md5 != null) {
-				am.put("md5", m_fa.md5.toLowerCase());
-				am.put("MD5", m_fa.md5.toUpperCase());
+			if (anidbFile.md5 != null) {
+				am.put("md5", anidbFile.md5.toLowerCase());
+				am.put("MD5", anidbFile.md5.toUpperCase());
 			}
-			if (m_fa.crc != null) {
-				am.put("CRC", m_fa.crc.toUpperCase());
-				am.put("crc", m_fa.crc.toLowerCase());
+			if (anidbFile.crc != null) {
+				am.put("CRC", anidbFile.crc.toUpperCase());
+				am.put("crc", anidbFile.crc.toLowerCase());
 			}
-			if (m_fa.anime != null) {
-				am.put("ann", m_fa.anime.rom);
-				am.put("kan", m_fa.anime.kan);
-				am.put("eng", m_fa.anime.eng);
-				am.put("eps", m_fa.anime.eps);
-				am.put("typ", m_fa.anime.typ);
-				am.put("yea", m_fa.anime.yea);
-				am.put("gen", m_fa.anime.cat.replaceAll(",", ", "));
-				am.put("lep", m_fa.anime.lep);
-				am.put("yen", m_fa.anime.yen); // NvrBst: Unsure about this change; Needs Testing
+			if (anidbFile.anime != null) {
+				am.put("ann", anidbFile.anime.rom);
+				am.put("kan", anidbFile.anime.kan);
+				am.put("eng", anidbFile.anime.eng);
+				am.put("eps", anidbFile.anime.eps);
+				am.put("typ", anidbFile.anime.typ);
+				am.put("yea", anidbFile.anime.yea);
+				am.put("gen", anidbFile.anime.cat.replaceAll(",", ", "));
+				am.put("lep", anidbFile.anime.lep);
+				am.put("yen", anidbFile.anime.yen); // NvrBst: Unsure about this change; Needs Testing
 			}
-			if (m_fa.ep != null) {
-				am.put("epn", m_fa.ep.eng);
-				am.put("epk", m_fa.ep.kan);
-				am.put("epr", m_fa.ep.rom);
+			if (anidbFile.ep != null) {
+				am.put("epn", anidbFile.ep.eng);
+				am.put("epk", anidbFile.ep.kan);
+				am.put("epr", anidbFile.ep.rom);
 			}
-			if (m_fa.anime != null && m_fa.ep != null) {
-				am.put("enr", Parser.pad(m_fa.ep.num, m_fa.anime.getTotal()));
+			if (anidbFile.anime != null && anidbFile.ep != null) {
+				am.put("enr", Parser.pad(anidbFile.ep.num, anidbFile.anime.getTotal()));
 			}
-			if (m_fa.group != null && m_fa.gid > 0) {
-				am.put("grp", m_fa.group.sname);
-				am.put("grn", m_fa.group.name);
+			if (anidbFile.group != null && anidbFile.gid > 0) {
+				am.put("grp", anidbFile.group.sname);
+				am.put("grn", anidbFile.group.name);
 			} else {
 				am.put("grp", "unknown");
 				am.put("grn", "unknown");
 			}
-		} else if (_ed2 != null) {
-			am.put("ed2", _ed2.toLowerCase());
-			am.put("ED2", _ed2.toUpperCase());
+		} else if (ed2kHash != null) {
+			am.put("ed2", ed2kHash.toLowerCase());
+			am.put("ED2", ed2kHash.toUpperCase());
 		}
 		return am;
 	}

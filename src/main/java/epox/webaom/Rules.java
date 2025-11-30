@@ -37,91 +37,92 @@ public class Rules {
 	public static final int M_FALLB = 3;
 	public static final String TRUNC = "TRUNCATE<";
 
-	public Vector /* !<DSData> */ mVill;
-	private String mSren;
-	private String mSmov;
-	private AMap mAmap = null;
+	/** Characters to replace in filenames (illegal filesystem characters) */
+	public Vector /* !<DSData> */ illegalCharReplacements;
+	private String renameRulesScript;
+	private String moveRulesScript;
+	private AMap tagValueMap = null;
 
 	// private int mItruncate = 0;
 
 	public Rules() {
-		mVill = new Vector /* !<DSData> */();
-		mVill.add(new DSData("`", "'", true));
-		mVill.add(new DSData("\"", "", true));
-		mVill.add(new DSData("<", "", true));
-		mVill.add(new DSData(">", "", true));
-		mVill.add(new DSData("|", "", true));
-		mVill.add(new DSData("/", "", true));
-		mVill.add(new DSData(":", "", true));
-		mVill.add(new DSData("\\", "", true));
-		mVill.add(new DSData("?", "", true));
-		mVill.add(new DSData("*", "", true));
+		illegalCharReplacements = new Vector /* !<DSData> */();
+		illegalCharReplacements.add(new DSData("`", "'", true));
+		illegalCharReplacements.add(new DSData("\"", "", true));
+		illegalCharReplacements.add(new DSData("<", "", true));
+		illegalCharReplacements.add(new DSData(">", "", true));
+		illegalCharReplacements.add(new DSData("|", "", true));
+		illegalCharReplacements.add(new DSData("/", "", true));
+		illegalCharReplacements.add(new DSData(":", "", true));
+		illegalCharReplacements.add(new DSData("\\", "", true));
+		illegalCharReplacements.add(new DSData("?", "", true));
+		illegalCharReplacements.add(new DSData("*", "", true));
 
-		mSren = "#RENAME\n" + "#DO SET '%ann - %enr - %epn '\n" + "#IF G(!unknown) DO ADD '[%grp]'\n"
+		renameRulesScript = "#RENAME\n" + "#DO SET '%ann - %enr - %epn '\n" + "#IF G(!unknown) DO ADD '[%grp]'\n"
 				+ "#ELSE DO ADD '[RAW]'";
-		mSmov = "#MOVE";
+		moveRulesScript = "#MOVE";
 	}
 
-	public String getMov() {
-		return mSmov;
+	public String getMoveRules() {
+		return moveRulesScript;
 	}
 
-	public void setMov(String s) {
-		mSmov = s;
+	public void setMoveRules(String rules) {
+		moveRulesScript = rules;
 	}
 
-	public String getRen() {
-		return mSren;
+	public String getRenameRules() {
+		return renameRulesScript;
 	}
 
-	public void setRen(String s) {
-		mSren = s;
+	public void setRenameRules(String rules) {
+		renameRulesScript = rules;
 	}
 
-	private String replaceOldTags(String s) {
-		s = U.replace(s, "%year", "%yea");
-		s = U.replace(s, "%type", "%typ");
-		s = U.replace(s, "%qual", "%qua");
-		s = U.replace(s, "%ed2k", "%ed2");
-		return s;
+	private String replaceOldTags(String script) {
+		script = U.replace(script, "%year", "%yea");
+		script = U.replace(script, "%type", "%typ");
+		script = U.replace(script, "%qual", "%qua");
+		script = U.replace(script, "%ed2k", "%ed2");
+		return script;
 	}
 
-	public void optl(Options o) {
-		mSren = replaceOldTags(o.getS(Options.S_VRLSREN));
-		mSmov = replaceOldTags(o.getS(Options.S_VRLSMOV));
-		DSData.decode(mVill, o.getS(Options.S_REPLSYS));
+	public void loadFromOptions(Options options) {
+		renameRulesScript = replaceOldTags(options.getString(Options.STR_RENAME_RULES));
+		moveRulesScript = replaceOldTags(options.getString(Options.STR_MOVE_RULES));
+		DSData.decode(illegalCharReplacements, options.getString(Options.STR_REPLACE_RULES));
 	}
 
-	public void opts(Options o) {
-		o.setS(Options.S_VRLSREN, mSren);
-		o.setS(Options.S_VRLSMOV, mSmov);
-		o.setS(Options.S_REPLSYS, DSData.encode(mVill));
+	public void saveToOptions(Options options) {
+		options.setString(Options.STR_RENAME_RULES, renameRulesScript);
+		options.setString(Options.STR_MOVE_RULES, moveRulesScript);
+		options.setString(Options.STR_REPLACE_RULES, DSData.encode(illegalCharReplacements));
 	}
 
-	public File apply(Job j) {
-		if (j == null || j.m_fa == null) {
+	public File apply(Job job) {
+		if (job == null || job.anidbFile == null) {
 			return null;
 		}
 
-		String path = j.m_fc.getParent();
-		String name = j.m_fc.getName();
+		String path = job.currentFile.getParent();
+		String name = job.currentFile.getName();
 
-		if (j.m_fa.anime != null) {
-			mAmap = j.genMap();
-			String sren = get(j, mSren);
-			String smov = get(j, mSmov);
-			mAmap = null;
+		if (job.anidbFile.anime != null) {
+			tagValueMap = job.genMap();
+			String renameResult = processRulesScript(job, renameRulesScript);
+			String moveResult = processRulesScript(job, moveRulesScript);
+			tagValueMap = null;
 
-			if (smov != null) {
-				String p = fin(j, smov);
-				if (p.startsWith("." + File.separator)) {
-					path += p.substring(1);
+			if (moveResult != null) {
+				String movePath = finalizeFilename(job, moveResult);
+				if (movePath.startsWith("." + File.separator)) {
+					path += movePath.substring(1);
 				} else {
-					path = p;
+					path = movePath;
 				}
 			}
-			if (sren != null) {
-				name = fin(j, sren) + "." + j.getExtension();
+			if (renameResult != null) {
+				name = finalizeFilename(job, renameResult) + "." + job.getExtension();
 			}
 		} else {
 			return null;
@@ -140,156 +141,160 @@ public class Rules {
 		return f;
 	}
 
-	private String get(Job j, String str) {
+	private String processRulesScript(Job job, String script) {
 		try {
-			Vector v = build(str, j);
-			if (v.isEmpty()) {
+			Vector sections = buildSections(script, job);
+			if (sections.isEmpty()) {
 				return null;
 			}
-			String rule = "";
-			while (!v.isEmpty()) {
-				rule += v.remove(0);
+			String result = "";
+			while (!sections.isEmpty()) {
+				result += sections.remove(0);
 			}
-			return rule;
+			return result;
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
 		return null;
 	}
 
-	private Vector /* !<Section> */ build(String script, Job j) throws Exception {
-		StringTokenizer st = new StringTokenizer(script, "\r\n");
-		String tok;
-		String tup;
-		Vector /* !<Section> */ schema = new Vector /* !<Section> */();
-		int i;
-		boolean prev = true;
-		while (st.hasMoreTokens()) {
-			tok = st.nextToken();
-			tup = tok.toUpperCase();
-			if (tup.startsWith("#")) {
+	private Vector /* !<Section> */ buildSections(String script, Job job) throws Exception {
+		StringTokenizer tokenizer = new StringTokenizer(script, "\r\n");
+		String token;
+		String upperToken;
+		Vector /* !<Section> */ sections = new Vector /* !<Section> */();
+		int doIndex;
+		boolean previousConditionPassed = true;
+		while (tokenizer.hasMoreTokens()) {
+			token = tokenizer.nextToken();
+			upperToken = token.toUpperCase();
+			if (upperToken.startsWith("#")) {
 				continue;
 			}
-			if (tup.startsWith("DO ") && handle(schema, tok.substring(3))) {
+			if (upperToken.startsWith("DO ") && handleOperation(sections, token.substring(3))) {
 				break;
-			} else if (tup.startsWith("IF ") && (prev = check(tok.substring(3, (i = tup.indexOf(" DO "))), j))
-					&& handle(schema, tok.substring(i + 4))) {
+			} else if (upperToken.startsWith("IF ")
+					&& (previousConditionPassed = evaluateConditions(
+							token.substring(3, (doIndex = upperToken.indexOf(" DO "))), job))
+					&& handleOperation(sections, token.substring(doIndex + 4))) {
 				break;
-			} else if (tup.startsWith("ELSE IF ") && !prev
-					&& (prev = check(tok.substring(8, (i = tup.indexOf(" DO "))), j))
-					&& handle(schema, tok.substring(i + 4))) {
+			} else if (upperToken.startsWith("ELSE IF ") && !previousConditionPassed
+					&& (previousConditionPassed = evaluateConditions(
+							token.substring(8, (doIndex = upperToken.indexOf(" DO "))), job))
+					&& handleOperation(sections, token.substring(doIndex + 4))) {
 				break;
-			} else if (tup.startsWith("ELSE DO ") && !prev && handle(schema, tok.substring(8))) {
+			} else if (upperToken.startsWith("ELSE DO ") && !previousConditionPassed
+					&& handleOperation(sections, token.substring(8))) {
 				break;
 			}
 		}
-		return schema;
+		return sections;
 	}
 
-	private boolean handle(Vector /* !<Section> */ sch, String op) throws Exception {
-		String up = op.toUpperCase();
-		if (up.startsWith("ADD ")) {
-			sch.add(new Section(op.substring(4)));
+	private boolean handleOperation(Vector /* !<Section> */ sections, String operation) throws Exception {
+		String upperOp = operation.toUpperCase();
+		if (upperOp.startsWith("ADD ")) {
+			sections.add(new Section(operation.substring(4)));
 			return false;
 		}
-		if (up.startsWith("SET ")) {
-			sch.clear();
-			sch.add(new Section(op.substring(4)));
+		if (upperOp.startsWith("SET ")) {
+			sections.clear();
+			sections.add(new Section(operation.substring(4)));
 			return false;
 		}
-		if (up.equals("FAIL")) {
-			sch.clear();
+		if (upperOp.equals("FAIL")) {
+			sections.clear();
 			return true;
 		}
-		if (up.equals("FINISH")) {
+		if (upperOp.equals("FINISH")) {
 			return true;
 		}
-		if (up.startsWith("FINISH ")) {
-			sch.add(new Section(op.substring(7)));
+		if (upperOp.startsWith("FINISH ")) {
+			sections.add(new Section(operation.substring(7)));
 			return true;
 		}
-		if (up.startsWith("RETURN ")) {
-			sch.clear();
-			sch.add(new Section(op.substring(7)));
+		if (upperOp.startsWith("RETURN ")) {
+			sections.clear();
+			sections.add(new Section(operation.substring(7)));
 			return true;
 		}
-		if (up.startsWith("ASSUME ")) {
+		if (upperOp.startsWith("ASSUME ")) {
 			try {
-				if (up.startsWith("ASSUME SPECIAL ")) {
-					A.ASSP = U.i(up.substring(15).trim());
+				if (upperOp.startsWith("ASSUME SPECIAL ")) {
+					A.ASSP = U.i(upperOp.substring(15).trim());
 				} else {
-					A.ASNO = U.i(up.substring(7).trim());
+					A.ASNO = U.i(upperOp.substring(7).trim());
 				}
 			} catch (NumberFormatException e) {
-				A.dialog("NumberFormatException", "Parsing '" + op + "' failed.");
+				A.dialog("NumberFormatException", "Parsing '" + operation + "' failed.");
 			}
 			return false;
 		}
-		if (up.startsWith(TRUNC)) {
-			int x = up.indexOf('>');
-			int y = up.indexOf(',');
-			if (x > 0 && y > 0 && y < x) {
-				sch.add(new Section(up.substring(0, x + 1)));
+		if (upperOp.startsWith(TRUNC)) {
+			int closeIndex = upperOp.indexOf('>');
+			int commaIndex = upperOp.indexOf(',');
+			if (closeIndex > 0 && commaIndex > 0 && commaIndex < closeIndex) {
+				sections.add(new Section(upperOp.substring(0, closeIndex + 1)));
 			} else {
-				A.gui.println(Hyper.error("Invalid rule element: " + op));
+				A.gui.println(Hyper.formatAsError("Invalid rule element: " + operation));
 			}
 			return false;
 		}
-		sch.clear();
-		throw new Exception("Error after DO: Expected SET/ADD/FAIL/FINISH/TRUNCATE<int,str>: " + op);
+		sections.clear();
+		throw new Exception("Error after DO: Expected SET/ADD/FAIL/FINISH/TRUNCATE<int,str>: " + operation);
 	}
 
-	private boolean check(String s, Job j) throws Exception {
-		StringTokenizer st = new StringTokenizer(s, ";");
-		if (st.countTokens() < 1) {
+	private boolean evaluateConditions(String conditionString, Job job) throws Exception {
+		StringTokenizer tokenizer = new StringTokenizer(conditionString, ";");
+		if (tokenizer.countTokens() < 1) {
 			return false;
 		}
-		boolean b = true;
-		while (st.hasMoreTokens() && b) {
+		boolean allConditionsPass = true;
+		while (tokenizer.hasMoreTokens() && allConditionsPass) {
 			try {
-				b &= check1(st.nextToken().trim(), j);
+				allConditionsPass &= evaluateConditionGroup(tokenizer.nextToken().trim(), job);
 			} catch (Exception e) {
 				e.printStackTrace();
 				return false;
 			}
 		}
-		return b;
+		return allConditionsPass;
 	}
 
-	private int findEndPar(String s, int start) {
-		int level = 0;
-		char c;
-		for (int i = start; i < s.length(); i++) {
-			c = s.charAt(i);
-			if (c == '(') {
-				level++;
-			} else if (c == ')') {
-				if (level == 0) {
-					return i;
+	private int findClosingParenthesis(String text, int startPosition) {
+		int nestingLevel = 0;
+		char currentChar;
+		for (int index = startPosition; index < text.length(); index++) {
+			currentChar = text.charAt(index);
+			if (currentChar == '(') {
+				nestingLevel++;
+			} else if (currentChar == ')') {
+				if (nestingLevel == 0) {
+					return index;
 				}
-				level--;
+				nestingLevel--;
 			}
 		}
 		return -1;
 	}
 
-	private boolean check1(String s, Job j) throws Exception {
-		char c = Character.toUpperCase(s.charAt(0));
-		int x = s.indexOf('(') + 1;
-		int y = findEndPar(s, x); // s.indexOf(')', x);
-		if (x < 1 || y < 0) {
-			throw new Exception("Missing ( or ): " + s);
+	private boolean evaluateConditionGroup(String conditionExpr, Job job) throws Exception {
+		char conditionType = Character.toUpperCase(conditionExpr.charAt(0));
+		int openParenIndex = conditionExpr.indexOf('(') + 1;
+		int closeParenIndex = findClosingParenthesis(conditionExpr, openParenIndex);
+		if (openParenIndex < 1 || closeParenIndex < 0) {
+			throw new Exception("Missing ( or ): " + conditionExpr);
 		}
 
-		StringTokenizer st = new StringTokenizer(s.substring(x, y), ",");
-		while (st.hasMoreTokens()) {
+		StringTokenizer tokenizer = new StringTokenizer(conditionExpr.substring(openParenIndex, closeParenIndex), ",");
+		while (tokenizer.hasMoreTokens()) {
 			try {
-				String test = st.nextToken().trim();
-				boolean not = test.startsWith("!");
-				if (not) {
-					test = test.substring(1);
+				String testValue = tokenizer.nextToken().trim();
+				boolean negated = testValue.startsWith("!");
+				if (negated) {
+					testValue = testValue.substring(1);
 				}
-				if (not ^ check0(c, test, j)) {
+				if (negated ^ evaluateSingleCondition(conditionType, testValue, job)) {
 					return true;
 				}
 			} catch (Exception ex) {
@@ -299,82 +304,82 @@ public class Rules {
 		return false;
 	}
 
-	private boolean check0(char c, String s, Job j) {
-		switch (Character.toUpperCase(c)) {
-			case 'A' : { // Name - scope block for local variable
+	private boolean evaluateSingleCondition(char conditionType, String testValue, Job job) {
+		switch (Character.toUpperCase(conditionType)) {
+			case 'A' : { // Anime name or ID
 				try {
-					return j.m_fa.aid == Integer.parseInt(s.trim());
+					return job.anidbFile.aid == Integer.parseInt(testValue.trim());
 				} catch (NumberFormatException e) {
-					return regtest(j.m_fa.anime.rom, s) || regtest(j.m_fa.anime.kan, s) || regtest(j.m_fa.anime.eng, s);
+					return matchesPattern(job.anidbFile.anime.rom, testValue)
+							|| matchesPattern(job.anidbFile.anime.kan, testValue)
+							|| matchesPattern(job.anidbFile.anime.eng, testValue);
 				}
 			}
-			case 'E' :
-				return regtest(j.m_fa.ep.num, s) || regtest(j.m_fa.ep.eng, s);
+			case 'E' : // Episode
+				return matchesPattern(job.anidbFile.ep.num, testValue)
+						|| matchesPattern(job.anidbFile.ep.eng, testValue);
 			case 'C' : // Codec
-				return j.m_fa.vid.equalsIgnoreCase(s) || cont(j.m_fa.aud, s);
+				return job.anidbFile.vid.equalsIgnoreCase(testValue)
+						|| containsIgnoreCase(job.anidbFile.aud, testValue);
 			case 'Q' : // Quality
-				return j.m_fa.qua.equalsIgnoreCase(s);
-			case 'R' : // ripSource
-				return j.m_fa.rip.equalsIgnoreCase(s);
+				return job.anidbFile.qua.equalsIgnoreCase(testValue);
+			case 'R' : // Rip source
+				return job.anidbFile.rip.equalsIgnoreCase(testValue);
 			case 'T' : // Type
-				return j.m_fa.anime.typ.equalsIgnoreCase(s);
-			case 'G' : { // Group - scope block for local variable
-				if (j.m_fa.gid == 0) {
-					return s.equalsIgnoreCase("unknown");
+				return job.anidbFile.anime.typ.equalsIgnoreCase(testValue);
+			case 'G' : { // Group name or ID
+				if (job.anidbFile.gid == 0) {
+					return testValue.equalsIgnoreCase("unknown");
 				}
 				try {
-					return j.m_fa.gid == Integer.parseInt(s.trim());
+					return job.anidbFile.gid == Integer.parseInt(testValue.trim());
 				} catch (NumberFormatException e) {
-					/* part of plan */
+					/* Expected when testValue is a group name */
 				}
-				return j.m_fa.group.name.equalsIgnoreCase(s) || j.m_fa.group.sname.equalsIgnoreCase(s);
+				return job.anidbFile.group.name.equalsIgnoreCase(testValue)
+						|| job.anidbFile.group.sname.equalsIgnoreCase(testValue);
 			}
 			case 'Y' : // Year
-				return j.m_fa.inYear(s);
-			case 'D' : // Dub lang
-				return cont(j.m_fa.dub, s);
-			case 'S' : // Sub lang
-				return cont(j.m_fa.sub, s);
-			case 'X' : // check number of eps
-				return s.equals("" + j.m_fa.anime.eps);
+				return job.anidbFile.inYear(testValue);
+			case 'D' : // Dub language
+				return containsIgnoreCase(job.anidbFile.dub, testValue);
+			case 'S' : // Sub language
+				return containsIgnoreCase(job.anidbFile.sub, testValue);
+			case 'X' : // Episode count
+				return testValue.equals("" + job.anidbFile.anime.eps);
 			case 'P' : // Path
-				return regtest(j.m_fc.getAbsolutePath(), s);
-			case 'N' : // Genre
-				return cont(j.m_fa.anime.cat, s);
-			case 'I' : { // Is Defined - scope block for local variable
-				/*
-				 * if(s.equals("eng"))//probably most used
-				 * return j.m_fa.anime.eng!=null;
-				 * if(s.equals("ver"))//won't work with .containsKey since it is not null by default
-				 * return j.m_fa.getVersion().length()>0;
-				 */
-				String t = (String) mAmap.get(s);
-				return t != null && !t.isEmpty();
+				return matchesPattern(job.currentFile.getAbsolutePath(), testValue);
+			case 'N' : // Genre/category
+				return containsIgnoreCase(job.anidbFile.anime.cat, testValue);
+			case 'I' : { // Is tag defined
+				String tagValue = (String) tagValueMap.get(testValue);
+				return tagValue != null && !tagValue.isEmpty();
 			}
-			case 'U' : { // scope block for local variable
-				String[] cmp = s.split(":", 2);
-				if (cmp.length == 2) {
-					return mAmap.containsKey(cmp[0]) && mAmap.containsKey(cmp[1])
-							&& !mAmap.get(cmp[0]).equals(mAmap.get(cmp[1]));
+			case 'U' : { // Tags are unequal
+				String[] comparison = testValue.split(":", 2);
+				if (comparison.length == 2) {
+					return tagValueMap.containsKey(comparison[0]) && tagValueMap.containsKey(comparison[1])
+							&& !tagValueMap.get(comparison[0]).equals(tagValueMap.get(comparison[1]));
 				}
-				System.out.println("ERROR: Invalid data in test: U(" + s + ")");
+				System.out.println("ERROR: Invalid data in test: U(" + testValue + ")");
 				return false;
 			}
-			case 'L' : { // scope block for local variable
-				String[] cmp = s.split(":", 2);
-				if (cmp.length == 2) {
-					return mAmap.containsKey(cmp[0]) && mAmap.containsKey(cmp[1])
-							&& mAmap.get(cmp[0]).equals(mAmap.get(cmp[1]));
+			case 'L' : { // Tags are equal (Like)
+				String[] comparison = testValue.split(":", 2);
+				if (comparison.length == 2) {
+					return tagValueMap.containsKey(comparison[0]) && tagValueMap.containsKey(comparison[1])
+							&& tagValueMap.get(comparison[0]).equals(tagValueMap.get(comparison[1]));
 				}
-				System.out.println("ERROR: Invalid data in test: L(" + s + ")");
+				System.out.println("ERROR: Invalid data in test: L(" + testValue + ")");
 				return false;
 			}
-			case 'Z' : { // scope block for local variable
-				String[] cmp = s.split(":", 2);
-				if (cmp.length == 2) {
-					return mAmap.containsKey(cmp[0]) && regtest(mAmap.get(cmp[0]).toString(), cmp[1]);
+			case 'Z' : { // Tag matches regex
+				String[] comparison = testValue.split(":", 2);
+				if (comparison.length == 2) {
+					return tagValueMap.containsKey(comparison[0])
+							&& matchesPattern(tagValueMap.get(comparison[0]).toString(), comparison[1]);
 				}
-				System.out.println("ERROR: Invalid data in test: R(" + s + ")");
+				System.out.println("ERROR: Invalid data in test: Z(" + testValue + ")");
 				return false;
 			}
 
@@ -383,108 +388,110 @@ public class Rules {
 		}
 	}
 
-	private static boolean regtest(String s, String t) {
-		if (s == null) {
+	private static boolean matchesPattern(String text, String pattern) {
+		if (text == null) {
 			return false;
 		}
 		try {
-			return s.matches(t);
+			return text.matches(pattern);
 		} catch (PatternSyntaxException e) {
 			A.dialog("Error", e.getMessage());
 			return false;
 		}
 	}
 
-	private static boolean cont(String s, String t) {
-		return s.toLowerCase().indexOf(t.toLowerCase()) >= 0;
+	private static boolean containsIgnoreCase(String text, String searchTerm) {
+		return text.toLowerCase().indexOf(searchTerm.toLowerCase()) >= 0;
 	}
 
-	private String fin(Job j, String s) {
-		s = s.replace(File.separatorChar, '\1').replace(':', '\2');
-		s = truncate(j.convert(s));
-		s = replace(s, mVill);
-		s = s.replace('\1', File.separatorChar).replace('\2', ':');
-		if (s.endsWith("_")) {
-			s = s.substring(0, s.length() - 1);
-			s = s.replace(' ', '_');
+	private String finalizeFilename(Job job, String filename) {
+		filename = filename.replace(File.separatorChar, '\1').replace(':', '\2');
+		filename = applyTruncation(job.convert(filename));
+		filename = applyReplacements(filename, illegalCharReplacements);
+		filename = filename.replace('\1', File.separatorChar).replace('\2', ':');
+		if (filename.endsWith("_")) {
+			filename = filename.substring(0, filename.length() - 1);
+			filename = filename.replace(' ', '_');
 		}
-		return s;
+		return filename;
 	}
 
-	private static String replace(String s, Vector v) {
-		DSData ds;
-		for (int i = 0; i < v.size(); i++) {
-			ds = (DSData) v.elementAt(i);
-			if (ds.sel.booleanValue()) {
-				s = U.replace(s, ds.src, ds.dst);
+	private static String applyReplacements(String text, Vector replacements) {
+		DSData replacement;
+		for (int index = 0; index < replacements.size(); index++) {
+			replacement = (DSData) replacements.elementAt(index);
+			if (replacement.enabled.booleanValue()) {
+				text = U.replace(text, replacement.source, replacement.destination);
 			}
 		}
-		return s;
+		return text;
 	}
 
-	private static String truncate(String s) {
+	private static String applyTruncation(String text) {
 		try {
-			String t;
-			int x = s.indexOf(TRUNC);
-			int y;
-			int z;
-			int i;
-			while (x > 0) {
-				y = s.indexOf('>', x);
-				if (y < x) {
+			String suffix;
+			int truncateStart = text.indexOf(TRUNC);
+			int closeIndex;
+			int commaIndex;
+			int maxLength;
+			while (truncateStart > 0) {
+				closeIndex = text.indexOf('>', truncateStart);
+				if (closeIndex < truncateStart) {
 					break;
 				}
-				z = s.indexOf(',', x);
-				if (z < x || z > y) {
+				commaIndex = text.indexOf(',', truncateStart);
+				if (commaIndex < truncateStart || commaIndex > closeIndex) {
 					break;
 				}
-				i = U.i(s.substring(x + TRUNC.length(), z));
-				t = s.substring(z + 1, y);
-				if (x > i + t.length()) {
-					s = s.substring(0, i - t.length()) + t + s.substring(y + 1);
+				maxLength = U.i(text.substring(truncateStart + TRUNC.length(), commaIndex));
+				suffix = text.substring(commaIndex + 1, closeIndex);
+				if (truncateStart > maxLength + suffix.length()) {
+					text = text.substring(0, maxLength - suffix.length()) + suffix + text.substring(closeIndex + 1);
 				} else {
-					s = s.substring(0, x) + s.substring(y + 1);
+					text = text.substring(0, truncateStart) + text.substring(closeIndex + 1);
 				}
-				x = s.indexOf(TRUNC);
+				truncateStart = text.indexOf(TRUNC);
 			}
 		} catch (NumberFormatException e) {
 			System.err.println(e);
 		}
-		return s;
+		return text;
 	}
 }
 
+/**
+ * Represents a section of a parsed rename/move rule with optional weight and max length.
+ */
 class Section {
-	String str;
-	float w = 1.0f;
-	int max = 255;
+	String content;
+	float weight = 1.0f;
+	int maxLength = 255;
 
-	Section(String s) {
-		int i = s.indexOf(" WEIGHT ");
-		if (i >= 0) {
-			str = s.substring(0, i);
-			s = s.substring(i + 8).trim();
-			i = s.indexOf(':');
-			if (i >= 0) {
-				w = Float.parseFloat(s.substring(0, i));
-				max = Integer.parseInt(s.substring(i + 1));
+	Section(String input) {
+		int weightIndex = input.indexOf(" WEIGHT ");
+		if (weightIndex >= 0) {
+			content = input.substring(0, weightIndex);
+			input = input.substring(weightIndex + 8).trim();
+			int colonIndex = input.indexOf(':');
+			if (colonIndex >= 0) {
+				weight = Float.parseFloat(input.substring(0, colonIndex));
+				maxLength = Integer.parseInt(input.substring(colonIndex + 1));
 			}
 		} else {
-			str = s;
+			content = input;
 		}
-		i = str.indexOf('\'');
-		int j = str.lastIndexOf('\'');
-		if (i >= 0 && j > i) {
-			str = str.substring(i + 1, j);
+		int quoteStart = content.indexOf('\'');
+		int quoteEnd = content.lastIndexOf('\'');
+		if (quoteStart >= 0 && quoteEnd > quoteStart) {
+			content = content.substring(quoteStart + 1, quoteEnd);
 		}
-		i = str.indexOf("//");
-		if (i > 0) {
-			str = str.substring(0, i);
+		int commentIndex = content.indexOf("//");
+		if (commentIndex > 0) {
+			content = content.substring(0, commentIndex);
 		}
-		// System.out.println(str);
 	}
 
 	public String toString() {
-		return str; // +" ["+w+":"+max+"]";
+		return content;
 	}
 }

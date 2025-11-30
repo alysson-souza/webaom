@@ -30,38 +30,38 @@ import epox.webaom.net.AConE;
 import epox.webaom.net.AConEx;
 
 public class NetIO implements Runnable {
-	private static final String S_TERM = "NetIO thread terminated.";
+	private static final String THREAD_TERMINATED_MESSAGE = "NetIO thread terminated.";
 
-	private Job m_job;
+	private Job currentJob;
 
 	public void run() {
 		A.gui.status1("Checking connection...");
-		boolean btimeout = false;
-		AConE ac = A.gui.getConnection();
+		boolean timedOut = false;
+		AConE ac = A.gui.createConnection();
 		if (ac.connect()) {
 			if (ping(ac)) {
 				A.conn = ac;
 				try {
-					do_work();
-					A.gui.println(S_TERM);
-					A.gui.status1(S_TERM);
+					doWork();
+					A.gui.println(THREAD_TERMINATED_MESSAGE);
+					A.gui.status1(THREAD_TERMINATED_MESSAGE);
 				} catch (AConEx e) {
 					e.printStackTrace();
 					String message = e.getMessage();
-					btimeout = message != null && message.indexOf("TIME OUT") >= 0;
+					timedOut = message != null && message.indexOf("TIME OUT") >= 0;
 					A.gui.status1(message);
-					A.gui.msg(" " + ((message == null) ? "Null pointer exception." : message));
+					A.gui.showMessage(" " + ((message == null) ? "Null pointer exception." : message));
 					if (!e.is(AConEx.ENCRYPTION)) {
 						A.gui.kill();
-						A.gui.fatal(true);
+						A.gui.handleFatalError(true);
 					} // else A.up.key = null;
 					cleanCurrentJob(e.getMessage());
 				} catch (Exception e) {
 					e.printStackTrace();
-					A.gui.println(" " + Hyper.error(e.getMessage()));
-					A.gui.msg(" " + e.getMessage());
+					A.gui.println(" " + Hyper.formatAsError(e.getMessage()));
+					A.gui.showMessage(" " + e.getMessage());
 					A.gui.kill();
-					A.gui.fatal(true);
+					A.gui.handleFatalError(true);
 					cleanCurrentJob(e.getMessage());
 				}
 				A.conn.disconnect();
@@ -74,147 +74,153 @@ public class NetIO implements Runnable {
 				try {
 					Thread.sleep(100);
 				} catch (Exception e) {
-					/* don't care */ }
-				A.gui.status1(S_TERM);
+					/* don't care */
+				}
+				A.gui.status1(THREAD_TERMINATED_MESSAGE);
 			}
 			try {
-				if (ac != null && ac.isLoggedIn() && !btimeout && ac.logout()) {
+				if (ac != null && ac.isLoggedIn() && !timedOut && ac.logout()) {
 					A.gui.println("Logged out after extra check!");
 				}
 			} catch (Exception e) {
 				e.printStackTrace();
 			}
 		} else {
-			String s = ac.getLastError();
-			if (s.endsWith("Cannot bind")) {
-				s = "The local port is already in use. Try another port.";
+			String errorMsg = ac.getLastError();
+			if (errorMsg.endsWith("Cannot bind")) {
+				errorMsg = "The local port is already in use. Try another port.";
 			}
-			A.gui.println(Hyper.error(s));
-			A.gui.msg(s);
+			A.gui.println(Hyper.formatAsError(errorMsg));
+			A.gui.showMessage(errorMsg);
 		}
 		// !A.nr_nio = -1;
-		A.gui.setEnabled_nio(true);
-		A.gui.nioEnable(false);
-		A.gui.mWnio = null;
+		A.gui.setNetworkIoOptionsEnabled(true);
+		A.gui.setNetworkIoEnabled(false);
+		A.gui.networkIoThread = null;
 	}
 
 	private void cleanCurrentJob(String err) {
-		if (m_job != null) {
-			m_job.mSe = err;
-			JobMan.updateStatus(m_job, Job.FAILED);
-			m_job = null;
+		if (currentJob != null) {
+			currentJob.errorMessage = err;
+			JobMan.updateStatus(currentJob, Job.FAILED);
+			currentJob = null;
 		}
 		// !A.nr_nio = -1;
 	}
 
-	private void do_work() throws AConEx, InterruptedException {
+	private void doWork() throws AConEx, InterruptedException {
 		A.gui.status1("Authenticating...");
 		if (A.conn.login()) {
-			A.gui.nioEnable(true);
+			A.gui.setNetworkIoEnabled(true);
 			do {
-				m_job = A.jobs.getJobNio();
-				if (m_job != null) {
-					// !A.nr_nio = m_job.mIid;
-					if (m_job.getStatus() == Job.REMWAIT) {
-						remove(m_job);
+				currentJob = A.jobs.getJobNio();
+				if (currentJob != null) {
+					// !A.nr_nio = currentJob.mIid;
+					if (currentJob.getStatus() == Job.REMWAIT) {
+						remove(currentJob);
 					} else {
-						if (m_job.getStatus() == Job.IDENTWAIT) {
-							identify(m_job);
+						if (currentJob.getStatus() == Job.IDENTWAIT) {
+							identify(currentJob);
 						}
-						if (A.gui.nioOK() && m_job.getStatus() == Job.ADDWAIT) {
-							mylistAdd(m_job);
+						if (A.gui.isNetworkIoOk() && currentJob.getStatus() == Job.ADDWAIT) {
+							mylistAdd(currentJob);
 						}
 					}
 				} else {
 					A.gui.status1("Idle");
 					Thread.sleep(500);
 				}
-			} while (A.gui.nioOK());
+			} while (A.gui.isNetworkIoOk());
 			A.gui.status1("Disconnecting...");
 			A.conn.logout();
 		}
 	}
 
-	private void remove(Job j) throws AConEx {
-		JobMan.updateStatus(j, Job.REMING);
-		// A.gui.updateJobTable(j);
-		A.gui.status1("Removing from mylist: " + j.getFile());
-		if (j.mIlid > 0) {
-			if (A.conn.removeFromMylist(j.mIlid, j.getFile().getName())) {
-				j.mIlid = 0;
-				A.gui.println("Removed " + Hyper.name(j.getFile()));
-				JobMan.updateStatus(j, Job.FINISHED);
+	private void remove(Job job) throws AConEx {
+		JobMan.updateStatus(job, Job.REMING);
+		// A.gui.updateJobTable(job);
+		A.gui.status1("Removing from mylist: " + job.getFile());
+		if (job.mylistId > 0) {
+			if (A.conn.removeFromMylist(job.mylistId, job.getFile().getName())) {
+				job.mylistId = 0;
+				A.gui.println("Removed " + Hyper.formatAsName(job.getFile()));
+				JobMan.updateStatus(job, Job.FINISHED);
 				return;
 			}
-			A.gui.println(Hyper.error("Could not remove: " + j.getFile()));
+			A.gui.println(Hyper.formatAsError("Could not remove: " + job.getFile()));
 		} else {
-			A.gui.println(Hyper.error("Not in mylist: " + j.getFile()));
+			A.gui.println(Hyper.formatAsError("Not in mylist: " + job.getFile()));
 		}
-		j.setError("Was not in mylist");
-		JobMan.updateStatus(j, Job.FAILED);
+		job.setError("Was not in mylist");
+		JobMan.updateStatus(job, Job.FAILED);
 	}
 
-	private void identify(Job j) throws AConEx {
-		JobMan.updateStatus(j, Job.IDENTIFYING);
-		// A.gui.updateJobTable(j);
-		A.gui.status1("Retrieving file data for " + j.getFile().getName());
-		if (j.m_fa == null) {
-			String[] s = null;
-			if (j.mIfid > 0) {
-				s = A.conn.retrieveFileData(j.mIfid, j.getFile().getName());
+	private void identify(Job job) throws AConEx {
+		JobMan.updateStatus(job, Job.IDENTIFYING);
+		// A.gui.updateJobTable(job);
+		A.gui.status1("Retrieving file data for " + job.getFile().getName());
+		if (job.anidbFile == null) {
+			String[] fileData = null;
+			if (job.fileIdOverride > 0) {
+				fileData = A.conn.retrieveFileData(job.fileIdOverride, job.getFile().getName());
 			} else {
-				s = A.conn.retrieveFileData(j.mLs, j._ed2, j.getFile().getName());
+				fileData = A.conn.retrieveFileData(job.fileSize, job.ed2kHash, job.getFile().getName());
 			}
-			if (s != null && A.cache.parseFile(s, j) != null) {
-				j.mIlid = j.m_fa.lid;
-				j.m_fa.setJob(j);
-				A.gui.println("Found " + Hyper.name(j.m_fa.def) + " " + Hyper.href(j.m_fa.urlAnime(), "a") + " "
-						+ Hyper.href(j.m_fa.urlEp(), "e") + " " + Hyper.href(j.m_fa.urlFile(), "f"));
-				JobMan.updateStatus(j, Job.IDENTIFIED);
+			if (fileData != null && A.cache.parseFile(fileData, job) != null) {
+				job.mylistId = job.anidbFile.lid;
+				job.anidbFile.setJob(job);
+				String fileName = Hyper.formatAsName(job.anidbFile.def);
+				String animeLink = Hyper.createHyperlink(job.anidbFile.urlAnime(), "a");
+				String epLink = Hyper.createHyperlink(job.anidbFile.urlEp(), "e");
+				String fileLink = Hyper.createHyperlink(job.anidbFile.urlFile(), "f");
+				A.gui.println("Found " + fileName + " " + animeLink + " " + epLink + " " + fileLink);
+				JobMan.updateStatus(job, Job.IDENTIFIED);
 			} else {
-				JobMan.updateStatus(j, Job.UNKNOWN);
+				JobMan.updateStatus(job, Job.UNKNOWN);
 			}
 		} else {
-			if (j.m_fa.group == null) {
-				j.m_fa.group = (Group) A.cache.get(j.m_fa.gid, DB.I_G);
+			if (job.anidbFile.group == null) {
+				job.anidbFile.group = (Group) A.cache.get(job.anidbFile.gid, DB.INDEX_GROUP);
 			}
-			if (j.m_fa.ep == null) {
-				j.m_fa.ep = (Ep) A.cache.get(j.m_fa.eid, DB.I_E);
+			if (job.anidbFile.ep == null) {
+				job.anidbFile.ep = (Ep) A.cache.get(job.anidbFile.eid, DB.INDEX_EPISODE);
 			}
-			if (j.m_fa.group == null) {
-				j.m_fa.anime = (Anime) A.cache.get(j.m_fa.aid, DB.I_A);
+			if (job.anidbFile.group == null) {
+				job.anidbFile.anime = (Anime) A.cache.get(job.anidbFile.aid, DB.INDEX_ANIME);
 			}
-			JobMan.updateStatus(j, Job.IDENTIFIED);
+			JobMan.updateStatus(job, Job.IDENTIFIED);
 		}
 	}
 
-	private void mylistAdd(Job j) throws AConEx {
-		JobMan.updateStatus(j, Job.ADDING);
-		// A.gui.updateJobTable(j);
-		A.gui.status1("Adding " + j.getFile() + " to your list...");
-		int i;
-		if ((i = A.conn.addFileToMylist(j, A.gui.jpOmyl.getMylistData())) > 0) {
-			j.mIlid = i;
-			A.gui.println("Added " + Hyper.name(j.getFile()) + " to mylist");
+	private void mylistAdd(Job job) throws AConEx {
+		JobMan.updateStatus(job, Job.ADDING);
+		// A.gui.updateJobTable(job);
+		A.gui.status1("Adding " + job.getFile() + " to your list...");
+		int listId = A.conn.addFileToMylist(job, A.gui.mylistOptionsPanel.getMylistData());
+		if (listId > 0) {
+			job.mylistId = listId;
+			A.gui.println("Added " + Hyper.formatAsName(job.getFile()) + " to mylist");
 		}
-		JobMan.updateStatus(j, Job.ADDED);
+		JobMan.updateStatus(job, Job.ADDED);
 	}
 
 	public boolean ping(ACon ac) {
 		try {
-			A.gui.println("AniDB is reachable. Received reply in " + Hyper.number("" + ac.enCrypt()) + " ms.");
+			long encryptTime = ac.encrypt();
+			String replyTime = Hyper.formatAsNumber(String.valueOf(encryptTime));
+			A.gui.println("AniDB is reachable. Received reply in " + replyTime + " ms.");
 			return true;
 		} catch (java.net.SocketTimeoutException e) {
-			String str = "AniDB is not reachable.";
-			A.gui.println(Hyper.error(str));
-			A.gui.status1(str);
-			A.gui.msg(str);
+			String errorMessage = "AniDB is not reachable.";
+			A.gui.println(Hyper.formatAsError(errorMessage));
+			A.gui.status1(errorMessage);
+			A.gui.showMessage(errorMessage);
 		} catch (NumberFormatException e) {
-			A.gui.msg("Invalid number. " + e.getMessage());
+			A.gui.showMessage("Invalid number. " + e.getMessage());
 		} catch (Exception e) {
 			e.printStackTrace();
-			A.gui.println(Hyper.error(e.getMessage()));
-			A.gui.msg(e.getMessage());
+			A.gui.println(Hyper.formatAsError(e.getMessage()));
+			A.gui.showMessage(e.getMessage());
 		}
 		A.gui.println("Check out the connection options or try again later.");
 		return false;

@@ -26,33 +26,40 @@ import epox.webaom.data.Anime;
 import java.awt.event.MouseEvent;
 import javax.swing.table.TableColumnModel;
 
+/**
+ * Header click listener for the alternate (tree-based) file view. Handles column sorting by clicking column headers.
+ */
 public class HeaderListenerAlt extends HeaderListener {
-	private int cur = 0;
-	protected JTreeTableR jttr;
+	/** Current sort column index (positive = ascending, negative = descending) */
+	private int currentSortColumn = 0;
 
-	public HeaderListenerAlt(JTreeTableR tree) {
+	/** The tree table this listener manages */
+	protected JTreeTableR treeTable;
+
+	public HeaderListenerAlt(JTreeTableR treeTable) {
 		super(null, null, null);
-		jttr = tree;
+		this.treeTable = treeTable;
 		m_r = new SortButtonRenderer();
-		TableColumnModel model = jttr.getColumnModel();
-		for (int i = 0; i < model.getColumnCount(); i++) {
-			model.getColumn(i).setHeaderRenderer(m_r);
+		TableColumnModel columnModel = treeTable.getColumnModel();
+		for (int columnIndex = 0; columnIndex < columnModel.getColumnCount(); columnIndex++) {
+			columnModel.getColumn(columnIndex).setHeaderRenderer(m_r);
 		}
 
-		m_h = jttr.getTableHeader();
+		m_h = treeTable.getTableHeader();
 		m_h.addMouseListener(this);
 	}
 
-	public void mouseClicked(MouseEvent e) {
-		int col = m_h.columnAtPoint(e.getPoint());
-		int sortCol = m_h.getTable().convertColumnIndexToModel(col) + 1;
-		if (cur == sortCol) {
-			sortCol *= -1;
+	@Override
+	public void mouseClicked(MouseEvent event) {
+		int clickedColumn = m_h.columnAtPoint(event.getPoint());
+		int sortColumn = m_h.getTable().convertColumnIndexToModel(clickedColumn) + 1;
+		if (currentSortColumn == sortColumn) {
+			sortColumn *= -1; // Toggle sort direction
 		}
-		cur = sortCol;
-		synchronized (jttr) {
-			Anime.setCol(sortCol);
-			jttr.updateUI();
+		currentSortColumn = sortColumn;
+		synchronized (treeTable) {
+			Anime.setCol(sortColumn);
+			treeTable.updateUI();
 		}
 	}
 }

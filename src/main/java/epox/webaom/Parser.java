@@ -40,85 +40,97 @@ import java.nio.charset.StandardCharsets;
 import javax.swing.JFileChooser;
 
 public class Parser {
-	public static Group parseGroup(String[] s) {
-		if (s == null) {
+	public static Group parseGroup(String[] fields) {
+		if (fields == null) {
 			return null;
 		}
-		Group g = new Group(Integer.parseInt(s[0]));
-		g.name = s[5];
-		g.sname = s[6];
-		return g;
+		Group group = new Group(Integer.parseInt(fields[0]));
+		group.name = fields[5];
+		group.sname = fields[6];
+		return group;
 	}
 
-	public static Ep parseEpisode(String[] s) {
-		if (s == null) {
+	public static Ep parseEpisode(String[] fields) {
+		if (fields == null) {
 			return null;
 		}
-		Ep e = new Ep(Integer.parseInt(s[0]));
-		e.num = s[5];
-		e.eng = s[6];
-		e.rom = s[7];
-		e.kan = s[8];
-		return e;
+		Ep episode = new Ep(Integer.parseInt(fields[0]));
+		episode.num = fields[5];
+		episode.eng = fields[6];
+		episode.rom = fields[7];
+		episode.kan = fields[8];
+		return episode;
 	}
 
-	public static Anime parseAnime(String[] s) {
-		if (s == null) {
+	public static Anime parseAnime(String[] fields) {
+		if (fields == null) {
 			return null;
 		}
-		Anime a = new Anime(Integer.parseInt(s[0]));
-		a.eps = Integer.parseInt(s[1]);
-		a.lep = Integer.parseInt(s[2]);
-		a.yea = Integer.parseInt(s[10].substring(0, 4));
-		a.yen = s[10].length() != 9 ? a.yea : Integer.parseInt(s[10].substring(5, 9));
-		a.typ = s[11].intern();
-		a.rom = s[12];
-		a.kan = s[13];
-		a.eng = s[14];
-		a.cat = s[18];
-		return a;
+		Anime anime = new Anime(Integer.parseInt(fields[0]));
+		anime.eps = Integer.parseInt(fields[1]);
+		anime.lep = Integer.parseInt(fields[2]);
+		anime.yea = Integer.parseInt(fields[10].substring(0, 4));
+		anime.yen = fields[10].length() != 9 ? anime.yea : Integer.parseInt(fields[10].substring(5, 9));
+		anime.typ = fields[11].intern();
+		anime.rom = fields[12];
+		anime.kan = fields[13];
+		anime.eng = fields[14];
+		anime.cat = fields[18];
+		return anime;
 	}
 
-	private static final String[] n = {"", "0", "00", "000", "0000"};
+	/** Zero padding prefixes for episode number formatting (0-4 zeros). */
+	private static final String[] ZERO_PADDING_PREFIXES = {"", "0", "00", "000", "0000"};
 
-	public static String pad(String s, int tot) {
-		int x = s.indexOf('-');
-		int y = s.indexOf(',');
-		char c = '-';
-		if (y >= 0) {
-			if (x < 0 || (y < x && x >= 0)) {
-				c = ',';
-				x = y;
+	/**
+	 * Pads an episode number string with leading zeros based on total episode count.
+	 *
+	 * @param input
+	 *            the episode number string (may contain '-' or ',' for ranges)
+	 * @param totalEpisodes
+	 *            the total number of episodes for zero-padding calculation
+	 * @return the padded episode number string
+	 */
+	public static String pad(String input, int totalEpisodes) {
+		int dashIndex = input.indexOf('-');
+		int commaIndex = input.indexOf(',');
+		char separator = '-';
+		if (commaIndex >= 0) {
+			if (dashIndex < 0 || (commaIndex < dashIndex && dashIndex >= 0)) {
+				separator = ',';
+				dashIndex = commaIndex;
 			}
 		}
-		String num = s;
-		if (x >= 0) {
-			num = s.substring(0, x);
+		String numberPart = input;
+		if (dashIndex >= 0) {
+			numberPart = input.substring(0, dashIndex);
 		}
-		if (tot == 0) {
-			tot = A.ASNO; // presume this
+		if (totalEpisodes == 0) {
+			totalEpisodes = A.ASNO; // presume this
 		}
-		int nr;
-		String pre = "";
-		char a = num.charAt(0);
-		if (Character.isDigit(a)) {
-			nr = U.i(num);
+		int episodeNumber;
+		String prefix = "";
+		char firstChar = numberPart.charAt(0);
+		if (Character.isDigit(firstChar)) {
+			episodeNumber = U.i(numberPart);
 		} else {
-			nr = U.i(num.substring(1));
-			pre += a;
-			// !tot = nr; //no total specials
-			tot = A.ASSP;
+			episodeNumber = U.i(numberPart.substring(1));
+			prefix += firstChar;
+			// !totalEpisodes = episodeNumber; //no total specials
+			totalEpisodes = A.ASSP;
 		}
-		if (tot < nr) {
-			tot = nr; // just in case...
+		if (totalEpisodes < episodeNumber) {
+			totalEpisodes = episodeNumber; // just in case...
 		}
-		String sp = pre + n[log10(tot) - log10(nr > 0 ? nr : 1)] + nr;
-		if (x >= 0)
-		// return sp+c+pad(s.substring(x+1), tot);
+		String paddedNumber = prefix
+				+ ZERO_PADDING_PREFIXES[log10(totalEpisodes) - log10(episodeNumber > 0 ? episodeNumber : 1)]
+				+ episodeNumber;
+		if (dashIndex >= 0)
+		// return paddedNumber+separator+pad(input.substring(dashIndex+1), totalEpisodes);
 		{
-			return sp + c + s.substring(x + 1);
+			return paddedNumber + separator + input.substring(dashIndex + 1);
 		}
-		return sp;
+		return paddedNumber;
 	}
 
 	private static int log10(int i) {
@@ -129,40 +141,40 @@ public class Parser {
 		if (A.p != null) {
 			try {
 				synchronized (A.p) {
-					JFileChooser fc = new JFileChooser();
+					JFileChooser fileChooser = new JFileChooser();
 					if (A.dir != null) {
-						fc.setCurrentDirectory(new File(A.dir));
+						fileChooser.setCurrentDirectory(new File(A.dir));
 					}
-					if (fc.showDialog(A.component, "Select File") == JFileChooser.APPROVE_OPTION) {
-						File file = fc.getSelectedFile();
+					if (fileChooser.showDialog(A.component, "Select File") == JFileChooser.APPROVE_OPTION) {
+						File file = fileChooser.getSelectedFile();
 						A.dir = file.getParentFile().getAbsolutePath();
-						FileOutputStream fos = new FileOutputStream(file);
-						Writer fw = new OutputStreamWriter(fos, StandardCharsets.UTF_8);
-						fw.write("a0\r\n");
+						FileOutputStream outputStream = new FileOutputStream(file);
+						Writer writer = new OutputStreamWriter(outputStream, StandardCharsets.UTF_8);
+						writer.write("a0\r\n");
 						A.p.mkArray();
-						for (int i = 0; i < A.p.size(); i++) {
-							Base p0 = A.p.get(i);
-							p0.mkArray();
-							fw.write("a" + p0.serialize() + A.S_N);
-							for (int j = 0; j < p0.size(); j++) {
-								Base p1 = p0.get(j);
-								p1.mkArray();
-								fw.write("e" + p1.serialize() + A.S_N);
-								for (int k = 0; k < p1.size(); k++) {
-									AFile f = (AFile) p1.get(k);
-									fw.write("f" + f.serialize() + A.S_N);
-									if (f.getJob() != null) {
-										fw.write("j" + f.getJob().serialize() + A.S_N);
+						for (int animeIndex = 0; animeIndex < A.p.size(); animeIndex++) {
+							Base animeEntry = A.p.get(animeIndex);
+							animeEntry.mkArray();
+							writer.write("a" + animeEntry.serialize() + A.S_N);
+							for (int episodeIndex = 0; episodeIndex < animeEntry.size(); episodeIndex++) {
+								Base episodeEntry = animeEntry.get(episodeIndex);
+								episodeEntry.mkArray();
+								writer.write("e" + episodeEntry.serialize() + A.S_N);
+								for (int fileIndex = 0; fileIndex < episodeEntry.size(); fileIndex++) {
+									AFile anidbFile = (AFile) episodeEntry.get(fileIndex);
+									writer.write("f" + anidbFile.serialize() + A.S_N);
+									if (anidbFile.getJob() != null) {
+										writer.write("j" + anidbFile.getJob().serialize() + A.S_N);
 									}
 								}
 							}
 						}
-						fw.flush();
-						fw.close();
+						writer.flush();
+						writer.close();
 					}
 				}
-			} catch (IOException e) {
-				e.printStackTrace();
+			} catch (IOException ex) {
+				ex.printStackTrace();
 			}
 		}
 	}
@@ -172,80 +184,82 @@ public class Parser {
 		if (A.p != null) {
 			try {
 				synchronized (A.p) {
-					JFileChooser fc = new JFileChooser();
+					JFileChooser fileChooser = new JFileChooser();
 					if (A.dir != null) {
-						fc.setCurrentDirectory(new File(A.dir));
+						fileChooser.setCurrentDirectory(new File(A.dir));
 					}
-					if (fc.showDialog(A.component, "Select File") == JFileChooser.APPROVE_OPTION) {
-						File file = fc.getSelectedFile();
+					if (fileChooser.showDialog(A.component, "Select File") == JFileChooser.APPROVE_OPTION) {
+						File file = fileChooser.getSelectedFile();
 						A.dir = file.getParentFile().getAbsolutePath();
-						FileInputStream fos = new FileInputStream(file);
-						BufferedReader br = new BufferedReader(new InputStreamReader(fos, StandardCharsets.UTF_8));
-						String v = br.readLine();
-						boolean froms = false;
-						if (v.equals("s0")) {
-							froms = true;
-						} else if (!v.equals("a0")) {
+						FileInputStream inputStream = new FileInputStream(file);
+						BufferedReader reader = new BufferedReader(
+								new InputStreamReader(inputStream, StandardCharsets.UTF_8));
+						String formatVersion = reader.readLine();
+						boolean isLegacyFormat = false;
+						if (formatVersion.equals("s0")) {
+							isLegacyFormat = true;
+						} else if (!formatVersion.equals("a0")) {
 							throw new Exception("format not supported");
 						}
 						// A.p.mkArray();
 						String line;
-						Anime a = null;
-						Ep e = null;
-						AFile f = null;
-						Job j = null;
-						while (br.ready()) {
-							line = U.htmldesc(br.readLine());
+						Anime currentAnime = null;
+						Ep currentEpisode = null;
+						AFile currentFile = null;
+						Job currentJob = null;
+						while (reader.ready()) {
+							line = U.htmldesc(reader.readLine());
 							if (line.isEmpty()) {
 								continue;
 							}
 							switch (line.charAt(0)) {
 								case 'a' :
-									a = new Anime(U.split(line.substring(1), '|'));
-									A.cache.add(a, 2, DB.I_A);
-									A.p.add(a);
+									currentAnime = new Anime(U.split(line.substring(1), '|'));
+									A.cache.add(currentAnime, 2, DB.INDEX_ANIME);
+									A.p.add(currentAnime);
 									break;
 								case 'e' :
-									e = new Ep(U.split(line.substring(1), '|'));
-									A.cache.add(e, 2, DB.I_E);
+									currentEpisode = new Ep(U.split(line.substring(1), '|'));
+									A.cache.add(currentEpisode, 2, DB.INDEX_EPISODE);
 									break;
 								case 'f' :
-									String[] s = U.split(line.substring(1), '|');
-									f = new AFile(s);
-									Group g = new Group(f.gid);
-									g.name = s[20];
-									g.sname = s[21];
-									A.cache.add(g, 1, DB.I_G);
-									f.anime = a;
-									f.ep = e;
-									f.group = g;
-									f.def = a.rom + " - " + e.num + " - " + e.eng + " - ["
-											+ ((f.gid > 0) ? g.sname : "RAW") + "]";
-									A.db.update(f.fid, f, DB.I_F);
+									String[] fields = U.split(line.substring(1), '|');
+									currentFile = new AFile(fields);
+									Group group = new Group(currentFile.gid);
+									group.name = fields[20];
+									group.sname = fields[21];
+									A.cache.add(group, 1, DB.INDEX_GROUP);
+									currentFile.anime = currentAnime;
+									currentFile.ep = currentEpisode;
+									currentFile.group = group;
+									currentFile.def = currentAnime.rom + " - " + currentEpisode.num + " - "
+											+ currentEpisode.eng + " - ["
+											+ ((currentFile.gid > 0) ? group.sname : "RAW") + "]";
+									A.db.update(currentFile.fid, currentFile, DB.INDEX_FILE);
 									break;
 								case 'j' :
 									line = line.substring(1);
-									if (froms) {
-										j = new Job(new File(File.separatorChar + U.replace(line, "/", "")),
+									if (isLegacyFormat) {
+										currentJob = new Job(new File(File.separatorChar + U.replace(line, "/", "")),
 												Job.FINISHED);
-										j.mSo = line;
-										j._ed2 = f.ed2;
-										j.mLs = f.mLs;
+										currentJob.originalName = line;
+										currentJob.ed2kHash = currentFile.ed2;
+										currentJob.fileSize = currentFile.mLs;
 									} else {
-										j = new Job(U.split(line, '|'));
+										currentJob = new Job(U.split(line, '|'));
 									}
-									j.m_fa = f;
-									f.setJob(j);
-									A.jobs.add(j);
-									A.db.update(0, j, DB.I_J);
+									currentJob.anidbFile = currentFile;
+									currentFile.setJob(currentJob);
+									A.jobs.add(currentJob);
+									A.db.update(0, currentJob, DB.INDEX_JOB);
 									break;
 							}
 						}
-						br.close();
+						reader.close();
 					}
 				}
-			} catch (IOException e) {
-				e.printStackTrace();
+			} catch (IOException ex) {
+				ex.printStackTrace();
 			}
 		}
 		A.db.debug = true;

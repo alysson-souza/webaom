@@ -9,7 +9,12 @@ import java.util.List;
  * Validates application startup conditions and provides graceful degradation when optional features
  * (logging, database) are unavailable.
  */
-public class StartupValidator {
+public final class StartupValidator {
+
+	/** Private constructor to prevent instantiation of utility class. */
+	private StartupValidator() {
+		// Utility class
+	}
 
 	/**
 	 * Validate logging configuration and handle directory creation.
@@ -21,8 +26,6 @@ public class StartupValidator {
 	 * @return the validated/corrected log file path, or null if logging should be disabled
 	 */
 	public static String validateLogging(boolean autoLogEnabled, String logFilePath) {
-		List<StartupIssue> issues = new ArrayList<>();
-
 		if (!autoLogEnabled) {
 			return null; // Logging not enabled
 		}
@@ -34,10 +37,8 @@ public class StartupValidator {
 
 		// Ensure parent directory exists
 		if (!PlatformPaths.ensureParentDirectoryExists(logFilePath)) {
-			issues.add(new StartupIssue(StartupIssue.Severity.WARN, "Logging Disabled",
-					"Failed to create or access log directory: " + logFilePath,
-					"Check filesystem permissions and disk space"));
-			return null; // Return null to disable logging
+			// Cannot create log directory - logging will be disabled
+			return null;
 		}
 
 		return logFilePath;
@@ -67,12 +68,20 @@ public class StartupValidator {
 
 		// Only warn if URL is provided but looks invalid
 		String dbUrlLower = dbUrl.toLowerCase();
-		if (!dbUrlLower.contains("postgresql") && !dbUrlLower.contains("mysql") && !dbUrlLower.contains("h2")
-				&& !dbUrlLower.contains("jdbc:")) {
-			issues.add(new StartupIssue(StartupIssue.Severity.WARN, "Invalid Database URL",
-					"Database URL doesn't look like a valid JDBC URL: " + dbUrl,
-					"Expected format: jdbc:postgresql://host:port/db or" + " jdbc:mysql://host:port/db\n"
-							+ "The application will use embedded H2 database as fallback."));
+		boolean hasPostgresql = dbUrlLower.contains("postgresql");
+		boolean hasMysql = dbUrlLower.contains("mysql");
+		boolean hasH2 = dbUrlLower.contains("h2");
+		boolean hasJdbc = dbUrlLower.contains("jdbc:");
+		boolean looksLikeJdbcUrl = hasPostgresql || hasMysql || hasH2 || hasJdbc;
+		if (!looksLikeJdbcUrl) {
+			String message = "Database URL doesn't look like a valid JDBC URL: " + dbUrl;
+			String formatHint = "Expected format: jdbc:postgresql://host:port/db";
+			String altFormat = " or jdbc:mysql://host:port/db";
+			String fallbackNote = "\nThe application will use embedded H2 database as fallback.";
+			String suggestion = formatHint + altFormat + fallbackNote;
+			String title = "Invalid Database URL";
+			StartupIssue issue = new StartupIssue(StartupIssue.Severity.WARN, title, message, suggestion);
+			issues.add(issue);
 		}
 
 		return issues;
@@ -93,23 +102,24 @@ public class StartupValidator {
 		}
 
 		// Validate logging
-		boolean autoLog = options.getB(Options.B_AUTOLOG);
-		String logPath = options.getS(Options.S_LOGFILE);
-		String validatedLogPath = validateLogging(autoLog, logPath);
+		boolean autoLogEnabled = options.getBoolean(Options.BOOL_AUTO_LOGIN);
+		String logFilePath = options.getString(Options.STR_LOG_FILE);
+		String validatedLogPath = validateLogging(autoLogEnabled, logFilePath);
 
 		// If logging validation returned null, add the WARN issue
-		if (autoLog && validatedLogPath == null && logPath != null && !logPath.trim().isEmpty()) {
+		boolean logPathWasProvided = logFilePath != null && !logFilePath.trim().isEmpty();
+		if (autoLogEnabled && validatedLogPath == null && logPathWasProvided) {
 			issues.add(new StartupIssue(StartupIssue.Severity.WARN, "Logging Disabled",
-					"Failed to create or access log directory: " + logPath,
+					"Failed to create or access log directory: " + logFilePath,
 					"Automatic logging has been disabled. You can enable it again in"
 							+ " Options when the issue is resolved."));
 		}
 
 		// Validate database
-		boolean autoLoadDB = options.getB(Options.B_ALOADDB);
-		String dbUrl = options.getS(Options.S_MYDBURL);
-		List<StartupIssue> dbIssues = validateDatabase(autoLoadDB, dbUrl);
-		issues.addAll(dbIssues);
+		boolean autoLoadDatabaseEnabled = options.getBoolean(Options.BOOL_AUTO_LOAD_DATABASE);
+		String databaseUrl = options.getString(Options.STR_DATABASE_URL);
+		List<StartupIssue> databaseIssues = validateDatabase(autoLoadDatabaseEnabled, databaseUrl);
+		issues.addAll(databaseIssues);
 
 		return issues;
 	}
@@ -126,14 +136,14 @@ public class StartupValidator {
 			return "";
 		}
 
-		StringBuilder sb = new StringBuilder();
-		for (int i = 0; i < issues.size(); i++) {
-			if (i > 0) {
-				sb.append("\n\n---\n\n");
+		StringBuilder messageBuilder = new StringBuilder();
+		for (int issueIndex = 0; issueIndex < issues.size(); issueIndex++) {
+			if (issueIndex > 0) {
+				messageBuilder.append("\n\n---\n\n");
 			}
-			sb.append(issues.get(i).getFormattedMessage());
+			messageBuilder.append(issues.get(issueIndex).getFormattedMessage());
 		}
-		return sb.toString();
+		return messageBuilder.toString();
 	}
 
 	/**

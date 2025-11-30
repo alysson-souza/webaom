@@ -22,195 +22,194 @@ import javax.swing.table.TableColumn;
 import javax.swing.table.TableColumnModel;
 
 public class JPanelJobs extends JPanel implements ActionListener {
-	private final JTableJobs m_jtj;
-	private final JScrollTable m_jst;
-	private final TableModelJobs m_jlm;
-	private final JCheckBox[] jcbArr;
+	private final JTableJobs jobsTable;
+	private final JScrollTable scrollTable;
+	private final TableModelJobs tableModel;
+	private final JCheckBox[] filterCheckboxes;
 
-	private int mIs = 0;
-	private int mIf = 0; // status, file state
-	private boolean mBu = false;
+	private int statusFilterMask = 0;
+	private int fileStateFilterMask = 0;
+	private boolean showUnknownFiles = false;
 
-	public JPanelJobs(JTableJobs j, TableModelJobs s) {
+	public JPanelJobs(JTableJobs jobsTable, TableModelJobs tableModel) {
 		super(new BorderLayout());
-		m_jtj = j;
-		m_jlm = s;
-		m_jst = new JScrollTable(j);
+		this.jobsTable = jobsTable;
+		this.tableModel = tableModel;
+		this.scrollTable = new JScrollTable(jobsTable);
 
-		JPanel south = new JPanel(new GridLayout(2, I_LEN / 2));
-		jcbArr = new JCheckBox[I_LEN];
-		for (int i = 0; i < I_LEN; i++) {
-			jcbArr[i] = new JCheckBox(getStr(i), false);
-			jcbArr[i].addActionListener(this);
-			south.add(jcbArr[i]);
+		JPanel southPanel = new JPanel(new GridLayout(2, FILTER_CHECKBOX_COUNT / 2));
+		filterCheckboxes = new JCheckBox[FILTER_CHECKBOX_COUNT];
+		for (int i = 0; i < FILTER_CHECKBOX_COUNT; i++) {
+			filterCheckboxes[i] = new JCheckBox(getCheckboxLabel(i), false);
+			filterCheckboxes[i].addActionListener(this);
+			southPanel.add(filterCheckboxes[i]);
 		}
 
-		add(m_jst, BorderLayout.CENTER);
-		add(south, BorderLayout.SOUTH);
+		add(scrollTable, BorderLayout.CENTER);
+		add(southPanel, BorderLayout.SOUTH);
 	}
 
-	public void actionPerformed(ActionEvent e) {
-		mIs = 0;
-		mIf = 0;
-		if (jcbArr[I_NOR].isSelected()) {
-			mIs |= Job.H_NORMAL;
+	public void actionPerformed(ActionEvent event) {
+		statusFilterMask = 0;
+		fileStateFilterMask = 0;
+		if (filterCheckboxes[INDEX_NORMAL].isSelected()) {
+			statusFilterMask |= Job.H_NORMAL;
 		}
-		if (jcbArr[I_PAU].isSelected()) {
-			mIs |= Job.H_PAUSED;
+		if (filterCheckboxes[INDEX_PAUSED].isSelected()) {
+			statusFilterMask |= Job.H_PAUSED;
 		}
-		if (jcbArr[I_DEL].isSelected()) {
-			mIs |= Job.H_DELETED;
+		if (filterCheckboxes[INDEX_DELETED].isSelected()) {
+			statusFilterMask |= Job.H_DELETED;
 		}
-		if (jcbArr[I_MIS].isSelected()) {
-			mIs |= Job.H_MISSING;
+		if (filterCheckboxes[INDEX_MISSING].isSelected()) {
+			statusFilterMask |= Job.H_MISSING;
 		}
-		if (jcbArr[I_WAI].isSelected()) {
-			mIs |= Job.S_DO;
+		if (filterCheckboxes[INDEX_WAITING].isSelected()) {
+			statusFilterMask |= Job.S_DO;
 		}
-		if (jcbArr[I_DOI].isSelected()) {
-			mIs |= Job.S_DOING;
+		if (filterCheckboxes[INDEX_DOING].isSelected()) {
+			statusFilterMask |= Job.S_DOING;
 		}
-		if (jcbArr[I_DON].isSelected()) {
-			mIs |= Job.S_DONE;
+		if (filterCheckboxes[INDEX_DONE].isSelected()) {
+			statusFilterMask |= Job.S_DONE;
 		}
-		if (jcbArr[I_FAI].isSelected()) {
-			mIs |= Job.S_FAILED;
+		if (filterCheckboxes[INDEX_FAILED].isSelected()) {
+			statusFilterMask |= Job.S_FAILED;
 		}
-		if (jcbArr[I_NET].isSelected()) {
-			mIs |= Job.D_NIO;
+		if (filterCheckboxes[INDEX_NET_IO].isSelected()) {
+			statusFilterMask |= Job.D_NIO;
 		}
-		if (jcbArr[I_DIS].isSelected()) {
-			mIs |= Job.D_DIO;
+		if (filterCheckboxes[INDEX_DISK_IO].isSelected()) {
+			statusFilterMask |= Job.D_DIO;
 		}
-		if (jcbArr[I_CRC].isSelected()) {
-			mIf |= AFile.F_CRCERR;
+		if (filterCheckboxes[INDEX_CRC_ERROR].isSelected()) {
+			fileStateFilterMask |= AFile.F_CRCERR;
 		}
-		if (jcbArr[I_CEN].isSelected()) {
-			mIf |= AFile.F_UNC;
+		if (filterCheckboxes[INDEX_CENSORED].isSelected()) {
+			fileStateFilterMask |= AFile.F_UNC;
 		}
-		mBu = jcbArr[I_UNK].isSelected();
+		showUnknownFiles = filterCheckboxes[INDEX_UNKNOWN].isSelected();
 
-		filter();
+		applyFilter();
 	}
 
-	public void opts(Options o) {
-		String s = "";
-		TableColumn tc;
-		Enumeration e = m_jtj.getColumnModel().getColumns();
-		while (e.hasMoreElements()) {
-			tc = (TableColumn) e.nextElement();
-			s += tc.getModelIndex() + "," + tc.getPreferredWidth() + ";";
+	public void saveOptions(Options options) {
+		String columnConfig = "";
+		TableColumn column;
+		Enumeration columnEnumeration = jobsTable.getColumnModel().getColumns();
+		while (columnEnumeration.hasMoreElements()) {
+			column = (TableColumn) columnEnumeration.nextElement();
+			columnConfig += column.getModelIndex() + "," + column.getPreferredWidth() + ";";
 		}
-		o.setS(Options.S_JOBCOLS, s);
+		options.setString(Options.STR_JOB_COLUMNS, columnConfig);
 	}
 
-	public void optl(Options o) {
-		String s = o.getS(Options.S_JOBCOLS);
-		if (s == null || s.isEmpty()) {
-			// default hack
-			s = "0,55;11,973;14,132";
+	public void loadOptions(Options options) {
+		String columnConfig = options.getString(Options.STR_JOB_COLUMNS);
+		if (columnConfig == null || columnConfig.isEmpty()) {
+			// default column configuration
+			columnConfig = "0,55;11,973;14,132";
 		}
-		TableColumnModel m = m_jtj.getColumnModel();
-		long mask = 0;
-		int a;
-		int b;
-		int i = 0;
-		StringTokenizer st = new StringTokenizer(s, ";");
-		int[] x = new int[st.countTokens()];
-		while (st.hasMoreTokens()) {
-			String[] sa = st.nextToken().split(",", 2);
-			a = U.i(sa[0]);
-			b = U.i(sa[1]);
-			mask |= 1L << i;
-			x[i++] = a;
-			m.getColumn(a).setPreferredWidth(b);
+		TableColumnModel columnModel = jobsTable.getColumnModel();
+		long visibilityMask = 0;
+		int columnIndex;
+		int columnWidth;
+		int position = 0;
+		StringTokenizer tokenizer = new StringTokenizer(columnConfig, ";");
+		int[] columnIndices = new int[tokenizer.countTokens()];
+		while (tokenizer.hasMoreTokens()) {
+			String[] columnParts = tokenizer.nextToken().split(",", 2);
+			columnIndex = U.i(columnParts[0]);
+			columnWidth = U.i(columnParts[1]);
+			visibilityMask |= 1L << position;
+			columnIndices[position++] = columnIndex;
+			columnModel.getColumn(columnIndex).setPreferredWidth(columnWidth);
 		}
-		// System.out.println(Long.toBinaryString(mask));
-		for (i = 0; i < x.length; i++) {
-			m.moveColumn(x[i], i);
-			for (int j = i + 1; j < x.length; j++) {
-				if (x[j] < x[i]) {
-					x[j]++;
+		for (position = 0; position < columnIndices.length; position++) {
+			columnModel.moveColumn(columnIndices[position], position);
+			for (int j = position + 1; j < columnIndices.length; j++) {
+				if (columnIndices[j] < columnIndices[position]) {
+					columnIndices[j]++;
 				}
 			}
 		}
-		if (mask == 0) {
-			mask = TableModelJobs.MASK;
+		if (visibilityMask == 0) {
+			visibilityMask = TableModelJobs.MASK;
 		}
-		m_jtj.m_hl.setMask(mask);
+		jobsTable.m_hl.setMask(visibilityMask);
 	}
 
-	private int m_ucnt = 0;
+	private int updateCounter = 0;
 
 	public void update() {
-		m_ucnt++;
-		if (m_ucnt % 4 == 0 && jcbArr[I_UPD].isSelected()) {
-			filter();
+		updateCounter++;
+		if (updateCounter % 4 == 0 && filterCheckboxes[INDEX_AUTO_UPDATE].isSelected()) {
+			applyFilter();
 		} else {
-			int x = m_jst.getTopVisibleRow();
-			int y = m_jst.getBottomVisibleRow();
+			int topRow = scrollTable.getTopVisibleRow();
+			int bottomRow = scrollTable.getBottomVisibleRow();
 
-			if (x >= 0 || y > x) {
-				m_jlm.fireTableRowsUpdated(x, y);
+			if (topRow >= 0 || bottomRow > topRow) {
+				tableModel.fireTableRowsUpdated(topRow, bottomRow);
 			}
 		}
 	}
 
-	private void filter() {
-		A.jobs.filter(mIs, mIf, mBu);
-		m_jlm.sort(true);
-		// m_jlm.fireTableDataChanged();//<- unselects rows
-		m_jtj.updateUI();
+	private void applyFilter() {
+		A.jobs.filter(statusFilterMask, fileStateFilterMask, showUnknownFiles);
+		tableModel.sort(true);
+		// tableModel.fireTableDataChanged(); // <- unselects rows
+		jobsTable.updateUI();
 	}
 
-	private static String getStr(int i) {
-		switch (i) {
-			case I_DEL :
+	private static String getCheckboxLabel(int checkboxIndex) {
+		switch (checkboxIndex) {
+			case INDEX_DELETED :
 				return "Deleted";
-			case I_DIS :
+			case INDEX_DISK_IO :
 				return "DiskIO";
-			case I_DOI :
+			case INDEX_DOING :
 				return "Doing";
-			case I_DON :
+			case INDEX_DONE :
 				return "Done";
-			case I_FAI :
+			case INDEX_FAILED :
 				return "Failed";
-			case I_MIS :
+			case INDEX_MISSING :
 				return "Missing";
-			case I_NET :
+			case INDEX_NET_IO :
 				return "NetIO";
-			case I_NOR :
+			case INDEX_NORMAL :
 				return "Normal";
-			case I_PAU :
+			case INDEX_PAUSED :
 				return "Paused";
-			case I_UPD :
+			case INDEX_AUTO_UPDATE :
 				return "Auto Update";
-			case I_WAI :
+			case INDEX_WAITING :
 				return "Waiting";
-			case I_UNK :
+			case INDEX_UNKNOWN :
 				return "Unknown";
-			case I_CRC :
+			case INDEX_CRC_ERROR :
 				return "Corrupt";
-			case I_CEN :
+			case INDEX_CENSORED :
 				return "Censored";
 			default :
 				return "No such checkbox";
 		}
 	}
 
-	private static final int I_NOR = 0;
-	private static final int I_PAU = 1;
-	private static final int I_WAI = 2;
-	private static final int I_DOI = 3;
-	private static final int I_DIS = 4;
-	private static final int I_CRC = 5;
-	private static final int I_UPD = 6;
-	private static final int I_MIS = 7;
-	private static final int I_DEL = 8;
-	private static final int I_DON = 9;
-	private static final int I_FAI = 10;
-	private static final int I_NET = 11;
-	private static final int I_CEN = 12;
-	private static final int I_UNK = 13;
-	private static final int I_LEN = 14;
+	private static final int INDEX_NORMAL = 0;
+	private static final int INDEX_PAUSED = 1;
+	private static final int INDEX_WAITING = 2;
+	private static final int INDEX_DOING = 3;
+	private static final int INDEX_DISK_IO = 4;
+	private static final int INDEX_CRC_ERROR = 5;
+	private static final int INDEX_AUTO_UPDATE = 6;
+	private static final int INDEX_MISSING = 7;
+	private static final int INDEX_DELETED = 8;
+	private static final int INDEX_DONE = 9;
+	private static final int INDEX_FAILED = 10;
+	private static final int INDEX_NET_IO = 11;
+	private static final int INDEX_CENSORED = 12;
+	private static final int INDEX_UNKNOWN = 13;
+	private static final int FILTER_CHECKBOX_COUNT = 14;
 }

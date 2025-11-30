@@ -14,4 +14,7 @@
     <suppress files="[\\/]com[\\/]twmacinta[\\/]" checks=".*"/>
     <suppress files="[\\/]gnu[\\/]crypto[\\/]" checks=".*"/>
     <suppress files="[\\/]jonelo[\\/]jacksum[\\/]" checks=".*"/>
+
+    <!-- JNI classes: field names must match native library expectations -->
+    <suppress files="[\\/]epox[\\/]av[\\/]" checks="MemberName"/>
 </suppressions>

@@ -26,57 +26,74 @@ import epox.webaom.Options;
 import java.util.StringTokenizer;
 import java.util.Vector;
 
+/**
+ * Represents a source-to-destination mapping rule with an enabled/disabled state.
+ * Used for character replacement rules in file renaming.
+ */
 public class DSData {
-	public String src;
-	public String dst;
-	public Boolean sel;
+	/** The source pattern to match */
+	public String source;
+	/** The destination string to replace the source with */
+	public String destination;
+	/** Whether this mapping rule is enabled */
+	public Boolean enabled;
 
-	public DSData(String s, String d, boolean b) {
-		src = s;
-		dst = d;
-		sel = Boolean.valueOf(b);
+	public DSData(String sourcePattern, String destinationPattern, boolean isEnabled) {
+		source = sourcePattern;
+		destination = destinationPattern;
+		enabled = Boolean.valueOf(isEnabled);
 	}
 
 	public String toString() {
-		String d = dst;
-		if (d.equals("")) {
-			d = "\\0";
+		String destValue = destination;
+		if (destValue.equals("")) {
+			destValue = "\\0";
 		}
-		if (sel.booleanValue()) {
-			return src + Options.S_SEP + d;
+		if (enabled.booleanValue()) {
+			return source + Options.FIELD_SEPARATOR + destValue;
 		}
-		return "#" + src + Options.S_SEP + d;
+		return "#" + source + Options.FIELD_SEPARATOR + destValue;
 	}
 
-	public static DSData parse(String s0, String s1) {
-		boolean b = s0.startsWith("#");
-		if (b) {
-			s0 = s0.substring(1);
+	/**
+	 * Parses a source-destination pair from encoded strings.
+	 * Lines starting with '#' indicate a disabled rule.
+	 */
+	public static DSData parse(String sourceString, String destinationString) {
+		boolean isDisabled = sourceString.startsWith("#");
+		if (isDisabled) {
+			sourceString = sourceString.substring(1);
 		}
-		if (s1.equals("\\0")) {
-			s1 = "";
+		if (destinationString.equals("\\0")) {
+			destinationString = "";
 		}
-		return new DSData(s0, s1, !b);
+		return new DSData(sourceString, destinationString, !isDisabled);
 	}
 
-	public static String encode(Vector v) {
-		String s = "";
-		DSData ds;
-		for (int i = 0; i < v.size(); i++) {
-			ds = (DSData) v.elementAt(i);
-			if (!ds.src.equals("")) {
-				s += ds + Options.S_SEP;
+	/**
+	 * Encodes a vector of DSData rules into a single delimited string.
+	 */
+	public static String encode(Vector rulesList) {
+		String encodedResult = "";
+		DSData currentRule;
+		for (int i = 0; i < rulesList.size(); i++) {
+			currentRule = (DSData) rulesList.elementAt(i);
+			if (!currentRule.source.equals("")) {
+				encodedResult += currentRule + Options.FIELD_SEPARATOR;
 			}
 		}
-		return s;
+		return encodedResult;
 	}
 
-	public static String decode(Vector /* !<DSData> */ v, String s) {
-		v.clear();
-		StringTokenizer st = new StringTokenizer(s, Options.S_SEP);
-		while (st.hasMoreTokens()) {
-			v.add(parse(st.nextToken(), st.nextToken()));
+	/**
+	 * Decodes an encoded string into a vector of DSData rules.
+	 */
+	public static String decode(Vector /* !<DSData> */ rulesList, String encodedString) {
+		rulesList.clear();
+		StringTokenizer tokenizer = new StringTokenizer(encodedString, Options.FIELD_SEPARATOR);
+		while (tokenizer.hasMoreTokens()) {
+			rulesList.add(parse(tokenizer.nextToken(), tokenizer.nextToken()));
 		}
-		return s;
+		return encodedString;
 	}
 }

@@ -36,108 +36,110 @@ import javax.swing.JTextArea;
 import javax.swing.JTextField;
 
 public class JPanelOptMyl extends JPanel {
-	private final String[] states = {"Unknown", "On HDD", "On CD", "Deleted"};
-	private final JTextField tfSto;
-	private final JTextField tfSou;
-	private final JComboBox coStt;
-	private final JTextArea taOth;
-	private final JCheckBox cbWat;
+	private static final String[] FILE_STATES = {"Unknown", "On HDD", "On CD", "Deleted"};
+	private final JTextField storageField;
+	private final JTextField sourceField;
+	private final JComboBox stateComboBox;
+	private final JTextArea otherInfoArea;
+	private final JCheckBox watchedCheckBox;
 
 	public JPanelOptMyl() {
 
-		tfSto = new JTextField();
-		tfSou = new JTextField();
-		taOth = new JTextArea();
+		storageField = new JTextField();
+		sourceField = new JTextField();
+		otherInfoArea = new JTextArea();
 
-		coStt = new JComboBox(states);
-		coStt.setSelectedIndex(1);
+		stateComboBox = new JComboBox(FILE_STATES);
+		stateComboBox.setSelectedIndex(1);
 
-		cbWat = new JCheckBox("Watched", false);
+		watchedCheckBox = new JCheckBox("Watched", false);
 
-		GridBagConstraints cs = new GridBagConstraints();
-		cs.insets = new Insets(4, 4, 4, 4);
+		GridBagConstraints gridConstraints = new GridBagConstraints();
+		gridConstraints.insets = new Insets(4, 4, 4, 4);
 		setLayout(new GridBagLayout());
-		cs.fill = GridBagConstraints.HORIZONTAL;
+		gridConstraints.fill = GridBagConstraints.HORIZONTAL;
 
-		cs.weightx = 0.1;
-		cs.gridwidth = 1;
-		add(new JLabel("State"), cs);
+		gridConstraints.weightx = 0.1;
+		gridConstraints.gridwidth = 1;
+		add(new JLabel("State"), gridConstraints);
 
-		cs.weightx = 1.0;
-		cs.gridwidth = GridBagConstraints.REMAINDER;
-		add(coStt, cs);
+		gridConstraints.weightx = 1.0;
+		gridConstraints.gridwidth = GridBagConstraints.REMAINDER;
+		add(stateComboBox, gridConstraints);
 
-		cs.weightx = 0.1;
-		cs.gridwidth = 1;
-		add(new JLabel("Source"), cs);
+		gridConstraints.weightx = 0.1;
+		gridConstraints.gridwidth = 1;
+		add(new JLabel("Source"), gridConstraints);
 
-		cs.weightx = 1.0;
-		cs.gridwidth = GridBagConstraints.REMAINDER;
-		add(tfSou, cs);
+		gridConstraints.weightx = 1.0;
+		gridConstraints.gridwidth = GridBagConstraints.REMAINDER;
+		add(sourceField, gridConstraints);
 
-		cs.weightx = 0.1;
-		cs.gridwidth = 1;
-		add(new JLabel("Storage"), cs);
+		gridConstraints.weightx = 0.1;
+		gridConstraints.gridwidth = 1;
+		add(new JLabel("Storage"), gridConstraints);
 
-		cs.weightx = 1.0;
-		cs.gridwidth = GridBagConstraints.REMAINDER;
-		add(tfSto, cs);
+		gridConstraints.weightx = 1.0;
+		gridConstraints.gridwidth = GridBagConstraints.REMAINDER;
+		add(storageField, gridConstraints);
 
-		cs.weightx = 0.1;
-		cs.gridwidth = 1;
-		add(new JLabel("Other"), cs);
+		gridConstraints.weightx = 0.1;
+		gridConstraints.gridwidth = 1;
+		add(new JLabel("Other"), gridConstraints);
 
-		cs.gridheight = 2;
-		cs.weightx = 1.0;
-		cs.weighty = 1.0;
-		cs.fill = GridBagConstraints.BOTH;
-		cs.gridwidth = GridBagConstraints.REMAINDER;
-		add(new JScrollPane(taOth), cs);
+		gridConstraints.gridheight = 2;
+		gridConstraints.weightx = 1.0;
+		gridConstraints.weighty = 1.0;
+		gridConstraints.fill = GridBagConstraints.BOTH;
+		gridConstraints.gridwidth = GridBagConstraints.REMAINDER;
+		add(new JScrollPane(otherInfoArea), gridConstraints);
 
-		cs.gridheight = 1;
-		cs.weightx = 0.1;
-		cs.weighty = 0.0;
-		cs.fill = GridBagConstraints.HORIZONTAL;
+		gridConstraints.gridheight = 1;
+		gridConstraints.weightx = 0.1;
+		gridConstraints.weighty = 0.0;
+		gridConstraints.fill = GridBagConstraints.HORIZONTAL;
 
-		cs.gridx = 0;
-		cs.gridy = 4;
-		cs.gridheight = 1;
-		cs.gridwidth = 1;
-		add(cbWat, cs);
+		gridConstraints.gridx = 0;
+		gridConstraints.gridy = 4;
+		gridConstraints.gridheight = 1;
+		gridConstraints.gridwidth = 1;
+		add(watchedCheckBox, gridConstraints);
 	}
 
 	public Mylist getMylistData() {
-		Mylist m = new Mylist();
-		m.stt = coStt.getSelectedIndex();
-		m.vie = cbWat.isSelected() ? 1 : 0;
-		m.sto = tfSto.getText();
-		m.sou = tfSou.getText();
-		m.oth = taOth.getText();
-		return m;
+		Mylist mylist = new Mylist();
+		mylist.stt = stateComboBox.getSelectedIndex();
+		mylist.vie = watchedCheckBox.isSelected() ? 1 : 0;
+		mylist.sto = storageField.getText();
+		mylist.sou = sourceField.getText();
+		mylist.oth = otherInfoArea.getText();
+		return mylist;
 	}
 
-	public void setEnabled(boolean en) {
-		cbWat.setEnabled(en);
-		coStt.setEnabled(en);
-		taOth.setEnabled(en);
-		tfSou.setEnabled(en);
-		tfSto.setEnabled(en);
-		super.setEnabled(en);
+	public void setEnabled(boolean enabled) {
+		watchedCheckBox.setEnabled(enabled);
+		stateComboBox.setEnabled(enabled);
+		otherInfoArea.setEnabled(enabled);
+		sourceField.setEnabled(enabled);
+		storageField.setEnabled(enabled);
+		super.setEnabled(enabled);
 	}
 
-	public void opts(Options o) {
-		o.setB(Options.B_WATCHED, cbWat.isSelected());
-		o.setI(Options.I_STATE, coStt.getSelectedIndex());
-		o.setS(Options.S_STORAGE, tfSto.getText());
-		o.setS(Options.S_SOURCEF, tfSou.getText());
-		o.setS(Options.S_OTHERIN, taOth.getText());
+	/** Saves the current UI values to the options model. */
+	public void saveToOptions(Options options) {
+		options.setBoolean(Options.BOOL_WATCHED, watchedCheckBox.isSelected());
+		options.setInteger(Options.INT_FILE_STATE, stateComboBox.getSelectedIndex());
+		options.setString(Options.STR_STORAGE, storageField.getText());
+		options.setString(Options.STR_SOURCE_FOLDER, sourceField.getText());
+		options.setString(Options.STR_OTHER_INFO, otherInfoArea.getText());
 	}
 
-	public void optl(Options o) {
-		cbWat.setSelected(o.getB(Options.B_WATCHED));
-		tfSto.setText(o.getS(Options.S_STORAGE));
-		tfSou.setText(o.getS(Options.S_SOURCEF));
-		taOth.setText(o.getS(Options.S_OTHERIN));
-		coStt.setSelectedIndex(o.getI(Options.I_STATE));
+	/** Loads values from the options model into the UI components. */
+	public void loadFromOptions(Options options) {
+		watchedCheckBox.setSelected(options.getBoolean(Options.BOOL_WATCHED));
+		storageField.setText(options.getString(Options.STR_STORAGE));
+		sourceField.setText(options.getString(Options.STR_SOURCE_FOLDER));
+		otherInfoArea.setText(options.getString(Options.STR_OTHER_INFO));
+		stateComboBox.setSelectedIndex(options.getInteger(Options.INT_FILE_STATE));
 	}
 }

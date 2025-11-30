@@ -25,42 +25,46 @@ package epox.webaom.net;
 import epox.webaom.Hyper;
 import epox.webaom.ui.JPanelMain;
 
+/**
+ * Thread that performs a ping test to the AniDB server and reports the result.
+ */
 public class Pinger extends Thread {
-	private final JPanelMain web;
+	private final JPanelMain mainPanel;
 
-	public Pinger(JPanelMain w) {
+	public Pinger(JPanelMain mainPanel) {
 		super("Pinger");
-		web = w;
-		web.fatal(true);
+		this.mainPanel = mainPanel;
+		this.mainPanel.handleFatalError(true);
 		start();
 	}
 
+	@Override
 	public void run() {
-		ACon ani = null;
+		ACon connection = null;
 		try {
-			ani = web.getConnection();
-			if (ani.connect()) {
-				web.println("PING...");
-				String str = "PONG (in " + (ani.ping() / 1000f) + " seconds).";
-				web.println(str);
-				web.msg(str);
+			connection = mainPanel.createConnection();
+			if (connection.connect()) {
+				mainPanel.println("PING...");
+				String pingResultMessage = "PONG (in " + (connection.ping() / 1000f) + " seconds).";
+				mainPanel.println(pingResultMessage);
+				mainPanel.showMessage(pingResultMessage);
 			} else {
-				web.msg(ani.getLastError() + ".");
+				mainPanel.showMessage(connection.getLastError() + ".");
 			}
 		} catch (java.net.SocketTimeoutException e) {
-			String str = "AniDB is not reachable";
-			web.println(Hyper.error(str + "."));
-			web.msg(str);
+			String errorMessage = "AniDB is not reachable";
+			mainPanel.println(Hyper.formatAsError(errorMessage + "."));
+			mainPanel.showMessage(errorMessage);
 		} catch (NumberFormatException e) {
-			web.msg("Invalid number." + e.getMessage());
+			mainPanel.showMessage("Invalid number." + e.getMessage());
 		} catch (Exception e) {
 			e.printStackTrace();
-			web.println(Hyper.error(e.getMessage() + "."));
-			web.msg(e.getMessage() + ".");
+			mainPanel.println(Hyper.formatAsError(e.getMessage() + "."));
+			mainPanel.showMessage(e.getMessage() + ".");
 		}
-		if (ani != null) {
-			ani.disconnect();
+		if (connection != null) {
+			connection.disconnect();
 		}
-		web.fatal(false);
+		mainPanel.handleFatalError(false);
 	}
 }

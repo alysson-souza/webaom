@@ -42,52 +42,53 @@ public class JFrameHtml extends JFrame implements HyperlinkListener, KeyListener
 	public JFrameHtml(String title, String text) {
 		super(title);
 
-		JEditorPane jep = new JEditorPane("text/html", text) {
-			protected void paintComponent(Graphics g) {
-				Graphics2D g2 = (Graphics2D) g;
-				g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+		JEditorPane htmlEditorPane = new JEditorPane("text/html", text) {
+			protected void paintComponent(Graphics graphics) {
+				Graphics2D graphics2D = (Graphics2D) graphics;
+				graphics2D.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
 
-				super.paintComponent(g2);
+				super.paintComponent(graphics2D);
 			}
 		};
-		jep.setEditable(false);
-		jep.addHyperlinkListener(this);
+		htmlEditorPane.setEditable(false);
+		htmlEditorPane.addHyperlinkListener(this);
 
-		getContentPane().add(new JScrollPane(jep));
+		getContentPane().add(new JScrollPane(htmlEditorPane));
 		setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
 		pack();
-		Dimension d = java.awt.Toolkit.getDefaultToolkit().getScreenSize();
-		Rectangle r = getBounds();
-		int w = (int) (0.95 * d.width);
-		int h = (int) (0.95 * d.height);
-		if (r.width > w) {
-			r.width = w;
+		Dimension screenSize = java.awt.Toolkit.getDefaultToolkit().getScreenSize();
+		Rectangle frameBounds = getBounds();
+		int maxWidth = (int) (0.95 * screenSize.width);
+		int maxHeight = (int) (0.95 * screenSize.height);
+		if (frameBounds.width > maxWidth) {
+			frameBounds.width = maxWidth;
 		}
-		if (r.height > h) {
-			r.height = h;
+		if (frameBounds.height > maxHeight) {
+			frameBounds.height = maxHeight;
 		}
-		setBounds(d.width / 2 - r.width / 2, d.height / 2 - r.height / 2, r.width, r.height);
+		setBounds(screenSize.width / 2 - frameBounds.width / 2, screenSize.height / 2 - frameBounds.height / 2,
+				frameBounds.width, frameBounds.height);
 		setVisible(true);
-		jep.addKeyListener(this);
+		htmlEditorPane.addKeyListener(this);
 	}
 
-	public void hyperlinkUpdate(HyperlinkEvent e) {
-		if (e.getEventType() == HyperlinkEvent.EventType.ACTIVATED) {
-			A.gui.hlGo(e.getDescription());
+	public void hyperlinkUpdate(HyperlinkEvent event) {
+		if (event.getEventType() == HyperlinkEvent.EventType.ACTIVATED) {
+			A.gui.openHyperlink(event.getDescription());
 		}
 	}
 
-	public void keyTyped(KeyEvent e) {
-		if (e.getKeyChar() == 'q') {
+	public void keyTyped(KeyEvent event) {
+		if (event.getKeyChar() == 'q') {
 			dispose();
 		}
 	}
 
-	public void keyPressed(KeyEvent e) {
-		//
+	public void keyPressed(KeyEvent event) {
+		// No action needed on key press
 	}
 
-	public void keyReleased(KeyEvent e) {
-		//
+	public void keyReleased(KeyEvent event) {
+		// No action needed on key release
 	}
 }

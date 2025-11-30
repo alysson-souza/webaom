@@ -28,207 +28,207 @@ import epox.webaom.net.AConEx;
 import epox.webaom.net.AConR;
 
 public class ChiiEmu implements CommandModel {
-	public Thread mTw;
-	protected ACon m_ac;
-	private Log m_log;
+	private Thread workerThread;
+	protected ACon aniDbConnection;
+	private Log log;
 
-	public ChiiEmu(ACon a) {
-		m_log = null;
-		m_ac = a;
+	public ChiiEmu(ACon connection) {
+		log = null;
+		aniDbConnection = connection;
 	}
 
-	public void handleCommand(String cmd) {
-		m_ac = A.conn;
-		if (cmd.startsWith("!font")) {
-			if (cmd.length() > 6) {
-				A.font = cmd.substring(6).trim();
+	public void handleCommand(String command) {
+		aniDbConnection = A.conn;
+		if (command.startsWith("!font")) {
+			if (command.length() > 6) {
+				A.font = command.substring(6).trim();
 				A.setFont(A.font);
 			} else {
 				println("!font name,size");
 			}
-		} else if (m_ac == null) {
+		} else if (aniDbConnection == null) {
 			println("No connection");
-		} else if (mTw == null) {
-			mTw = new EmuWorker(cmd);
-			mTw.start();
+		} else if (workerThread == null) {
+			workerThread = new EmuWorker(command);
+			workerThread.start();
 		} else {
 			println("Please Wait!");
 		}
 	}
 
-	public void setLog(Log l) {
-		m_log = l;
+	public void setLog(Log log) {
+		this.log = log;
 	}
 
-	public void println(Object o) {
-		if (m_log == null) {
+	public void println(Object message) {
+		if (log == null) {
 			return;
 		}
-		if (o == null) {
-			m_log.println("err..");
+		if (message == null) {
+			log.println("err..");
 		} else {
-			m_log.println(o.toString());
+			log.println(message.toString());
 		}
 	}
 
 	private class EmuWorker extends Thread {
-		private final String mScmd;
+		private final String commandText;
 
-		EmuWorker(String c) {
+		EmuWorker(String commandText) {
 			super("ChiiEmu");
-			mScmd = c;
+			this.commandText = commandText;
 		}
 
 		public void run() {
-			String res = "Query failed.";
+			String result = "Query failed.";
 			try {
-				res = lookUp(mScmd);
-
-			} catch (AConEx e) {
-				res = e.getMessage();
-			} catch (NullPointerException e) {
+				result = executeCommand();
+			} catch (AConEx ex) {
+				result = ex.getMessage();
+			} catch (NullPointerException ex) {
 				/* don't care */
 			}
-			println(res);
-			mTw = null;
+			println(result);
+			workerThread = null;
 		}
 
-		public String lookUp(String s) throws AConEx {
-			if (mScmd == null | mScmd.length() < 3) {
+		public String executeCommand() throws AConEx {
+			if (commandText == null | commandText.length() < 3) {
 				return "No Command";
 			}
-			if (mScmd.startsWith("!uptime")) {
-				return uptime(m_ac.send("UPTIME", null, true).data);
+			if (commandText.startsWith("!uptime")) {
+				return formatUptime(aniDbConnection.send("UPTIME", null, true).data);
 			}
-			if (mScmd.startsWith("!mystats")) {
-				return mystats(m_ac.send("MYLISTSTATS", null, true).data);
+			if (commandText.startsWith("!mystats")) {
+				return formatMyStats(aniDbConnection.send("MYLISTSTATS", null, true).data);
 			}
-			if (mScmd.startsWith("!mylist")) {
-				return idOrName("MYLIST", "aid=", "aname=", s.substring(7).trim());
+			if (commandText.startsWith("!mylist")) {
+				return queryByIdOrName("MYLIST", "aid=", "aname=", commandText.substring(7).trim());
 			}
-			if (mScmd.startsWith("!anime")) {
-				return anime(idOrName("ANIME", "aid=", "aname=", s.substring(6).trim()));
+			if (commandText.startsWith("!anime")) {
+				return formatAnime(queryByIdOrName("ANIME", "aid=", "aname=", commandText.substring(6).trim()));
 			}
-			if (mScmd.startsWith("!group")) {
-				return group(idOrName("GROUP", "gid=", "gname=", s.substring(6).trim()));
+			if (commandText.startsWith("!group")) {
+				return formatGroup(queryByIdOrName("GROUP", "gid=", "gname=", commandText.substring(6).trim()));
 			}
-			if (mScmd.startsWith("!randomanime")) {
-				return randomanime(s.substring(12).trim());
+			if (commandText.startsWith("!randomanime")) {
+				return randomAnime(commandText.substring(12).trim());
 			}
-			if (mScmd.startsWith("!state2")) {
-				return stosta(s.substring(7).trim(), I_STAT2);
+			if (commandText.startsWith("!state2")) {
+				return updateStorageOrState(commandText.substring(7).trim(), USAGE_STATE2);
 			}
-			if (mScmd.startsWith("!state")) {
-				return state(s.substring(6).trim());
+			if (commandText.startsWith("!state")) {
+				return updateState(commandText.substring(6).trim());
 			}
-			if (mScmd.startsWith("!watched")) {
-				return watched(s.substring(8).trim());
+			if (commandText.startsWith("!watched")) {
+				return updateWatchedStatus(commandText.substring(8).trim());
 			}
-			if (mScmd.startsWith("!storage")) {
-				return stosta(s.substring(8).trim(), I_STORA);
+			if (commandText.startsWith("!storage")) {
+				return updateStorageOrState(commandText.substring(8).trim(), USAGE_STORAGE);
 			}
-			if (mScmd.charAt(0) == '?') {
-				return m_ac.send(s.substring(1), true);
+			if (commandText.charAt(0) == '?') {
+				return aniDbConnection.send(commandText.substring(1), true);
 			}
 			return "Unknown command";
 		}
 
-		public String uptime(String str) {
-			long l = Long.parseLong(str) / 60000;
-			int d = (int) (l / 1440);
-			int h = (int) ((l % 1440) / 60);
-			int m = (int) (l % 1440 % 60);
-			return "UPTIME: " + d + "d " + h + "h " + m + "m";
+		public String formatUptime(String uptime) {
+			long uptimeMinutes = Long.parseLong(uptime) / 60000;
+			int days = (int) (uptimeMinutes / 1440);
+			int hours = (int) ((uptimeMinutes % 1440) / 60);
+			int minutes = (int) (uptimeMinutes % 1440 % 60);
+			return "UPTIME: " + days + "d " + hours + "h " + minutes + "m";
 		}
 
-		public String idOrName(String c, String i, String n, String s) throws AConEx {
+		public String queryByIdOrName(String command, String idParameter, String nameParameter, String value)
+				throws AConEx {
 			try {
-				return m_ac.send(c, i + Integer.parseInt(s), true).data;
-			} catch (NumberFormatException e) {
+				return aniDbConnection.send(command, idParameter + Integer.parseInt(value), true).data;
+			} catch (NumberFormatException ex) {
 				/* part of plan */
 			}
-			if (n == null) {
+			if (nameParameter == null) {
 				return "Not possible";
 			}
-			return m_ac.send(c, n + s, true).data;
+			return aniDbConnection.send(command, nameParameter + value, true).data;
 		}
 
-		public String stosta(String p, int t) throws AConEx {
-			String[] a = U.split(p, ',');
-			if (a.length != 4) {
-				return getS(t);
+		public String updateStorageOrState(String parameters, int usageType) throws AConEx {
+			String[] arguments = U.split(parameters, ',');
+			if (arguments.length != 4) {
+				return getUsageMessage(usageType);
 			}
-			for (int i = 0; i < a.length; i++) {
-				a[i] = a[i].trim();
-				if (i < (a.length - 1) && a[i].isEmpty()) {
-					return getS(t);
+			for (int i = 0; i < arguments.length; i++) {
+				arguments[i] = arguments[i].trim();
+				if (i < (arguments.length - 1) && arguments[i].isEmpty()) {
+					return getUsageMessage(usageType);
 				}
 			}
-			StringBuffer sb = new StringBuffer(50);
-			sb.append("edit=1");
+			StringBuffer requestParameters = new StringBuffer(50);
+			requestParameters.append("edit=1");
 			int id;
 			try {
-				id = Integer.parseInt(a[0]);
-				sb.append("&aid=");
-				sb.append(id);
-			} catch (NumberFormatException e) {
-				sb.append("&aname=");
-				sb.append(a[0]);
+				id = Integer.parseInt(arguments[0]);
+				requestParameters.append("&aid=");
+				requestParameters.append(id);
+			} catch (NumberFormatException ex) {
+				requestParameters.append("&aname=");
+				requestParameters.append(arguments[0]);
 			}
 			try {
-				id = Integer.parseInt(a[1]);
-				sb.append("&gid=");
-				sb.append(id);
-			} catch (NumberFormatException e) {
-				if (!a[1].equalsIgnoreCase("all")) {
-					sb.append("&gname=");
-					sb.append(a[1]);
+				id = Integer.parseInt(arguments[1]);
+				requestParameters.append("&gid=");
+				requestParameters.append(id);
+			} catch (NumberFormatException ex) {
+				if (!arguments[1].equalsIgnoreCase("all")) {
+					requestParameters.append("&gname=");
+					requestParameters.append(arguments[1]);
 				}
 			}
 			try {
-				sb.append("&epno=");
-				if (a[2].equalsIgnoreCase("all")) {
-					sb.append("0");
-				} else if (a[2].length() > 5 && a[2].toLowerCase().startsWith("upto ")) {
-					sb.append(-Integer.parseInt(a[2].substring(5)));
+				requestParameters.append("&epno=");
+				if (arguments[2].equalsIgnoreCase("all")) {
+					requestParameters.append("0");
+				} else if (arguments[2].length() > 5 && arguments[2].toLowerCase().startsWith("upto ")) {
+					requestParameters.append(-Integer.parseInt(arguments[2].substring(5)));
 				} else {
-					sb.append(Integer.parseInt(a[2]));
+					requestParameters.append(Integer.parseInt(arguments[2]));
 				}
-			} catch (NumberFormatException e) {
-				return getS(t);
+			} catch (NumberFormatException ex) {
+				return getUsageMessage(usageType);
 			}
-			String cmd;
-			if (I_STORA == t) {
-				cmd = "STORAGE";
-				sb.append("&storage=");
-				sb.append(a[3]);
+			String command;
+			if (USAGE_STORAGE == usageType) {
+				command = "STORAGE";
+				requestParameters.append("&storage=");
+				requestParameters.append(arguments[3]);
 			} else {
-				cmd = "STATE2";
-				sb.append("&state=");
-				if (a[3].equalsIgnoreCase("unknown")) {
-					sb.append(0);
-				} else if (a[3].equalsIgnoreCase("hdd")) {
-					sb.append(1);
-				} else if (a[3].equalsIgnoreCase("cd")) {
-					sb.append(2);
-				} else if (a[3].equalsIgnoreCase("deleted")) {
-					sb.append(3);
+				command = "STATE2";
+				requestParameters.append("&state=");
+				if (arguments[3].equalsIgnoreCase("unknown")) {
+					requestParameters.append(0);
+				} else if (arguments[3].equalsIgnoreCase("hdd")) {
+					requestParameters.append(1);
+				} else if (arguments[3].equalsIgnoreCase("cd")) {
+					requestParameters.append(2);
+				} else if (arguments[3].equalsIgnoreCase("deleted")) {
+					requestParameters.append(3);
 				} else {
-					return cmd + ": no such state";
+					return command + ": no such state";
 				}
 			}
 
-			AConR r = m_ac.send("MYLISTADD", sb.toString(), true);
-			if (r.code != AConR.MYLIST_ENTRY_EDITED || r.data == null || r.data.isEmpty()) {
-				return cmd + ": no such entry";
+			AConR response = aniDbConnection.send("MYLISTADD", requestParameters.toString(), true);
+			if (response.code != AConR.MYLIST_ENTRY_EDITED || response.data == null || response.data.isEmpty()) {
+				return command + ": no such entry";
 			}
-			if (r.data.equals("1")) {
-				return cmd + ": one entry updated";
+			if (response.data.equals("1")) {
+				return command + ": one entry updated";
 			}
-			return cmd + ": updated " + r.data + " entries";
+			return command + ": updated " + response.data + " entries";
 		}
 
-		public String randomanime(String param) throws AConEx {
+		public String randomAnime(String param) throws AConEx {
 			int type = 0;
 			if (param.equals("watched")) {
 				type = 1;
@@ -237,243 +237,255 @@ public class ChiiEmu implements CommandModel {
 			} else if (param.equals("all")) {
 				type = 3;
 			}
-			AConR r = m_ac.send("RANDOMANIME", "type=" + type, true);
-			return "RANDOM " + anime(r.data);
+			AConR response = aniDbConnection.send("RANDOMANIME", "type=" + type, true);
+			return "RANDOM " + formatAnime(response.data);
 		}
 
-		public String anime(String str) {
-			String[] s = U.split(str, '|');
-			if (s.length != 19) {
-				return str;
+		public String formatAnime(String response) {
+			String[] fields = U.split(response, '|');
+			if (fields.length != 19) {
+				return response;
 			}
-			String sb = "ANIME: " + s[12] + " (" + s[0] + "), also known as " + s[14] + ", " + s[1] + " eps, Year: "
-					+ s[10] + ", Rating: " + ((float) Integer.parseInt(s[4]) / 100) + " (" + s[4] + " votes), Reviews: "
-					+ s[9] + " (avg: " + ((float) Integer.parseInt(s[8]) / 100) + ")" + ", Cat: " + s[18];
-			return sb;
+			String ratingText = ((float) Integer.parseInt(fields[4]) / 100) + " (" + fields[4] + " votes)";
+			String reviewsText = fields[9] + " (avg: " + ((float) Integer.parseInt(fields[8]) / 100) + ")";
+			String animeDescription = "ANIME: " + fields[12] + " (" + fields[0] + "), also known as " + fields[14]
+					+ ", " + fields[1] + " eps, Year: " + fields[10] + ", Rating: " + ratingText + ", Reviews: "
+					+ reviewsText + ", Cat: " + fields[18];
+			return animeDescription;
 		}
 
-		public String group(String str) {
-			String[] s = U.split(str, '|');
-			if (s.length != 9) {
-				return str;
+		public String formatGroup(String response) {
+			String[] fields = U.split(response, '|');
+			if (fields.length != 9) {
+				return response;
 			}
-			String sb = "GROUP: " + s[5] + " [" + s[6] + "] (" + s[0] + "), irc: " + s[7] + ", rating: "
-					+ ((float) Integer.parseInt(s[1]) / 100) + " (" + s[2] + " votes), db: " + s[3] + " animes/" + s[4]
-					+ " files, url: " + s[8] + ", https://anidb.net/g" + s[0];
-			return sb;
+			String ratingText = ((float) Integer.parseInt(fields[1]) / 100) + " (" + fields[2] + " votes)";
+			String databaseText = fields[3] + " animes/" + fields[4] + " files";
+			String groupDescription = "GROUP: " + fields[5] + " [" + fields[6] + "] (" + fields[0] + "), irc: "
+					+ fields[7] + ", rating: " + ratingText + ", db: " + databaseText + ", url: " + fields[8]
+					+ ", https://anidb.net/g" + fields[0];
+			return groupDescription;
 		}
 
-		public String top(String str) {
-			String[] s = U.split(str, '\n');
-			String[] t;
-			if (s.length != 11) {
-				return str;
+		public String formatTop(String response) {
+			String[] lines = U.split(response, '\n');
+			String[] fields;
+			if (lines.length != 11) {
+				return response;
 			}
 
-			StringBuffer sb = new StringBuffer(100);
-			sb.append("TOP: ");
-			for (int i = 0; i < s.length; i++) {
-				sb.append(S_TOP[i]);
-				t = U.split(s[i], '|');
-				sb.append(t[0]);
-				sb.append(" (");
-				sb.append(t[1]);
-				sb.append("), ");
+			StringBuffer resultBuilder = new StringBuffer(100);
+			resultBuilder.append("TOP: ");
+			for (int i = 0; i < lines.length; i++) {
+				resultBuilder.append(TOP_CATEGORY_LABELS[i]);
+				fields = U.split(lines[i], '|');
+				resultBuilder.append(fields[0]);
+				resultBuilder.append(" (");
+				resultBuilder.append(fields[1]);
+				resultBuilder.append("), ");
 			}
-			sb.deleteCharAt(sb.length() - 1);
-			return sb.toString();
+			resultBuilder.deleteCharAt(resultBuilder.length() - 1);
+			return resultBuilder.toString();
 		}
 
-		public String stats(String str) {
-			String[] s = U.split(str, '|');
-			if (s.length != 7) {
-				return str;
+		public String formatStats(String response) {
+			String[] fields = U.split(response, '|');
+			if (fields.length != 7) {
+				return response;
 			}
-			StringBuffer sb = new StringBuffer(100);
-			sb.append("STATS: ");
-			for (int i = 0; i < s.length; i++) {
-				sb.append(s[i]);
-				sb.append(S_STAT[i]);
+			StringBuffer resultBuilder = new StringBuffer(100);
+			resultBuilder.append("STATS: ");
+			for (int i = 0; i < fields.length; i++) {
+				resultBuilder.append(fields[i]);
+				resultBuilder.append(STATS_LABEL_SUFFIXES[i]);
 			}
-			return sb.toString();
+			return resultBuilder.toString();
 		}
 
-		public String mystats(String str) {
-			String[] s = U.split(str, '|');
-			if (s.length != 16) {
-				return str;
+		public String formatMyStats(String response) {
+			String[] fields = U.split(response, '|');
+			if (fields.length != 16) {
+				return response;
 			}
-			String sb = "MYSTATS: " + s[0] + " animes, " + s[1] + " eps (" + s[13] + " / " + s[12] + "% watched) and "
-					+ s[2] + " files in mylist (" + U.sbyte(1048576L * U.i(s[3])) + ", " + s[11] + "% of AniDB, "
-					+ s[10] + "% watched). " + s[4] + " animes, " + s[5] + " eps, " + s[6] + " files, " + s[7]
-					+ " groups, " + s[14] + " votes, " + s[15] + " reviews added to DB. Leech factor: " + s[8]
-					+ "%, Lameness: " + s[9] + "%.";
-			return sb;
-		}
-
-		/**
-		 * !state <anime> <ep#> <state> !state <anime> all <state> !state <anime> upto <ep#> <state>
-		 * !state <anime> last <state> !state <fid> <state> !state <ed2k link> <state> !state last
-		 * <state>
-		 *
-		 * <p>
-		 * !watched <anime> <epnumber> !watched <fid> !watched <ed2k link> !watched <anime> upto
-		 * <epnumber> !watched <anime> all !watched <anime> none
-		 */
-		public String watched(String s) {
-			try {
-				String api = "edit=1&viewed=";
-				int j = s.indexOf("ed2k://|file|");
-				if (j >= 0) {
-					String[] a = U.split(s.substring(13).trim(), '|');
-					api += "&size=" + a[1];
-					api += "&ed2k=" + a[2];
-				} else {
-					int epno = 0;
-					j = s.indexOf(" none");
-					if (j < 0) {
-						j = s.indexOf(" all");
-						api += "1";
-						if (j < 0) {
-							j = s.indexOf(" upto ");
-							if (j > 0) {
-								epno = -Integer.parseInt(s.substring(j + 6).trim());
-							} else {
-								j = s.lastIndexOf(' ');
-								if (j < 0) {
-									j = 0;
-								}
-								try {
-									epno = Integer.parseInt(s.substring(j < 0 ? 0 : j).trim());
-								} catch (NumberFormatException e) {
-									return getS(I_WATCH);
-								}
-							}
-						}
-					} else {
-						api += "0";
-					}
-					String anime = s.substring(0, j).trim();
-					if (anime.isEmpty()) {
-						if (epno < 1) {
-							return getS(I_WATCH);
-						}
-						api += "&fid=" + epno;
-					} else {
-						api += "&epno=" + epno;
-						try {
-							api += "&aid=" + Integer.parseInt(anime);
-						} catch (NumberFormatException e) {
-							api += "&aname=" + anime;
-						}
-					}
-				}
-				AConR r = m_ac.send("MYLISTADD", api, true);
-				if (r.code == AConR.MYLIST_ENTRY_EDITED) {
-					if (r.data.length() > 3) {
-						return "WATCHED: entry updated.";
-					}
-					return "WATCHED: " + r.data + " entries updated.";
-				}
-				return "WATCHED: no such entry";
-			} catch (Exception e) {
-				e.printStackTrace();
-			}
-			return getS(I_WATCH);
-		}
-
-		public String state(String s) {
-			try {
-				int i = s.lastIndexOf(' ');
-				int state = 0;
-				String statestr = s.substring(i).trim();
-				if (statestr.equalsIgnoreCase("unknown")) {
-					state = 0;
-				} else if (statestr.equalsIgnoreCase("hdd")) {
-					state = 1;
-				} else if (statestr.equalsIgnoreCase("cd")) {
-					state = 2;
-				} else if (statestr.equalsIgnoreCase("deleted")) {
-					state = 3;
-				} else {
-					return getS(I_STATE);
-				}
-				String api = "edit=1&state=" + state;
-				int j = s.indexOf("ed2k://|file|");
-				if (j >= 0) {
-					String[] a = U.split(s.substring(13, i).trim(), '|');
-					api += "&size=" + a[1];
-					api += "&ed2k=" + a[2];
-				} else {
-					int epno = 0;
-					j = s.indexOf(" all ");
-					if (j < 0) {
-						j = s.indexOf(" upto ");
-						if (j > 0) {
-							epno = -Integer.parseInt(s.substring(j + 6, i).trim());
-						} else {
-							j = s.lastIndexOf(' ', i - 1);
-							if (j < 0) {
-								j = 0;
-							}
-							epno = Integer.parseInt(s.substring(j < 0 ? 0 : j, i).trim());
-						}
-					}
-					String anime = s.substring(0, j).trim();
-					if (anime.isEmpty()) {
-						if (epno < 1) {
-							return getS(I_STATE);
-						}
-						api += "&fid=" + epno;
-					} else {
-						api += "&epno=" + epno;
-						try {
-							api += "&aid=" + Integer.parseInt(anime);
-						} catch (NumberFormatException e) {
-							api += "&aname=" + anime;
-						}
-					}
-				}
-				AConR r = m_ac.send("MYLISTADD", api, true);
-				if (r.code == AConR.MYLIST_ENTRY_EDITED) {
-					if (r.data.length() > 3) {
-						return "STATE: entry updated.";
-					}
-					return "STATE: " + r.data + " entries updated.";
-				}
-				return "STATE: no such entry";
-			} catch (Exception e) {
-				e.printStackTrace();
-			}
-			return getS(I_STATE);
+			String watchedEpsText = fields[13] + " / " + fields[12] + "% watched";
+			String mylistSizeText = U.sbyte(1048576L * U.i(fields[3])) + ", " + fields[11] + "% of AniDB, " + fields[10]
+					+ "% watched";
+			String contributionText = fields[4] + " animes, " + fields[5] + " eps, " + fields[6] + " files, "
+					+ fields[7] + " groups";
+			String votesReviewsText = fields[14] + " votes, " + fields[15] + " reviews added to DB";
+			String leechLameText = "Leech factor: " + fields[8] + "%, Lameness: " + fields[9] + "%";
+			String description = "MYSTATS: " + fields[0] + " animes, " + fields[1] + " eps (" + watchedEpsText
+					+ ") and " + fields[2] + " files in mylist (" + mylistSizeText + "). " + contributionText + ". "
+					+ votesReviewsText + ". " + leechLameText + ".";
+			return description;
 		}
 	}
 
-	protected static final int I_WATCH = 0;
-	protected static final int I_STATE = 1;
-	protected static final int I_STAT2 = 2;
-	protected static final int I_STORA = 3;
+	/**
+	 * !state <anime> <ep#> <state> !state <anime> all <state> !state <anime> upto <ep#> <state> !state
+	 * <anime> last <state> !state <fid> <state> !state <ed2k link> <state> !state last <state>
+	 *
+	 * <p>
+	 * !watched <anime> <epnumber> !watched <fid> !watched <ed2k link> !watched <anime> upto
+	 * <epnumber> !watched <anime> all !watched <anime> none
+	 */
+	public String updateWatchedStatus(String arguments) {
+		try {
+			String apiParameters = "edit=1&viewed=";
+			int ed2kIndex = arguments.indexOf("ed2k://|file|");
+			if (ed2kIndex >= 0) {
+				String[] fields = U.split(arguments.substring(13).trim(), '|');
+				apiParameters += "&size=" + fields[1];
+				apiParameters += "&ed2k=" + fields[2];
+			} else {
+				int episodeNumber = 0;
+				ed2kIndex = arguments.indexOf(" none");
+				if (ed2kIndex < 0) {
+					ed2kIndex = arguments.indexOf(" all");
+					apiParameters += "1";
+					if (ed2kIndex < 0) {
+						ed2kIndex = arguments.indexOf(" upto ");
+						if (ed2kIndex > 0) {
+							episodeNumber = -Integer.parseInt(arguments.substring(ed2kIndex + 6).trim());
+						} else {
+							ed2kIndex = arguments.lastIndexOf(' ');
+							if (ed2kIndex < 0) {
+								ed2kIndex = 0;
+							}
+							try {
+								episodeNumber = Integer
+										.parseInt(arguments.substring(ed2kIndex < 0 ? 0 : ed2kIndex).trim());
+							} catch (NumberFormatException ex) {
+								return getUsageMessage(USAGE_WATCHED);
+							}
+						}
+					}
+				} else {
+					apiParameters += "0";
+				}
+				String animeIdentifier = arguments.substring(0, ed2kIndex).trim();
+				if (animeIdentifier.isEmpty()) {
+					if (episodeNumber < 1) {
+						return getUsageMessage(USAGE_WATCHED);
+					}
+					apiParameters += "&fid=" + episodeNumber;
+				} else {
+					apiParameters += "&epno=" + episodeNumber;
+					try {
+						apiParameters += "&aid=" + Integer.parseInt(animeIdentifier);
+					} catch (NumberFormatException ex) {
+						apiParameters += "&aname=" + animeIdentifier;
+					}
+				}
+			}
+			AConR response = aniDbConnection.send("MYLISTADD", apiParameters, true);
+			if (response.code == AConR.MYLIST_ENTRY_EDITED) {
+				if (response.data.length() > 3) {
+					return "WATCHED: entry updated.";
+				}
+				return "WATCHED: " + response.data + " entries updated.";
+			}
+			return "WATCHED: no such entry";
+		} catch (Exception ex) {
+			ex.printStackTrace();
+		}
+		return getUsageMessage(USAGE_WATCHED);
+	}
 
-	protected static String getS(int i) {
-		switch (i) {
-			case I_WATCH :
+	public String updateState(String arguments) {
+		try {
+			int lastSpaceIndex = arguments.lastIndexOf(' ');
+			int stateCode = 0;
+			String stateString = arguments.substring(lastSpaceIndex).trim();
+			if (stateString.equalsIgnoreCase("unknown")) {
+				stateCode = 0;
+			} else if (stateString.equalsIgnoreCase("hdd")) {
+				stateCode = 1;
+			} else if (stateString.equalsIgnoreCase("cd")) {
+				stateCode = 2;
+			} else if (stateString.equalsIgnoreCase("deleted")) {
+				stateCode = 3;
+			} else {
+				return getUsageMessage(USAGE_STATE);
+			}
+			String apiParameters = "edit=1&state=" + stateCode;
+			int ed2kIndex = arguments.indexOf("ed2k://|file|");
+			if (ed2kIndex >= 0) {
+				String[] fields = U.split(arguments.substring(13, lastSpaceIndex).trim(), '|');
+				apiParameters += "&size=" + fields[1];
+				apiParameters += "&ed2k=" + fields[2];
+			} else {
+				int episodeNumber = 0;
+				ed2kIndex = arguments.indexOf(" all ");
+				if (ed2kIndex < 0) {
+					ed2kIndex = arguments.indexOf(" upto ");
+					if (ed2kIndex > 0) {
+						episodeNumber = -Integer.parseInt(arguments.substring(ed2kIndex + 6, lastSpaceIndex).trim());
+					} else {
+						ed2kIndex = arguments.lastIndexOf(' ', lastSpaceIndex - 1);
+						if (ed2kIndex < 0) {
+							ed2kIndex = 0;
+						}
+						episodeNumber = Integer
+								.parseInt(arguments.substring(ed2kIndex < 0 ? 0 : ed2kIndex, lastSpaceIndex).trim());
+					}
+				}
+				String animeIdentifier = arguments.substring(0, ed2kIndex).trim();
+				if (animeIdentifier.isEmpty()) {
+					if (episodeNumber < 1) {
+						return getUsageMessage(USAGE_STATE);
+					}
+					apiParameters += "&fid=" + episodeNumber;
+				} else {
+					apiParameters += "&epno=" + episodeNumber;
+					try {
+						apiParameters += "&aid=" + Integer.parseInt(animeIdentifier);
+					} catch (NumberFormatException ex) {
+						apiParameters += "&aname=" + animeIdentifier;
+					}
+				}
+			}
+			AConR response = aniDbConnection.send("MYLISTADD", apiParameters, true);
+			if (response.code == AConR.MYLIST_ENTRY_EDITED) {
+				if (response.data.length() > 3) {
+					return "STATE: entry updated.";
+				}
+				return "STATE: " + response.data + " entries updated.";
+			}
+			return "STATE: no such entry";
+		} catch (Exception ex) {
+			ex.printStackTrace();
+		}
+		return getUsageMessage(USAGE_STATE);
+	}
+
+	protected static final int USAGE_WATCHED = 0;
+	protected static final int USAGE_STATE = 1;
+	protected static final int USAGE_STATE2 = 2;
+	protected static final int USAGE_STORAGE = 3;
+
+	protected static String getUsageMessage(int usageType) {
+		switch (usageType) {
+			case USAGE_WATCHED :
 				return "WATCHED: usage: !watched <anime> <epnumber>, !state <fid>, !state <ed2k"
 						+ " link>, epnumber may be 'all', 'upto <epno>' or 'none'.";
-			case I_STATE :
+			case USAGE_STATE :
 				return "STATE: usage: !state <anime> <epnumber> <state>, !state <fid> <state>,"
 						+ " !state <ed2k link> <state>, !state last <state>, epnumber may be"
 						+ " 'all' or 'upto <epno>'. State is: unknown/hdd/cd/deleted.";
-			case I_STAT2 :
+			case USAGE_STATE2 :
 				return "!state2 anime/aid, group/gid/all, all/upto x/x, unknown/hdd/cd/deleted";
-			case I_STORA :
+			case USAGE_STORAGE :
 				return "!storage anime/aid, group/gid/all, all/upto x/x, text";
+			default :
+				return "NOO!";
 		}
-		return "NOO!";
 	}
 
-	protected static final String[] S_STAT = {" animes, ", " eps, ", " files, ", " groups, ", " users, ", " KB, ",
-			" open change requests in DB"};
-	protected static final String[] S_TOP = {"Longest MyList: ", "Largest MyList: ", "Most Lame Files: ",
+	protected static final String[] STATS_LABEL_SUFFIXES = {" animes, ", " eps, ", " files, ", " groups, ", " users, ",
+			" KB, ", " open change requests in DB"};
+	protected static final String[] TOP_CATEGORY_LABELS = {"Longest MyList: ", "Largest MyList: ", "Most Lame Files: ",
 			"Most Indep. User: ", "Big. Leech0r: ", "Most Anime Added: ", "Most Eps Added: ", "Most Files Added: ",
 			"Most Groups Added: ", "Most Votes: ", "Most Reviews: "};
+
 }

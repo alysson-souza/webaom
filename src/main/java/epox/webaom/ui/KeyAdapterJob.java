@@ -12,26 +12,26 @@ import java.awt.event.KeyEvent;
 import javax.swing.JTable;
 
 public class KeyAdapterJob extends KeyAdapter {
-	private final JTable m_jt;
-	private final JTreeTableR m_tt;
-	private final RowModel m_rm;
+	private final JTable table;
+	private final JTreeTableR treeTable;
+	private final RowModel rowModel;
 
-	public KeyAdapterJob(JTable jt, RowModel rm) {
-		m_jt = jt;
-		m_rm = rm;
-		if (jt instanceof JTreeTableR) {
-			m_tt = (JTreeTableR) jt;
+	public KeyAdapterJob(JTable table, RowModel rowModel) {
+		this.table = table;
+		this.rowModel = rowModel;
+		if (table instanceof JTreeTableR) {
+			this.treeTable = (JTreeTableR) table;
 		} else {
-			m_tt = null;
+			this.treeTable = null;
 		}
 	}
 
-	public void keyPressed(KeyEvent e) {
+	public void keyPressed(KeyEvent event) {
 		try {
-			int code = e.getKeyCode();
-			switch (code) {
+			int keyCode = event.getKeyCode();
+			switch (keyCode) {
 				case 'R' :
-					A.gui.jpAlt.updateAlt(true);
+					A.gui.altViewPanel.updateAlternativeView(true);
 					return;
 				case 'D' :
 					A.p.dump("@ ");
@@ -41,83 +41,83 @@ public class KeyAdapterJob extends KeyAdapter {
 					return;
 				case 'L' :
 					A.p.clear();
-					A.gui.jpAlt.updateAlt(false);
+					A.gui.altViewPanel.updateAlternativeView(false);
 					return;
 			}
-			int i = m_jt.getSelectedRow();
-			if (i < 0) {
+			int selectedRow = table.getSelectedRow();
+			if (selectedRow < 0) {
 				return;
 			}
-			Job[] a = m_rm.getJobs(i);
-			if (a == null || a.length < 1) {
+			Job[] jobs = rowModel.getJobs(selectedRow);
+			if (jobs == null || jobs.length < 1) {
 				return;
 			}
-			Job j = a[0]; // A.jobs.get(m_rm.convertRow(i)[0]);
-			boolean con = true;
-			switch (code) {
+			Job selectedJob = jobs[0];
+			boolean eventConsumed = true;
+			switch (keyCode) {
 				case 'A' :
-					A.gui.hlGo(j.m_fa.urlAnime());
+					A.gui.openHyperlink(selectedJob.anidbFile.urlAnime());
 					break;
 				case 'M' :
-					A.gui.hlGo(j.m_fa.urlMylist());
+					A.gui.openHyperlink(selectedJob.anidbFile.urlMylist());
 					break;
 				case 'N' :
-					A.gui.hlGo(j.m_fa.urlMylistE(j.mIlid));
+					A.gui.openHyperlink(selectedJob.anidbFile.urlMylistE(selectedJob.mylistId));
 					break;
 				case 'E' :
-					A.gui.hlGo(j.m_fa.urlEp());
+					A.gui.openHyperlink(selectedJob.anidbFile.urlEp());
 					break;
 				case 'G' :
-					A.gui.hlGo(j.m_fa.urlGroup());
+					A.gui.openHyperlink(selectedJob.anidbFile.urlGroup());
 					break;
 				case 'F' :
-					A.gui.hlGo(j.m_fa.urlFile());
+					A.gui.openHyperlink(selectedJob.anidbFile.urlFile());
 					break;
 				case 'K' :
-					A.gui.hlGo(j.m_fa.urlExport());
+					A.gui.openHyperlink(selectedJob.anidbFile.urlExport());
 					break;
 				case 'W' :
-					JobMan.c_watch(j);
+					JobMan.openInDefaultPlayer(selectedJob);
 					break;
 				case 'X' :
-					JobMan.c_expl(j);
+					JobMan.openInExplorer(selectedJob);
 					break;
 				case 'C' :
-					JobMan.c_avdump(j);
-					A.gui.hlGo(j.m_fa.urlFile());
+					JobMan.runAvdump(selectedJob);
+					A.gui.openHyperlink(selectedJob.anidbFile.urlFile());
 					break;
 				case 'P' :
-					JobMan.updateStatus(j, Job.H_PAUSED, true);
+					JobMan.updateStatus(selectedJob, Job.H_PAUSED, true);
 					break;
 				case 'S' :
-					JobMan.updateStatus(j, Job.IDENTIFIED, true);
+					JobMan.updateStatus(selectedJob, Job.IDENTIFIED, true);
 					break;
 				case 'I' :
-					j.m_fa = null;
-					JobMan.updateStatus(j, Job.HASHED, true);
+					selectedJob.anidbFile = null;
+					JobMan.updateStatus(selectedJob, Job.HASHED, true);
 					break;
 				case ' ' :
-				case 10 :
-					JobMan.showInfo(j);
+				case 10 : // Enter key
+					JobMan.showInfo(selectedJob);
 					break;
-				case 39 :
-					if (m_tt != null) {
-						m_tt.expandRow();
+				case 39 : // Right arrow key
+					if (treeTable != null) {
+						treeTable.expandRow();
 					}
 					break;
-				case 37 :
-					if (m_tt != null) {
-						m_tt.collapseRow();
+				case 37 : // Left arrow key
+					if (treeTable != null) {
+						treeTable.collapseRow();
 					}
 					break;
 				default :
-					con = false;
+					eventConsumed = false;
 			}
-			if (con) {
-				e.consume();
+			if (eventConsumed) {
+				event.consume();
 			}
-		} catch (Exception x) {
-			x.printStackTrace();
+		} catch (Exception ex) {
+			ex.printStackTrace();
 		}
 	}
 }

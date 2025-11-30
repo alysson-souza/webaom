@@ -25,44 +25,45 @@ package epox.webaom;
 import java.io.File;
 
 public class JobMan {
-	public static void setPath(Job job, String path, boolean parent) {
+	public static void setPath(Job job, String path, boolean includeParent) {
 		synchronized (job) {
 			if (job.check(Job.S_DOING)) {
 				return;
 			}
-			int status = Job.FAILED;
-			File folder = new File(path);
-			File orig = job.m_fn != null ? job.m_fn : job.m_fc;
-			String name = "";
-			if (parent) {
-				name += orig.getParentFile().getName() + File.separatorChar;
+			int newStatus = Job.FAILED;
+			File destinationFolder = new File(path);
+			File originalFile = job.targetFile != null ? job.targetFile : job.currentFile;
+			String fileName = "";
+			if (includeParent) {
+				fileName += originalFile.getParentFile().getName() + File.separatorChar;
 			}
-			name += orig.getName();
-			File file = new File(folder + File.separator + name);
+			fileName += originalFile.getName();
+			File newFile = new File(destinationFolder + File.separator + fileName);
 			if (job.getHealth() == Job.H_MISSING) {
-				job.find(file);
-				A.db.update(0, job, DB.I_J);
-			} else if (updatePath(job, file)) {
-				if (job.m_fn != null) {
-					status = Job.MOVEWAIT;
+				job.find(newFile);
+				A.db.update(0, job, DB.INDEX_JOB);
+			} else if (updatePath(job, newFile)) {
+				if (job.targetFile != null) {
+					newStatus = Job.MOVEWAIT;
 				} else {
-					status = Job.FINISHED;
+					newStatus = Job.FINISHED;
 				}
-				job.setStatus(status, true);
-				A.db.update(0, job, DB.I_J);
+				job.setStatus(newStatus, true);
+				A.db.update(0, job, DB.INDEX_JOB);
 			}
 		}
 	}
 
-	public static void setName(Job job, String s) {
+	public static void setName(Job job, String newName) {
 		synchronized (job) {
 			if (job.check(Job.S_DOING)) {
 				return;
 			}
-			if (job.getHealth() < Job.H_DELETED && job.getStatus() == Job.FINISHED && s != null && !s.isEmpty()) {
-				File f = new File(job.m_fc.getParent() + File.separatorChar + s);
-				if (job.m_fc.renameTo(f)) {
-					JobMan.setJobFile(job, f);
+			if (job.getHealth() < Job.H_DELETED && job.getStatus() == Job.FINISHED && newName != null
+					&& !newName.isEmpty()) {
+				File renamedFile = new File(job.currentFile.getParent() + File.separatorChar + newName);
+				if (job.currentFile.renameTo(renamedFile)) {
+					JobMan.setJobFile(job, renamedFile);
 				}
 				updateStatus(job, Job.FINISHED);
 			}
@@ -70,42 +71,42 @@ public class JobMan {
 	}
 
 	public static void restoreName(Job job) {
-		setName(job, job.mSo);
+		setName(job, job.originalName);
 	}
 
-	public static void c_watch(Job job) {
+	public static void openInDefaultPlayer(Job job) {
 		if (!job.getFile().exists()) {
 			return;
 		}
-		Runtime rt = Runtime.getRuntime();
+		Runtime runtime = Runtime.getRuntime();
 		try {
-			rt.exec("rundll32 url.dll,FileProtocolHandler \"" + job.getFile() + "\"");
-		} catch (java.io.IOException f) {
-			f.printStackTrace();
+			runtime.exec("rundll32 url.dll,FileProtocolHandler \"" + job.getFile() + "\"");
+		} catch (java.io.IOException ex) {
+			ex.printStackTrace();
 		}
 	}
 
-	public static void c_expl(Job job) {
+	public static void openInExplorer(Job job) {
 		if (!job.getFile().exists()) {
 			return;
 		}
-		Runtime rt = Runtime.getRuntime();
+		Runtime runtime = Runtime.getRuntime();
 		try {
-			rt.exec("explorer \"" + job.getFile().getParent() + "\"");
-		} catch (java.io.IOException f) {
-			f.printStackTrace();
+			runtime.exec("explorer \"" + job.getFile().getParent() + "\"");
+		} catch (java.io.IOException ex) {
+			ex.printStackTrace();
 		}
 	}
 
-	public static void c_avdump(Job job) {
+	public static void runAvdump(Job job) {
 		if (!job.getFile().exists()) {
 			return;
 		}
-		Runtime rt = Runtime.getRuntime();
+		Runtime runtime = Runtime.getRuntime();
 		try {
-			rt.exec("cmd /C start avdump -ps \"" + job.getFile().getAbsolutePath() + "\"");
-		} catch (java.io.IOException f) {
-			f.printStackTrace();
+			runtime.exec("cmd /C start avdump -ps \"" + job.getFile().getAbsolutePath() + "\"");
+		} catch (java.io.IOException ex) {
+			ex.printStackTrace();
 		}
 	}
 
@@ -113,9 +114,9 @@ public class JobMan {
 		updateStatus(job, status, false);
 	}
 
-	public static void updateStatus(Job job, int status, boolean chck) {
+	public static void updateStatus(Job job, int status, boolean checkIfBusy) {
 		synchronized (job) {
-			if (chck && job.check(Job.S_DOING)) {
+			if (checkIfBusy && job.check(Job.S_DOING)) {
 				return;
 			}
 			if ((status & Job.M_H) > 0) {
@@ -126,97 +127,97 @@ public class JobMan {
 			{
 				return;
 			}
-			int j = -1;
+			int newStatus = -1;
 			switch (status) {
 				case Job.HASHED :
-					if (job._ed2 == null) {
+					if (job.ed2kHash == null) {
 						return;
 					}
-					if (job.m_fa == null) {
-						j = Job.IDENTWAIT;
+					if (job.anidbFile == null) {
+						newStatus = Job.IDENTWAIT;
 					} else {
-						j = Job.FINISHED;
+						newStatus = Job.FINISHED;
 					}
-					if (job.mBf) {
-						if (A.db._ok() && !A.db.update(0, job, DB.I_J)) { // add job to db, if it exist...
-							j = A.db.getJob(job, true); // then retrieve
-							if (j >= 0) { // if job exist in db... (should be true, always)
+					if (job.isFresh) {
+						if (A.db.isConnected() && !A.db.update(0, job, DB.INDEX_JOB)) { // add job to db, if it exist...
+							newStatus = A.db.getJob(job, true); // then retrieve
+							if (newStatus >= 0) { // if job exist in db... (should be true, always)
 								A.cache.gatherInfo(job, true); // retrieve info (like anime, group, etc.)
 								// File old = job.nfile; //copy the original location (little abuse
 								// of nfile)
-								job.m_fn = null;
-								// if(j==Job.FINISHED&&old!=null&&old.exists()){ //presume old
+								job.targetFile = null;
+								// if(newStatus==Job.FINISHED&&old!=null&&old.exists()){ //presume old
 								// location is right
-								//	j = Job.MOVEWAIT; //move (or rather check and delete)
+								//	newStatus = Job.MOVEWAIT; //move (or rather check and delete)
 								//	job.nfile = old; //move function use nfile for this
 								// }else{ //the original file was moved, or the job never finished
 								if (updatePath(job)) { // apply rules
-									if (job.m_fn != null) {
-										j = Job.MOVEWAIT; // we want to move to a new
+									if (job.targetFile != null) {
+										newStatus = Job.MOVEWAIT; // we want to move to a new
 									}
 									// location, is it the same as
 									// the orig?
 									else {
-										j = Job.FINISHED;
+										newStatus = Job.FINISHED;
 									}
 								} else {
-									j = Job.FAILED;
+									newStatus = Job.FAILED;
 								}
 								// }
 								// old = null;
 							} else {
-								j = Job.FAILED;
+								newStatus = Job.FAILED;
 								job.setError("Database error. See log/debug.");
 							}
 						}
-						job.mBf = false;
+						job.isFresh = false;
 					}
 					break;
 				case Job.IDENTIFIED :
-					if (job.m_fa == null || job.m_fa.fid == 0 || !updatePath(job)) {
-						j = Job.FAILED;
-					} else if (A.autoadd && job.mIlid == 0) {
-						j = Job.ADDWAIT;
-					} else if (job.m_fn != null) {
-						j = Job.MOVEWAIT;
+					if (job.anidbFile == null || job.anidbFile.fid == 0 || !updatePath(job)) {
+						newStatus = Job.FAILED;
+					} else if (A.autoadd && job.mylistId == 0) {
+						newStatus = Job.ADDWAIT;
+					} else if (job.targetFile != null) {
+						newStatus = Job.MOVEWAIT;
 					} else {
-						j = Job.FINISHED;
+						newStatus = Job.FINISHED;
 					}
 					break;
 				case Job.ADDED :
-					if (job.m_fa == null || job.m_fa.fid == 0) {
+					if (job.anidbFile == null || job.anidbFile.fid == 0) {
 						return;
 					}
-					if (job.m_fn != null) {
-						j = Job.MOVEWAIT;
+					if (job.targetFile != null) {
+						newStatus = Job.MOVEWAIT;
 					} else {
-						j = Job.FINISHED;
+						newStatus = Job.FINISHED;
 					}
 					// A.db.addMylistEntry(this);
 					break;
 				case Job.MOVED :
-					j = Job.FINISHED;
+					newStatus = Job.FINISHED;
 					break;
 				case Job.FAILED :
-					j = Job.FAILED;
+					newStatus = Job.FAILED;
 					break;
 				case Job.ADDWAIT :
-					if (job.m_fa == null) {
-						j = Job.FAILED;
+					if (job.anidbFile == null) {
+						newStatus = Job.FAILED;
 						job.setError("Can't add unknown file to mylist.");
 						break;
 					}
 				case Job.FINISHED :
 					// if(job.afl==null||job.afl.fid==0) return; //is it ok to disable this?
-					job.m_fn = null;
-					j = status;
+					job.targetFile = null;
+					newStatus = status;
 					break;
 				default :
-					j = status;
+					newStatus = status;
 			}
-			job.setStatus(j, true);
-			if (!job.mBf && job.check(Job.F_DB)) {
-				A.db.update(0, job, DB.I_J);
+			job.setStatus(newStatus, true);
+			if (!job.isFresh && job.check(Job.F_DB)) {
+				A.db.update(0, job, DB.INDEX_JOB);
 			}
 		}
 	}
@@ -224,124 +225,124 @@ public class JobMan {
 	public static boolean updatePath(Job job) {
 		if (job.incompl()) {
 			job.setError("Extensive fileinfo not available.");
-			A.gui.println(job.m_fc + " cannot be renamed: Extensive fileinfo not available.");
+			A.gui.println(job.currentFile + " cannot be renamed: Extensive fileinfo not available.");
 			return false;
 		}
 		return updatePath(job, A.rules.apply(job));
 	}
 
-	public static int rcnt = 0;
-
-	public static boolean updatePath(Job job, File f) { // only want to use renameTo if same partition
-		job.m_fn = null;
-		if (f == null) {
+	public static boolean updatePath(Job job, File destinationFile) { // only want to use renameTo if same partition
+		job.targetFile = null;
+		if (destinationFile == null) {
 			return true;
 		}
 		// EQUAL
-		boolean normal = true;
-		if (job.m_fc.equals(f)) {
-			if (job.m_fc.getName().equals(f.getName())) // win case sens
+		boolean isNormalMove = true;
+		if (job.currentFile.equals(destinationFile)) {
+			if (job.currentFile.getName().equals(destinationFile.getName())) // win case sens
 			{
 				return true;
 			}
-			normal = false;
+			isNormalMove = false;
 		}
-		String sf0 = Hyper.name(job.m_fc);
-		String sf1 = Hyper.name(f);
+		String sourceDisplayName = Hyper.formatAsName(job.currentFile);
+		String destDisplayName = Hyper.formatAsName(destinationFile);
 		// SOURCE FILE HEALTHY?
-		if (!job.m_fc.exists()) {
+		if (!job.currentFile.exists()) {
 			job.setError("File does not exist.");
-			A.gui.println(sf0 + " cannot be moved. File not found.");
+			A.gui.println(sourceDisplayName + " cannot be moved. File not found.");
 			return false;
 		}
 		// DESTINATION FILE HEALTHY?
-		if (normal && f.exists()) {
-			if (job.m_fc.length() == f.length()) { // could be the same
-				job.m_fn = f;
-				A.gui.println(sf0 + " will be moved to " + sf1 + " later.");
+		if (isNormalMove && destinationFile.exists()) {
+			if (job.currentFile.length() == destinationFile.length()) { // could be the same
+				job.targetFile = destinationFile;
+				A.gui.println(sourceDisplayName + " will be moved to " + destDisplayName + " later.");
 				return true;
 			}
 			job.setError("File cannot be moved. Destination file already exists!");
-			A.gui.println(sf0 + " cannot be moved to " + sf1 + ": Destination file already exists!");
+			A.gui.println(sourceDisplayName + " cannot be moved to " + destDisplayName
+					+ ": Destination file already exists!");
 			return false;
 		}
 		// DESTINATION FOLDER OK?
-		File parent = f.getParentFile();
-		if (!parent.exists() && !parent.mkdirs()) {
-			job.setError("Folder " + parent + " cannot be created!");
-			A.gui.println("Folder " + parent + " cannot be created!");
+		File parentFolder = destinationFile.getParentFile();
+		if (!parentFolder.exists() && !parentFolder.mkdirs()) {
+			job.setError("Folder " + parentFolder + " cannot be created!");
+			A.gui.println("Folder " + parentFolder + " cannot be created!");
 			return false;
 		}
-		A.jobs.addPath(f);
-		job.mIdid = -1;
+		A.jobs.addPath(destinationFile);
+		job.directoryId = -1;
 		// TRY TO MOVE: WINDOWS
-		String p0 = job.m_fc.getAbsolutePath().toLowerCase();
-		String p1 = f.getAbsolutePath().toLowerCase();
-		String sok = "Cleanup after successful rename operation.";
-		if (p0.charAt(1) == ':' || p1.charAt(1) == ':') { // windows (not network)
-			if (p0.charAt(0) == p1.charAt(0)) {
-				if (job.m_fc.renameTo(f)) {
-					moveSub(job.m_fc, f);
-					A.deleteFile(job.m_fc.getParentFile(), sok);
-					JobMan.setJobFile(job, f);
-					A.gui.println("Renamed " + sf0 + " to " + sf1);
+		String sourcePath = job.currentFile.getAbsolutePath().toLowerCase();
+		String destPath = destinationFile.getAbsolutePath().toLowerCase();
+		String cleanupMessage = "Cleanup after successful rename operation.";
+		if (sourcePath.charAt(1) == ':' || destPath.charAt(1) == ':') { // windows (not network)
+			if (sourcePath.charAt(0) == destPath.charAt(0)) {
+				if (job.currentFile.renameTo(destinationFile)) {
+					moveSubtitleFiles(job.currentFile, destinationFile);
+					A.deleteFile(job.currentFile.getParentFile(), cleanupMessage);
+					JobMan.setJobFile(job, destinationFile);
+					A.gui.println("Renamed " + sourceDisplayName + " to " + destDisplayName);
 					return true;
 				}
-				A.gui.println(Hyper.error("Renaming failed!") + " (" + sf0 + " to " + sf1 + ")");
+				A.gui.println(Hyper.formatAsError("Renaming failed!") + " (" + sourceDisplayName + " to "
+						+ destDisplayName + ")");
 				return false;
 			}
-			job.m_fn = f;
-			A.gui.println(sf0 + " will be moved to " + sf1 + " later.");
+			job.targetFile = destinationFile;
+			A.gui.println(sourceDisplayName + " will be moved to " + destDisplayName + " later.");
 			return true;
 		}
 		// TRY TO MOVE: *NIX
-		if (job.m_fc.renameTo(f)) { // linux can't rename over partitions
-			A.deleteFile(job.m_fc.getParentFile(), sok);
-			JobMan.setJobFile(job, f);
-			A.gui.println("Renamed" + sf0 + " to " + sf1);
+		if (job.currentFile.renameTo(destinationFile)) { // linux can't rename over partitions
+			A.deleteFile(job.currentFile.getParentFile(), cleanupMessage);
+			JobMan.setJobFile(job, destinationFile);
+			A.gui.println("Renamed" + sourceDisplayName + " to " + destDisplayName);
 			return true;
 		}
-		job.m_fn = f;
-		A.gui.println(sf0 + " will be moved to " + sf1 + " later.");
+		job.targetFile = destinationFile;
+		A.gui.println(sourceDisplayName + " will be moved to " + destDisplayName + " later.");
 		return true;
 		// THE END
 	}
 
-	public static void setJobFile(Job j, File f) {
-		if (Cache.mImode == Cache.I_MAFF) {
-			A.cache.treeRemove(j);
-			j.m_fc = f;
-			A.cache.treeAdd(j);
+	public static void setJobFile(Job job, File file) {
+		if (Cache.treeSortMode == Cache.MODE_ANIME_FOLDER_FILE) {
+			A.cache.treeRemove(job);
+			job.currentFile = file;
+			A.cache.treeAdd(job);
 		} else {
-			j.m_fc = f;
+			job.currentFile = file;
 		}
 	}
 
 	public static void showInfo(Job job) {
-		A.dialog2(job.m_fc.getName(), job.convert(A.fschema));
+		A.dialog2(job.currentFile.getName(), job.convert(A.fschema));
 	}
 
-	private static void moveSub(File a, File b) {
-		moveSub(a, b, "ass");
-		moveSub(a, b, "idx");
-		moveSub(a, b, "pdf");
-		moveSub(a, b, "sbv");
-		moveSub(a, b, "smi");
-		moveSub(a, b, "srt");
-		moveSub(a, b, "ssa");
-		moveSub(a, b, "sub");
-		moveSub(a, b, "vtt");
+	private static void moveSubtitleFiles(File sourceFile, File destinationFile) {
+		moveSubtitleFile(sourceFile, destinationFile, "ass");
+		moveSubtitleFile(sourceFile, destinationFile, "idx");
+		moveSubtitleFile(sourceFile, destinationFile, "pdf");
+		moveSubtitleFile(sourceFile, destinationFile, "sbv");
+		moveSubtitleFile(sourceFile, destinationFile, "smi");
+		moveSubtitleFile(sourceFile, destinationFile, "srt");
+		moveSubtitleFile(sourceFile, destinationFile, "ssa");
+		moveSubtitleFile(sourceFile, destinationFile, "sub");
+		moveSubtitleFile(sourceFile, destinationFile, "vtt");
 	}
 
-	private static void moveSub(File a, File b, String ext) {
-		File c = new File(changeExt(a, ext));
-		if (c.exists()) {
-			c.renameTo(new File(changeExt(b, ext)));
+	private static void moveSubtitleFile(File sourceFile, File destinationFile, String extension) {
+		File subtitleFile = new File(changeExtension(sourceFile, extension));
+		if (subtitleFile.exists()) {
+			subtitleFile.renameTo(new File(changeExtension(destinationFile, extension)));
 		}
 	}
 
-	private static String changeExt(File f, String ext) {
-		String path = f.getAbsolutePath();
-		return path.substring(0, 1 + path.lastIndexOf('.')) + ext;
+	private static String changeExtension(File file, String extension) {
+		String path = file.getAbsolutePath();
+		return path.substring(0, 1 + path.lastIndexOf('.')) + extension;
 	}
 }

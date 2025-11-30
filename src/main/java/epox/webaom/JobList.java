@@ -29,22 +29,20 @@ import java.util.ArrayList;
 import java.util.HashSet;
 
 public class JobList {
-	private final ArrayList /* !<Job> */ m_al;
-	private Job[] m_fl = null;
-	private final HashSet /* !<String> */ m_hs;
-	private final LinkedHash[] m_lh;
+	private final ArrayList<Job> jobsList;
+	private Job[] filteredJobs = null;
+	private final HashSet<File> filePathSet;
+	private final LinkedHash[] jobQueues;
 
-	// private int mIid = 0;
-
-	public TableModelJobs jlm = null;
+	public TableModelJobs tableModel = null;
 
 	public JobList() {
-		m_al = new ArrayList /* !<Job> */();
-		m_hs = new HashSet /* !<File> */();
+		jobsList = new ArrayList<>();
+		filePathSet = new HashSet<>();
 
-		m_lh = new LinkedHash[3];
-		for (int i = 0; i < m_lh.length; i++) {
-			m_lh[i] = new LinkedHash();
+		jobQueues = new LinkedHash[3];
+		for (int i = 0; i < jobQueues.length; i++) {
+			jobQueues[i] = new LinkedHash();
 		}
 	}
 
@@ -66,158 +64,153 @@ public class JobList {
 	 * }
 	 */
 	public String toString() {
-		return "HashSet: " + m_hs.size() + ", ArrayList: " + m_al.size() + ", Array: "
-				+ (m_fl == null ? -1 : m_fl.length);
+		return "HashSet: " + filePathSet.size() + ", ArrayList: " + jobsList.size() + ", Array: "
+				+ (filteredJobs == null ? -1 : filteredJobs.length);
 	}
 
 	public synchronized void clear() {
-		m_fl = null;
-		m_al.clear();
-		m_hs.clear();
-		for (int i = 0; i < m_lh.length; i++) {
-			m_lh[i].clear();
+		filteredJobs = null;
+		jobsList.clear();
+		filePathSet.clear();
+		for (int i = 0; i < jobQueues.length; i++) {
+			jobQueues[i].clear();
 		}
-		// mIid = 0;
 	}
 
-	public synchronized boolean has(File f) {
-		return m_hs.contains(f);
+	public synchronized boolean has(File file) {
+		return filePathSet.contains(file);
 	}
 
-	public synchronized boolean addPath(File f) {
-		return m_hs.add(f);
+	public synchronized boolean addPath(File file) {
+		return filePathSet.add(file);
 	}
 
-	public synchronized void filter(int status, int state, boolean unk) {
+	public synchronized void filter(int status, int state, boolean includeUnknown) {
 		if (status == 0) {
-			m_fl = null;
+			filteredJobs = null;
 			return;
 		}
-		long t0 = System.currentTimeMillis();
-		ArrayList /* !<Job> */ al = new ArrayList /* !<Job> */(m_al.size());
-		Job j;
-		for (int i = 0; i < m_al.size(); i++) {
-			j = (Job) m_al.get(i);
-			if (j.checkSep(status, state, unk)) {
-				al.add(j);
+		long startTime = System.currentTimeMillis();
+		ArrayList<Job> matchingJobs = new ArrayList<>(jobsList.size());
+		for (int i = 0; i < jobsList.size(); i++) {
+			Job job = jobsList.get(i);
+			if (job.checkSep(status, state, includeUnknown)) {
+				matchingJobs.add(job);
 			}
-			// j.mIid = i;
 		}
-		m_fl = (Job[]) al.toArray(new Job[0]);
-		System.out.println("! Filter: " + (System.currentTimeMillis() - t0));
+		filteredJobs = matchingJobs.toArray(new Job[0]);
+		System.out.println("! Filter: " + (System.currentTimeMillis() - startTime));
 	}
 
-	private void add_0(Job j) {
-		m_al.add(j);
-		// j.mIid = mIid++;
-		jlm.insertJob(m_al.size() - 1);
+	private void addJobInternal(Job job) {
+		jobsList.add(job);
+		tableModel.insertJob(jobsList.size() - 1);
 	}
 
-	public synchronized Job add(File f) {
-		if (m_hs.add(f)) { // TODO if update then check against existing files
-			Job j = new Job(f, Job.HASHWAIT);
-			int status = A.db.getJob(j, false);
-			if (status >= 0 && j.m_fa != null) {
-				A.cache.gatherInfo(j, true);
-				j.setStatus(status, false);
+	public synchronized Job add(File file) {
+		if (filePathSet.add(file)) { // TODO if update then check against existing files
+			Job job = new Job(file, Job.HASHWAIT);
+			int status = A.db.getJob(job, false);
+			if (status >= 0 && job.anidbFile != null) {
+				A.cache.gatherInfo(job, true);
+				job.setStatus(status, false);
 			}
-			add_0(j);
-			return j;
+			addJobInternal(job);
+			return job;
 		}
 		return null;
 	}
 
-	public synchronized boolean add(Job j) {
-		if (m_hs.add(j.m_fc)) {
-			add_0(j);
+	public synchronized boolean add(Job job) {
+		if (filePathSet.add(job.currentFile)) {
+			addJobInternal(job);
 			return true;
 		}
 		return false;
 	}
 
-	public synchronized Job get(int i) {
+	public synchronized Job get(int index) {
 		try {
-			if (m_fl != null) {
-				return m_fl[i];
+			if (filteredJobs != null) {
+				return filteredJobs[index];
 			}
-			return (Job) m_al.get(i);
-		} catch (ArrayIndexOutOfBoundsException e) {
-			// e.printStackTrace();
-			System.err.println("[ ArrayIndexOutOfBoundsException " + i);
-		} catch (IndexOutOfBoundsException e) {
-			e.printStackTrace();
+			return jobsList.get(index);
+		} catch (ArrayIndexOutOfBoundsException ex) {
+			System.err.println("[ ArrayIndexOutOfBoundsException " + index);
+		} catch (IndexOutOfBoundsException ex) {
+			ex.printStackTrace();
 		}
 		return null;
 	}
 
-	public synchronized Job rem(int i) {
-		Job j = (Job) m_al.remove(i);
-		m_hs.remove(j.getFile());
-		return j;
+	public synchronized Job rem(int index) {
+		Job job = jobsList.remove(index);
+		filePathSet.remove(job.getFile());
+		return job;
 	}
 
 	public synchronized Job[] array() {
-		Job[] a = new Job[m_al.size()];
-		m_al.toArray(a);
-		return a;
+		Job[] jobArray = new Job[jobsList.size()];
+		jobsList.toArray(jobArray);
+		return jobArray;
 	}
 
 	public synchronized int size() {
-		if (m_fl != null) {
-			return m_fl.length;
+		if (filteredJobs != null) {
+			return filteredJobs.length;
 		}
-		return m_al.size();
+		return jobsList.size();
 	}
 
 	public Job getJobDio() {
-		return (Job) m_lh[DIO].getFirst();
+		return (Job) jobQueues[QUEUE_DISK_IO].getFirst();
 	}
 
 	public Job getJobNio() {
-		return (Job) m_lh[NIO].getFirst();
+		return (Job) jobQueues[QUEUE_NETWORK_IO].getFirst();
 	}
 
 	public boolean workForDio() {
-		return !m_lh[DIO].isEmpty();
+		return !jobQueues[QUEUE_DISK_IO].isEmpty();
 	}
 
 	public boolean workForNio() {
-		return !m_lh[NIO].isEmpty();
+		return !jobQueues[QUEUE_NETWORK_IO].isEmpty();
 	}
 
-	public void updateQueues(Job j, int os, int ns) {
-		synchronized (m_lh) {
-			updateHashSets(j, os, false); // remove from set
-			updateHashSets(j, ns, true); // add to set
+	public void updateQueues(Job job, int oldStatus, int newStatus) {
+		synchronized (jobQueues) {
+			updateJobQueue(job, oldStatus, false); // remove from set
+			updateJobQueue(job, newStatus, true); // add to set
 		}
 	}
 
-	private void updateHashSets(Job j, int status, boolean add) {
+	private void updateJobQueue(Job job, int status, boolean shouldAdd) {
 		if (status < 0) {
 			return;
 		}
-		int type = -1;
+		int queueType = -1;
 		if (A.bitcmp(status, Job.S_DO) || A.bitcmp(status, Job.S_DOING)) {
 			if (A.bitcmp(status, Job.D_DIO)) {
-				type = DIO;
+				queueType = QUEUE_DISK_IO;
 			} else if (A.bitcmp(status, Job.D_NIO)) {
-				type = NIO;
+				queueType = QUEUE_NETWORK_IO;
 			} else {
 				return;
 			}
 		} else if (A.bitcmp(status, Job.FAILED) || A.bitcmp(status, Job.UNKNOWN)) {
-			type = I_ERR;
+			queueType = QUEUE_ERROR;
 		} else {
 			return;
 		}
-		if (add) {
-			m_lh[type].addLast(j);
+		if (shouldAdd) {
+			jobQueues[queueType].addLast(job);
 		} else {
-			m_lh[type].remove(j);
+			jobQueues[queueType].remove(job);
 		}
 	}
 
-	public static final int I_ERR = 0;
-	public static final int DIO = 1;
-	public static final int NIO = 2;
+	public static final int QUEUE_ERROR = 0;
+	public static final int QUEUE_DISK_IO = 1;
+	public static final int QUEUE_NETWORK_IO = 2;
 }

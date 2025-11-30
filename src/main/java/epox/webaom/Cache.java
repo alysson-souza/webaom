@@ -34,294 +34,304 @@ import epox.webaom.data.Path;
 import java.util.HashMap;
 
 public class Cache {
-	protected class MyMap extends HashMap /* !<Integer,Base> */ {
+	/** Internal HashMap for caching Base objects by ID. */
+	protected class CacheMap extends HashMap<Integer, Base> {
 		//
 	}
 
-	private final MyMap[] m_hm;
+	private final CacheMap[] cacheMaps;
 
 	public Cache() {
-		m_hm = new MyMap[3];
-		for (int i = 0; i < m_hm.length; i++) {
-			m_hm[i] = new MyMap();
+		cacheMaps = new CacheMap[3];
+		for (int index = 0; index < cacheMaps.length; index++) {
+			cacheMaps[index] = new CacheMap();
 		}
 	}
 
 	public String toString() {
-		return "Anime: " + m_hm[DB.I_A].size() + ", Episode: " + m_hm[DB.I_E].size() + ", Group: "
-				+ m_hm[DB.I_A].size();
+		return "Anime: " + cacheMaps[DB.INDEX_ANIME].size() + ", Episode: " + cacheMaps[DB.INDEX_EPISODE].size()
+				+ ", Group: " + cacheMaps[DB.INDEX_ANIME].size();
 	}
 
 	public void clear() {
-		for (int i = 0; i < m_hm.length; i++) {
-			m_hm[i].clear();
+		for (int index = 0; index < cacheMaps.length; index++) {
+			cacheMaps[index].clear();
 		}
 	}
 
-	public void add(Base b, int db, int typ) {
-		Integer id = Integer.valueOf(b.id);
-		if (!m_hm[typ].containsKey(id)) {
-			m_hm[typ].put(id, b);
-			if (db == 1) {
-				A.db.update(b.id, b, typ);
+	public void add(Base baseObject, int updateMode, int cacheType) {
+		Integer id = Integer.valueOf(baseObject.id);
+		if (!cacheMaps[cacheType].containsKey(id)) {
+			cacheMaps[cacheType].put(id, baseObject);
+			if (updateMode == 1) {
+				A.db.update(baseObject.id, baseObject, cacheType);
 			}
 		}
-		if (db == 2) {
-			A.db.update(b.id, b, typ);
+		if (updateMode == 2) {
+			A.db.update(baseObject.id, baseObject, cacheType);
 		}
 	}
 
-	public Base get(int id, int t) {
-		Base b = (Base) m_hm[t].get(Integer.valueOf(id)); // !
-		if (b == null) {
-			b = A.db.getGeneric(id, t);
-			if (b != null) {
-				m_hm[t].put(Integer.valueOf(id), b);
+	public Base get(int id, int cacheType) {
+		Base baseObject = cacheMaps[cacheType].get(Integer.valueOf(id));
+		if (baseObject == null) {
+			baseObject = A.db.getGeneric(id, cacheType);
+			if (baseObject != null) {
+				cacheMaps[cacheType].put(Integer.valueOf(id), baseObject);
 			}
 		}
-		return b;
+		return baseObject;
 	}
 
 	/////////////// OTHER///////////////
-	public synchronized String gatherInfo(Job j, boolean tree) { // for new files
-		if (j == null || j.m_fa == null) {
-			return null; // nasty?
+	/** Gathers related info (anime, group, episode) for a job's file. */
+	public synchronized String gatherInfo(Job job, boolean addToTree) {
+		if (job == null || job.anidbFile == null) {
+			return null;
 		}
-		AFile f = j.m_fa;
+		AFile file = job.anidbFile;
 		try {
-			// if(fresh) A.db.updateGeneric(f.fid, f, DB.I_F);
-			f.anime = (Anime) get(f.aid, DB.I_A);
-			if (f.gid != 0) {
-				f.group = (Group) get(f.gid, DB.I_G);
+			file.anime = (Anime) get(file.aid, DB.INDEX_ANIME);
+			if (file.gid != 0) {
+				file.group = (Group) get(file.gid, DB.INDEX_GROUP);
 			} else {
-				f.group = Group.none;
+				file.group = Group.none;
 			}
-			f.ep = (Ep) get(f.eid, DB.I_E);
-			// f.anime.regEp(f.ep);
-			if (tree) {
-				treeAdd(j);
+			file.ep = (Ep) get(file.eid, DB.INDEX_EPISODE);
+			if (addToTree) {
+				treeAdd(job);
 			}
 			return null;
-		} catch (Exception e) {
-			U.err(f);
-			e.printStackTrace();
-			return e.getMessage();
+		} catch (Exception ex) {
+			U.err(file);
+			ex.printStackTrace();
+			return ex.getMessage();
 		}
 	}
 
-	public AFile parseFile(String[] s, Job j) {
-		if (s.length != 34) {
-			System.out.println("Unexpected response! len=" + s.length);
-			j.setError("Unexpected response from server.");
+	public AFile parseFile(String[] fields, Job job) {
+		if (fields.length != 34) {
+			System.out.println("Unexpected response! len=" + fields.length);
+			job.setError("Unexpected response from server.");
 			return null;
 		}
-		AFile f = new AFile(s);
-		int i = 20;
+		AFile file = new AFile(fields);
+		int fieldIndex = 20;
 		// create/retrieve data objects
-		f.anime = (Anime) m_hm[DB.I_A].get(Integer.valueOf(f.aid));
-		if (f.anime == null) {
-			f.anime = new Anime(f.aid);
+		file.anime = (Anime) cacheMaps[DB.INDEX_ANIME].get(Integer.valueOf(file.aid));
+		if (file.anime == null) {
+			file.anime = new Anime(file.aid);
 		} else {
-			A.p.remove(f.anime);
+			A.p.remove(file.anime);
 		}
 
-		f.ep = (Ep) m_hm[DB.I_E].get(Integer.valueOf(f.eid));
-		if (f.ep == null) {
-			f.ep = new Ep(f.eid);
+		file.ep = (Ep) cacheMaps[DB.INDEX_EPISODE].get(Integer.valueOf(file.eid));
+		if (file.ep == null) {
+			file.ep = new Ep(file.eid);
 		}
 
-		f.group = (Group) m_hm[DB.I_G].get(Integer.valueOf(f.gid));
-		if (f.group == null) {
-			f.group = new Group(f.gid);
+		file.group = (Group) cacheMaps[DB.INDEX_GROUP].get(Integer.valueOf(file.gid));
+		if (file.group == null) {
+			file.group = new Group(file.gid);
 		}
 
 		// set group data
-		f.group.name = s[i++];
-		f.group.sname = s[i++];
+		file.group.name = fields[fieldIndex++];
+		file.group.sname = fields[fieldIndex++];
 		// set episode data
-		f.ep.num = s[i++];
-		f.ep.eng = s[i++];
-		f.ep.rom = U.n(s[i++]);
-		f.ep.kan = U.n(s[i++]);
+		file.ep.num = fields[fieldIndex++];
+		file.ep.eng = fields[fieldIndex++];
+		file.ep.rom = U.n(fields[fieldIndex++]);
+		file.ep.kan = U.n(fields[fieldIndex++]);
 		// set anime data
-		f.anime.eps = Integer.parseInt(s[i++]);
-		f.anime.lep = Integer.parseInt(s[i++]);
+		file.anime.eps = Integer.parseInt(fields[fieldIndex++]);
+		file.anime.lep = Integer.parseInt(fields[fieldIndex++]);
 
 		try {
-			f.anime.yea = Integer.parseInt(s[i++].substring(0, 4));
-		} catch (Exception e) {
-			f.anime.yea = 0;
+			file.anime.yea = Integer.parseInt(fields[fieldIndex++].substring(0, 4));
+		} catch (Exception ex) {
+			file.anime.yea = 0;
 		}
 		try {
-			f.anime.yen = Integer.parseInt(s[i - 1].substring(5, 9));
-		} catch (Exception e) {
-			f.anime.yen = f.anime.yea;
+			file.anime.yen = Integer.parseInt(fields[fieldIndex - 1].substring(5, 9));
+		} catch (Exception ex) {
+			file.anime.yen = file.anime.yea;
 		}
-		f.anime.typ = s[i++];
-		f.anime.rom = s[i++];
-		f.anime.kan = U.n(s[i++]);
-		f.anime.eng = U.n(s[i++]);
-		f.anime.cat = s[i++];
-		f.anime.init();
+		file.anime.typ = fields[fieldIndex++];
+		file.anime.rom = fields[fieldIndex++];
+		file.anime.kan = U.n(fields[fieldIndex++]);
+		file.anime.eng = U.n(fields[fieldIndex++]);
+		file.anime.cat = fields[fieldIndex++];
+		file.anime.init();
 		// wrap up
-		f.def = f.anime.rom + " - " + f.ep.num + " - " + f.ep.eng + " - [" + ((f.gid > 0) ? f.group.sname : "RAW")
-				+ "]";
-		f.pack();
+		file.def = file.anime.rom + " - " + file.ep.num + " - " + file.ep.eng + " - ["
+				+ ((file.gid > 0) ? file.group.sname : "RAW") + "]";
+		file.pack();
 
 		// update cache/db
-		add(f.anime, 2, DB.I_A);
-		add(f.ep, 2, DB.I_E);
-		add(f.group, 2, DB.I_G);
-		A.db.update(f.fid, f, DB.I_F);
+		add(file.anime, 2, DB.INDEX_ANIME);
+		add(file.ep, 2, DB.INDEX_EPISODE);
+		add(file.group, 2, DB.INDEX_GROUP);
+		A.db.update(file.fid, file, DB.INDEX_FILE);
 
 		// update data tree
-		j.m_fa = f;
-		treeAdd(j);
-		return f;
+		job.anidbFile = file;
+		treeAdd(job);
+		return file;
 	}
 
 	public String stats() {
-		return m_hm[0].size() + "," + m_hm[1].size() + "," + m_hm[2].size();
+		return cacheMaps[0].size() + "," + cacheMaps[1].size() + "," + cacheMaps[2].size();
 	}
 
 	public void rebuildTree() {
-		long t = System.currentTimeMillis();
+		long startTime = System.currentTimeMillis();
 		A.p.clear();
-		Job[] j = A.jobs.array();
-		for (int i = 0; i < j.length; i++) {
-			treeAdd(j[i]);
+		Job[] jobs = A.jobs.array();
+		for (int index = 0; index < jobs.length; index++) {
+			treeAdd(jobs[index]);
 		}
-		U.out("@ Rebuilt tree in " + (System.currentTimeMillis() - t) + " ms.");
+		U.out("@ Rebuilt tree in " + (System.currentTimeMillis() - startTime) + " ms.");
 	}
 
-	public void treeAdd(Job j) {
-		boolean m = j.checkOr(Job.H_MISSING | Job.H_DELETED);
-		if (j.incompl() || (hideE && !m) || (hideN && m) || (j.hide(A.preg))) {
+	public void treeAdd(Job job) {
+		boolean isMissingOrDeleted = job.checkOr(Job.H_MISSING | Job.H_DELETED);
+		if (job.incompl() || (hideExisting && !isMissingOrDeleted) || (hideNew && isMissingOrDeleted)
+				|| (job.hide(A.preg))) {
 			return;
 		}
-		AFile f = j.m_fa;
-		Anime a = f.anime;
-		if (A.p.has(a)) {
-			A.p.remove(a);
+		AFile file = job.anidbFile;
+		Anime anime = file.anime;
+		if (A.p.has(anime)) {
+			A.p.remove(anime);
 		}
-		switch (mImode) {
-			case I_MAF : {
-				a.add(f);
+		switch (treeSortMode) {
+			case MODE_ANIME_FILE : {
+				anime.add(file);
 			}
 				break;
-			case I_MAEF : {
-				if (a.has(f.ep)) {
-					a.remove(f.ep);
+			case MODE_ANIME_EPISODE_FILE : {
+				if (anime.has(file.ep)) {
+					anime.remove(file.ep);
 				}
-				if (f.ep.has(f)) {
-					f.ep.remove(f);
+				if (file.ep.has(file)) {
+					file.ep.remove(file);
 				}
-				f.ep.add(f);
-				a.add(f.ep);
+				file.ep.add(file);
+				anime.add(file.ep);
 			}
 				break;
-			case I_MAGF : {
-				if (f.gid < 1) {
-					f.group = Group.none;
+			case MODE_ANIME_GROUP_FILE : {
+				if (file.gid < 1) {
+					file.group = Group.none;
 				}
-				Base b = a.get(f.group.getKey());
-				if (b != null) {
-					a.remove(b);
+				Base groupNode = anime.get(file.group.getKey());
+				if (groupNode != null) {
+					anime.remove(groupNode);
 				} else {
-					b = new AG(a, f.group);
+					groupNode = new AG(anime, file.group);
 				}
-				if (b.has(f)) {
-					b.remove(f);
+				if (groupNode.has(file)) {
+					groupNode.remove(file);
 				}
-				b.add(f);
-				a.add(b);
+				groupNode.add(file);
+				anime.add(groupNode);
 			}
 				break;
-			case I_MAFF : {
-				String p = j.getFile().getParent();
-				Base b = a.get(p);
-				if (b != null) {
-					a.remove(b);
+			case MODE_ANIME_FOLDER_FILE : {
+				String parentPath = job.getFile().getParent();
+				Base folderNode = anime.get(parentPath);
+				if (folderNode != null) {
+					anime.remove(folderNode);
 				} else {
-					b = new Path(p);
+					folderNode = new Path(parentPath);
 				}
-				if (b.has(f)) {
-					b.remove(f);
+				if (folderNode.has(file)) {
+					folderNode.remove(file);
 				}
-				b.add(f);
-				a.add(b);
+				folderNode.add(file);
+				anime.add(folderNode);
 			}
 				break;
 		}
-		a.regEp(f.ep, true);
-		a.updatePct();
-		A.p.add(a);
+		anime.regEp(file.ep, true);
+		anime.updatePct();
+		A.p.add(anime);
 	}
 
-	public void treeRemove(Job j) {
-		if (j.incompl()) {
+	public void treeRemove(Job job) {
+		if (job.incompl()) {
 			return;
 		}
-		AFile f = j.m_fa;
-		Anime a = f.anime;
-		if (A.p.has(a)) {
-			A.p.remove(a);
+		AFile file = job.anidbFile;
+		Anime anime = file.anime;
+		if (A.p.has(anime)) {
+			A.p.remove(anime);
 		}
-		switch (mImode) {
-			case I_MAF : {
-				a.remove(f);
+		switch (treeSortMode) {
+			case MODE_ANIME_FILE : {
+				anime.remove(file);
 			}
 				break;
-			case I_MAEF : {
-				a.remove(f.ep);
-				f.ep.remove(f);
-				if (f.ep.size() > 0) {
-					a.add(f.ep);
+			case MODE_ANIME_EPISODE_FILE : {
+				anime.remove(file.ep);
+				file.ep.remove(file);
+				if (file.ep.size() > 0) {
+					anime.add(file.ep);
 				}
 			}
 				break;
-			case I_MAGF : {
-				if (f.gid < 1) {
-					f.group = Group.none;
+			case MODE_ANIME_GROUP_FILE : {
+				if (file.gid < 1) {
+					file.group = Group.none;
 				}
-				Base b = a.get(f.group.getKey());
-				if (b != null) {
-					a.remove(b);
-					b.remove(f);
-					if (b.size() > 0) {
-						a.add(b);
+				Base groupNode = anime.get(file.group.getKey());
+				if (groupNode != null) {
+					anime.remove(groupNode);
+					groupNode.remove(file);
+					if (groupNode.size() > 0) {
+						anime.add(groupNode);
 					}
 				}
 			}
 				break;
-			case I_MAFF : {
-				String p = j.getFile().getParent();
-				Base b = a.get(p);
-				if (b != null) {
-					a.remove(b);
-					b.remove(f);
-					if (b.size() > 0) {
-						a.add(b);
+			case MODE_ANIME_FOLDER_FILE : {
+				String parentPath = job.getFile().getParent();
+				Base folderNode = anime.get(parentPath);
+				if (folderNode != null) {
+					anime.remove(folderNode);
+					folderNode.remove(file);
+					if (folderNode.size() > 0) {
+						anime.add(folderNode);
 					}
 				}
 			}
 				break;
 		}
-		a.regEp(f.ep, f.ep.size() > 0);
-		a.updatePct();
-		if (a.size() > 0) {
-			A.p.add(a);
+		anime.regEp(file.ep, file.ep.size() > 0);
+		anime.updatePct();
+		if (anime.size() > 0) {
+			A.p.add(anime);
 		}
 	}
 
-	public static final int I_MAF = 0;
-	public static final int I_MAEF = 1;
-	public static final int I_MAGF = 2;
-	public static final int I_MAFF = 3;
-	public static final int I_MLEN = 4;
-	public static final String[] S_SM = {"Anime, File", "Anime, Episode, File", "Anime, Group, File",
+	/** Tree sort mode: Anime > File */
+	public static final int MODE_ANIME_FILE = 0;
+	/** Tree sort mode: Anime > Episode > File */
+	public static final int MODE_ANIME_EPISODE_FILE = 1;
+	/** Tree sort mode: Anime > Group > File */
+	public static final int MODE_ANIME_GROUP_FILE = 2;
+	/** Tree sort mode: Anime > Folder > File */
+	public static final int MODE_ANIME_FOLDER_FILE = 3;
+	/** Total number of tree sort modes */
+	public static final int MODE_COUNT = 4;
+	/** Display labels for each sort mode */
+	public static final String[] SORT_MODE_LABELS = {"Anime, File", "Anime, Episode, File", "Anime, Group, File",
 			"Anime, Folder, File"};
-	public static int mImode = I_MAEF;
-	public static boolean hideE = false;
-	public static boolean hideN = false;
+	/** Current tree sort mode */
+	public static int treeSortMode = MODE_ANIME_EPISODE_FILE;
+	/** Whether to hide existing (non-missing) files from tree */
+	public static boolean hideExisting = false;
+	/** Whether to hide new/missing files from tree */
+	public static boolean hideNew = false;
 }

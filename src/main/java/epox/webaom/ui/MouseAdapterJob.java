@@ -32,25 +32,25 @@ import java.awt.event.MouseEvent;
 import javax.swing.JTable;
 
 public class MouseAdapterJob extends MouseAdapter {
-	private final JTable jt;
-	private final JobList jl;
-	private final TableModelJobs jm;
+	private final JTable table;
+	private final JobList jobList;
+	private final TableModelJobs tableModel;
 
-	public MouseAdapterJob(JTable jt, TableModelJobs jm, JobList jl) {
-		this.jt = jt;
-		this.jm = jm;
-		this.jl = jl;
+	public MouseAdapterJob(JTable table, TableModelJobs tableModel, JobList jobList) {
+		this.table = table;
+		this.tableModel = tableModel;
+		this.jobList = jobList;
 	}
 
-	public void mouseClicked(MouseEvent e) {
-		if (e.getClickCount() == 2) {
-			int i = jm.convertRow(jt.getSelectedRow())[0];
-			if (i >= 0 && i < jl.size()) {
-				Job j = jl.get(i);
-				if ((e.getModifiers() & InputEvent.ALT_MASK) == InputEvent.ALT_MASK) {
-					JobMan.c_watch(j);
+	public void mouseClicked(MouseEvent event) {
+		if (event.getClickCount() == 2) {
+			int rowIndex = tableModel.convertRow(table.getSelectedRow())[0];
+			if (rowIndex >= 0 && rowIndex < jobList.size()) {
+				Job job = jobList.get(rowIndex);
+				if ((event.getModifiers() & InputEvent.ALT_MASK) == InputEvent.ALT_MASK) {
+					JobMan.openInDefaultPlayer(job);
 				} else {
-					JobMan.showInfo(j);
+					JobMan.showInfo(job);
 				}
 			}
 		}

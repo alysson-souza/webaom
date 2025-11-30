@@ -36,144 +36,95 @@ import java.awt.event.MouseListener;
 import java.util.ArrayList;
 
 public class JTreeTableR extends JTreeTable implements RowModel, MouseListener {
-	public JTreeTableR(TreeTableModel ttm) {
-		super(ttm);
+	public JTreeTableR(TreeTableModel treeTableModel) {
+		super(treeTableModel);
 		addMouseListener(this);
 	}
 
 	public void updateUI() {
-		long t0 = System.currentTimeMillis();
+		long elapsedTime = System.currentTimeMillis();
 		super.updateUI();
-		t0 = System.currentTimeMillis() - t0;
-		System.out.println("@ Alt.updateUI() in " + t0 + " ms. (" + A.cache.stats() + ")");
+		elapsedTime = System.currentTimeMillis() - elapsedTime;
+		System.out.println("@ Alt.updateUI() in " + elapsedTime + " ms. (" + A.cache.stats() + ")");
 	}
 
-	/*
-	 * public void paint(Graphics g){
-	 * long t0 = System.currentTimeMillis();
-	 * super.paint(g);
-	 * t0 = System.currentTimeMillis()-t0;
-	 * System.out.println("@ Alt.paint() in "+t0+" ms. ("+A.cache.stats()+")");
-	 * }
-	 */
-	/*
-	 * public int[] convertRow(int row){
-	 * Object o = tree.getPathForRow(row).getLastPathComponent();
-	 * if(o instanceof AFile){
-	 * AFile f = (AFile)o;
-	 * if(f.getJob()!=null){
-	 * return new int[]{f.getJob().mIid};
-	 * }
-	 * }else{
-	 * ArrayList<Job> al = new ArrayList<Job>();
-	 * rec(al, (Base)o);
-	 * int[] a = new int[al.size()];
-	 * for(int i=0;i<a.length;i++)
-	 * a[i] = al.get(i).mIid;
-	 * Arrays.sort(a);
-	 * return a;
-	 * }
-	 * return null;
-	 * }
-	 */
 	public Job[] getJobs(int row) {
-		Object o = tree.getPathForRow(row).getLastPathComponent();
-		if (o instanceof AFile f) {
-			if (f.getJob() != null) {
-				return new Job[]{f.getJob()}; // new int[]{f.getJob().mIid};
+		Object treeNode = tree.getPathForRow(row).getLastPathComponent();
+		if (treeNode instanceof AFile file) {
+			if (file.getJob() != null) {
+				return new Job[]{file.getJob()};
 			}
 		} else {
-			ArrayList /* !<Job> */ al = new ArrayList /* !<Job> */();
-			rec(al, (Base) o);
-			/*
-			 * int[] a = new int[al.size()];
-			 * for(int i=0;i<a.length;i++)
-			 * a[i] = al.get(i).mIid;
-			 * Arrays.sort(a);
-			 * return a;
-			 */
-			Job[] j = (Job[]) al.toArray(new Job[0]);
-			return j;
+			ArrayList<Job> jobsList = new ArrayList<>();
+			collectJobsRecursively(jobsList, (Base) treeNode);
+			Job[] jobs = jobsList.toArray(new Job[0]);
+			return jobs;
 		}
 		return null;
 	}
 
-	private void rec(ArrayList /* !<Job> */ al, Base p) {
-		if (p.size() < 1) {
-			if (p instanceof AFile) {
-				al.add(((AFile) p).getJob());
+	private void collectJobsRecursively(ArrayList<Job> jobsList, Base parent) {
+		if (parent.size() < 1) {
+			if (parent instanceof AFile) {
+				jobsList.add(((AFile) parent).getJob());
 			}
 			return;
 		}
-		p.mkArray();
-		for (int i = 0; i < p.size(); i++) {
-			rec(al, p.get(i));
+		parent.mkArray();
+		for (int index = 0; index < parent.size(); index++) {
+			collectJobsRecursively(jobsList, parent.get(index));
 		}
 	}
 
-	/*
-	 * public void updateRow(Job j){
-	 * if(!Thread.holdsLock(A.p)){
-	 * synchronized (A.p) {
-	 * try{
-	 * Thread.sleep(100);
-	 * }catch(InterruptedException e){
-	 * //
-	 * }
-	 * updateUI();
-	 * }
-	 * }
-	 * }
-	 */
-	public void mouseClicked(MouseEvent e) {
-		if (e.getClickCount() == 2) {
-			Object o = tree.getPathForRow(getSelectedRow()).getLastPathComponent();
-			if (o instanceof AFile f) {
-				if (f.getJob() != null) {
-					if ((e.getModifiers() & InputEvent.ALT_MASK) == InputEvent.ALT_MASK) {
-						JobMan.c_watch(f.getJob());
+	public void mouseClicked(MouseEvent event) {
+		if (event.getClickCount() == 2) {
+			Object treeNode = tree.getPathForRow(getSelectedRow()).getLastPathComponent();
+			if (treeNode instanceof AFile file) {
+				if (file.getJob() != null) {
+					if ((event.getModifiers() & InputEvent.ALT_MASK) == InputEvent.ALT_MASK) {
+						JobMan.openInDefaultPlayer(file.getJob());
 					} else {
-						JobMan.showInfo(f.getJob());
+						JobMan.showInfo(file.getJob());
 					}
 				}
 			}
 		}
 	}
 
-	public void mousePressed(MouseEvent e) {
-		// TODO Auto-generated method stub
+	public void mousePressed(MouseEvent event) {
+		// No action required
 	}
 
-	public void mouseReleased(MouseEvent e) {
-		// TODO Auto-generated method stub
+	public void mouseReleased(MouseEvent event) {
+		// No action required
 	}
 
-	public void mouseEntered(MouseEvent e) {
-		// TODO Auto-generated method stub
+	public void mouseEntered(MouseEvent event) {
+		// No action required
 	}
 
-	public void mouseExited(MouseEvent e) {
-		// TODO Auto-generated method stub
+	public void mouseExited(MouseEvent event) {
+		// No action required
 	}
 
-	private void calcRowHeight(Graphics g) {
-		Font f = getFont();
-		FontMetrics fm = g.getFontMetrics(f);
-		setRowHeight(fm.getHeight() + 3);
+	private void calculateRowHeight(Graphics graphics) {
+		Font font = getFont();
+		FontMetrics fontMetrics = graphics.getFontMetrics(font);
+		setRowHeight(fontMetrics.getHeight() + 3);
 	}
 
-	private boolean needCalcRowHeight = true;
+	private boolean needsRowHeightCalculation = true;
 
-	public void paint(Graphics g) {
-		if (needCalcRowHeight) {
-			calcRowHeight(g);
-			needCalcRowHeight = false;
+	public void paint(Graphics graphics) {
+		if (needsRowHeightCalculation) {
+			calculateRowHeight(graphics);
+			needsRowHeightCalculation = false;
 		}
-		super.paint(g);
+		super.paint(graphics);
 	}
 
-	public void setFont(Font f) {
-		needCalcRowHeight = true;
-		super.setFont(f);
+	public void setFont(Font font) {
+		needsRowHeightCalculation = true;
+		super.setFont(font);
 	}
 }

@@ -26,98 +26,90 @@ import epox.webaom.Job;
 import epox.webaom.data.Mylist;
 
 public class AConE extends ACon {
-	private static final String facode = "&fcode=123682590&acode=75435779";
+	/** Query parameters for file and anime data fields bitmasks */
+	private static final String FILE_AND_ANIME_CODES = "&fcode=123682590&acode=75435779";
 
-	public AConE(Log l, AConS s) {
-		super(l, s);
+	public AConE(Log log, AConS settings) {
+		super(log, settings);
 	}
 
-	public String[] retrieveFileData(long len, String ed2k, String name) throws AConEx {
-		return retrieveFileData(send("FILE", "size=" + len + "&ed2k=" + ed2k + facode, true),
-				"ed2k://|file|" + name + "|" + len + "|" + ed2k + "|");
+	public String[] retrieveFileData(long fileSize, String ed2kHash, String fileName) throws AConEx {
+		String query = "size=" + fileSize + "&ed2k=" + ed2kHash + FILE_AND_ANIME_CODES;
+		String ed2kLink = "ed2k://|file|" + fileName + "|" + fileSize + "|" + ed2kHash + "|";
+		return retrieveFileData(send("FILE", query, true), ed2kLink);
 	}
 
-	public String[] retrieveFileData(int fid, String name) throws AConEx {
-		return retrieveFileData(send("FILE", "fid=" + fid + facode, true), name);
+	public String[] retrieveFileData(int fileId, String fileName) throws AConEx {
+		return retrieveFileData(send("FILE", "fid=" + fileId + FILE_AND_ANIME_CODES, true), fileName);
 	}
 
-	private String[] retrieveFileData(AConR r, String name) {
-		switch (r.code) {
+	private String[] retrieveFileData(AConR response, String fileName) {
+		switch (response.code) {
 			case AConR.FILE :
-				return U.split(r.data, '|');
+				return U.split(response.data, '|');
 			case AConR.NO_SUCH_FILE :
-				error("No such file in AniDB: " + name);
+				error("No such file in AniDB: " + fileName);
 				break;
 			case AConR.INTERNAL_SERVER_ERROR :
-				error("Internal server error on " + name + ". (Illegal char in epname?)");
+				error("Internal server error on " + fileName + ". (Illegal char in epname?)");
 				break;
 			default :
-				error("Unexpected response (" + r.code + "): " + r.message);
+				error("Unexpected response (" + response.code + "): " + response.message);
 		}
 		return null;
 	}
 
-	public static String validate(String str) {
-		str = U.replace(str, "&", "&amp;");
-		str = U.replace(str, "\r", "");
-		str = U.replace(str, "\n", "<br />");
-		return str;
+	/** Escapes special characters for XML/HTML encoding and converts newlines to BR tags. */
+	public static String escapeForXml(String input) {
+		String escaped = U.replace(input, "&", "&amp;");
+		escaped = U.replace(escaped, "\r", "");
+		escaped = U.replace(escaped, "\n", "<br />");
+		return escaped;
 	}
 
-	public int addFileToMylist(Job j, Mylist m) throws AConEx {
-		String sb = "fid=" + j.m_fa.fid + "&state=" + m.stt + "&viewed=" + m.vie + "&source=" + validate(m.sou)
-				+ "&storage=" + validate(m.sto) + "&other=" + validate(m.oth) + "&edit=0";
+	public int addFileToMylist(Job job, Mylist mylistEntry) throws AConEx {
+		String escapedSource = escapeForXml(mylistEntry.sou);
+		String escapedStorage = escapeForXml(mylistEntry.sto);
+		String escapedOther = escapeForXml(mylistEntry.oth);
+		StringBuilder params = new StringBuilder();
+		params.append("fid=").append(job.anidbFile.fid);
+		params.append("&state=").append(mylistEntry.stt);
+		params.append("&viewed=").append(mylistEntry.vie);
+		params.append("&source=").append(escapedSource);
+		params.append("&storage=").append(escapedStorage);
+		params.append("&other=").append(escapedOther);
+		params.append("&edit=0");
 
-		AConR r = send("MYLISTADD", sb, true);
-		if (r == null) {
+		AConR response = send("MYLISTADD", params.toString(), true);
+		if (response == null) {
 			return 0;
 		}
-		switch (r.code) {
+		switch (response.code) {
 			case AConR.MYLIST_ENTRY_ADDED :
-				return Integer.parseInt(r.data);
+				return Integer.parseInt(response.data);
 			case AConR.FILE_ALREADY_IN_MYLIST :
-				error(j.m_fa.def + " is already in mylist.");
-				return Integer.parseInt(r.data);
+				error(job.anidbFile.def + " is already in mylist.");
+				return Integer.parseInt(response.data);
 			case AConR.NO_SUCH_MYLIST_FILE :
-				error(j.m_fa.def + " was not found in AniDB.");
+				error(job.anidbFile.def + " was not found in AniDB.");
 			case AConR.MYLIST_ENTRY_EDITED :
 			case AConR.NO_SUCH_MYLIST_ENTRY :
 			default :
-				error("Unexpected response (" + r.code + "): " + r.message);
+				error("Unexpected response (" + response.code + "): " + response.message);
 		}
 		return 0;
 	}
 
-	public boolean removeFromMylist(int lid, String name) throws AConEx {
-		AConR r = send("MYLISTDEL", "lid=" + lid, true);
-		switch (r.code) {
+	public boolean removeFromMylist(int listEntryId, String fileName) throws AConEx {
+		AConR response = send("MYLISTDEL", "lid=" + listEntryId, true);
+		switch (response.code) {
 			case AConR.MYLIST_ENTRY_DELETED :
 				return true;
 			case AConR.NO_SUCH_MYLIST_ENTRY :
 				return false;
 			default :
-				error(r.message + " (" + name + ")");
+				error(response.message + " (" + fileName + ")");
 		}
 		return false;
 	}
-	/*
-	 * public Anime getAnime(int aid) throws AConEx{
-	 * AConR r = send("ANIME", "aid="+aid, true);
-	 * if(r!=null && r.code==AConR.ANIME)
-	 * return Parser.parseAnime(U.split(r.data,'|'));
-	 * return null;
-	 * }
-	 * public Group getGroup(int gid) throws AConEx{
-	 * AConR r = send("GROUP", "gid="+gid, true);
-	 * if(r!=null && r.code==AConR.GROUP)
-	 * return Parser.parseGroup(U.split(r.data,'|'));
-	 * return null;
-	 * }
-	 * public Ep getEpisode(int eid) throws AConEx{
-	 * AConR r = send("EPISODE", "eid="+eid, true);
-	 * if(r!=null && r.code==AConR.EPISODE)
-	 * return Parser.parseEpisode(U.split(r.data,'|'));
-	 * return null;
-	 * }
-	 */
 }

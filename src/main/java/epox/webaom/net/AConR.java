@@ -23,69 +23,77 @@ package epox.webaom.net;
 import epox.util.U;
 import java.net.SocketTimeoutException;
 
+/**
+ * AniDB Connection Response - represents a parsed response from the AniDB UDP API.
+ *
+ * <p>
+ * Parses raw server responses into structured data containing the response code, message, and
+ * optional data payload. Handles tag validation, error code detection, and throws appropriate
+ * exceptions for error conditions (bans, auth failures, etc.).
+ */
 public class AConR {
 	public int code = -1;
 	public String message = null;
 	public String data = null;
 	public String tag;
 
-	public AConR(String sTag, int tag_len, String raw) throws AConEx, TagEx, SocketTimeoutException {
-		if (sTag != null && !raw.isEmpty() && raw.charAt(0) == 't') {
-			tag = raw.substring(0, tag_len + 1);
-			if (!tag.equals(sTag)) {
+	public AConR(String expectedTag, int tagLength, String rawResponse) throws AConEx, TagEx, SocketTimeoutException {
+		if (expectedTag != null && !rawResponse.isEmpty() && rawResponse.charAt(0) == 't') {
+			tag = rawResponse.substring(0, tagLength + 1);
+			if (!tag.equals(expectedTag)) {
 				throw new TagEx();
 			}
-			raw = raw.substring(tag_len + 2);
+			rawResponse = rawResponse.substring(tagLength + 2);
 		}
 		try {
-			code = Integer.parseInt(raw.substring(0, 3));
+			code = Integer.parseInt(rawResponse.substring(0, 3));
 		} catch (NumberFormatException e) {
 			throw new AConEx(AConEx.ANIDB_SERVER_ERROR, "Unexpected response");
 		}
 
 		if ((code > 600 && code < 700) && code != 602) {
-			throw new AConEx(AConEx.ANIDB_SERVER_ERROR, raw);
+			throw new AConEx(AConEx.ANIDB_SERVER_ERROR, rawResponse);
 		}
 
-		int i;
+		int separatorIndex;
 		switch (code) {
 			case BANNED :
-				i = raw.indexOf('\n');
-				String why = "Unknown";
-				if (i > 0) {
-					why = raw.substring(i + 1);
+				separatorIndex = rawResponse.indexOf('\n');
+				String banReason = "Unknown";
+				if (separatorIndex > 0) {
+					banReason = rawResponse.substring(separatorIndex + 1);
 				}
-				throw new AConEx(AConEx.CLIENT_USER, "Banned: " + why);
+				throw new AConEx(AConEx.CLIENT_USER, "Banned: " + banReason);
 			case LOGIN_ACCEPTED :
 			case LOGIN_ACCEPTED_NEW_VER :
-				i = raw.indexOf("LOGIN ACCEPTED");
-				data = raw.substring(4, i - 1);
-				message = raw.substring(i);
+				separatorIndex = rawResponse.indexOf("LOGIN ACCEPTED");
+				data = rawResponse.substring(4, separatorIndex - 1);
+				message = rawResponse.substring(separatorIndex);
 				break;
 			case ENCRYPTION_ENABLED :
-				i = raw.indexOf("ENCRYPTION ENABLED");
-				data = raw.substring(4, i - 1);
-				message = raw.substring(i);
+				separatorIndex = rawResponse.indexOf("ENCRYPTION ENABLED");
+				data = rawResponse.substring(4, separatorIndex - 1);
+				message = rawResponse.substring(separatorIndex);
 				break;
 			case ACCESS_DENIED :
 				throw new AConEx(AConEx.CLIENT_USER);
 			case SERVER_BUSY :
 				throw new SocketTimeoutException();
 			case CLIENT_BANNED :
-				message = raw.substring(4, 17);
-				// data = raw.substring(18);
+				message = rawResponse.substring(4, 17);
+				// data = rawResponse.substring(18);
 				throw new AConEx(AConEx.CLIENT_BANNED);
 			case CLIENT_VERSION_OUTDATED :
 				throw new AConEx(AConEx.CLIENT_OUTDATED);
 			case ILLEGAL_INPUT_OR_ACCESS_DENIED :
 				throw new AConEx(AConEx.CLIENT_BUG, "Illegal Input or Access Denied");
 			default :
-				i = raw.indexOf('\n');
-				if (i > 0) {
-					message = raw.substring(4, i);
-					data = raw.substring(i + 1);
+				separatorIndex = rawResponse.indexOf('\n');
+				if (separatorIndex > 0) {
+					message = rawResponse.substring(4, separatorIndex);
+					data = rawResponse.substring(separatorIndex + 1);
 				} else {
-					message = raw.substring(4);
+					message = rawResponse.substring(4);
 				}
 		}
 		data = U.htmldesc(data);

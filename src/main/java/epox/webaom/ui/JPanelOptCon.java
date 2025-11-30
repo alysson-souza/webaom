@@ -40,141 +40,141 @@ import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 
 public class JPanelOptCon extends JPanel implements ChangeListener {
-	private final int MIN_IPD = 3;
-	private final int MIN_PTO = 10;
-	private final JSlider jsTime;
-	private final JSlider jsDelay;
-	private final JCheckBox jcbNat;
-	public JButton jbPing;
-	public JTextField tfHost;
-	public JTextField tfRPort;
-	public JTextField tfLPort;
+	private static final int MIN_INTER_PACKET_DELAY = 3;
+	private static final int MIN_PACKET_TIMEOUT = 10;
+	private final JSlider timeoutSlider;
+	private final JSlider delaySlider;
+	private final JCheckBox natKeepAliveCheckbox;
+	public JButton pingButton;
+	public JTextField hostTextField;
+	public JTextField remotePortTextField;
+	public JTextField localPortTextField;
 
 	public JPanelOptCon() {
 		super(new GridBagLayout());
 
-		jsTime = new JSlider(MIN_PTO, 60, 20);
-		jsTime.setMajorTickSpacing(10);
-		jsTime.setPaintLabels(true);
-		jsTime.addChangeListener(this);
+		timeoutSlider = new JSlider(MIN_PACKET_TIMEOUT, 60, 20);
+		timeoutSlider.setMajorTickSpacing(10);
+		timeoutSlider.setPaintLabels(true);
+		timeoutSlider.addChangeListener(this);
 
-		jsDelay = new JSlider(MIN_IPD, 10, 4);
-		jsDelay.setMajorTickSpacing(1);
-		jsDelay.setPaintLabels(true);
-		jsDelay.setSnapToTicks(true);
-		jsDelay.setToolTipText("Delay between each datagram sent to server.");
+		delaySlider = new JSlider(MIN_INTER_PACKET_DELAY, 10, 4);
+		delaySlider.setMajorTickSpacing(1);
+		delaySlider.setPaintLabels(true);
+		delaySlider.setSnapToTicks(true);
+		delaySlider.setToolTipText("Delay between each datagram sent to server.");
 
-		jbPing = new JButton("Ping AniDB");
+		pingButton = new JButton("Ping AniDB");
 
-		tfHost = new JTextField(ACon.DEF_HOST);
-		tfRPort = new JTextField("" + ACon.DEF_RPORT);
-		tfLPort = new JTextField("" + ACon.DEF_LPORT);
+		hostTextField = new JTextField(ACon.DEFAULT_HOST);
+		remotePortTextField = new JTextField("" + ACon.DEFAULT_REMOTE_PORT);
+		localPortTextField = new JTextField("" + ACon.DEFAULT_LOCAL_PORT);
 
-		KeyAdapter on = new KeyAdapter() {
+		KeyAdapter numericOnlyAdapter = new KeyAdapter() {
 			public void keyTyped(KeyEvent e) {
 				if (!Character.isDigit(e.getKeyChar())) {
 					e.consume();
 				}
 			}
 		};
-		tfRPort.addKeyListener(on);
-		tfLPort.addKeyListener(on);
+		remotePortTextField.addKeyListener(numericOnlyAdapter);
+		localPortTextField.addKeyListener(numericOnlyAdapter);
 
-		jcbNat = new JCheckBox("Keep-Alive");
+		natKeepAliveCheckbox = new JCheckBox("Keep-Alive");
 
-		GridBagConstraints cs = new GridBagConstraints();
-		cs.insets = new Insets(2, 4, 2, 4);
-		cs.anchor = GridBagConstraints.CENTER;
-		cs.fill = GridBagConstraints.HORIZONTAL;
-		cs.weighty = 0.1;
+		GridBagConstraints constraints = new GridBagConstraints();
+		constraints.insets = new Insets(2, 4, 2, 4);
+		constraints.anchor = GridBagConstraints.CENTER;
+		constraints.fill = GridBagConstraints.HORIZONTAL;
+		constraints.weighty = 0.1;
 
-		add("AniDB Host", tfHost, cs);
-		add("Remote Port", tfRPort, cs);
+		add("AniDB Host", hostTextField, constraints);
+		add("Remote Port", remotePortTextField, constraints);
 
-		cs.weightx = 0.0;
-		cs.gridwidth = 1;
-		add(new JLabel("Local Port"), cs);
-		cs.weightx = 1.0;
-		add(tfLPort, cs);
-		cs.weightx = 0.0;
-		cs.gridwidth = GridBagConstraints.REMAINDER;
-		add(jcbNat, cs);
+		constraints.weightx = 0.0;
+		constraints.gridwidth = 1;
+		add(new JLabel("Local Port"), constraints);
+		constraints.weightx = 1.0;
+		add(localPortTextField, constraints);
+		constraints.weightx = 0.0;
+		constraints.gridwidth = GridBagConstraints.REMAINDER;
+		add(natKeepAliveCheckbox, constraints);
 
-		add("Delay (sec)", jsDelay, cs);
-		add("Timeout (sec)", jsTime, cs);
+		add("Delay (sec)", delaySlider, constraints);
+		add("Timeout (sec)", timeoutSlider, constraints);
 
-		cs.weighty = 0.9;
-		add(new JLabel(""), cs);
+		constraints.weighty = 0.9;
+		add(new JLabel(""), constraints);
 
-		cs.fill = GridBagConstraints.NONE;
-		cs.weighty = 0.1;
-		add(jbPing, cs);
+		constraints.fill = GridBagConstraints.NONE;
+		constraints.weighty = 0.1;
+		add(pingButton, constraints);
 	}
 
-	private void add(String l, Component c, GridBagConstraints cs) {
-		cs.weightx = 0.0;
-		cs.gridwidth = 1;
-		add(new JLabel(l), cs);
-		cs.weightx = 1.0;
-		cs.gridwidth = GridBagConstraints.REMAINDER;
-		add(c, cs);
+	private void add(String label, Component component, GridBagConstraints constraints) {
+		constraints.weightx = 0.0;
+		constraints.gridwidth = 1;
+		add(new JLabel(label), constraints);
+		constraints.weightx = 1.0;
+		constraints.gridwidth = GridBagConstraints.REMAINDER;
+		add(component, constraints);
 	}
 
-	public void stateChanged(ChangeEvent ce) {
-		jsTime.setToolTipText(jsTime.getValue() + " sec");
+	public void stateChanged(ChangeEvent event) {
+		timeoutSlider.setToolTipText(timeoutSlider.getValue() + " sec");
 	}
 
-	public int getT() {
-		return jsTime.getValue();
+	public int getTimeout() {
+		return timeoutSlider.getValue();
 	}
 
-	public int getD() {
-		return jsDelay.getValue() * 1000;
+	public int getDelayMillis() {
+		return delaySlider.getValue() * 1000;
 	}
 
-	public boolean getN() {
-		return jcbNat.isSelected();
+	public boolean isNatKeepAliveEnabled() {
+		return natKeepAliveCheckbox.isSelected();
 	}
 
-	public void setEnabled(boolean en) {
-		tfHost.setEnabled(en);
-		tfLPort.setEnabled(en);
-		tfRPort.setEnabled(en);
-		jbPing.setEnabled(en);
-		jsTime.setEnabled(en);
-		jsDelay.setEnabled(en);
+	public void setEnabled(boolean enabled) {
+		hostTextField.setEnabled(enabled);
+		localPortTextField.setEnabled(enabled);
+		remotePortTextField.setEnabled(enabled);
+		pingButton.setEnabled(enabled);
+		timeoutSlider.setEnabled(enabled);
+		delaySlider.setEnabled(enabled);
 	}
 
-	public void opts(Options o) {
-		o.setS(Options.S_HOSTURL, tfHost.getText());
-		o.setI(Options.I_RPORT, Integer.parseInt(tfRPort.getText()));
-		o.setI(Options.I_LPORT, Integer.parseInt(tfLPort.getText()));
-		o.setI(Options.I_TIMEO, jsTime.getValue());
-		o.setI(Options.I_DELAY, jsDelay.getValue());
-		o.setB(Options.B_NATKEEP, jcbNat.isSelected());
+	public void saveOptions(Options options) {
+		options.setString(Options.STR_HOST_URL, hostTextField.getText());
+		options.setInteger(Options.INT_REMOTE_PORT, Integer.parseInt(remotePortTextField.getText()));
+		options.setInteger(Options.INT_LOCAL_PORT, Integer.parseInt(localPortTextField.getText()));
+		options.setInteger(Options.INT_TIMEOUT, timeoutSlider.getValue());
+		options.setInteger(Options.INT_DATAGRAM_DELAY, delaySlider.getValue());
+		options.setBoolean(Options.BOOL_NAT_KEEP_ALIVE, natKeepAliveCheckbox.isSelected());
 	}
 
-	public void optl(Options o) {
-		tfRPort.setText("" + o.getI(Options.I_RPORT));
-		tfLPort.setText("" + o.getI(Options.I_LPORT));
-		tfHost.setText(o.getS(Options.S_HOSTURL));
+	public void loadOptions(Options options) {
+		remotePortTextField.setText("" + options.getInteger(Options.INT_REMOTE_PORT));
+		localPortTextField.setText("" + options.getInteger(Options.INT_LOCAL_PORT));
+		hostTextField.setText(options.getString(Options.STR_HOST_URL));
 
-		int i = o.getI(Options.I_TIMEO);
-		if (i < MIN_PTO) {
-			i = MIN_PTO;
-		} else if (i > 60) {
-			i = 60;
+		int timeout = options.getInteger(Options.INT_TIMEOUT);
+		if (timeout < MIN_PACKET_TIMEOUT) {
+			timeout = MIN_PACKET_TIMEOUT;
+		} else if (timeout > 60) {
+			timeout = 60;
 		}
-		jsTime.setValue(i);
+		timeoutSlider.setValue(timeout);
 
-		i = o.getI(Options.I_DELAY);
-		if (i < MIN_IPD) {
-			i = MIN_IPD;
-		} else if (i > 10) {
-			i = 10;
+		int delay = options.getInteger(Options.INT_DATAGRAM_DELAY);
+		if (delay < MIN_INTER_PACKET_DELAY) {
+			delay = MIN_INTER_PACKET_DELAY;
+		} else if (delay > 10) {
+			delay = 10;
 		}
-		jsDelay.setValue(i);
+		delaySlider.setValue(delay);
 
-		jcbNat.setSelected(o.getB(Options.B_NATKEEP));
+		natKeepAliveCheckbox.setSelected(options.getBoolean(Options.BOOL_NAT_KEEP_ALIVE));
 	}
 }

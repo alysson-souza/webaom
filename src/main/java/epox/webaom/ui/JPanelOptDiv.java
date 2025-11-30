@@ -39,196 +39,194 @@ import javax.swing.JPanel;
 import javax.swing.JTextField;
 
 public class JPanelOptDiv extends JPanel {
-	public static final int H_EDK = 0;
-	public static final int H_CRC = 1;
-	public static final int H_MD5 = 2;
-	public static final int H_SHA = 3;
-	public static final int H_TTH = 4;
-	public JCheckBox[] cbHsh = new JCheckBox[5];
+	public static final int HASH_ED2K = 0;
+	public static final int HASH_CRC32 = 1;
+	public static final int HASH_MD5 = 2;
+	public static final int HASH_SHA1 = 3;
+	public static final int HASH_TTH = 4;
+	public JCheckBox[] hashCheckBoxes = new JCheckBox[5];
 
-	private static String getHashName(int code) {
-		switch (code) {
-			case H_EDK :
+	private static String getHashName(int hashTypeCode) {
+		switch (hashTypeCode) {
+			case HASH_ED2K :
 				return "ed2k";
-			case H_CRC :
+			case HASH_CRC32 :
 				return "crc32";
-			case H_MD5 :
+			case HASH_MD5 :
 				return "md5";
-			case H_SHA :
+			case HASH_SHA1 :
 				return "sha1";
-			case H_TTH :
+			case HASH_TTH :
 				return "tth";
 			default :
 				return "NOT HASH";
 		}
 	}
 
-	public JTextField tfNewExt;
-	public JTextField tfHDirs;
-	public JTextField tfBrows;
-	public JTextField tfMyDBs;
-	public JTextField tfLogfl;
-	// private JComboBox jcbModes;
-	private final JCheckBox jcbPpsw;
-	private final JCheckBox jcbAdbc;
-	private final JCheckBox jcbAlog;
-	private final JCheckBox jcbAsav;
+	public JTextField newExtensionField;
+	public JTextField hashDirectoriesField;
+	public JTextField browserPathField;
+	public JTextField databaseUrlField;
+	public JTextField logFilePathField;
+	private final JCheckBox storePasswordCheckBox;
+	private final JCheckBox autoLoadDatabaseCheckBox;
+	private final JCheckBox autoLogCheckBox;
+	private final JCheckBox autoSaveCheckBox;
 
 	public JPanelOptDiv() {
 		super(new GridBagLayout());
 
-		tfHDirs = new JTextField();
-		tfBrows = new JTextField();
-		tfMyDBs = new JTextField();
-		tfLogfl = new JTextField();
+		hashDirectoriesField = new JTextField();
+		browserPathField = new JTextField();
+		databaseUrlField = new JTextField();
+		logFilePathField = new JTextField();
 
-		tfHDirs.setToolTipText("Check these directories for new files every now and then");
-		tfBrows.setToolTipText("Absolute path to preferred browser");
-		tfMyDBs.setToolTipText("JDBC url (e.g. jdbc:postgresql://localhost:5432/webaom?user=root&password=pass)."
-				+ " If empty, H2 embedded database will be used. Press enter to connect.");
-		tfLogfl.setToolTipText("Absolute path to log file, press enter to enable");
+		hashDirectoriesField.setToolTipText("Check these directories for new files every now and then");
+		browserPathField.setToolTipText("Absolute path to preferred browser");
+		databaseUrlField
+				.setToolTipText("JDBC url (e.g. jdbc:postgresql://localhost:5432/webaom?user=root&password=pass)."
+						+ " If empty, H2 embedded database will be used. Press enter to connect.");
+		logFilePathField.setToolTipText("Absolute path to log file, press enter to enable");
 
-		jcbAdbc = new JCheckBox("Auto db");
-		jcbAdbc.setToolTipText("Load db on startup");
-		jcbAlog = new JCheckBox("Auto log");
-		jcbAlog.setToolTipText("Start logging to disk on startup");
-		jcbAsav = new JCheckBox("Auto save");
-		jcbAsav.setToolTipText("Save options on exit without asking");
-		jcbPpsw = new JCheckBox("Store password");
-		jcbPpsw.setToolTipText("Do you want to store your password on disk? (not cleartext)");
+		autoLoadDatabaseCheckBox = new JCheckBox("Auto db");
+		autoLoadDatabaseCheckBox.setToolTipText("Load db on startup");
+		autoLogCheckBox = new JCheckBox("Auto log");
+		autoLogCheckBox.setToolTipText("Start logging to disk on startup");
+		autoSaveCheckBox = new JCheckBox("Auto save");
+		autoSaveCheckBox.setToolTipText("Save options on exit without asking");
+		storePasswordCheckBox = new JCheckBox("Store password");
+		storePasswordCheckBox.setToolTipText("Do you want to store your password on disk? (not cleartext)");
 
-		GridBagConstraints cs = new GridBagConstraints();
-		cs.insets = new Insets(2, 4, 2, 4);
-		cs.anchor = GridBagConstraints.CENTER;
-		cs.fill = GridBagConstraints.HORIZONTAL;
-		cs.weighty = 0.1;
+		GridBagConstraints constraints = new GridBagConstraints();
+		constraints.insets = new Insets(2, 4, 2, 4);
+		constraints.anchor = GridBagConstraints.CENTER;
+		constraints.fill = GridBagConstraints.HORIZONTAL;
+		constraints.weighty = 0.1;
 
-		add("Hash Dirs", tfHDirs, cs);
-		add("Browser Path", tfBrows, cs);
-		add("My Database", tfMyDBs, cs);
-		add("Log File", tfLogfl, cs);
-		add("LookAndFeel", new JComboBoxLF(A.component), cs);
+		addLabeledComponent("Hash Dirs", hashDirectoriesField, constraints);
+		addLabeledComponent("Browser Path", browserPathField, constraints);
+		addLabeledComponent("My Database", databaseUrlField, constraints);
+		addLabeledComponent("Log File", logFilePathField, constraints);
+		addLabeledComponent("LookAndFeel", new JComboBoxLF(A.component), constraints);
 
-		cs.gridwidth = 1;
+		constraints.gridwidth = 1;
 
-		JPanel pHash = new JPanel(new GridBagLayout());
-		for (int i = 0; i < cbHsh.length; i++) {
-			cbHsh[i] = new JCheckBox(getHashName(i), false);
-			pHash.add(cbHsh[i], cs);
+		JPanel hashOptionsPanel = new JPanel(new GridBagLayout());
+		for (int i = 0; i < hashCheckBoxes.length; i++) {
+			hashCheckBoxes[i] = new JCheckBox(getHashName(i), false);
+			hashOptionsPanel.add(hashCheckBoxes[i], constraints);
 		}
-		cbHsh[H_EDK].setSelected(true);
-		cbHsh[H_EDK].setEnabled(false);
+		hashCheckBoxes[HASH_ED2K].setSelected(true);
+		hashCheckBoxes[HASH_ED2K].setEnabled(false);
 
-		JPanel pBool = new JPanel(new GridBagLayout());
-		pBool.add(jcbAdbc, cs);
-		pBool.add(jcbAlog, cs);
-		pBool.add(jcbAsav, cs);
-		pBool.add(jcbPpsw, cs);
+		JPanel booleanOptionsPanel = new JPanel(new GridBagLayout());
+		booleanOptionsPanel.add(autoLoadDatabaseCheckBox, constraints);
+		booleanOptionsPanel.add(autoLogCheckBox, constraints);
+		booleanOptionsPanel.add(autoSaveCheckBox, constraints);
+		booleanOptionsPanel.add(storePasswordCheckBox, constraints);
 
-		cs.gridwidth = GridBagConstraints.REMAINDER;
+		constraints.gridwidth = GridBagConstraints.REMAINDER;
 
-		add(pBool, cs);
-		add(pHash, cs);
+		add(booleanOptionsPanel, constraints);
+		add(hashOptionsPanel, constraints);
 	}
 
-	private void add(String l, Component c, GridBagConstraints cs) {
-		cs.weightx = 0.0;
-		cs.gridwidth = 1;
-		add(new JLabel(l), cs);
-		cs.weightx = 1.0;
-		cs.gridwidth = GridBagConstraints.REMAINDER;
-		add(c, cs);
+	private void addLabeledComponent(String labelText, Component component, GridBagConstraints constraints) {
+		constraints.weightx = 0.0;
+		constraints.gridwidth = 1;
+		add(new JLabel(labelText), constraints);
+		constraints.weightx = 1.0;
+		constraints.gridwidth = GridBagConstraints.REMAINDER;
+		add(component, constraints);
 	}
 
-	public boolean autoLoadDB() {
-		return jcbAdbc.isSelected();
+	public boolean isAutoLoadDatabaseEnabled() {
+		return autoLoadDatabaseCheckBox.isSelected();
 	}
 
-	public boolean autoLog() {
-		return jcbAlog.isSelected();
+	public boolean isAutoLogEnabled() {
+		return autoLogCheckBox.isSelected();
 	}
 
-	public boolean storePass() {
-		return jcbPpsw.isSelected();
+	public boolean isStorePasswordEnabled() {
+		return storePasswordCheckBox.isSelected();
 	}
 
-	public File[] getDirs() {
-		StringTokenizer st = new StringTokenizer(tfHDirs.getText(), ";");
-		File[] dirs = new File[st.countTokens()];
-		for (int i = 0; i < dirs.length; i++) {
-			dirs[i] = new File(st.nextToken());
+	public File[] getHashDirectories() {
+		StringTokenizer tokenizer = new StringTokenizer(hashDirectoriesField.getText(), ";");
+		File[] directories = new File[tokenizer.countTokens()];
+		for (int i = 0; i < directories.length; i++) {
+			directories[i] = new File(tokenizer.nextToken());
 		}
-		return dirs;
+		return directories;
 	}
 
-	public void setEnabled(boolean b) {
-		tfHDirs.setEnabled(b);
-		for (int i = 1; i < cbHsh.length; i++) {
-			cbHsh[i].setEnabled(b);
+	public void setEnabled(boolean enabled) {
+		hashDirectoriesField.setEnabled(enabled);
+		for (int i = 1; i < hashCheckBoxes.length; i++) {
+			hashCheckBoxes[i].setEnabled(enabled);
 		}
 	}
 
-	public void opts(Options o) {
-		o.setB(Options.B_HASHCRC, cbHsh[H_CRC].isSelected());
-		o.setB(Options.B_HASHMD5, cbHsh[H_MD5].isSelected());
-		o.setB(Options.B_HASHSHA, cbHsh[H_SHA].isSelected());
-		o.setB(Options.B_HASHTTH, cbHsh[H_TTH].isSelected());
-		o.setB(Options.B_STORPSW, jcbPpsw.isSelected());
-		o.setB(Options.B_ALOADDB, jcbAdbc.isSelected());
-		o.setB(Options.B_AUTOLOG, jcbAlog.isSelected());
-		o.setB(Options.B_AUTOSAV, jcbAsav.isSelected());
+	public void saveToOptions(Options options) {
+		options.setBoolean(Options.BOOL_HASH_CRC, hashCheckBoxes[HASH_CRC32].isSelected());
+		options.setBoolean(Options.BOOL_HASH_MD5, hashCheckBoxes[HASH_MD5].isSelected());
+		options.setBoolean(Options.BOOL_HASH_SHA, hashCheckBoxes[HASH_SHA1].isSelected());
+		options.setBoolean(Options.BOOL_HASH_TTH, hashCheckBoxes[HASH_TTH].isSelected());
+		options.setBoolean(Options.BOOL_STORE_PASSWORD, storePasswordCheckBox.isSelected());
+		options.setBoolean(Options.BOOL_AUTO_LOAD_DATABASE, autoLoadDatabaseCheckBox.isSelected());
+		options.setBoolean(Options.BOOL_AUTO_LOGIN, autoLogCheckBox.isSelected());
+		options.setBoolean(Options.BOOL_AUTO_SAVE, autoSaveCheckBox.isSelected());
 
-		//		o.setI(Options.I_USMOD, jcbModes.getSelectedIndex());
-
-		o.setS(Options.S_HASHDIR, tfHDirs.getText());
-		o.setS(Options.S_BROWSER, tfBrows.getText());
-		o.setS(Options.S_MYDBURL, tfMyDBs.getText());
-		o.setS(Options.S_LOGFILE, tfLogfl.getText());
+		options.setString(Options.STR_HASH_DIRECTORY, hashDirectoriesField.getText());
+		options.setString(Options.STR_BROWSER, browserPathField.getText());
+		options.setString(Options.STR_DATABASE_URL, databaseUrlField.getText());
+		options.setString(Options.STR_LOG_FILE, logFilePathField.getText());
 	}
 
-	public void optl(Options o) {
-		cbHsh[H_CRC].setSelected(o.getB(Options.B_HASHCRC));
-		cbHsh[H_MD5].setSelected(o.getB(Options.B_HASHMD5));
-		cbHsh[H_SHA].setSelected(o.getB(Options.B_HASHSHA));
-		cbHsh[H_TTH].setSelected(o.getB(Options.B_HASHTTH));
-		jcbPpsw.setSelected(o.getB(Options.B_STORPSW));
-		jcbAdbc.setSelected(o.getB(Options.B_ALOADDB));
-		jcbAlog.setSelected(o.getB(Options.B_AUTOLOG));
-		jcbAsav.setSelected(o.getB(Options.B_AUTOSAV));
+	public void loadFromOptions(Options options) {
+		hashCheckBoxes[HASH_CRC32].setSelected(options.getBoolean(Options.BOOL_HASH_CRC));
+		hashCheckBoxes[HASH_MD5].setSelected(options.getBoolean(Options.BOOL_HASH_MD5));
+		hashCheckBoxes[HASH_SHA1].setSelected(options.getBoolean(Options.BOOL_HASH_SHA));
+		hashCheckBoxes[HASH_TTH].setSelected(options.getBoolean(Options.BOOL_HASH_TTH));
+		storePasswordCheckBox.setSelected(options.getBoolean(Options.BOOL_STORE_PASSWORD));
+		autoLoadDatabaseCheckBox.setSelected(options.getBoolean(Options.BOOL_AUTO_LOAD_DATABASE));
+		autoLogCheckBox.setSelected(options.getBoolean(Options.BOOL_AUTO_LOGIN));
+		autoSaveCheckBox.setSelected(options.getBoolean(Options.BOOL_AUTO_SAVE));
 
-		tfHDirs.setText(o.getS(Options.S_HASHDIR));
-		tfBrows.setText(o.getS(Options.S_BROWSER));
-		tfMyDBs.setText(o.getS(Options.S_MYDBURL));
-		tfLogfl.setText(o.getS(Options.S_LOGFILE));
+		hashDirectoriesField.setText(options.getString(Options.STR_HASH_DIRECTORY));
+		browserPathField.setText(options.getString(Options.STR_BROWSER));
+		databaseUrlField.setText(options.getString(Options.STR_DATABASE_URL));
+		logFilePathField.setText(options.getString(Options.STR_LOG_FILE));
 	}
 
 	public HashContainer getHashContainer() {
 		try {
-			int nr = 0;
-			for (int i = 0; i < cbHsh.length; i++) {
-				if (cbHsh[i].isSelected()) {
-					nr++;
+			int selectedCount = 0;
+			for (int i = 0; i < hashCheckBoxes.length; i++) {
+				if (hashCheckBoxes[i].isSelected()) {
+					selectedCount++;
 				}
 			}
-			HashContainer hc = new HashContainer(nr);
-			nr = 0;
+			HashContainer hashContainer = new HashContainer(selectedCount);
+			int hashIndex = 0;
 
-			if (cbHsh[H_EDK].isSelected()) {
-				hc.add(nr++, "ed2k", new jonelo.jacksum.algorithm.Edonkey());
+			if (hashCheckBoxes[HASH_ED2K].isSelected()) {
+				hashContainer.add(hashIndex++, "ed2k", new jonelo.jacksum.algorithm.Edonkey());
 			}
-			if (cbHsh[H_CRC].isSelected()) {
-				hc.add(nr++, "crc32", new jonelo.jacksum.algorithm.Crc32());
+			if (hashCheckBoxes[HASH_CRC32].isSelected()) {
+				hashContainer.add(hashIndex++, "crc32", new jonelo.jacksum.algorithm.Crc32());
 			}
-			if (cbHsh[H_MD5].isSelected()) {
-				hc.add(nr++, "md5", new com.twmacinta.util.MD5());
+			if (hashCheckBoxes[HASH_MD5].isSelected()) {
+				hashContainer.add(hashIndex++, "md5", new com.twmacinta.util.MD5());
 			}
-			if (cbHsh[H_SHA].isSelected()) {
-				hc.add(nr++, "sha1", new jonelo.jacksum.algorithm.MD("SHA-1"));
+			if (hashCheckBoxes[HASH_SHA1].isSelected()) {
+				hashContainer.add(hashIndex++, "sha1", new jonelo.jacksum.algorithm.MD("SHA-1"));
 			}
-			if (cbHsh[H_TTH].isSelected()) {
-				hc.add(nr++, "tth", new TTH());
+			if (hashCheckBoxes[HASH_TTH].isSelected()) {
+				hashContainer.add(hashIndex++, "tth", new TTH());
 			}
-			return hc;
+			return hashContainer;
 		} catch (java.security.NoSuchAlgorithmException e) {
 			e.printStackTrace();
 		}

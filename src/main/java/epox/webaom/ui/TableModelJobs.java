@@ -35,18 +35,18 @@ public class TableModelJobs extends TableModelSortable implements RowModel {
 	public static final long MASK = (1L << JobColumn.NUMB.getIndex()) | (1L << JobColumn.FILE.getIndex())
 			| (1L << JobColumn.STAT.getIndex());
 
-	private final JobList jl;
-	private int m_current_row;
-	private Job m_current_job;
+	private final JobList jobList;
+	private int currentRowIndex;
+	private Job currentJob;
 
-	public TableModelJobs(JobList j) {
-		jl = j;
+	public TableModelJobs(JobList jobList) {
+		this.jobList = jobList;
 		reset();
 	}
 
 	public void reset() {
-		m_current_row = -1;
-		m_current_job = null;
+		currentRowIndex = -1;
+		currentJob = null;
 		super.reset();
 	}
 
@@ -54,36 +54,36 @@ public class TableModelJobs extends TableModelSortable implements RowModel {
 		return JobColumn.getColumnCount();
 	}
 
-	public Class<?> getColumnClass(int col) {
-		JobColumn column = JobColumn.fromIndex(col);
+	public Class<?> getColumnClass(int columnIndex) {
+		JobColumn column = JobColumn.fromIndex(columnIndex);
 		return column != null ? column.getType() : String.class;
 	}
 
 	public int getRowCount() {
-		return jl.size();
+		return jobList.size();
 	}
 
-	public Object getValueAt(int row, int col) {
+	public Object getValueAt(int row, int columnIndex) {
 		row = getRowIndex(row);
 
-		if (col < 1 || row != m_current_row) {
-			m_current_row = row;
-			m_current_job = jl.get(row);
+		if (columnIndex < 1 || row != currentRowIndex) {
+			currentRowIndex = row;
+			currentJob = jobList.get(row);
 		}
 
-		if (col == JOB) {
-			return m_current_job;
+		if (columnIndex == JOB) {
+			return currentJob;
 		}
 
-		JobColumn column = JobColumn.fromIndex(col);
+		JobColumn column = JobColumn.fromIndex(columnIndex);
 		if (column == null) {
 			return null;
 		}
 
-		return extractValue(column, m_current_job, row);
+		return extractValue(column, currentJob, row);
 	}
 
-	public boolean isCellEditable(int row, int col) {
+	public boolean isCellEditable(int row, int columnIndex) {
 		return false;
 	}
 
@@ -98,9 +98,9 @@ public class TableModelJobs extends TableModelSortable implements RowModel {
 
 		switch (column) {
 			case LIDN :
-				return Integer.valueOf(job.mIlid);
+				return Integer.valueOf(job.mylistId);
 			case FSIZ :
-				return Long.valueOf(job.mLs);
+				return Long.valueOf(job.fileSize);
 			case FILE :
 				return job.getFile().getAbsolutePath();
 			case PATH :
@@ -113,87 +113,87 @@ public class TableModelJobs extends TableModelSortable implements RowModel {
 				break;
 		}
 
-		if (job.m_fa == null) {
+		if (job.anidbFile == null) {
 			return getDefaultValue(column);
 		}
 
 		switch (column) {
 			case FIDN :
-				return Integer.valueOf(job.m_fa.fid);
+				return Integer.valueOf(job.anidbFile.fid);
 			case AIDN :
-				return Integer.valueOf(job.m_fa.aid);
+				return Integer.valueOf(job.anidbFile.aid);
 			case EIDN :
-				return Integer.valueOf(job.m_fa.eid);
+				return Integer.valueOf(job.anidbFile.eid);
 			case GIDN :
-				return Integer.valueOf(job.m_fa.gid);
+				return Integer.valueOf(job.anidbFile.gid);
 			case FLEN :
-				return Integer.valueOf(job.m_fa.len);
+				return Integer.valueOf(job.anidbFile.len);
 			case FDUB :
-				return defaultString(job.m_fa.dub);
+				return defaultString(job.anidbFile.dub);
 			case FSUB :
-				return defaultString(job.m_fa.sub);
+				return defaultString(job.anidbFile.sub);
 			case FSRC :
-				return defaultString(job.m_fa.rip);
+				return defaultString(job.anidbFile.rip);
 			case FQUA :
-				return defaultString(job.m_fa.qua);
+				return defaultString(job.anidbFile.qua);
 			case FRES :
-				return defaultString(job.m_fa.res);
+				return defaultString(job.anidbFile.res);
 			case FVID :
-				return defaultString(job.m_fa.vid);
+				return defaultString(job.anidbFile.vid);
 			case FAUD :
-				return defaultString(job.m_fa.aud);
+				return defaultString(job.anidbFile.aud);
 			case FMDS :
-				return defaultString(job.m_fa.mds());
+				return defaultString(job.anidbFile.mds());
 			case FMDA :
-				return defaultString(job.m_fa.mda());
+				return defaultString(job.anidbFile.mda());
 			default :
 				break;
 		}
 
-		if (job.m_fa.anime != null) {
+		if (job.anidbFile.anime != null) {
 			switch (column) {
 				case AYEA :
-					return Integer.valueOf(job.m_fa.anime.yea);
+					return Integer.valueOf(job.anidbFile.anime.yea);
 				case AEPS :
-					return Integer.valueOf(job.m_fa.anime.eps);
+					return Integer.valueOf(job.anidbFile.anime.eps);
 				case ALEP :
-					return Integer.valueOf(job.m_fa.anime.lep);
+					return Integer.valueOf(job.anidbFile.anime.lep);
 				case AROM :
-					return defaultString(job.m_fa.anime.rom);
+					return defaultString(job.anidbFile.anime.rom);
 				case AKAN :
-					return defaultString(job.m_fa.anime.kan);
+					return defaultString(job.anidbFile.anime.kan);
 				case AENG :
-					return defaultString(job.m_fa.anime.eng);
+					return defaultString(job.anidbFile.anime.eng);
 				case ATYP :
-					return defaultString(job.m_fa.anime.typ);
+					return defaultString(job.anidbFile.anime.typ);
 				case AYEN :
-					return Integer.valueOf(job.m_fa.anime.yen);
+					return Integer.valueOf(job.anidbFile.anime.yen);
 				default :
 					break;
 			}
 		}
 
-		if (job.m_fa.ep != null) {
+		if (job.anidbFile.ep != null) {
 			switch (column) {
 				case ENUM :
-					return defaultString(job.m_fa.ep.num);
+					return defaultString(job.anidbFile.ep.num);
 				case EENG :
-					return defaultString(job.m_fa.ep.eng);
+					return defaultString(job.anidbFile.ep.eng);
 				case EKAN :
-					return defaultString(job.m_fa.ep.kan);
+					return defaultString(job.anidbFile.ep.kan);
 				case EROM :
-					return defaultString(job.m_fa.ep.rom);
+					return defaultString(job.anidbFile.ep.rom);
 				default :
 					break;
 			}
 		}
 
-		if (job.m_fa.group != null) {
+		if (job.anidbFile.group != null) {
 			switch (column) {
 				case GNAM :
-					return defaultString(job.m_fa.group.name);
+					return defaultString(job.anidbFile.group.name);
 				case GSHO :
-					return defaultString(job.m_fa.group.sname);
+					return defaultString(job.anidbFile.group.sname);
 				default :
 					break;
 			}
@@ -218,8 +218,8 @@ public class TableModelJobs extends TableModelSortable implements RowModel {
 	}
 
 	/** Handle null/empty strings consistently. */
-	private String defaultString(String s) {
-		return (s == null || s.isEmpty()) ? "" : s;
+	private String defaultString(String value) {
+		return (value == null || value.isEmpty()) ? "" : value;
 	}
 
 	public String getColumnName(int columnIndex) {
@@ -234,32 +234,22 @@ public class TableModelJobs extends TableModelSortable implements RowModel {
 
 	public static void formatTable(JTable table) {
 		table.setShowGrid(false);
-		TableColumnModel m = table.getColumnModel();
-		DefaultTableCellRenderer centerRend = new DefaultTableCellRenderer();
-		centerRend.setHorizontalAlignment(SwingConstants.CENTER);
+		TableColumnModel columnModel = table.getColumnModel();
+		DefaultTableCellRenderer centeredRenderer = new DefaultTableCellRenderer();
+		centeredRenderer.setHorizontalAlignment(SwingConstants.CENTER);
 		for (int i = 0; i < JobColumn.getColumnCount(); i++) {
 			if (i != JobColumn.FILE.getIndex()) {
-				m.getColumn(i).setCellRenderer(centerRend);
+				columnModel.getColumn(i).setCellRenderer(centeredRenderer);
 			}
 		}
 	}
 
-	public void updateRow(int id) {
-		this.fireTableRowsUpdated(id, id);
+	public void updateRow(int rowIndex) {
+		this.fireTableRowsUpdated(rowIndex, rowIndex);
 	}
 
-	/*
-	 * public void updateRow(Job j){
-	 * try{
-	 * updateRow(m_rev[j.mIid]);
-	 * }catch(Exception e){
-	 * updateRow(j.mIid);
-	 * }
-	 * }
-	 */
-	public void insertJob(int x) {
-		// fireTableRowsInserted(j.mIid, j.mIid);
-		fireTableRowsInserted(x, x);
+	public void insertJob(int rowIndex) {
+		fireTableRowsInserted(rowIndex, rowIndex);
 	}
 
 	public int[] convertRow(int row) {
