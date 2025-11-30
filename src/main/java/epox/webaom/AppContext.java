@@ -164,7 +164,7 @@ public final class AppContext {
             }
         }
         Font fo = new Font(f, Font.PLAIN, size);
-        WebAOM.setMyFont(fo, fo);
+        WebAOM.setGlobalFont(fo, fo);
         SwingUtilities.updateComponentTreeUI(gui);
         SwingUtilities.updateComponentTreeUI(com0);
         SwingUtilities.updateComponentTreeUI(com1);
