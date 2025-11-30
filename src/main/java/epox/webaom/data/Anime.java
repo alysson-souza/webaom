@@ -109,6 +109,7 @@ public class Anime extends AniDBEntity {
         return (episodeCount < 1 ? (latestEpisode < 10 ? 99 : latestEpisode) : episodeCount);
     }
 
+    @Override
     public String toString() {
         return switch (titlePriority) {
             case 1 -> (kanjiTitle == null ? romajiTitle : kanjiTitle) + " (" + episodeCount + ":" + latestEpisode + ")";
@@ -118,6 +119,7 @@ public class Anime extends AniDBEntity {
         };
     }
 
+    @Override
     public String serialize() {
         return "" + id + S + episodeCount + S + latestEpisode + S + year + S + type + S + romajiTitle + S + kanjiTitle
                 + S + englishTitle + S + categories + S + endYear;
@@ -127,8 +129,8 @@ public class Anime extends AniDBEntity {
         if (!episodeProgress.set(episodeNumber - 1, value)) {
             if (episodeNumber > (episodeCount > 0 ? episodeCount : latestEpisode)) {
                 if (!episodeProgress.fill(value)) {
-                    System.out.println("@ Completion " + (value ? "over" : "under") + "flow: " + this + " [" + type
-                            + "] epno=" + episodeNumber);
+                    epox.webaom.AppContext.gui.println("@ Completion " + (value ? "over" : "under") + "flow: " + this
+                            + " [" + type + "] epno=" + episodeNumber);
                 }
             }
         }
@@ -160,7 +162,7 @@ public class Anime extends AniDBEntity {
                             setOrFill(Integer.parseInt(rangeParts[0]), watched);
                             break;
                         default:
-                            System.out.println("@ Anime.registerEpisode: Unexpected epno format!");
+                            epox.webaom.AppContext.gui.println("@ Anime.registerEpisode: Unexpected epno format!");
                     }
                 }
             }
@@ -271,6 +273,7 @@ public class Anime extends AniDBEntity {
         return super.compareTo(obj);
     }
 
+    @Override
     public void clear() {
         super.clear();
         episodeProgress.reset();
