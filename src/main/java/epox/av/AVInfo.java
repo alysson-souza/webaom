@@ -33,14 +33,13 @@ public class AVInfo {
                 inited = true;
             }
         } catch (java.lang.UnsatisfiedLinkError e) {
-            // e.printStackTrace();
+            // Native library not available - AVInfo functionality will be disabled
         }
     }
 
     private final File file;
     private long address;
 
-    // private Vector tracks;
     public AVInfo(File f) throws IOException {
         if (!inited) {
             throw new IOException("Error: dll not found.");
@@ -61,7 +60,6 @@ public class AVInfo {
         if (address < 1) {
             throw new IOException("Error: dll returned null.");
         }
-        // tracks = new Vector();
     }
 
     private static native int version();
@@ -155,17 +153,6 @@ public class AVInfo {
         if (address < 1) {
             throw new IOException(EC);
         }
-        /*
-         * for(int i=0; i<trackCount(); i++){
-         * GenericTrack gt = getGeneric(i);
-         *
-         * switch(gt.type_id){
-         * case TRACK_VIDEO: fi.add(getVideo(gt)); break;
-         * case TRACK_AUDIO: fi.add(getAudio(gt)); break;
-         * case TRACK_SUBTITLE: fi.add(gt); break;
-         * }
-         * }
-         */
         return new FileInfo(toXML());
     }
 
