@@ -22,15 +22,15 @@
  */
 package epox.webaom.ui;
 
-import epox.swing.TableModelSortable;
 import epox.webaom.Job;
 import epox.webaom.JobList;
 import javax.swing.JTable;
 import javax.swing.SwingConstants;
+import javax.swing.table.AbstractTableModel;
 import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.TableColumnModel;
 
-public class TableModelJobs extends TableModelSortable implements RowModel {
+public class TableModelJobs extends AbstractTableModel implements RowModel {
     public static final int JOB = JobColumn.JOB;
     public static final long MASK =
             (1L << JobColumn.NUMB.getIndex()) | (1L << JobColumn.FILE.getIndex()) | (1L << JobColumn.STAT.getIndex());
@@ -59,7 +59,6 @@ public class TableModelJobs extends TableModelSortable implements RowModel {
     public void reset() {
         currentRowIndex = -1;
         currentJob = null;
-        super.reset();
     }
 
     public int getColumnCount() {

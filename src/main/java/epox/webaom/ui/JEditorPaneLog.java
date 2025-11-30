@@ -23,7 +23,6 @@
 
 package epox.webaom.ui;
 
-import epox.swing.JTextInputDialog;
 import epox.swing.Log;
 import epox.util.StringUtilities;
 import epox.webaom.AppContext;
@@ -134,7 +133,7 @@ public class JEditorPaneLog extends JEditorPane implements Log, Action {
     }
 
     public void actionPerformed(ActionEvent event) {
-        setHeader((new JTextInputDialog(AppContext.frame, "Edit header", htmlHeader)).getStr());
+        setHeader(javax.swing.JOptionPane.showInputDialog(AppContext.frame, "Edit header", htmlHeader));
     }
 
     public void setHeader(String newHeader) {
