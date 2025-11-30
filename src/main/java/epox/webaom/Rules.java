@@ -26,6 +26,8 @@ import epox.util.ReplacementRule;
 import epox.util.StringUtilities;
 import epox.webaom.data.AttributeMap;
 import java.io.File;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.StringTokenizer;
 import java.util.Vector;
 import java.util.regex.PatternSyntaxException;
@@ -80,10 +82,8 @@ public class Rules {
         return text.toLowerCase().contains(searchTerm.toLowerCase());
     }
 
-    private static String applyReplacements(String text, Vector replacements) {
-        ReplacementRule replacement;
-        for (int index = 0; index < replacements.size(); index++) {
-            replacement = (ReplacementRule) replacements.elementAt(index);
+    private static String applyReplacements(String text, List<ReplacementRule> replacements) {
+        for (ReplacementRule replacement : replacements) {
             if (replacement.enabled) {
                 text = StringUtilities.replace(text, replacement.source, replacement.destination);
             }
@@ -202,26 +202,26 @@ public class Rules {
 
     private String processRulesScript(Job job, String script) {
         try {
-            Vector sections = buildSections(script, job);
+            List<Section> sections = buildSections(script, job);
             if (sections.isEmpty()) {
                 return null;
             }
-            String result = "";
+            StringBuilder result = new StringBuilder();
             while (!sections.isEmpty()) {
-                result += sections.remove(0);
+                result.append(sections.remove(0));
             }
-            return result;
+            return result.toString();
         } catch (Exception e) {
             e.printStackTrace();
         }
         return null;
     }
 
-    private Vector<Section> buildSections(String script, Job job) throws Exception {
+    private List<Section> buildSections(String script, Job job) throws Exception {
         StringTokenizer tokenizer = new StringTokenizer(script, "\r\n");
         String token;
         String upperToken;
-        Vector<Section> sections = new Vector<>();
+        List<Section> sections = new ArrayList<>();
         int doIndex;
         boolean previousConditionPassed = true;
         while (tokenizer.hasMoreTokens()) {
@@ -252,7 +252,7 @@ public class Rules {
         return sections;
     }
 
-    private boolean handleOperation(Vector<Section> sections, String operation) throws Exception {
+    private boolean handleOperation(List<Section> sections, String operation) throws Exception {
         String upperOp = operation.toUpperCase();
         if (upperOp.startsWith("ADD ")) {
             sections.add(new Section(operation.substring(4)));

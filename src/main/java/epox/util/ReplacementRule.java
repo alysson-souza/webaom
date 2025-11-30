@@ -23,8 +23,8 @@
 package epox.util;
 
 import epox.webaom.Options;
+import java.util.List;
 import java.util.StringTokenizer;
-import java.util.Vector;
 
 /**
  * Represents a source-to-destination mapping rule with an enabled/disabled state.
@@ -36,12 +36,12 @@ public class ReplacementRule {
     /** The destination string to replace the source with */
     public String destination;
     /** Whether this mapping rule is enabled */
-    public Boolean enabled;
+    public boolean enabled;
 
     public ReplacementRule(String sourcePattern, String destinationPattern, boolean isEnabled) {
         source = sourcePattern;
         destination = destinationPattern;
-        enabled = Boolean.valueOf(isEnabled);
+        enabled = isEnabled;
     }
 
     /**
@@ -60,24 +60,22 @@ public class ReplacementRule {
     }
 
     /**
-     * Encodes a vector of DSData rules into a single delimited string.
+     * Encodes a list of DSData rules into a single delimited string.
      */
-    public static String encode(Vector<ReplacementRule> rulesList) {
-        String encodedResult = "";
-        ReplacementRule currentRule;
-        for (int i = 0; i < rulesList.size(); i++) {
-            currentRule = rulesList.elementAt(i);
-            if (!currentRule.source.equals("")) {
-                encodedResult += currentRule + Options.FIELD_SEPARATOR;
+    public static String encode(List<ReplacementRule> rulesList) {
+        StringBuilder encodedResult = new StringBuilder();
+        for (ReplacementRule currentRule : rulesList) {
+            if (!currentRule.source.isEmpty()) {
+                encodedResult.append(currentRule).append(Options.FIELD_SEPARATOR);
             }
         }
-        return encodedResult;
+        return encodedResult.toString();
     }
 
     /**
-     * Decodes an encoded string into a vector of DSData rules.
+     * Decodes an encoded string into a list of DSData rules.
      */
-    public static String decode(Vector<ReplacementRule> rulesList, String encodedString) {
+    public static String decode(List<ReplacementRule> rulesList, String encodedString) {
         rulesList.clear();
         StringTokenizer tokenizer = new StringTokenizer(encodedString, Options.FIELD_SEPARATOR);
         while (tokenizer.hasMoreTokens()) {
@@ -86,9 +84,10 @@ public class ReplacementRule {
         return encodedString;
     }
 
+    @Override
     public String toString() {
         String destValue = destination;
-        if (destValue.equals("")) {
+        if (destValue.isEmpty()) {
             destValue = "\\0";
         }
         if (enabled) {

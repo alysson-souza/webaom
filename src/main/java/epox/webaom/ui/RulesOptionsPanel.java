@@ -32,14 +32,13 @@ import epox.webaom.WebAOM;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.util.Arrays;
+import java.util.List;
 import java.util.StringTokenizer;
-import java.util.Vector;
 import javax.swing.AbstractAction;
 import javax.swing.Action;
 import javax.swing.ButtonGroup;
@@ -55,20 +54,19 @@ import javax.swing.border.EtchedBorder;
 import javax.xml.parsers.SAXParser;
 import javax.xml.parsers.SAXParserFactory;
 
-public class RulesOptionsPanel extends JPanel implements Action, ActionListener, ItemListener {
+public class RulesOptionsPanel extends JPanel implements Action, ItemListener {
     protected final JTextArea rulesTextArea;
     private final JRadioButton renameRadioButton;
     private final JRadioButton moveRadioButton;
     private final JButton applyButton;
 
-    private final Rules rules;
+    private final transient Rules rules;
 
     protected JTable replacementsTable;
     protected ReplacementTableModel replacementsTableModel;
 
     public RulesOptionsPanel(Rules rules) {
         super(new BorderLayout());
-        // super(new GridLayout(2,1));
         this.rules = rules;
         // TOP
         renameRadioButton = new JRadioButton("Renaming (name)", true);
@@ -94,10 +92,13 @@ public class RulesOptionsPanel extends JPanel implements Action, ActionListener,
         final RuleMenu ruleMenuHandler = new RuleMenu(rulesTextArea);
         SAXParserFactory parserFactory = SAXParserFactory.newInstance();
         try {
+            parserFactory.setFeature("http://xml.org/sax/features/external-general-entities", false);
+            parserFactory.setFeature("http://xml.org/sax/features/external-parameter-entities", false);
             SAXParser saxParser = parserFactory.newSAXParser();
             saxParser.parse(WebAOM.class.getClassLoader().getResourceAsStream("rule-helper.xml"), ruleMenuHandler);
 
             rulesTextArea.addMouseListener(new MouseAdapter() {
+                @Override
                 public void mouseClicked(MouseEvent event) {
                     super.mouseClicked(event);
                     if (event.getButton() == MouseEvent.BUTTON3) {
@@ -111,13 +112,11 @@ public class RulesOptionsPanel extends JPanel implements Action, ActionListener,
         }
 
         JPanel topPanel = new JPanel(new BorderLayout());
-        // topPanel.setBorder(new TitledBorder("Scripts (See Wiki)"));
         topPanel.add(radioButtonPanel, BorderLayout.NORTH);
         topPanel.add(new JScrollPane(rulesTextArea));
         // BOTTOM
         replacementsTableModel = new ReplacementTableModel(rules.illegalCharReplacements, "From", "To");
         replacementsTable = new JTableSortable(replacementsTableModel);
-        // replacementsTable.setShowGrid(false);
         replacementsTable.setGridColor(Color.lightGray);
         replacementsTable.getInputMap().put(KeyStroke.getKeyStroke("DELETE"), "remove");
         replacementsTable.getActionMap().put("remove", this);
@@ -140,7 +139,6 @@ public class RulesOptionsPanel extends JPanel implements Action, ActionListener,
         tableScrollPane.getViewport().setBackground(Color.white);
         JPanel bottomPanel = new JPanel(new BorderLayout());
         bottomPanel.add(tableScrollPane, BorderLayout.CENTER);
-        //		bottomPanel.setBorder(new TitledBorder("Replace Table"));
 
         // MAIN
         setBorder(new EtchedBorder());
@@ -168,14 +166,12 @@ public class RulesOptionsPanel extends JPanel implements Action, ActionListener,
         if (event.getStateChange() == ItemEvent.DESELECTED) {
             if (source == moveRadioButton) {
                 rules.setMoveRules(rulesTextArea.getText());
-            } else // if(source == renameRadioButton)
-            {
+            } else {
                 rules.setRenameRules(rulesTextArea.getText());
             }
         } else if (source == moveRadioButton) {
             rulesTextArea.setText(rules.getMoveRules());
-        } else // if(source == renameRadioButton)
-        {
+        } else {
             rulesTextArea.setText(rules.getRenameRules());
         }
     }
@@ -211,28 +207,28 @@ public class RulesOptionsPanel extends JPanel implements Action, ActionListener,
         }
     }
 
-    private void removeElements(Vector<ReplacementRule> dataVector, int[] selectedRows) {
+    private void removeElements(List<ReplacementRule> dataList, int[] selectedRows) {
         Arrays.sort(selectedRows);
         for (int index = selectedRows.length - 1; index >= 0; index--) {
-            if (selectedRows[index] >= dataVector.size()) {
+            if (selectedRows[index] >= dataList.size()) {
                 break;
             }
-            dataVector.removeElementAt(selectedRows[index]);
+            dataList.remove(selectedRows[index]);
         }
-        if (dataVector.size() <= 0) {
-            dataVector.add(new ReplacementRule("", "", false));
+        if (dataList.isEmpty()) {
+            dataList.add(new ReplacementRule("", "", false));
         }
     }
 
-    protected void moveElement(JTable table, Vector<ReplacementRule> dataVector, int direction) {
+    protected void moveElement(JTable table, List<ReplacementRule> dataList, int direction) {
         int selectedIndex = table.getSelectedRow();
         int targetIndex = direction + selectedIndex;
-        if (targetIndex >= dataVector.size() || targetIndex < 0) {
+        if (targetIndex >= dataList.size() || targetIndex < 0) {
             return;
         }
         try {
-            ReplacementRule removedElement = dataVector.remove(selectedIndex);
-            dataVector.insertElementAt(removedElement, targetIndex);
+            ReplacementRule removedElement = dataList.remove(selectedIndex);
+            dataList.add(targetIndex, removedElement);
             table.setRowSelectionInterval(targetIndex, targetIndex);
             table.updateUI();
         } catch (Exception ex) {

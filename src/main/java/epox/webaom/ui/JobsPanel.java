@@ -144,14 +144,17 @@ public class JobsPanel extends JPanel implements ActionListener {
     }
 
     public void saveOptions(Options options) {
-        String columnConfig = "";
-        TableColumn column;
-        Enumeration columnEnumeration = jobsTable.getColumnModel().getColumns();
+        StringBuilder columnConfig = new StringBuilder();
+        Enumeration<TableColumn> columnEnumeration = jobsTable.getColumnModel().getColumns();
         while (columnEnumeration.hasMoreElements()) {
-            column = (TableColumn) columnEnumeration.nextElement();
-            columnConfig += column.getModelIndex() + "," + column.getPreferredWidth() + ";";
+            TableColumn column = columnEnumeration.nextElement();
+            columnConfig
+                    .append(column.getModelIndex())
+                    .append(",")
+                    .append(column.getPreferredWidth())
+                    .append(";");
         }
-        options.setString(Options.STR_JOB_COLUMNS, columnConfig);
+        options.setString(Options.STR_JOB_COLUMNS, columnConfig.toString());
     }
 
     public void loadOptions(Options options) {
