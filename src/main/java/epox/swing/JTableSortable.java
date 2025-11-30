@@ -28,45 +28,45 @@ import javax.swing.table.TableColumnModel;
  * A JTable with sortable columns. Clicking on column headers sorts the data.
  */
 public class JTableSortable extends JTable {
-	/** Header click listener for sorting columns */
-	public HeaderListener headerListener;
+    /** Header click listener for sorting columns */
+    public HeaderListener headerListener;
 
-	/** Flag to trigger row height recalculation on next paint */
-	private boolean needsRowHeightCalculation = true;
+    /** Flag to trigger row height recalculation on next paint */
+    private boolean needsRowHeightCalculation = true;
 
-	public JTableSortable(AbstractTableModel model) {
-		super(model);
+    public JTableSortable(AbstractTableModel model) {
+        super(model);
 
-		SortButtonRenderer renderer = new SortButtonRenderer();
+        SortButtonRenderer renderer = new SortButtonRenderer();
 
-		TableColumnModel columnModel = this.getColumnModel();
-		for (int index = 0; index < columnModel.getColumnCount(); index++) {
-			columnModel.getColumn(index).setHeaderRenderer(renderer);
-		}
+        TableColumnModel columnModel = this.getColumnModel();
+        for (int index = 0; index < columnModel.getColumnCount(); index++) {
+            columnModel.getColumn(index).setHeaderRenderer(renderer);
+        }
 
-		JTableHeader header = getTableHeader();
-		headerListener = new HeaderListener(header, columnModel, renderer);
-		header.addMouseListener(headerListener);
-	}
+        JTableHeader header = getTableHeader();
+        headerListener = new HeaderListener(header, columnModel, renderer);
+        header.addMouseListener(headerListener);
+    }
 
-	private void calculateRowHeight(Graphics graphics) {
-		Font font = getFont();
-		FontMetrics fontMetrics = graphics.getFontMetrics(font);
-		setRowHeight(fontMetrics.getHeight() + 3);
-	}
+    private void calculateRowHeight(Graphics graphics) {
+        Font font = getFont();
+        FontMetrics fontMetrics = graphics.getFontMetrics(font);
+        setRowHeight(fontMetrics.getHeight() + 3);
+    }
 
-	@Override
-	public void paint(Graphics graphics) {
-		if (needsRowHeightCalculation) {
-			calculateRowHeight(graphics);
-			needsRowHeightCalculation = false;
-		}
-		super.paint(graphics);
-	}
+    @Override
+    public void paint(Graphics graphics) {
+        if (needsRowHeightCalculation) {
+            calculateRowHeight(graphics);
+            needsRowHeightCalculation = false;
+        }
+        super.paint(graphics);
+    }
 
-	@Override
-	public void setFont(Font font) {
-		needsRowHeightCalculation = true;
-		super.setFont(font);
-	}
+    @Override
+    public void setFont(Font font) {
+        needsRowHeightCalculation = true;
+        super.setFont(font);
+    }
 }

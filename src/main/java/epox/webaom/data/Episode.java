@@ -28,53 +28,53 @@ import epox.util.StringUtilities;
  * Represents an episode entry from AniDB.
  */
 public class Episode extends Base {
-	/** Episode number/code (e.g., "1", "S1", "C2"). */
-	public String num;
-	/** Romaji title. */
-	public String rom;
-	/** Kanji/Japanese title. */
-	public String kan;
-	/** English title. */
-	public String eng;
+    /** Episode number/code (e.g., "1", "S1", "C2"). */
+    public String num;
+    /** Romaji title. */
+    public String rom;
+    /** Kanji/Japanese title. */
+    public String kan;
+    /** English title. */
+    public String eng;
 
-	public Episode(int id) {
-		this.id = id;
-	}
+    public Episode(int id) {
+        this.id = id;
+    }
 
-	public Episode(String[] fields) {
-		int index = 0;
-		id = StringUtilities.i(fields[index++]);
-		num = fields[index++].intern();
-		eng = fields[index++];
-		rom = StringUtilities.n(fields[index++]);
-		kan = StringUtilities.n(fields[index++]);
-	}
+    public Episode(String[] fields) {
+        int index = 0;
+        id = StringUtilities.i(fields[index++]);
+        num = fields[index++].intern();
+        eng = fields[index++];
+        rom = StringUtilities.n(fields[index++]);
+        kan = StringUtilities.n(fields[index++]);
+    }
 
-	/** Title display priority: 0=english, 1=romaji, 2=kanji. */
-	public static int titlePriority = 0;
+    /** Title display priority: 0=english, 1=romaji, 2=kanji. */
+    public static int titlePriority = 0;
 
-	public String toString() {
-		return switch (titlePriority) {
-			case 1 -> num + " - " + (rom == null ? eng : rom);
-			case 2 -> num + " - " + (kan == null ? eng : kan);
-			default -> num + " - " + eng;
-		};
-	}
+    public String toString() {
+        return switch (titlePriority) {
+            case 1 -> num + " - " + (rom == null ? eng : rom);
+            case 2 -> num + " - " + (kan == null ? eng : kan);
+            default -> num + " - " + eng;
+        };
+    }
 
-	public String serialize() {
-		return "" + id + S + num + S + eng + S + rom + S + kan;
-	}
+    public String serialize() {
+        return "" + id + S + num + S + eng + S + rom + S + kan;
+    }
 
-	public int compareTo(Object obj) {
-		if (obj instanceof Episode other) {
-			try {
-				int thisNum = Integer.parseInt(num);
-				int otherNum = Integer.parseInt(other.num);
-				return thisNum - otherNum;
-			} catch (Exception ex) {
-				return num.compareTo(other.num);
-			}
-		}
-		return super.compareTo(obj);
-	}
+    public int compareTo(Object obj) {
+        if (obj instanceof Episode other) {
+            try {
+                int thisNum = Integer.parseInt(num);
+                int otherNum = Integer.parseInt(other.num);
+                return thisNum - otherNum;
+            } catch (Exception ex) {
+                return num.compareTo(other.num);
+            }
+        }
+        return super.compareTo(obj);
+    }
 }

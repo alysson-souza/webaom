@@ -31,74 +31,74 @@ import javax.swing.event.ListDataListener;
  * A ListModel that stores unique strings. Duplicates are silently ignored when adding.
  */
 public class UniqueStringList implements ListModel {
-	private ListDataListener listDataListener;
-	private final Vector<String> stringList;
-	private final String separator;
+    private ListDataListener listDataListener;
+    private final Vector<String> stringList;
+    private final String separator;
 
-	public UniqueStringList(String separator) {
-		this.separator = separator;
-		stringList = new Vector<>();
-	}
+    public UniqueStringList(String separator) {
+        this.separator = separator;
+        stringList = new Vector<>();
+    }
 
-	public void add(String element) {
-		if (!stringList.contains(element)) {
-			int size = getSize();
-			stringList.add(element);
-			listDataListener.intervalAdded(new ListDataEvent(this, ListDataEvent.INTERVAL_ADDED, size, size));
-		}
-	}
+    public void add(String element) {
+        if (!stringList.contains(element)) {
+            int size = getSize();
+            stringList.add(element);
+            listDataListener.intervalAdded(new ListDataEvent(this, ListDataEvent.INTERVAL_ADDED, size, size));
+        }
+    }
 
-	public String removeElementAt(int index) {
-		String removed = stringList.remove(index);
-		listDataListener.intervalRemoved(new ListDataEvent(this, ListDataEvent.INTERVAL_REMOVED, index, index));
-		return removed;
-	}
+    public String removeElementAt(int index) {
+        String removed = stringList.remove(index);
+        listDataListener.intervalRemoved(new ListDataEvent(this, ListDataEvent.INTERVAL_REMOVED, index, index));
+        return removed;
+    }
 
-	public void reset() {
-		int size = getSize();
-		stringList.removeAllElements();
-		listDataListener.intervalRemoved(new ListDataEvent(this, ListDataEvent.INTERVAL_REMOVED, 0, size - 1));
-	}
+    public void reset() {
+        int size = getSize();
+        stringList.removeAllElements();
+        listDataListener.intervalRemoved(new ListDataEvent(this, ListDataEvent.INTERVAL_REMOVED, 0, size - 1));
+    }
 
-	public boolean includes(String element) {
-		return stringList.contains(element);
-	}
+    public boolean includes(String element) {
+        return stringList.contains(element);
+    }
 
-	@Override
-	public String toString() {
-		StringBuilder result = new StringBuilder();
-		Object[] strings = getStrings();
-		for (Object string : strings) {
-			result.append(string).append(separator);
-		}
-		return result.toString().trim();
-	}
+    @Override
+    public String toString() {
+        StringBuilder result = new StringBuilder();
+        Object[] strings = getStrings();
+        for (Object string : strings) {
+            result.append(string).append(separator);
+        }
+        return result.toString().trim();
+    }
 
-	public Object[] getStrings() {
-		return stringList.toArray();
-	}
+    public Object[] getStrings() {
+        return stringList.toArray();
+    }
 
-	@Override
-	public int getSize() {
-		return stringList.size();
-	}
+    @Override
+    public int getSize() {
+        return stringList.size();
+    }
 
-	@Override
-	public Object getElementAt(int row) {
-		return stringList.elementAt(row);
-	}
+    @Override
+    public Object getElementAt(int row) {
+        return stringList.elementAt(row);
+    }
 
-	public String getStringAt(int row) {
-		return stringList.elementAt(row);
-	}
+    public String getStringAt(int row) {
+        return stringList.elementAt(row);
+    }
 
-	@Override
-	public void addListDataListener(ListDataListener listener) {
-		listDataListener = listener;
-	}
+    @Override
+    public void addListDataListener(ListDataListener listener) {
+        listDataListener = listener;
+    }
 
-	@Override
-	public void removeListDataListener(ListDataListener listener) {
-		listDataListener = null;
-	}
+    @Override
+    public void removeListDataListener(ListDataListener listener) {
+        listDataListener = null;
+    }
 }

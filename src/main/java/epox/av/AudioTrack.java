@@ -5,10 +5,10 @@
 package epox.av;
 
 public class AudioTrack extends GenericTrack {
-	public int channels;
-	public int samplerate;
+    public int channels;
+    public int samplerate;
 
-	public AudioTrack(GenericTrack gt) {
-		super(gt);
-	}
+    public AudioTrack(GenericTrack gt) {
+        super(gt);
+    }
 }

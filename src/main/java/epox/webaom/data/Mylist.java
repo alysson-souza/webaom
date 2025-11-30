@@ -25,21 +25,21 @@ package epox.webaom.data;
  * Contains metadata about how a file is stored in the user's collection.
  */
 public class Mylist {
-	/** File state: 0=unknown, 1=on HDD, 2=on CD, 3=deleted. */
-	public int state;
-	/** Viewed status: 0=not viewed, 1=viewed. */
-	public int viewed;
-	/** Storage location (e.g., "External HDD", "DVD-R"). */
-	public String storage;
-	/** Source of the file (e.g., "Nyaa", "IRC"). */
-	public String source;
-	/** Other/additional notes. */
-	public String other;
+    /** File state: 0=unknown, 1=on HDD, 2=on CD, 3=deleted. */
+    public int state;
+    /** Viewed status: 0=not viewed, 1=viewed. */
+    public int viewed;
+    /** Storage location (e.g., "External HDD", "DVD-R"). */
+    public String storage;
+    /** Source of the file (e.g., "Nyaa", "IRC"). */
+    public String source;
+    /** Other/additional notes. */
+    public String other;
 
-	/*
-	 * public static final int S_UNKNOWN = 0,
-	 * S_ON_HDD = 1,
-	 * S_ON_CD = 2,
-	 * S_DELETED = 3;
-	 */
+    /*
+     * public static final int S_UNKNOWN = 0,
+     * S_ON_HDD = 1,
+     * S_ON_CD = 2,
+     * S_DELETED = 3;
+     */
 }

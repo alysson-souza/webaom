@@ -23,45 +23,45 @@
 package epox.webaom.net;
 
 public class AniDBException extends Exception {
-	public static final int CLIENT_BANNED = 0;
-	public static final int CLIENT_OUTDATED = 1;
-	public static final int CLIENT_BUG = 2;
-	public static final int CLIENT_SYSTEM = 3;
-	public static final int CLIENT_USER = 4;
-	public static final int ANIDB_UNREACHABLE = 5;
-	public static final int ANIDB_OUT_OF_SERVICE = 6;
-	public static final int ANIDB_SERVER_ERROR = 7;
-	public static final int ENCRYPTION = 8;
+    public static final int CLIENT_BANNED = 0;
+    public static final int CLIENT_OUTDATED = 1;
+    public static final int CLIENT_BUG = 2;
+    public static final int CLIENT_SYSTEM = 3;
+    public static final int CLIENT_USER = 4;
+    public static final int ANIDB_UNREACHABLE = 5;
+    public static final int ANIDB_OUT_OF_SERVICE = 6;
+    public static final int ANIDB_SERVER_ERROR = 7;
+    public static final int ENCRYPTION = 8;
 
-	private final int code;
+    private final int code;
 
-	public AniDBException(int code) {
-		this(code, defaultMsg(code));
-	}
+    public AniDBException(int code) {
+        this(code, defaultMsg(code));
+    }
 
-	public AniDBException(int code, String msg) {
-		super(msg);
-		this.code = code;
-	}
+    public AniDBException(int code, String msg) {
+        super(msg);
+        this.code = code;
+    }
 
-	public boolean is(int i) {
-		return code == i;
-	}
+    public boolean is(int i) {
+        return code == i;
+    }
 
-	public static String defaultMsg(int code) {
-		switch (code) {
-			case CLIENT_BANNED :
-				return "This version of WebAOM is no longer supported! Check WIKI.";
-			case CLIENT_OUTDATED :
-				return "A new version of WebAOM is out. Check WIKI!";
-			case ANIDB_OUT_OF_SERVICE :
-				return "AniDB is out of service! Try again next year.";
-			case ANIDB_SERVER_ERROR :
-				return "Internal Server Error @ AniDB!";
-			case ENCRYPTION :
-				return "Decryption failed. The connection timed out (most likely).";
-			default :
-				return "Unknown Error.";
-		}
-	}
+    public static String defaultMsg(int code) {
+        switch (code) {
+            case CLIENT_BANNED:
+                return "This version of WebAOM is no longer supported! Check WIKI.";
+            case CLIENT_OUTDATED:
+                return "A new version of WebAOM is out. Check WIKI!";
+            case ANIDB_OUT_OF_SERVICE:
+                return "AniDB is out of service! Try again next year.";
+            case ANIDB_SERVER_ERROR:
+                return "Internal Server Error @ AniDB!";
+            case ENCRYPTION:
+                return "Decryption failed. The connection timed out (most likely).";
+            default:
+                return "Unknown Error.";
+        }
+    }
 }

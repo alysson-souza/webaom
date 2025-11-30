@@ -26,101 +26,101 @@ import java.util.HashMap;
 import java.util.Iterator;
 
 public class Base implements Comparable {
-	/** Separator character used for serialization. */
-	protected static final char S = '|';
-	/** Map of child objects keyed by their unique identifier. */
-	private final HashMap<Object, Base> childMap = new HashMap<>();
-	/** Sorted array of children (populated by buildSortedChildArray()). */
-	private Object[] sortedChildren = null;
-	/** Unique identifier for this object. */
-	public int id;
-	/** Total size in bytes (aggregated from children). */
-	public long totalSize;
+    /** Separator character used for serialization. */
+    protected static final char S = '|';
+    /** Map of child objects keyed by their unique identifier. */
+    private final HashMap<Object, Base> childMap = new HashMap<>();
+    /** Sorted array of children (populated by buildSortedChildArray()). */
+    private Object[] sortedChildren = null;
+    /** Unique identifier for this object. */
+    public int id;
+    /** Total size in bytes (aggregated from children). */
+    public long totalSize;
 
-	public Base get(int index) {
-		if (sortedChildren == null) {
-			return null;
-		}
-		return (Base) sortedChildren[index];
-	}
+    public Base get(int index) {
+        if (sortedChildren == null) {
+            return null;
+        }
+        return (Base) sortedChildren[index];
+    }
 
-	public boolean has(Base child) {
-		return childMap.containsKey(child.getKey());
-	}
+    public boolean has(Base child) {
+        return childMap.containsKey(child.getKey());
+    }
 
-	public Base get(Object key) {
-		return childMap.get(key);
-	}
+    public Base get(Object key) {
+        return childMap.get(key);
+    }
 
-	public void add(Base child) {
-		Object key = child.getKey();
-		if (!childMap.containsKey(key)) {
-			childMap.put(key, child);
-			totalSize += child.totalSize;
-		} // else U.err("Base: Tried to add ex obj: "+child+" ("+this+")");
-	}
+    public void add(Base child) {
+        Object key = child.getKey();
+        if (!childMap.containsKey(key)) {
+            childMap.put(key, child);
+            totalSize += child.totalSize;
+        } // else U.err("Base: Tried to add ex obj: "+child+" ("+this+")");
+    }
 
-	public void remove(Base child) {
-		Object key = child.getKey();
-		if (childMap.containsKey(key)) {
-			childMap.remove(key);
-			totalSize -= child.totalSize;
-			if (totalSize < 0) {
-				StringUtilities.err("Base: Negative size: " + child + " (" + this + ")");
-				totalSize = 0;
-			}
-		} else {
-			StringUtilities.err("Base: Tried to remove non ex obj: " + child + " (" + this + ")");
-		}
-	}
+    public void remove(Base child) {
+        Object key = child.getKey();
+        if (childMap.containsKey(key)) {
+            childMap.remove(key);
+            totalSize -= child.totalSize;
+            if (totalSize < 0) {
+                StringUtilities.err("Base: Negative size: " + child + " (" + this + ")");
+                totalSize = 0;
+            }
+        } else {
+            StringUtilities.err("Base: Tried to remove non ex obj: " + child + " (" + this + ")");
+        }
+    }
 
-	public void clear() {
-		totalSize = 0;
-		Iterator<Base> it = childMap.values().iterator();
-		while (it.hasNext()) {
-			it.next().clear();
-		}
+    public void clear() {
+        totalSize = 0;
+        Iterator<Base> it = childMap.values().iterator();
+        while (it.hasNext()) {
+            it.next().clear();
+        }
 
-		childMap.clear();
-	}
+        childMap.clear();
+    }
 
-	public void dump(String prefix) {
-		System.out.println(prefix + this);
-		Iterator<Base> it = childMap.values().iterator();
-		while (it.hasNext()) {
-			it.next().dump(prefix + ".");
-		}
-	}
+    public void dump(String prefix) {
+        System.out.println(prefix + this);
+        Iterator<Base> it = childMap.values().iterator();
+        while (it.hasNext()) {
+            it.next().dump(prefix + ".");
+        }
+    }
 
-	public int size() {
-		return childMap.size();
-	}
+    public int size() {
+        return childMap.size();
+    }
 
-	public String toString() {
-		return "Press F5 to update.";
-	}
+    public String toString() {
+        return "Press F5 to update.";
+    }
 
-	public void buildSortedChildArray() {
-		sortedChildren = childMap.values().toArray();
-		Arrays.sort(sortedChildren);
-	}
+    public void buildSortedChildArray() {
+        sortedChildren = childMap.values().toArray();
+        Arrays.sort(sortedChildren);
+    }
 
-	public int compareTo(Object other) {
-		return toString().compareTo(other.toString());
-	}
+    public int compareTo(Object other) {
+        return toString().compareTo(other.toString());
+    }
 
-	public Object getKey() {
-		return Integer.valueOf(id);
-	}
+    public Object getKey() {
+        return Integer.valueOf(id);
+    }
 
-	public String serialize() {
-		return null;
-	}
+    public String serialize() {
+        return null;
+    }
 
-	public static Base getInst(String[] arg) {
-		if (arg == null) {
-			return null;
-		}
-		return null;
-	}
+    public static Base getInst(String[] arg) {
+        if (arg == null) {
+            return null;
+        }
+        return null;
+    }
 }

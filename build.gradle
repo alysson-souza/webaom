@@ -2,7 +2,7 @@ plugins {
 	id 'java'
 	id 'application'
 	id 'com.diffplug.spotless' version '8.1.0'
-	id 'checkstyle'
+	id 'com.palantir.java-format' version '2.83.0'
 }
 
 group = 'epox'
@@ -74,7 +74,6 @@ spotless {
 	java {
 		target 'src/main/java/epox/**/*.java'
 		removeUnusedImports()
-		eclipse().configFile("${rootDir}/config/eclipse-formatter.xml")
 		formatAnnotations()
 		trimTrailingWhitespace()
 		endWithNewline()
@@ -84,20 +83,5 @@ spotless {
 	groovyGradle {
 		target '*.gradle'
 		greclipse()
-	}
-}
-
-checkstyle {
-	toolVersion = '12.1.2'
-	configFile = file("${rootDir}/config/checkstyle/checkstyle.xml")
-	ignoreFailures = true
-	maxWarnings = 0
-	maxErrors = 0
-}
-
-tasks.withType(Checkstyle).configureEach {
-	reports {
-		xml.required = true
-		html.required = true
 	}
 }

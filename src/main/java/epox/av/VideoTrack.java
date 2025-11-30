@@ -13,25 +13,25 @@ package epox.av;
  * Do not rename without updating the native avinfo library.
  */
 public class VideoTrack extends GenericTrack {
-	/** Video width in pixels (native resolution). */
-	public int pixel_width;
+    /** Video width in pixels (native resolution). */
+    public int pixel_width;
 
-	/** Video height in pixels (native resolution). */
-	public int pixel_height;
+    /** Video height in pixels (native resolution). */
+    public int pixel_height;
 
-	/** Display width (after aspect ratio adjustment). */
-	public int display_width;
+    /** Display width (after aspect ratio adjustment). */
+    public int display_width;
 
-	/** Display height (after aspect ratio adjustment). */
-	public int display_height;
+    /** Display height (after aspect ratio adjustment). */
+    public int display_height;
 
-	/** Frames per second (multiplied by 1000 for precision). */
-	public int fps;
+    /** Frames per second (multiplied by 1000 for precision). */
+    public int fps;
 
-	/** Whether the video uses variable frame rate. */
-	public boolean vfr;
+    /** Whether the video uses variable frame rate. */
+    public boolean vfr;
 
-	public VideoTrack(GenericTrack gt) {
-		super(gt);
-	}
+    public VideoTrack(GenericTrack gt) {
+        super(gt);
+    }
 }

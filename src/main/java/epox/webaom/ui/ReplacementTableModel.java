@@ -23,136 +23,135 @@
 package epox.webaom.ui;
 
 import epox.util.ReplacementRule;
-
+import java.util.Vector;
 import javax.swing.JTable;
 import javax.swing.SwingConstants;
 import javax.swing.table.AbstractTableModel;
 import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.TableColumnModel;
-import java.util.Vector;
 
 public class ReplacementTableModel extends AbstractTableModel {
-	public static final int COLUMN_SELECTED = 0;
-	public static final int COLUMN_SOURCE = 1;
-	public static final int COLUMN_DESTINATION = 2;
+    public static final int COLUMN_SELECTED = 0;
+    public static final int COLUMN_SOURCE = 1;
+    public static final int COLUMN_DESTINATION = 2;
 
-	private Vector<ReplacementRule> rowDataList;
-	private final String sourceColumnTitle;
-	private final String destinationColumnTitle;
-	private final ReplacementRule emptyRowPlaceholder;
+    private Vector<ReplacementRule> rowDataList;
+    private final String sourceColumnTitle;
+    private final String destinationColumnTitle;
+    private final ReplacementRule emptyRowPlaceholder;
 
-	public ReplacementTableModel(Vector<ReplacementRule> dataVector, String sourceTitle, String destinationTitle) {
-		setData(dataVector);
-		sourceColumnTitle = sourceTitle;
-		destinationColumnTitle = destinationTitle;
-		emptyRowPlaceholder = new ReplacementRule("", "", false);
-	}
+    public ReplacementTableModel(Vector<ReplacementRule> dataVector, String sourceTitle, String destinationTitle) {
+        setData(dataVector);
+        sourceColumnTitle = sourceTitle;
+        destinationColumnTitle = destinationTitle;
+        emptyRowPlaceholder = new ReplacementRule("", "", false);
+    }
 
-	public Vector<ReplacementRule> getData() {
-		return rowDataList;
-	}
+    public Vector<ReplacementRule> getData() {
+        return rowDataList;
+    }
 
-	public void setData(Vector<ReplacementRule> dataVector) {
-		rowDataList = dataVector;
-	}
+    public void setData(Vector<ReplacementRule> dataVector) {
+        rowDataList = dataVector;
+    }
 
-	public int getColumnCount() {
-		return 3;
-	}
+    public int getColumnCount() {
+        return 3;
+    }
 
-	public Class<?> getColumnClass(int columnIndex) {
-		return switch (columnIndex) {
-			case COLUMN_SELECTED -> Boolean.class;
-			default -> String.class;
-		};
-	}
+    public Class<?> getColumnClass(int columnIndex) {
+        return switch (columnIndex) {
+            case COLUMN_SELECTED -> Boolean.class;
+            default -> String.class;
+        };
+    }
 
-	public int getRowCount() {
-		return rowDataList.size() + 1;
-	}
+    public int getRowCount() {
+        return rowDataList.size() + 1;
+    }
 
-	public Object getValueAt(int rowIndex, int columnIndex) {
-		ReplacementRule rowData;
-		if (rowIndex == rowDataList.size()) {
-			rowData = emptyRowPlaceholder;
-		} else {
-			rowData = rowDataList.elementAt(rowIndex);
-		}
-		return switch (columnIndex) {
-			case COLUMN_SELECTED -> rowData.enabled;
-			case COLUMN_SOURCE -> rowData.source;
-			case COLUMN_DESTINATION -> rowData.destination;
-			default -> null;
-		};
-	}
+    public Object getValueAt(int rowIndex, int columnIndex) {
+        ReplacementRule rowData;
+        if (rowIndex == rowDataList.size()) {
+            rowData = emptyRowPlaceholder;
+        } else {
+            rowData = rowDataList.elementAt(rowIndex);
+        }
+        return switch (columnIndex) {
+            case COLUMN_SELECTED -> rowData.enabled;
+            case COLUMN_SOURCE -> rowData.source;
+            case COLUMN_DESTINATION -> rowData.destination;
+            default -> null;
+        };
+    }
 
-	public boolean isCellEditable(int rowIndex, int columnIndex) {
-		return true;
-	}
+    public boolean isCellEditable(int rowIndex, int columnIndex) {
+        return true;
+    }
 
-	public void setValueAt(Object value, int rowIndex, int columnIndex) {
-		ReplacementRule rowData;
-		if (rowIndex == rowDataList.size()) {
-			rowData = new ReplacementRule("", "", false);
-			rowDataList.add(rowData);
-			fireTableRowsInserted(rowIndex, rowIndex);
-		} else {
-			rowData = rowDataList.elementAt(rowIndex);
-		}
-		if (rowData != null) {
-			switch (columnIndex) {
-				case COLUMN_SELECTED :
-					if (!rowData.source.isEmpty()) {
-						rowData.enabled = (Boolean) value;
-					}
-					break;
-				case COLUMN_SOURCE :
-					rowData.source = (String) value;
-					if (rowData.source.isEmpty()) {
-						rowDataList.remove(rowData);
-					}
-					break;
-				case COLUMN_DESTINATION :
-					rowData.destination = getValidatedDestination(value);
-					break;
-				default :
-					break;
-			}
-		}
-	}
+    public void setValueAt(Object value, int rowIndex, int columnIndex) {
+        ReplacementRule rowData;
+        if (rowIndex == rowDataList.size()) {
+            rowData = new ReplacementRule("", "", false);
+            rowDataList.add(rowData);
+            fireTableRowsInserted(rowIndex, rowIndex);
+        } else {
+            rowData = rowDataList.elementAt(rowIndex);
+        }
+        if (rowData != null) {
+            switch (columnIndex) {
+                case COLUMN_SELECTED:
+                    if (!rowData.source.isEmpty()) {
+                        rowData.enabled = (Boolean) value;
+                    }
+                    break;
+                case COLUMN_SOURCE:
+                    rowData.source = (String) value;
+                    if (rowData.source.isEmpty()) {
+                        rowDataList.remove(rowData);
+                    }
+                    break;
+                case COLUMN_DESTINATION:
+                    rowData.destination = getValidatedDestination(value);
+                    break;
+                default:
+                    break;
+            }
+        }
+    }
 
-	/**
-	 * Validates the destination value, ensuring it doesn't duplicate an existing source.
-	 */
-	private String getValidatedDestination(Object destinationValue) {
-		String destination = (String) destinationValue;
-		ReplacementRule rowData;
-		for (int i = 0; i < rowDataList.size(); i++) {
-			rowData = rowDataList.elementAt(i);
-			if (rowData.source.equals(destination)) {
-				return "";
-			}
-		}
-		return destination;
-	}
+    /**
+     * Validates the destination value, ensuring it doesn't duplicate an existing source.
+     */
+    private String getValidatedDestination(Object destinationValue) {
+        String destination = (String) destinationValue;
+        ReplacementRule rowData;
+        for (int i = 0; i < rowDataList.size(); i++) {
+            rowData = rowDataList.elementAt(i);
+            if (rowData.source.equals(destination)) {
+                return "";
+            }
+        }
+        return destination;
+    }
 
-	public String getColumnName(int columnIndex) {
-		return switch (columnIndex) {
-			case COLUMN_SELECTED -> "Enabled";
-			case COLUMN_SOURCE -> sourceColumnTitle;
-			case COLUMN_DESTINATION -> destinationColumnTitle;
-			default -> "No such column!";
-		};
-	}
+    public String getColumnName(int columnIndex) {
+        return switch (columnIndex) {
+            case COLUMN_SELECTED -> "Enabled";
+            case COLUMN_SOURCE -> sourceColumnTitle;
+            case COLUMN_DESTINATION -> destinationColumnTitle;
+            default -> "No such column!";
+        };
+    }
 
-	public static void formatTable(JTable table) {
-		TableColumnModel columnModel = table.getColumnModel();
-		columnModel.getColumn(COLUMN_SELECTED).setMaxWidth(50);
-		columnModel.getColumn(COLUMN_SOURCE).setPreferredWidth(100);
-		columnModel.getColumn(COLUMN_DESTINATION).setPreferredWidth(100);
-		DefaultTableCellRenderer centeredRenderer = new DefaultTableCellRenderer();
-		centeredRenderer.setHorizontalAlignment(SwingConstants.CENTER);
-		columnModel.getColumn(COLUMN_SOURCE).setCellRenderer(centeredRenderer);
-		columnModel.getColumn(COLUMN_DESTINATION).setCellRenderer(centeredRenderer);
-	}
+    public static void formatTable(JTable table) {
+        TableColumnModel columnModel = table.getColumnModel();
+        columnModel.getColumn(COLUMN_SELECTED).setMaxWidth(50);
+        columnModel.getColumn(COLUMN_SOURCE).setPreferredWidth(100);
+        columnModel.getColumn(COLUMN_DESTINATION).setPreferredWidth(100);
+        DefaultTableCellRenderer centeredRenderer = new DefaultTableCellRenderer();
+        centeredRenderer.setHorizontalAlignment(SwingConstants.CENTER);
+        columnModel.getColumn(COLUMN_SOURCE).setCellRenderer(centeredRenderer);
+        columnModel.getColumn(COLUMN_DESTINATION).setCellRenderer(centeredRenderer);
+    }
 }

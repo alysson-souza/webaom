@@ -23,44 +23,43 @@ package epox.webaom.ui;
 import epox.swing.HeaderListener;
 import epox.swing.SortButtonRenderer;
 import epox.webaom.data.Anime;
-
-import javax.swing.table.TableColumnModel;
 import java.awt.event.MouseEvent;
+import javax.swing.table.TableColumnModel;
 
 /**
  * Header click listener for the alternate (tree-based) file view. Handles column sorting by clicking column headers.
  */
 public class AlternateViewHeaderListener extends HeaderListener {
-	/** Current sort column index (positive = ascending, negative = descending) */
-	private int currentSortColumn = 0;
+    /** Current sort column index (positive = ascending, negative = descending) */
+    private int currentSortColumn = 0;
 
-	/** The tree table this listener manages */
-	protected JobTreeTable treeTable;
+    /** The tree table this listener manages */
+    protected JobTreeTable treeTable;
 
-	public AlternateViewHeaderListener(JobTreeTable treeTable) {
-		super(null, null, null);
-		this.treeTable = treeTable;
-		sortButtonRenderer = new SortButtonRenderer();
-		TableColumnModel columnModel = treeTable.getColumnModel();
-		for (int columnIndex = 0; columnIndex < columnModel.getColumnCount(); columnIndex++) {
-			columnModel.getColumn(columnIndex).setHeaderRenderer(sortButtonRenderer);
-		}
+    public AlternateViewHeaderListener(JobTreeTable treeTable) {
+        super(null, null, null);
+        this.treeTable = treeTable;
+        sortButtonRenderer = new SortButtonRenderer();
+        TableColumnModel columnModel = treeTable.getColumnModel();
+        for (int columnIndex = 0; columnIndex < columnModel.getColumnCount(); columnIndex++) {
+            columnModel.getColumn(columnIndex).setHeaderRenderer(sortButtonRenderer);
+        }
 
-		tableHeader = treeTable.getTableHeader();
-		tableHeader.addMouseListener(this);
-	}
+        tableHeader = treeTable.getTableHeader();
+        tableHeader.addMouseListener(this);
+    }
 
-	@Override
-	public void mouseClicked(MouseEvent event) {
-		int clickedColumn = tableHeader.columnAtPoint(event.getPoint());
-		int sortColumn = tableHeader.getTable().convertColumnIndexToModel(clickedColumn) + 1;
-		if (currentSortColumn == sortColumn) {
-			sortColumn *= -1; // Toggle sort direction
-		}
-		currentSortColumn = sortColumn;
-		synchronized (treeTable) {
-			Anime.setSortColumn(sortColumn);
-			treeTable.updateUI();
-		}
-	}
+    @Override
+    public void mouseClicked(MouseEvent event) {
+        int clickedColumn = tableHeader.columnAtPoint(event.getPoint());
+        int sortColumn = tableHeader.getTable().convertColumnIndexToModel(clickedColumn) + 1;
+        if (currentSortColumn == sortColumn) {
+            sortColumn *= -1; // Toggle sort direction
+        }
+        currentSortColumn = sortColumn;
+        synchronized (treeTable) {
+            Anime.setSortColumn(sortColumn);
+            treeTable.updateUI();
+        }
+    }
 }

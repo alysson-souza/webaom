@@ -20,30 +20,30 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class AttributeMap extends HashMap<String, String> {
-	public String put(String key, String value) {
-		if (value == null) {
-			return null;
-		}
-		return super.put(key, value);
-	}
+    public String put(String key, String value) {
+        if (value == null) {
+            return null;
+        }
+        return super.put(key, value);
+    }
 
-	public String put(String key, int value) {
-		return put(key, Integer.toString(value));
-	}
+    public String put(String key, int value) {
+        return put(key, Integer.toString(value));
+    }
 
-	public String put(String key, long value) {
-		return put(key, Long.toString(value));
-	}
+    public String put(String key, long value) {
+        return put(key, Long.toString(value));
+    }
 
-	public String[][] toArray() {
-		int len = size();
-		String[][] res = new String[len][2];
-		int i = 0;
-		for (Map.Entry<String, String> e : entrySet()) {
-			res[i][0] = e.getKey();
-			res[i][1] = e.getValue();
-			i++;
-		}
-		return res;
-	}
+    public String[][] toArray() {
+        int len = size();
+        String[][] res = new String[len][2];
+        int i = 0;
+        for (Map.Entry<String, String> e : entrySet()) {
+            res[i][0] = e.getKey();
+            res[i][1] = e.getValue();
+            i++;
+        }
+        return res;
+    }
 }

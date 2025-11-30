@@ -5,7 +5,7 @@
 package epox.webaom.net;
 
 class TagMismatchException extends Exception {
-	TagMismatchException() {
-		super("Wrong Tag");
-	}
+    TagMismatchException() {
+        super("Wrong Tag");
+    }
 }

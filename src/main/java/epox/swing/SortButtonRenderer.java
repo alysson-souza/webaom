@@ -26,26 +26,26 @@ import javax.swing.table.TableCellRenderer;
  * Table cell renderer that renders column headers as clickable buttons for sorting.
  */
 public class SortButtonRenderer extends JButton implements TableCellRenderer {
-	/** Currently pressed column index, -1 if NONE */
-	private int pressedColumn;
+    /** Currently pressed column index, -1 if NONE */
+    private int pressedColumn;
 
-	public SortButtonRenderer() {
-		pressedColumn = -1;
-		setMargin(new Insets(0, 0, 0, 0));
-		setToolTipText("Right click to select columns");
-	}
+    public SortButtonRenderer() {
+        pressedColumn = -1;
+        setMargin(new Insets(0, 0, 0, 0));
+        setToolTipText("Right click to select columns");
+    }
 
-	@Override
-	public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus,
-			int row, int column) {
-		setText((value == null) ? "" : value.toString());
-		boolean isPressed = (column == pressedColumn);
-		getModel().setPressed(isPressed);
-		getModel().setArmed(isPressed);
-		return this;
-	}
+    @Override
+    public Component getTableCellRendererComponent(
+            JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int column) {
+        setText((value == null) ? "" : value.toString());
+        boolean isPressed = (column == pressedColumn);
+        getModel().setPressed(isPressed);
+        getModel().setArmed(isPressed);
+        return this;
+    }
 
-	public void setPressedColumn(int column) {
-		pressedColumn = column;
-	}
+    public void setPressedColumn(int column) {
+        pressedColumn = column;
+    }
 }
