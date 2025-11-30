@@ -31,24 +31,12 @@ import epox.webaom.ui.AlternateViewTableModel;
  * Represents an anime entry from AniDB with metadata and episode tracking.
  */
 public class Anime extends Base {
+    /** Title display priority: 0=romaji, 1=kanji, 2=english. */
+    public static int titlePriority = 0;
     /** Primary sort column index (positive = ascending, negative = descending). */
     private static int primarySortColumn = 1;
     /** Secondary sort column index for tie-breaking. */
     private static int secondarySortColumn = 1;
-
-    /**
-     * Sets the sort column, updating primary/secondary sort order.
-     *
-     * @param column
-     *            column index (positive = ascending, negative = descending)
-     */
-    public static void setSortColumn(int column) {
-        if (Math.abs(column) != Math.abs(primarySortColumn)) {
-            secondarySortColumn = primarySortColumn;
-        }
-        primarySortColumn = column;
-    }
-
     /** Start year of the anime. */
     public int year;
     /** End year of the anime (same as year if still ongoing or single year). */
@@ -98,6 +86,19 @@ public class Anime extends Base {
         init();
     }
 
+    /**
+     * Sets the sort column, updating primary/secondary sort order.
+     *
+     * @param column
+     *            column index (positive = ascending, negative = descending)
+     */
+    public static void setSortColumn(int column) {
+        if (Math.abs(column) != Math.abs(primarySortColumn)) {
+            secondarySortColumn = primarySortColumn;
+        }
+        primarySortColumn = column;
+    }
+
     public void init() {
         if (episodeProgress == null) {
             episodeProgress = new Bits(episodeCount > 0 ? episodeCount : latestEpisode);
@@ -107,9 +108,6 @@ public class Anime extends Base {
     public int getTotal() {
         return (episodeCount < 1 ? (latestEpisode < 10 ? 99 : latestEpisode) : episodeCount);
     }
-
-    /** Title display priority: 0=romaji, 1=kanji, 2=english. */
-    public static int titlePriority = 0;
 
     public String toString() {
         return switch (titlePriority) {

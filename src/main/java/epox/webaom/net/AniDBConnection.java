@@ -48,35 +48,27 @@ public class AniDBConnection implements ActionListener {
     public static final int DEFAULT_LOCAL_PORT = 45678;
 
     public static boolean shutdown = false;
-    public boolean authenticated = false;
-
+    private static int remainingLoginAttempts = 2;
     private final int tagLength = 5;
     private final int keepAliveInterval = 3 * 1000 * 60 * 10; // 30 min
+    private final Timer keepAliveTimer;
+    private final AniDBConnectionSettings settings;
+    private final Log log;
+    public boolean authenticated = false;
+    protected String session = null;
+    protected String currentTag = null;
     private int tagCounter = 0;
     private boolean connected = false;
     private UserPass userPass = null;
-
-    private static int remainingLoginAttempts = 2;
     private long timeUsed = 0;
     private long timestamp = 0;
     private int remainingAuthAttempts = 3;
     private String lastError = "Not Initialized.";
-
     private SecretKeySpec encryptionKey = null;
     private Cipher cipher;
-
     private DatagramSocket socket;
     private InetAddress serverAddress;
-    private final Timer keepAliveTimer;
-
-    private final AniDBConnectionSettings settings;
-
-    protected String session = null;
-    protected String currentTag = null;
-
     private String encoding = "ascii";
-
-    private final Log log;
 
     public AniDBConnection(Log log, AniDBConnectionSettings settings) {
         this.log = log;

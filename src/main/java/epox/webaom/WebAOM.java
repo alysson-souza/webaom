@@ -39,59 +39,6 @@ public class WebAOM extends JApplet {
     private static boolean global = false;
     private boolean inited = false;
 
-    public void init() {
-        Frame[] frames = Frame.getFrames();
-        if (frames.length > 0) {
-            AppContext.frame = frames[0];
-        }
-        AppContext.component = this;
-
-        /*
-         * try {
-         * javax.swing.UIManager.setLookAndFeel("com.sun.java.swing.plaf.windows.WindowsLookAndFeel");
-         * javax.swing.SwingUtilities.updateComponentTreeUI(JPanelMain.this);
-         * } catch (Exception e) {
-         * e.printStackTrace();
-         * }
-         */
-        if (global) {
-            JOptionPane.showMessageDialog(
-                    this,
-                    "You can only run one instance at once.",
-                    "Global report: You fail!",
-                    JOptionPane.PLAIN_MESSAGE);
-            return;
-        }
-        global = true;
-        inited = true;
-
-        AniDBConnection.shutdown = false;
-        setMyFont(new Font("Tahoma", Font.PLAIN, 11), new Font("Times", Font.PLAIN, 11));
-        AppContext.init();
-        Container main = this.getContentPane();
-        main.setLayout(new BorderLayout());
-        main.add(AppContext.gui, BorderLayout.CENTER);
-
-        AppContext.gui.startup();
-    }
-
-    public void stop() {
-        if (inited) {
-            AppContext.gui.kill();
-        }
-    }
-
-    public void destroy() {
-        if (inited) {
-            AppContext.gui.kill();
-            AppContext.shutdown(false);
-            remove(AppContext.gui);
-            super.destroy();
-            inited = false;
-            global = false;
-        }
-    }
-
     public static void main(String[] args) {
         try {
             mmain();
@@ -181,5 +128,58 @@ public class WebAOM extends JApplet {
         UIManager.put("ToolTip.font", f);
         UIManager.put("Tree.font", f);
         UIManager.put("Viewport.font", f);
+    }
+
+    public void init() {
+        Frame[] frames = Frame.getFrames();
+        if (frames.length > 0) {
+            AppContext.frame = frames[0];
+        }
+        AppContext.component = this;
+
+        /*
+         * try {
+         * javax.swing.UIManager.setLookAndFeel("com.sun.java.swing.plaf.windows.WindowsLookAndFeel");
+         * javax.swing.SwingUtilities.updateComponentTreeUI(JPanelMain.this);
+         * } catch (Exception e) {
+         * e.printStackTrace();
+         * }
+         */
+        if (global) {
+            JOptionPane.showMessageDialog(
+                    this,
+                    "You can only run one instance at once.",
+                    "Global report: You fail!",
+                    JOptionPane.PLAIN_MESSAGE);
+            return;
+        }
+        global = true;
+        inited = true;
+
+        AniDBConnection.shutdown = false;
+        setMyFont(new Font("Tahoma", Font.PLAIN, 11), new Font("Times", Font.PLAIN, 11));
+        AppContext.init();
+        Container main = this.getContentPane();
+        main.setLayout(new BorderLayout());
+        main.add(AppContext.gui, BorderLayout.CENTER);
+
+        AppContext.gui.startup();
+    }
+
+    public void stop() {
+        if (inited) {
+            AppContext.gui.kill();
+        }
+    }
+
+    public void destroy() {
+        if (inited) {
+            AppContext.gui.kill();
+            AppContext.shutdown(false);
+            remove(AppContext.gui);
+            super.destroy();
+            inited = false;
+            global = false;
+        }
     }
 }

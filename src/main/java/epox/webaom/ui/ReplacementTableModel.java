@@ -34,17 +34,27 @@ public class ReplacementTableModel extends AbstractTableModel {
     public static final int COLUMN_SELECTED = 0;
     public static final int COLUMN_SOURCE = 1;
     public static final int COLUMN_DESTINATION = 2;
-
-    private Vector<ReplacementRule> rowDataList;
     private final String sourceColumnTitle;
     private final String destinationColumnTitle;
     private final ReplacementRule emptyRowPlaceholder;
+    private Vector<ReplacementRule> rowDataList;
 
     public ReplacementTableModel(Vector<ReplacementRule> dataVector, String sourceTitle, String destinationTitle) {
         setData(dataVector);
         sourceColumnTitle = sourceTitle;
         destinationColumnTitle = destinationTitle;
         emptyRowPlaceholder = new ReplacementRule("", "", false);
+    }
+
+    public static void formatTable(JTable table) {
+        TableColumnModel columnModel = table.getColumnModel();
+        columnModel.getColumn(COLUMN_SELECTED).setMaxWidth(50);
+        columnModel.getColumn(COLUMN_SOURCE).setPreferredWidth(100);
+        columnModel.getColumn(COLUMN_DESTINATION).setPreferredWidth(100);
+        DefaultTableCellRenderer centeredRenderer = new DefaultTableCellRenderer();
+        centeredRenderer.setHorizontalAlignment(SwingConstants.CENTER);
+        columnModel.getColumn(COLUMN_SOURCE).setCellRenderer(centeredRenderer);
+        columnModel.getColumn(COLUMN_DESTINATION).setCellRenderer(centeredRenderer);
     }
 
     public Vector<ReplacementRule> getData() {
@@ -142,16 +152,5 @@ public class ReplacementTableModel extends AbstractTableModel {
             case COLUMN_DESTINATION -> destinationColumnTitle;
             default -> "No such column!";
         };
-    }
-
-    public static void formatTable(JTable table) {
-        TableColumnModel columnModel = table.getColumnModel();
-        columnModel.getColumn(COLUMN_SELECTED).setMaxWidth(50);
-        columnModel.getColumn(COLUMN_SOURCE).setPreferredWidth(100);
-        columnModel.getColumn(COLUMN_DESTINATION).setPreferredWidth(100);
-        DefaultTableCellRenderer centeredRenderer = new DefaultTableCellRenderer();
-        centeredRenderer.setHorizontalAlignment(SwingConstants.CENTER);
-        columnModel.getColumn(COLUMN_SOURCE).setCellRenderer(centeredRenderer);
-        columnModel.getColumn(COLUMN_DESTINATION).setCellRenderer(centeredRenderer);
     }
 }

@@ -6,23 +6,6 @@ package epox.webaom.startup;
  */
 public record StartupIssue(Severity severity, String title, String message, String suggestion, Exception cause) {
 
-    /** Severity levels for startup issues */
-    public enum Severity {
-        INFO("Info"),
-        WARN("Warning"),
-        ERROR("Error");
-
-        private final String displayName;
-
-        Severity(String displayName) {
-            this.displayName = displayName;
-        }
-
-        public String getDisplayName() {
-            return displayName;
-        }
-    }
-
     /**
      * Create a startup issue with detailed information.
      *
@@ -88,5 +71,22 @@ public record StartupIssue(Severity severity, String title, String message, Stri
     @Override
     public String toString() {
         return getFormattedMessage();
+    }
+
+    /** Severity levels for startup issues */
+    public enum Severity {
+        INFO("Info"),
+        WARN("Warning"),
+        ERROR("Error");
+
+        private final String displayName;
+
+        Severity(String displayName) {
+            this.displayName = displayName;
+        }
+
+        public String getDisplayName() {
+            return displayName;
+        }
     }
 }

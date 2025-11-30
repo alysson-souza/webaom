@@ -33,6 +33,14 @@ public class AniDBFileClient extends AniDBConnection {
         super(log, settings);
     }
 
+    /** Escapes special characters for XML/HTML encoding and converts newlines to BR tags. */
+    public static String escapeForXml(String input) {
+        String escaped = StringUtilities.replace(input, "&", "&amp;");
+        escaped = StringUtilities.replace(escaped, "\r", "");
+        escaped = StringUtilities.replace(escaped, "\n", "<br />");
+        return escaped;
+    }
+
     public String[] retrieveFileData(long fileSize, String ed2kHash, String fileName) throws AniDBException {
         String query = "size=" + fileSize + "&ed2k=" + ed2kHash + FILE_AND_ANIME_CODES;
         String ed2kLink = "ed2k://|file|" + fileName + "|" + fileSize + "|" + ed2kHash + "|";
@@ -57,14 +65,6 @@ public class AniDBFileClient extends AniDBConnection {
                 error("Unexpected response (" + response.code + "): " + response.message);
         }
         return null;
-    }
-
-    /** Escapes special characters for XML/HTML encoding and converts newlines to BR tags. */
-    public static String escapeForXml(String input) {
-        String escaped = StringUtilities.replace(input, "&", "&amp;");
-        escaped = StringUtilities.replace(escaped, "\r", "");
-        escaped = StringUtilities.replace(escaped, "\n", "<br />");
-        return escaped;
     }
 
     public int addFileToMylist(Job job, Mylist mylistEntry) throws AniDBException {

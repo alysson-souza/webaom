@@ -30,12 +30,19 @@ public class Base implements Comparable {
     protected static final char S = '|';
     /** Map of child objects keyed by their unique identifier. */
     private final HashMap<Object, Base> childMap = new HashMap<>();
-    /** Sorted array of children (populated by buildSortedChildArray()). */
-    private Object[] sortedChildren = null;
     /** Unique identifier for this object. */
     public int id;
     /** Total size in bytes (aggregated from children). */
     public long totalSize;
+    /** Sorted array of children (populated by buildSortedChildArray()). */
+    private Object[] sortedChildren = null;
+
+    public static Base getInst(String[] arg) {
+        if (arg == null) {
+            return null;
+        }
+        return null;
+    }
 
     public Base get(int index) {
         if (sortedChildren == null) {
@@ -114,13 +121,6 @@ public class Base implements Comparable {
     }
 
     public String serialize() {
-        return null;
-    }
-
-    public static Base getInst(String[] arg) {
-        if (arg == null) {
-            return null;
-        }
         return null;
     }
 }

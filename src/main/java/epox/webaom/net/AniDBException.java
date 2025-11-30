@@ -44,10 +44,6 @@ public class AniDBException extends Exception {
         this.code = code;
     }
 
-    public boolean is(int i) {
-        return code == i;
-    }
-
     public static String defaultMsg(int code) {
         switch (code) {
             case CLIENT_BANNED:
@@ -63,5 +59,9 @@ public class AniDBException extends Exception {
             default:
                 return "Unknown Error.";
         }
+    }
+
+    public boolean is(int i) {
+        return code == i;
     }
 }

@@ -32,7 +32,57 @@ import java.util.StringTokenizer;
 public class Options {
     /** Primary field separator character (ASCII SOH) for serialization. */
     public static final String FIELD_SEPARATOR = "\1";
+    // Boolean option indices
+    public static final int BOOL_UNUSED_0 = 0;
+    public static final int BOOL_HASH_CRC = 1;
+    public static final int BOOL_HASH_MD5 = 2;
+    public static final int BOOL_HASH_SHA = 3;
+    public static final int BOOL_HASH_TTH = 4;
+    public static final int BOOL_ADD_FILE = 5;
+    public static final int BOOL_WATCHED = 6;
+    public static final int BOOL_UNUSED_1 = 7;
+    public static final int BOOL_NAT_KEEP_ALIVE = 8;
+    public static final int BOOL_STORE_PASSWORD = 9;
+    public static final int BOOL_AUTO_LOAD_DATABASE = 10;
+    public static final int BOOL_AUTO_LOGIN = 11;
+    public static final int BOOL_AUTO_SAVE = 12;
+    /** When disabled, files won't be automatically renamed/moved after identification. */
+    public static final int BOOL_AUTO_RENAME = 13;
 
+    public static final int BOOLEAN_OPTIONS_COUNT = 14;
+    // Integer option indices
+    public static final int INT_REMOTE_PORT = 0;
+    public static final int INT_LOCAL_PORT = 1;
+    /** File state on mylist add. */
+    public static final int INT_FILE_STATE = 2;
+    /** Network timeout in milliseconds. */
+    public static final int INT_TIMEOUT = 3;
+    /** Datagram delay between packets. */
+    public static final int INT_DATAGRAM_DELAY = 4;
+    /** Rename mode setting. */
+    public static final int INT_RENAME_MODE = 5;
+
+    public static final int INTEGER_OPTIONS_COUNT = 6;
+    // String option indices
+    public static final int STR_USERNAME = 0;
+    public static final int STR_HOST_URL = 1;
+    public static final int STR_DATABASE_URL = 2;
+    public static final int STR_HASH_DIRECTORY = 3;
+    public static final int STR_BROWSER = 4;
+    public static final int STR_EXTENSIONS = 5;
+    public static final int STR_SOURCE_FOLDER = 6;
+    public static final int STR_STORAGE = 7;
+    public static final int STR_OTHER_INFO = 8;
+    public static final int STR_RENAME_RULES = 9;
+    public static final int STR_MOVE_RULES = 10;
+    public static final int STR_REPLACE_RULES = 11;
+    public static final int STR_HTML_COLORS = 12;
+    public static final int STR_LOG_FILE = 13;
+    public static final int STR_PATH_REGEX = 14;
+    public static final int STR_FONT = 15;
+    public static final int STR_LOG_HEADER = 16;
+    public static final int STR_JOB_COLUMNS = 17;
+    public static final int STRING_OPTIONS_COUNT = 18;
     private static final String OPTIONS_VERSION = "001";
     /** Secondary separator character (ASCII STX) for section boundaries. */
     private static final String SECTION_SEPARATOR = "\2";
@@ -218,58 +268,4 @@ public class Options {
             stringOptions[index] = (tokenValue == null || tokenValue.equals("null")) ? "" : tokenValue;
         }
     }
-
-    // Boolean option indices
-    public static final int BOOL_UNUSED_0 = 0;
-    public static final int BOOL_HASH_CRC = 1;
-    public static final int BOOL_HASH_MD5 = 2;
-    public static final int BOOL_HASH_SHA = 3;
-    public static final int BOOL_HASH_TTH = 4;
-    public static final int BOOL_ADD_FILE = 5;
-    public static final int BOOL_WATCHED = 6;
-    public static final int BOOL_UNUSED_1 = 7;
-    public static final int BOOL_NAT_KEEP_ALIVE = 8;
-    public static final int BOOL_STORE_PASSWORD = 9;
-    public static final int BOOL_AUTO_LOAD_DATABASE = 10;
-    public static final int BOOL_AUTO_LOGIN = 11;
-    public static final int BOOL_AUTO_SAVE = 12;
-    /** When disabled, files won't be automatically renamed/moved after identification. */
-    public static final int BOOL_AUTO_RENAME = 13;
-
-    public static final int BOOLEAN_OPTIONS_COUNT = 14;
-
-    // Integer option indices
-    public static final int INT_REMOTE_PORT = 0;
-    public static final int INT_LOCAL_PORT = 1;
-    /** File state on mylist add. */
-    public static final int INT_FILE_STATE = 2;
-    /** Network timeout in milliseconds. */
-    public static final int INT_TIMEOUT = 3;
-    /** Datagram delay between packets. */
-    public static final int INT_DATAGRAM_DELAY = 4;
-    /** Rename mode setting. */
-    public static final int INT_RENAME_MODE = 5;
-
-    public static final int INTEGER_OPTIONS_COUNT = 6;
-
-    // String option indices
-    public static final int STR_USERNAME = 0;
-    public static final int STR_HOST_URL = 1;
-    public static final int STR_DATABASE_URL = 2;
-    public static final int STR_HASH_DIRECTORY = 3;
-    public static final int STR_BROWSER = 4;
-    public static final int STR_EXTENSIONS = 5;
-    public static final int STR_SOURCE_FOLDER = 6;
-    public static final int STR_STORAGE = 7;
-    public static final int STR_OTHER_INFO = 8;
-    public static final int STR_RENAME_RULES = 9;
-    public static final int STR_MOVE_RULES = 10;
-    public static final int STR_REPLACE_RULES = 11;
-    public static final int STR_HTML_COLORS = 12;
-    public static final int STR_LOG_FILE = 13;
-    public static final int STR_PATH_REGEX = 14;
-    public static final int STR_FONT = 15;
-    public static final int STR_LOG_HEADER = 16;
-    public static final int STR_JOB_COLUMNS = 17;
-    public static final int STRING_OPTIONS_COUNT = 18;
 }

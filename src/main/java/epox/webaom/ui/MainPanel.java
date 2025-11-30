@@ -90,17 +90,20 @@ import javax.swing.event.HyperlinkListener;
 
 public class MainPanel extends JPanel
         implements Log, ActionListener, HyperlinkListener, ChangeListener, DropTargetListener {
-    protected JTableJobs jobsTable;
-    protected JScrollBar jobsScrollBar;
-    protected TableModelJobs jobsTableModel;
-
-    private JTextField newExtensionTextField;
-    private JEditorPaneLog logEditorPane;
-    private JTextArea hashTextArea;
-    private JButton[] toolbarButtons;
-    private JCheckBox autoAddToMylistCheckbox;
-    private JTabbedPane tabbedPane;
-
+    private static final int BUTTON_WIKI = 0;
+    private static final int BUTTON_SELECT_FILES = 1;
+    private static final int BUTTON_SELECT_DIRS = 2;
+    private static final int BUTTON_HASH = 3;
+    private static final int BUTTON_CONNECTION = 4;
+    private static final int BUTTON_SAVE = 5;
+    private static final int BUTTON_EXPORT = 6;
+    private static final int BUTTON_IMPORT = 7;
+    private static final int BUTTON_COUNT = 8;
+    private static final String LABEL_NETWORK_IO_ENABLE = "Login";
+    private static final String LABEL_NETWORK_IO_DISABLE = "Log out";
+    private static final String LABEL_DISK_IO_ENABLE = "Start";
+    private static final String LABEL_DISK_IO_DISABLE = "Stop";
+    private final Runnable jobScrollDownRunnable;
     public JProgressBar statusProgressBar;
     public JProgressBar jobProgressBar;
     public RulesOptionsPanel rulesOptionsPanel;
@@ -109,22 +112,29 @@ public class MainPanel extends JPanel
     public MylistOptionsPanel mylistOptionsPanel;
     public JobsPanel jobsPanel;
     public AlternateViewPanel altViewPanel;
-
+    public Thread diskIoThread;
+    public Thread networkIoThread;
+    public Thread workerThread;
+    protected JTableJobs jobsTable;
+    protected JScrollBar jobsScrollBar;
+    protected TableModelJobs jobsTableModel;
     protected boolean cancelRecursiveWorker;
+    protected Timer diskIoTimer;
+    protected Timer progressTimer;
+    protected Timer unfreezeTimer;
+    protected Timer guiUpdateTimer;
+    private JTextField newExtensionTextField;
+    private JEditorPaneLog logEditorPane;
+    private JTextArea hashTextArea;
+    private JButton[] toolbarButtons;
+    private JCheckBox autoAddToMylistCheckbox;
+    private JTabbedPane tabbedPane;
     private boolean isKilled;
     private boolean isDiskIoRunning;
     private boolean isNetworkIoRunning;
     private int updateCount = 0;
     private String lastStatusMessage;
-    private final Runnable jobScrollDownRunnable;
     private Border originalJobsBorder;
-    protected Timer diskIoTimer;
-    protected Timer progressTimer;
-    protected Timer unfreezeTimer;
-    protected Timer guiUpdateTimer;
-    public Thread diskIoThread;
-    public Thread networkIoThread;
-    public Thread workerThread;
 
     public MainPanel() {
         isKilled = false;
@@ -180,6 +190,52 @@ public class MainPanel extends JPanel
             }
         } catch (Exception ex) {
             /* don't care */
+        }
+    }
+
+    private static String getButtonName(int buttonIndex) {
+        switch (buttonIndex) {
+            case BUTTON_SELECT_FILES:
+                return "Files...";
+            case BUTTON_SELECT_DIRS:
+                return "Folders...";
+            case BUTTON_HASH:
+                return LABEL_DISK_IO_ENABLE;
+            case BUTTON_CONNECTION:
+                return LABEL_NETWORK_IO_ENABLE;
+            case BUTTON_SAVE:
+                return "Save opt";
+            case BUTTON_WIKI:
+                return "Help!";
+            case BUTTON_EXPORT:
+                return "Export";
+            case BUTTON_IMPORT:
+                return "Import";
+            default:
+                return "No text!";
+        }
+    }
+
+    private static String getButtonToolTip(int buttonIndex) {
+        switch (buttonIndex) {
+            case BUTTON_SELECT_FILES:
+                return "Add files you want to hash";
+            case BUTTON_SELECT_DIRS:
+                return "Add folders with files you want to hash";
+            case BUTTON_HASH:
+                return "Start/stop the disk operations thread. (Hashing and moving)";
+            case BUTTON_CONNECTION:
+                return "Log on / log off the AniDB UDP Service";
+            case BUTTON_SAVE:
+                return "Save the options to disk";
+            case BUTTON_WIKI:
+                return "Check out the documentation @ AniDB WIKI";
+            case BUTTON_EXPORT:
+                return "Export loaded data";
+            case BUTTON_IMPORT:
+                return "Import exported data";
+            default:
+                return "No help!";
         }
     }
 
@@ -709,15 +765,6 @@ public class MainPanel extends JPanel
         JOptionPane.showMessageDialog(AppContext.component, msg, title, JOptionPane.WARNING_MESSAGE);
     }
 
-    protected class JobScrollDown implements Runnable {
-        @Override
-        public void run() {
-            if (!jobsScrollBar.getValueIsAdjusting()) {
-                jobsScrollBar.setValue(jobsScrollBar.getMaximum());
-            }
-        }
-    }
-
     public void println(Object message) {
         logEditorPane.println(message.toString());
         if (logEditorPane.isVisible()) {
@@ -900,11 +947,89 @@ public class MainPanel extends JPanel
         workerThread.start();
     }
 
+    private void clearHighlight() {
+        if (jobsPanel != null) {
+            if (originalJobsBorder != null) {
+                jobsPanel.setBorder(originalJobsBorder);
+            } else {
+                jobsPanel.setBorder(new EtchedBorder());
+            }
+            jobsPanel.repaint();
+        }
+    }
+
+    @Override
+    public void dragEnter(DropTargetDragEvent dragEvent) {
+        if (dragEvent.getTransferable().isDataFlavorSupported(DataFlavor.javaFileListFlavor)) {
+            dragEvent.acceptDrag(DnDConstants.ACTION_COPY);
+            switchToJobsTab();
+
+            if (jobsPanel != null) {
+                if (originalJobsBorder == null) {
+                    originalJobsBorder = jobsPanel.getBorder();
+                }
+                jobsPanel.setBorder(new LineBorder(Color.BLUE, 1));
+            }
+        } else {
+            dragEvent.rejectDrag();
+        }
+    }
+
+    @Override
+    public void dragOver(DropTargetDragEvent dragEvent) {
+        // No action needed
+    }
+
+    @Override
+    public void dropActionChanged(DropTargetDragEvent dragEvent) {
+        // No action needed
+    }
+
+    @Override
+    public void dragExit(DropTargetEvent dragExitEvent) {
+        clearHighlight();
+    }
+
+    @Override
+    public void drop(DropTargetDropEvent dropEvent) {
+        try {
+            Transferable transferable = dropEvent.getTransferable();
+            if (transferable.isDataFlavorSupported(DataFlavor.javaFileListFlavor)) {
+                dropEvent.acceptDrop(DnDConstants.ACTION_COPY);
+                @SuppressWarnings("unchecked")
+                java.util.List<File> fileList =
+                        (java.util.List<File>) transferable.getTransferData(DataFlavor.javaFileListFlavor);
+                File[] files = fileList.toArray(new File[0]);
+                java.util.Arrays.sort(files);
+                selectFilesForProcessing(files);
+                dropEvent.dropComplete(true);
+                clearHighlight();
+                if (jobsPanel != null) {
+                    jobsPanel.repaint();
+                }
+            } else {
+                dropEvent.rejectDrop();
+            }
+        } catch (Exception ex) {
+            ex.printStackTrace();
+            dropEvent.rejectDrop();
+        }
+    }
+
+    protected class JobScrollDown implements Runnable {
+        @Override
+        public void run() {
+            if (!jobsScrollBar.getValueIsAdjusting()) {
+                jobsScrollBar.setValue(jobsScrollBar.getMaximum());
+            }
+        }
+    }
+
     /** Thread that recursively scans directories for files to process. */
     private class RecursiveDirectoryScanner extends Thread {
         private final File[] directories;
-        private int directoryCount = 0;
         private final boolean shouldPrintStatus;
+        private int directoryCount = 0;
 
         public RecursiveDirectoryScanner(File[] directories, boolean isHiddenDir) {
             super("RecursiveDirectoryScanner");
@@ -1037,135 +1162,6 @@ public class MainPanel extends JPanel
                 ex.printStackTrace();
             }
             workerThread = null;
-        }
-    }
-
-    private static final int BUTTON_WIKI = 0;
-    private static final int BUTTON_SELECT_FILES = 1;
-    private static final int BUTTON_SELECT_DIRS = 2;
-    private static final int BUTTON_HASH = 3;
-    private static final int BUTTON_CONNECTION = 4;
-    private static final int BUTTON_SAVE = 5;
-    private static final int BUTTON_EXPORT = 6;
-    private static final int BUTTON_IMPORT = 7;
-    private static final int BUTTON_COUNT = 8;
-    private static final String LABEL_NETWORK_IO_ENABLE = "Login";
-    private static final String LABEL_NETWORK_IO_DISABLE = "Log out";
-    private static final String LABEL_DISK_IO_ENABLE = "Start";
-    private static final String LABEL_DISK_IO_DISABLE = "Stop";
-
-    private static String getButtonName(int buttonIndex) {
-        switch (buttonIndex) {
-            case BUTTON_SELECT_FILES:
-                return "Files...";
-            case BUTTON_SELECT_DIRS:
-                return "Folders...";
-            case BUTTON_HASH:
-                return LABEL_DISK_IO_ENABLE;
-            case BUTTON_CONNECTION:
-                return LABEL_NETWORK_IO_ENABLE;
-            case BUTTON_SAVE:
-                return "Save opt";
-            case BUTTON_WIKI:
-                return "Help!";
-            case BUTTON_EXPORT:
-                return "Export";
-            case BUTTON_IMPORT:
-                return "Import";
-            default:
-                return "No text!";
-        }
-    }
-
-    private static String getButtonToolTip(int buttonIndex) {
-        switch (buttonIndex) {
-            case BUTTON_SELECT_FILES:
-                return "Add files you want to hash";
-            case BUTTON_SELECT_DIRS:
-                return "Add folders with files you want to hash";
-            case BUTTON_HASH:
-                return "Start/stop the disk operations thread. (Hashing and moving)";
-            case BUTTON_CONNECTION:
-                return "Log on / log off the AniDB UDP Service";
-            case BUTTON_SAVE:
-                return "Save the options to disk";
-            case BUTTON_WIKI:
-                return "Check out the documentation @ AniDB WIKI";
-            case BUTTON_EXPORT:
-                return "Export loaded data";
-            case BUTTON_IMPORT:
-                return "Import exported data";
-            default:
-                return "No help!";
-        }
-    }
-
-    private void clearHighlight() {
-        if (jobsPanel != null) {
-            if (originalJobsBorder != null) {
-                jobsPanel.setBorder(originalJobsBorder);
-            } else {
-                jobsPanel.setBorder(new EtchedBorder());
-            }
-            jobsPanel.repaint();
-        }
-    }
-
-    @Override
-    public void dragEnter(DropTargetDragEvent dragEvent) {
-        if (dragEvent.getTransferable().isDataFlavorSupported(DataFlavor.javaFileListFlavor)) {
-            dragEvent.acceptDrag(DnDConstants.ACTION_COPY);
-            switchToJobsTab();
-
-            if (jobsPanel != null) {
-                if (originalJobsBorder == null) {
-                    originalJobsBorder = jobsPanel.getBorder();
-                }
-                jobsPanel.setBorder(new LineBorder(Color.BLUE, 1));
-            }
-        } else {
-            dragEvent.rejectDrag();
-        }
-    }
-
-    @Override
-    public void dragOver(DropTargetDragEvent dragEvent) {
-        // No action needed
-    }
-
-    @Override
-    public void dropActionChanged(DropTargetDragEvent dragEvent) {
-        // No action needed
-    }
-
-    @Override
-    public void dragExit(DropTargetEvent dragExitEvent) {
-        clearHighlight();
-    }
-
-    @Override
-    public void drop(DropTargetDropEvent dropEvent) {
-        try {
-            Transferable transferable = dropEvent.getTransferable();
-            if (transferable.isDataFlavorSupported(DataFlavor.javaFileListFlavor)) {
-                dropEvent.acceptDrop(DnDConstants.ACTION_COPY);
-                @SuppressWarnings("unchecked")
-                java.util.List<File> fileList =
-                        (java.util.List<File>) transferable.getTransferData(DataFlavor.javaFileListFlavor);
-                File[] files = fileList.toArray(new File[0]);
-                java.util.Arrays.sort(files);
-                selectFilesForProcessing(files);
-                dropEvent.dropComplete(true);
-                clearHighlight();
-                if (jobsPanel != null) {
-                    jobsPanel.repaint();
-                }
-            } else {
-                dropEvent.rejectDrop();
-            }
-        } catch (Exception ex) {
-            ex.printStackTrace();
-            dropEvent.rejectDrop();
         }
     }
 }

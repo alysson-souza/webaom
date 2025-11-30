@@ -57,29 +57,6 @@ public class HeaderListener extends MouseAdapter {
         }
     }
 
-    private class ColumnAction implements ActionListener {
-        private final TableColumnModel model;
-        private final TableColumn column;
-        private final JCheckBoxMenuItem menuItem;
-
-        ColumnAction(TableColumnModel model, TableColumn column, JCheckBoxMenuItem menuItem) {
-            this.model = model;
-            this.column = column;
-            this.menuItem = menuItem;
-        }
-
-        @Override
-        public void actionPerformed(ActionEvent event) {
-            if (menuItem.isSelected()) {
-                model.addColumn(column);
-            } else if (model.getColumnCount() > 1) {
-                model.removeColumn(column);
-            } else {
-                menuItem.setSelected(true);
-            }
-        }
-    }
-
     @Override
     public void mouseClicked(MouseEvent event) {
         if (event.getButton() == MouseEvent.BUTTON1) {
@@ -113,6 +90,29 @@ public class HeaderListener extends MouseAdapter {
         if (event.getButton() == MouseEvent.BUTTON1) {
             sortButtonRenderer.setPressedColumn(-1);
             tableHeader.repaint();
+        }
+    }
+
+    private class ColumnAction implements ActionListener {
+        private final TableColumnModel model;
+        private final TableColumn column;
+        private final JCheckBoxMenuItem menuItem;
+
+        ColumnAction(TableColumnModel model, TableColumn column, JCheckBoxMenuItem menuItem) {
+            this.model = model;
+            this.column = column;
+            this.menuItem = menuItem;
+        }
+
+        @Override
+        public void actionPerformed(ActionEvent event) {
+            if (menuItem.isSelected()) {
+                model.addColumn(column);
+            } else if (model.getColumnCount() > 1) {
+                model.removeColumn(column);
+            } else {
+                menuItem.setSelected(true);
+            }
         }
     }
 }

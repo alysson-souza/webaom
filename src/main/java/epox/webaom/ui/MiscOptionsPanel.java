@@ -44,35 +44,17 @@ public class MiscOptionsPanel extends JPanel {
     public static final int HASH_MD5 = 2;
     public static final int HASH_SHA1 = 3;
     public static final int HASH_TTH = 4;
-    public JCheckBox[] hashCheckBoxes = new JCheckBox[5];
-
-    private static String getHashName(int hashTypeCode) {
-        switch (hashTypeCode) {
-            case HASH_ED2K:
-                return "ed2k";
-            case HASH_CRC32:
-                return "crc32";
-            case HASH_MD5:
-                return "md5";
-            case HASH_SHA1:
-                return "sha1";
-            case HASH_TTH:
-                return "tth";
-            default:
-                return "NOT HASH";
-        }
-    }
-
-    public JTextField newExtensionField;
-    public JTextField hashDirectoriesField;
-    public JTextField browserPathField;
-    public JTextField databaseUrlField;
-    public JTextField logFilePathField;
     private final JCheckBox storePasswordCheckBox;
     private final JCheckBox autoLoadDatabaseCheckBox;
     private final JCheckBox autoLogCheckBox;
     private final JCheckBox autoSaveCheckBox;
     private final JCheckBox autoRenameCheckBox;
+    public JCheckBox[] hashCheckBoxes = new JCheckBox[5];
+    public JTextField newExtensionField;
+    public JTextField hashDirectoriesField;
+    public JTextField browserPathField;
+    public JTextField databaseUrlField;
+    public JTextField logFilePathField;
 
     public MiscOptionsPanel() {
         super(new GridBagLayout());
@@ -133,6 +115,23 @@ public class MiscOptionsPanel extends JPanel {
 
         add(booleanOptionsPanel, constraints);
         add(hashOptionsPanel, constraints);
+    }
+
+    private static String getHashName(int hashTypeCode) {
+        switch (hashTypeCode) {
+            case HASH_ED2K:
+                return "ed2k";
+            case HASH_CRC32:
+                return "crc32";
+            case HASH_MD5:
+                return "md5";
+            case HASH_SHA1:
+                return "sha1";
+            case HASH_TTH:
+                return "tth";
+            default:
+                return "NOT HASH";
+        }
     }
 
     private void addLabeledComponent(String labelText, Component component, GridBagConstraints constraints) {

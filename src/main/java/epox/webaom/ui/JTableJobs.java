@@ -16,7 +16,18 @@ import javax.swing.KeyStroke;
 import javax.swing.table.TableCellRenderer;
 
 public class JTableJobs extends JTableSortable {
+    /** Color for jobs doing disk I/O (blue) */
+    private static final Color COLOR_DISK_IO = new Color(0, 102, 153);
+    /** Color for jobs doing network I/O (red) */
+    private static final Color COLOR_NETWORK_IO = new Color(182, 0, 20);
+    /** Color for missing files (gray) */
+    private static final Color COLOR_MISSING = new Color(100, 100, 100);
+    /** Background color for invalid/corrupt jobs (light red) */
+    private static final Color COLOR_INVALID = new Color(255, 180, 180);
+
     private final TableModelJobs jobsTableModel;
+    /** Controls whether UI updates should be processed */
+    public boolean updateEnabled = true;
 
     public JTableJobs(TableModelJobs tableModel) {
         super(tableModel);
@@ -34,15 +45,6 @@ public class JTableJobs extends JTableSortable {
         });
         addKeyListener(new KeyAdapterJob(this, tableModel));
     }
-
-    /** Color for jobs doing disk I/O (blue) */
-    private static final Color COLOR_DISK_IO = new Color(0, 102, 153);
-    /** Color for jobs doing network I/O (red) */
-    private static final Color COLOR_NETWORK_IO = new Color(182, 0, 20);
-    /** Color for missing files (gray) */
-    private static final Color COLOR_MISSING = new Color(100, 100, 100);
-    /** Background color for invalid/corrupt jobs (light red) */
-    private static final Color COLOR_INVALID = new Color(255, 180, 180);
 
     @Override
     public Component prepareRenderer(TableCellRenderer renderer, int row, int column) {
@@ -79,7 +81,4 @@ public class JTableJobs extends JTableSortable {
         Arrays.sort(selectedRows);
         return Arrays.binarySearch(selectedRows, row) >= 0;
     }
-
-    /** Controls whether UI updates should be processed */
-    public boolean updateEnabled = true;
 }

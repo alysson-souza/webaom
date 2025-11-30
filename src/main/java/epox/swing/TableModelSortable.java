@@ -22,12 +22,10 @@ import javax.swing.table.AbstractTableModel;
  * Abstract table model that supports sorting by column. Maintains an index array for row mapping.
  */
 public abstract class TableModelSortable extends AbstractTableModel {
-    /** Index mapping from sorted row to original row */
-    protected int[] sortedRowIndices;
-
     /** Sorter for comparing and reordering rows */
     private final TableSorter tableSorter = new TableSorter(this);
-
+    /** Index mapping from sorted row to original row */
+    protected int[] sortedRowIndices;
     /** Currently sorted column index, -1 if not sorted */
     private int sortColumn;
 

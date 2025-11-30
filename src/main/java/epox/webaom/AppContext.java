@@ -41,13 +41,42 @@ import javax.swing.SwingUtilities;
  * This is a legacy pattern from the original codebase.
  */
 public final class AppContext {
-    private AppContext() {
-        // static only
-    }
-
     public static final String S_WEB = "anidb.net";
     public static final String S_N = "\r\n";
     public static final String S_VER = loadVersion();
+    public static String fschema;
+    public static String dir = null;
+    public static String preg = null /* "^.*$" */;
+    public static String font = "";
+    /** Assumed episode count for normal episodes when actual count unknown (for zero-padding). */
+    public static int assumedEpisodeCount = 99;
+    /** Assumed episode count for special episodes when actual count unknown (for zero-padding). */
+    public static int assumedSpecialCount = 99;
+
+    public static java.awt.Component component = null;
+    public static java.awt.Frame frame = null;
+    public static DatabaseManager databaseManager;
+    public static NetworkIOManager nio;
+    public static DiskIOManager dio;
+    public static Options opt;
+    public static Rules rules;
+    public static Cache cache;
+    public static AniDBFileClient conn;
+    public static JobCounter jobc;
+    public static JobList jobs;
+    public static AniDBConnectionSettings usetup;
+    public static MainPanel gui;
+    public static FileHandler fha;
+    public static Component com0;
+    public static Component com1;
+    public static Base p = new Base();
+    public static boolean autoadd = false;
+    public static boolean optionsChanged = false;
+    public static UserPass userPass = new UserPass(null, null, null);
+
+    private AppContext() {
+        // static only
+    }
 
     private static String loadVersion() {
         try {
@@ -64,41 +93,6 @@ public final class AppContext {
         }
         return "unknown";
     }
-
-    public static String fschema;
-    public static String dir = null;
-    public static String preg = null /* "^.*$" */;
-    public static String font = "";
-    /** Assumed episode count for normal episodes when actual count unknown (for zero-padding). */
-    public static int assumedEpisodeCount = 99;
-    /** Assumed episode count for special episodes when actual count unknown (for zero-padding). */
-    public static int assumedSpecialCount = 99;
-
-    public static java.awt.Component component = null;
-    public static java.awt.Frame frame = null;
-
-    public static DatabaseManager databaseManager;
-    public static NetworkIOManager nio;
-    public static DiskIOManager dio;
-    public static Options opt;
-    public static Rules rules;
-    public static Cache cache;
-    public static AniDBFileClient conn;
-    public static JobCounter jobc;
-    public static JobList jobs;
-    public static AniDBConnectionSettings usetup;
-    public static MainPanel gui;
-    public static FileHandler fha;
-
-    public static Component com0;
-    public static Component com1;
-
-    public static Base p = new Base();
-
-    public static boolean autoadd = false;
-    public static boolean optionsChanged = false;
-
-    public static UserPass userPass = new UserPass(null, null, null);
 
     public static void init() {
         // A.mem0 = A.getUsed();

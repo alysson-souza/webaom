@@ -29,12 +29,14 @@ import java.util.ArrayList;
 import java.util.HashSet;
 
 public class JobList {
+    public static final int QUEUE_ERROR = 0;
+    public static final int QUEUE_DISK_IO = 1;
+    public static final int QUEUE_NETWORK_IO = 2;
     private final ArrayList<Job> jobsList;
-    private Job[] filteredJobs = null;
     private final HashSet<File> filePathSet;
     private final LinkedHash[] jobQueues;
-
     public TableModelJobs tableModel = null;
+    private Job[] filteredJobs = null;
 
     public JobList() {
         jobsList = new ArrayList<>();
@@ -208,8 +210,4 @@ public class JobList {
             jobQueues[queueType].remove(job);
         }
     }
-
-    public static final int QUEUE_ERROR = 0;
-    public static final int QUEUE_DISK_IO = 1;
-    public static final int QUEUE_NETWORK_IO = 2;
 }

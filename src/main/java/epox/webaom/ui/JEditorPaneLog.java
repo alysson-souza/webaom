@@ -125,6 +125,29 @@ public class JEditorPaneLog extends JEditorPane implements Log, Action {
         // don't care
     }
 
+    public Object getValue(String key) {
+        return null;
+    }
+
+    public void putValue(String key, Object value) {
+        // don't care
+    }
+
+    public void actionPerformed(ActionEvent event) {
+        setHeader((new JTextInputDialog(AppContext.frame, "Edit header", htmlHeader)).getStr());
+    }
+
+    public void setHeader(String newHeader) {
+        if (newHeader == null || newHeader.isEmpty()) {
+            return;
+        }
+        synchronized (this) {
+            htmlHeader = newHeader;
+            setText(htmlHeader);
+            Runtime.getRuntime().gc();
+        }
+    }
+
     private class AppendFileStream extends OutputStream {
         RandomAccessFile randomAccessFile;
 
@@ -147,29 +170,6 @@ public class JEditorPaneLog extends JEditorPane implements Log, Action {
 
         public void write(int byteValue) throws IOException {
             randomAccessFile.write(byteValue);
-        }
-    }
-
-    public Object getValue(String key) {
-        return null;
-    }
-
-    public void putValue(String key, Object value) {
-        // don't care
-    }
-
-    public void actionPerformed(ActionEvent event) {
-        setHeader((new JTextInputDialog(AppContext.frame, "Edit header", htmlHeader)).getStr());
-    }
-
-    public void setHeader(String newHeader) {
-        if (newHeader == null || newHeader.isEmpty()) {
-            return;
-        }
-        synchronized (this) {
-            htmlHeader = newHeader;
-            setText(htmlHeader);
-            Runtime.getRuntime().gc();
         }
     }
 }

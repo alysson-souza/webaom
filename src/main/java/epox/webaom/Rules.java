@@ -64,6 +64,64 @@ public class Rules {
         moveRulesScript = "#MOVE";
     }
 
+    private static boolean matchesPattern(String text, String pattern) {
+        if (text == null) {
+            return false;
+        }
+        try {
+            return text.matches(pattern);
+        } catch (PatternSyntaxException e) {
+            AppContext.dialog("Error", e.getMessage());
+            return false;
+        }
+    }
+
+    private static boolean containsIgnoreCase(String text, String searchTerm) {
+        return text.toLowerCase().contains(searchTerm.toLowerCase());
+    }
+
+    private static String applyReplacements(String text, Vector replacements) {
+        ReplacementRule replacement;
+        for (int index = 0; index < replacements.size(); index++) {
+            replacement = (ReplacementRule) replacements.elementAt(index);
+            if (replacement.enabled) {
+                text = StringUtilities.replace(text, replacement.source, replacement.destination);
+            }
+        }
+        return text;
+    }
+
+    private static String applyTruncation(String text) {
+        try {
+            String suffix;
+            int truncateStart = text.indexOf(TRUNC);
+            int closeIndex;
+            int commaIndex;
+            int maxLength;
+            while (truncateStart > 0) {
+                closeIndex = text.indexOf('>', truncateStart);
+                if (closeIndex < truncateStart) {
+                    break;
+                }
+                commaIndex = text.indexOf(',', truncateStart);
+                if (commaIndex < truncateStart || commaIndex > closeIndex) {
+                    break;
+                }
+                maxLength = StringUtilities.i(text.substring(truncateStart + TRUNC.length(), commaIndex));
+                suffix = text.substring(commaIndex + 1, closeIndex);
+                if (truncateStart > maxLength + suffix.length()) {
+                    text = text.substring(0, maxLength - suffix.length()) + suffix + text.substring(closeIndex + 1);
+                } else {
+                    text = text.substring(0, truncateStart) + text.substring(closeIndex + 1);
+                }
+                truncateStart = text.indexOf(TRUNC);
+            }
+        } catch (NumberFormatException e) {
+            System.err.println(e);
+        }
+        return text;
+    }
+
     public String getMoveRules() {
         return moveRulesScript;
     }
@@ -396,22 +454,6 @@ public class Rules {
         }
     }
 
-    private static boolean matchesPattern(String text, String pattern) {
-        if (text == null) {
-            return false;
-        }
-        try {
-            return text.matches(pattern);
-        } catch (PatternSyntaxException e) {
-            AppContext.dialog("Error", e.getMessage());
-            return false;
-        }
-    }
-
-    private static boolean containsIgnoreCase(String text, String searchTerm) {
-        return text.toLowerCase().contains(searchTerm.toLowerCase());
-    }
-
     private String finalizeFilename(Job job, String filename) {
         filename = filename.replace(File.separatorChar, '\1').replace(':', '\2');
         filename = applyTruncation(job.convert(filename));
@@ -422,48 +464,6 @@ public class Rules {
             filename = filename.replace(' ', '_');
         }
         return filename;
-    }
-
-    private static String applyReplacements(String text, Vector replacements) {
-        ReplacementRule replacement;
-        for (int index = 0; index < replacements.size(); index++) {
-            replacement = (ReplacementRule) replacements.elementAt(index);
-            if (replacement.enabled) {
-                text = StringUtilities.replace(text, replacement.source, replacement.destination);
-            }
-        }
-        return text;
-    }
-
-    private static String applyTruncation(String text) {
-        try {
-            String suffix;
-            int truncateStart = text.indexOf(TRUNC);
-            int closeIndex;
-            int commaIndex;
-            int maxLength;
-            while (truncateStart > 0) {
-                closeIndex = text.indexOf('>', truncateStart);
-                if (closeIndex < truncateStart) {
-                    break;
-                }
-                commaIndex = text.indexOf(',', truncateStart);
-                if (commaIndex < truncateStart || commaIndex > closeIndex) {
-                    break;
-                }
-                maxLength = StringUtilities.i(text.substring(truncateStart + TRUNC.length(), commaIndex));
-                suffix = text.substring(commaIndex + 1, closeIndex);
-                if (truncateStart > maxLength + suffix.length()) {
-                    text = text.substring(0, maxLength - suffix.length()) + suffix + text.substring(closeIndex + 1);
-                } else {
-                    text = text.substring(0, truncateStart) + text.substring(closeIndex + 1);
-                }
-                truncateStart = text.indexOf(TRUNC);
-            }
-        } catch (NumberFormatException e) {
-            System.err.println(e);
-        }
-        return text;
     }
 }
 

@@ -23,27 +23,7 @@ public class AVInfo {
     private static final int FORMAT_OLD = 0;
     private static final int FORMAT_XML = 1;
     private static final int FORMAT_SHORT = 2;
-
-    private static native int version();
-
-    private native long fileOpen(String path, int type);
-
-    private native float fileParse(long addr);
-
-    private native float fileDuration(long addr);
-
-    private native int fileTrackCount(long addr);
-
-    private native void fileClose(long addr);
-
-    private native String fileFormatted(long addr, int type, int blen);
-
-    private native boolean trackGetGeneric(long addr, int nr, GenericTrack gt);
-
-    private native boolean trackGetVideo(long addr, int nr, VideoTrack vt);
-
-    private native boolean trackGetAudio(long addr, int nr, AudioTrack at);
-
+    private static final String EC = "Error: instance is closed.";
     private static boolean inited = false;
 
     static {
@@ -56,12 +36,6 @@ public class AVInfo {
             // e.printStackTrace();
         }
     }
-
-    public static boolean ok() {
-        return inited;
-    }
-
-    private static final String EC = "Error: instance is closed.";
 
     private final File file;
     private long address;
@@ -89,6 +63,30 @@ public class AVInfo {
         }
         // tracks = new Vector();
     }
+
+    private static native int version();
+
+    public static boolean ok() {
+        return inited;
+    }
+
+    private native long fileOpen(String path, int type);
+
+    private native float fileParse(long addr);
+
+    private native float fileDuration(long addr);
+
+    private native int fileTrackCount(long addr);
+
+    private native void fileClose(long addr);
+
+    private native String fileFormatted(long addr, int type, int blen);
+
+    private native boolean trackGetGeneric(long addr, int nr, GenericTrack gt);
+
+    private native boolean trackGetVideo(long addr, int nr, VideoTrack vt);
+
+    private native boolean trackGetAudio(long addr, int nr, AudioTrack at);
 
     public void close() throws IOException {
         if (address < 1) {

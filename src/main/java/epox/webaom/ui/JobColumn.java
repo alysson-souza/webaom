@@ -81,6 +81,18 @@ public enum JobColumn {
 
     // Pseudo-column for row object access
     public static final int JOB = -1;
+    // Fast lookups
+    private static final JobColumn[] BY_INDEX;
+    private static final Map<String, JobColumn> BY_TAG = new HashMap<>();
+
+    static {
+        JobColumn[] cols = values();
+        BY_INDEX = new JobColumn[cols.length];
+        for (JobColumn col : cols) {
+            BY_INDEX[col.index] = col;
+            BY_TAG.put(col.tag, col);
+        }
+    }
 
     private final int index;
     private final String tag;
@@ -92,6 +104,18 @@ public enum JobColumn {
         this.tag = tag;
         this.description = description;
         this.type = type;
+    }
+
+    public static JobColumn fromIndex(int index) {
+        return (index >= 0 && index < BY_INDEX.length) ? BY_INDEX[index] : null;
+    }
+
+    public static JobColumn fromTag(String tag) {
+        return BY_TAG.get(tag);
+    }
+
+    public static int getColumnCount() {
+        return BY_INDEX.length;
     }
 
     public int getIndex() {
@@ -108,30 +132,5 @@ public enum JobColumn {
 
     public Class<?> getType() {
         return type;
-    }
-
-    // Fast lookups
-    private static final JobColumn[] BY_INDEX;
-    private static final Map<String, JobColumn> BY_TAG = new HashMap<>();
-
-    static {
-        JobColumn[] cols = values();
-        BY_INDEX = new JobColumn[cols.length];
-        for (JobColumn col : cols) {
-            BY_INDEX[col.index] = col;
-            BY_TAG.put(col.tag, col);
-        }
-    }
-
-    public static JobColumn fromIndex(int index) {
-        return (index >= 0 && index < BY_INDEX.length) ? BY_INDEX[index] : null;
-    }
-
-    public static JobColumn fromTag(String tag) {
-        return BY_TAG.get(tag);
-    }
-
-    public static int getColumnCount() {
-        return BY_INDEX.length;
     }
 }

@@ -61,10 +61,11 @@ public class DatabaseManager {
             + "f.ed2k,f.md5,f.sha1,f.crc32,f.dublang,f.sublang,f.quality,f.ripsource,f.audio,f.video,"
             + "f.resolution,f.ext,f.len,e.eid,e.number,e.english,e.romaji,e.kanji "
             + "from dtb d,jtb j,ftb f,etb e where d.did=j.did and j.fid=f.fid and f.eid=e.eid";
-
-    private Connection con = null;
     /** Cache mapping directory paths to their database IDs. */
     private final HashMap<String, Integer> directoryIdCache = new HashMap<String, Integer>();
+
+    public volatile boolean debug = true;
+    private Connection con = null;
     /** JDBC connection URL. */
     private String connectionUrl = null;
     /** Database username. */
@@ -77,16 +78,21 @@ public class DatabaseManager {
     private boolean loadAllJobs = false;
     /** Whether the database is PostgreSQL (vs MySQL/H2). */
     private boolean isPostgreSQL = true;
-    /** Whether to clean the database on startup. */
-    private boolean shouldCleanDatabase = false;
 
     // private PreparedStatement psau, pseu, psgu, psfu, psai, psei, psgi, psfi, psju, psji;
+    /** Whether to clean the database on startup. */
+    private boolean shouldCleanDatabase = false;
     /** Prepared statements for UPDATE operations, indexed by entity type. */
     private PreparedStatement[] updateStatements;
     /** Prepared statements for INSERT operations, indexed by entity type. */
     private PreparedStatement[] insertStatements;
 
     private Statement statement = null;
+
+    /** Checks if an error message indicates a communication exception. */
+    private static boolean isCommunicationException(String message) {
+        return message.toLowerCase().contains("communication");
+    }
 
     /** Clears all job-related data from the database. */
     private synchronized void cleanDatabase() {
@@ -256,8 +262,6 @@ public class DatabaseManager {
         return isInitialized;
     }
 
-    public volatile boolean debug = true;
-
     /** Logs a debug message to stdout if debug mode is enabled. */
     private void log(Object message) {
         if (debug) {
@@ -359,11 +363,6 @@ public class DatabaseManager {
             return false;
         }
         return true;
-    }
-
-    /** Checks if an error message indicates a communication exception. */
-    private static boolean isCommunicationException(String message) {
-        return message.toLowerCase().contains("communication");
     }
 
     private boolean exec(String command, boolean silent) {

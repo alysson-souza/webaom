@@ -41,13 +41,13 @@ import javax.swing.JTextArea;
  */
 public class JPanelDebug extends JPanel {
     public static DecimalFormat nf = new DecimalFormat("000.00");
-    private PrintStream originalErr;
-    private PrintStream originalOut;
-    private File logFile;
     protected JTextArea textArea;
     protected JScrollBar scrollBar;
     protected boolean logToFile = false;
     protected Updater updater;
+    private PrintStream originalErr;
+    private PrintStream originalOut;
+    private File logFile;
 
     public JPanelDebug(String file, boolean captureOut, boolean captureErr, boolean echoOut, boolean echoErr) {
         super(new java.awt.BorderLayout());

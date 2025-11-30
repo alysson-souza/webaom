@@ -1,10 +1,13 @@
 # WebAOM
 
-WebAOM (Web Anime-o-Matic) is a Java application that automatically identifies anime files, retrieves metadata from AniDB, and manages your anime collection. It hashes media files using multiple algorithms and integrates with AniDB's MyList to organize and track your files.
+WebAOM (Web Anime-o-Matic) is a Java application that automatically identifies anime files, retrieves metadata from
+AniDB, and manages your anime collection. It hashes media files using multiple algorithms and integrates with AniDB's
+MyList to organize and track your files.
 
 ## Features
 
-- **File Identification**: Hash files using ED2K, MD5, SHA-1, CRC32, and Tiger Tree Hash algorithms to identify them in AniDB's database
+- **File Identification**: Hash files using ED2K, MD5, SHA-1, CRC32, and Tiger Tree Hash algorithms to identify them in
+  AniDB's database
 - **MyList Integration**: Automatically add identified files to your AniDB MyList with metadata
 - **Automated Organization**: Rename and move files based on customizable rules and templates
 - **Concurrent Processing**: Hash and process multiple files simultaneously
@@ -37,9 +40,9 @@ WebAOM (Web Anime-o-Matic) is a Java application that automatically identifies a
    ```
 
 Or run the JAR directly:
-     ```bash
-     java -jar build/libs/webaom-2.0.0.jar
-     ```
+```bash
+java -jar build/libs/webaom-2.0.0.jar
+```
 
 ### Gradle Commands
 
@@ -101,20 +104,25 @@ WebAOM stores settings in `~/.webaom` (UTF-8 encoded). You can configure:
 
 ### Optional Database Setup
 
-For persistent metadata caching, configure a MySQL or PostgreSQL database. See the included SQL schemas for setting up the database tables.
+For persistent metadata caching, configure a MySQL or PostgreSQL database. See the included SQL schemas for setting up
+the database tables.
 
 ## Project Status
 
-**Note on Development History**: WebAOM was created by **epoximator** (RIP). Originally developed from 2005-2010, development ceased around 2010 (v1.19p, March 2010). The project remained dormant for many years until it was revived with v2.0.0 (November 2025) to modernize the build system and improve Java compatibility.
+**Note on Development History**: WebAOM was created by **epoximator** (RIP). Originally developed from 2005-2010,
+development ceased around 2010 (v1.19p, March 2010). The project remained dormant for many years until it was revived
+with v2.0.0 (November 2025) to modernize the build system and improve Java compatibility.
 
-This repository is a maintenance fork extracted from AniDB's official UDP clients repository (git.anidb.net). The goal is to:
+This repository is a maintenance fork extracted from AniDB's official UDP clients repository (git.anidb.net). The goal
+is to:
 
 - Preserve the application for the community
 - Fix long-standing issues and bugs
 - Improve compatibility with modern Java versions
 - Maintain the codebase for users who depend on it
 
-While this is not an active feature development project, improvements to stability, compatibility, and bug fixes are welcome.
+While this is not an active feature development project, improvements to stability, compatibility, and bug fixes are
+welcome.
 
 ## History
 
@@ -145,4 +153,5 @@ GNU General Public License v2 (GPLv2)
 
 ## Contributing
 
-Contributions are welcome. Please feel free to open issues for bugs or improvements, or submit pull requests with fixes and enhancements.
+Contributions are welcome. Please feel free to open issues for bugs or improvements, or submit pull requests with fixes
+and enhancements.

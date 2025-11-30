@@ -42,6 +42,8 @@ public final class StringUtilities {
     private static final DateFormat TIME_FORMAT = DateFormat.getTimeInstance(DateFormat.MEDIUM, Locale.GERMANY);
     /** Decimal formatter for two decimal places */
     private static final DecimalFormat DECIMAL_FORMAT = new DecimalFormat("0.00");
+    /** Size unit prefixes for byte formatting (B, KB, MB, GB, TB, PB, EB) */
+    private static final char[] SIZE_UNIT_PREFIXES = {' ', 'K', 'M', 'G', 'T', 'P', 'E'};
 
     private StringUtilities() {}
 
@@ -282,9 +284,6 @@ public final class StringUtilities {
         }
         return result.toString();
     }
-
-    /** Size unit prefixes for byte formatting (B, KB, MB, GB, TB, PB, EB) */
-    private static final char[] SIZE_UNIT_PREFIXES = {' ', 'K', 'M', 'G', 'T', 'P', 'E'};
 
     private static String sbyte(double bytes, int unitIndex) {
         if (bytes < 1000) {

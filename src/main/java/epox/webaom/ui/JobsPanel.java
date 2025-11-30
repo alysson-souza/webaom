@@ -22,14 +22,29 @@ import javax.swing.table.TableColumn;
 import javax.swing.table.TableColumnModel;
 
 public class JobsPanel extends JPanel implements ActionListener {
+    private static final int INDEX_NORMAL = 0;
+    private static final int INDEX_PAUSED = 1;
+    private static final int INDEX_WAITING = 2;
+    private static final int INDEX_DOING = 3;
+    private static final int INDEX_DISK_IO = 4;
+    private static final int INDEX_CRC_ERROR = 5;
+    private static final int INDEX_AUTO_UPDATE = 6;
+    private static final int INDEX_MISSING = 7;
+    private static final int INDEX_DELETED = 8;
+    private static final int INDEX_DONE = 9;
+    private static final int INDEX_FAILED = 10;
+    private static final int INDEX_NET_IO = 11;
+    private static final int INDEX_CENSORED = 12;
+    private static final int INDEX_UNKNOWN = 13;
+    private static final int FILTER_CHECKBOX_COUNT = 14;
     private final JTableJobs jobsTable;
     private final JScrollTable scrollTable;
     private final TableModelJobs tableModel;
     private final JCheckBox[] filterCheckboxes;
-
     private int statusFilterMask = 0;
     private int fileStateFilterMask = 0;
     private boolean showUnknownFiles = false;
+    private int updateCounter = 0;
 
     public JobsPanel(JTableJobs jobsTable, TableModelJobs tableModel) {
         super(new BorderLayout());
@@ -47,6 +62,41 @@ public class JobsPanel extends JPanel implements ActionListener {
 
         add(scrollTable, BorderLayout.CENTER);
         add(southPanel, BorderLayout.SOUTH);
+    }
+
+    private static String getCheckboxLabel(int checkboxIndex) {
+        switch (checkboxIndex) {
+            case INDEX_DELETED:
+                return "Deleted";
+            case INDEX_DISK_IO:
+                return "DiskIO";
+            case INDEX_DOING:
+                return "Doing";
+            case INDEX_DONE:
+                return "Done";
+            case INDEX_FAILED:
+                return "Failed";
+            case INDEX_MISSING:
+                return "Missing";
+            case INDEX_NET_IO:
+                return "NetIO";
+            case INDEX_NORMAL:
+                return "Normal";
+            case INDEX_PAUSED:
+                return "Paused";
+            case INDEX_AUTO_UPDATE:
+                return "Auto Update";
+            case INDEX_WAITING:
+                return "Waiting";
+            case INDEX_UNKNOWN:
+                return "Unknown";
+            case INDEX_CRC_ERROR:
+                return "Corrupt";
+            case INDEX_CENSORED:
+                return "Censored";
+            default:
+                return "No such checkbox";
+        }
     }
 
     public void actionPerformed(ActionEvent event) {
@@ -139,8 +189,6 @@ public class JobsPanel extends JPanel implements ActionListener {
         jobsTable.headerListener.setMask(visibilityMask);
     }
 
-    private int updateCounter = 0;
-
     public void update() {
         updateCounter++;
         if (updateCounter % 4 == 0 && filterCheckboxes[INDEX_AUTO_UPDATE].isSelected()) {
@@ -161,55 +209,4 @@ public class JobsPanel extends JPanel implements ActionListener {
         // tableModel.fireTableDataChanged(); // <- unselects rows
         jobsTable.updateUI();
     }
-
-    private static String getCheckboxLabel(int checkboxIndex) {
-        switch (checkboxIndex) {
-            case INDEX_DELETED:
-                return "Deleted";
-            case INDEX_DISK_IO:
-                return "DiskIO";
-            case INDEX_DOING:
-                return "Doing";
-            case INDEX_DONE:
-                return "Done";
-            case INDEX_FAILED:
-                return "Failed";
-            case INDEX_MISSING:
-                return "Missing";
-            case INDEX_NET_IO:
-                return "NetIO";
-            case INDEX_NORMAL:
-                return "Normal";
-            case INDEX_PAUSED:
-                return "Paused";
-            case INDEX_AUTO_UPDATE:
-                return "Auto Update";
-            case INDEX_WAITING:
-                return "Waiting";
-            case INDEX_UNKNOWN:
-                return "Unknown";
-            case INDEX_CRC_ERROR:
-                return "Corrupt";
-            case INDEX_CENSORED:
-                return "Censored";
-            default:
-                return "No such checkbox";
-        }
-    }
-
-    private static final int INDEX_NORMAL = 0;
-    private static final int INDEX_PAUSED = 1;
-    private static final int INDEX_WAITING = 2;
-    private static final int INDEX_DOING = 3;
-    private static final int INDEX_DISK_IO = 4;
-    private static final int INDEX_CRC_ERROR = 5;
-    private static final int INDEX_AUTO_UPDATE = 6;
-    private static final int INDEX_MISSING = 7;
-    private static final int INDEX_DELETED = 8;
-    private static final int INDEX_DONE = 9;
-    private static final int INDEX_FAILED = 10;
-    private static final int INDEX_NET_IO = 11;
-    private static final int INDEX_CENSORED = 12;
-    private static final int INDEX_UNKNOWN = 13;
-    private static final int FILTER_CHECKBOX_COUNT = 14;
 }

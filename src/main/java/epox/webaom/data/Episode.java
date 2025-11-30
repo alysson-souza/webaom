@@ -28,6 +28,8 @@ import epox.util.StringUtilities;
  * Represents an episode entry from AniDB.
  */
 public class Episode extends Base {
+    /** Title display priority: 0=english, 1=romaji, 2=kanji. */
+    public static int titlePriority = 0;
     /** Episode number/code (e.g., "1", "S1", "C2"). */
     public String num;
     /** Romaji title. */
@@ -49,9 +51,6 @@ public class Episode extends Base {
         rom = StringUtilities.n(fields[index++]);
         kan = StringUtilities.n(fields[index++]);
     }
-
-    /** Title display priority: 0=english, 1=romaji, 2=kanji. */
-    public static int titlePriority = 0;
 
     public String toString() {
         return switch (titlePriority) {
