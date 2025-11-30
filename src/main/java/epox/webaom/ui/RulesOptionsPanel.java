@@ -115,7 +115,7 @@ public class RulesOptionsPanel extends JPanel implements Action, ItemListener {
         topPanel.add(radioButtonPanel, BorderLayout.NORTH);
         topPanel.add(new JScrollPane(rulesTextArea));
         // BOTTOM
-        replacementsTableModel = new ReplacementTableModel(rules.illegalCharReplacements, "From", "To");
+        replacementsTableModel = new ReplacementTableModel(rules.getIllegalCharReplacements(), "From", "To");
         replacementsTable = new JTableSortable(replacementsTableModel);
         replacementsTable.setGridColor(Color.lightGray);
         replacementsTable.getInputMap().put(KeyStroke.getKeyStroke("DELETE"), "remove");

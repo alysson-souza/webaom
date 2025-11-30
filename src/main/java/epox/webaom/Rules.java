@@ -39,13 +39,11 @@ public class Rules {
     public static final String TRUNC = "TRUNCATE<";
 
     /** Characters to replace in filenames (illegal filesystem characters) */
-    public List<ReplacementRule> illegalCharReplacements;
+    private List<ReplacementRule> illegalCharReplacements;
 
     private String renameRulesScript;
     private String moveRulesScript;
     private AttributeMap tagValueMap = null;
-
-    // private int mItruncate = 0;
 
     public Rules() {
         illegalCharReplacements = new ArrayList<>();
@@ -60,9 +58,17 @@ public class Rules {
         illegalCharReplacements.add(new ReplacementRule("?", "", true));
         illegalCharReplacements.add(new ReplacementRule("*", "", true));
 
-        renameRulesScript = "#RENAME\n" + "#DO SET '%ann - %enr - %epn '\n" + "#IF G(!unknown) DO ADD '[%grp]'\n"
-                + "#ELSE DO ADD '[RAW]'";
+        renameRulesScript = """
+            #RENAME
+            #DO SET '%ann - %enr - %epn '
+            #IF G(!unknown) DO ADD '[%grp]'
+            #ELSE DO ADD '[RAW]'\
+            """;
         moveRulesScript = "#MOVE";
+    }
+
+    public List<ReplacementRule> getIllegalCharReplacements() {
+        return illegalCharReplacements;
     }
 
     private static boolean matchesPattern(String text, String pattern) {
@@ -116,7 +122,7 @@ public class Rules {
                 truncateStart = text.indexOf(TRUNC);
             }
         } catch (NumberFormatException e) {
-            System.err.println(e);
+            AppContext.gui.println(HyperlinkBuilder.formatAsError("Truncation error: " + e.getMessage()));
         }
         return text;
     }
@@ -195,7 +201,7 @@ public class Rules {
 
         File f = new File(abs);
 
-        System.out.println("% New file: " + f);
+        AppContext.gui.println("% New file: " + f);
         return f;
     }
 
@@ -425,7 +431,7 @@ public class Rules {
                             && tagValueMap.containsKey(comparison[1])
                             && !tagValueMap.get(comparison[0]).equals(tagValueMap.get(comparison[1]));
                 }
-                System.out.println("ERROR: Invalid data in test: U(" + testValue + ")");
+                AppContext.gui.println(HyperlinkBuilder.formatAsError("Invalid data in test: U(" + testValue + ")"));
                 return false;
             }
             case 'L': { // Tags are equal (Like)
@@ -435,7 +441,7 @@ public class Rules {
                             && tagValueMap.containsKey(comparison[1])
                             && tagValueMap.get(comparison[0]).equals(tagValueMap.get(comparison[1]));
                 }
-                System.out.println("ERROR: Invalid data in test: L(" + testValue + ")");
+                AppContext.gui.println(HyperlinkBuilder.formatAsError("Invalid data in test: L(" + testValue + ")"));
                 return false;
             }
             case 'Z': { // Tag matches regex
@@ -444,7 +450,7 @@ public class Rules {
                     return tagValueMap.containsKey(comparison[0])
                             && matchesPattern(tagValueMap.get(comparison[0]), comparison[1]);
                 }
-                System.out.println("ERROR: Invalid data in test: Z(" + testValue + ")");
+                AppContext.gui.println(HyperlinkBuilder.formatAsError("Invalid data in test: Z(" + testValue + ")"));
                 return false;
             }
 
