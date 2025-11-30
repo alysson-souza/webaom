@@ -1216,178 +1216,154 @@ public class Tiger extends BaseHash {
     protected void transform(byte[] in, int offset) {
         long x0, x1, x2, x3, x4, x5, x6, x7;
 
-        x0 =
-                ((long) in[offset++] & 0xFF)
-                        | ((long) (in[offset++] & 0xFF) << 8)
-                        | ((long) (in[offset++] & 0xFF) << 16)
-                        | ((long) (in[offset++] & 0xFF) << 24)
-                        | ((long) (in[offset++] & 0xFF) << 32)
-                        | ((long) (in[offset++] & 0xFF) << 40)
-                        | ((long) (in[offset++] & 0xFF) << 48)
-                        | ((long) (in[offset++] & 0xFF) << 56);
-        x1 =
-                ((long) in[offset++] & 0xFF)
-                        | ((long) (in[offset++] & 0xFF) << 8)
-                        | ((long) (in[offset++] & 0xFF) << 16)
-                        | ((long) (in[offset++] & 0xFF) << 24)
-                        | ((long) (in[offset++] & 0xFF) << 32)
-                        | ((long) (in[offset++] & 0xFF) << 40)
-                        | ((long) (in[offset++] & 0xFF) << 48)
-                        | ((long) (in[offset++] & 0xFF) << 56);
-        x2 =
-                ((long) in[offset++] & 0xFF)
-                        | ((long) (in[offset++] & 0xFF) << 8)
-                        | ((long) (in[offset++] & 0xFF) << 16)
-                        | ((long) (in[offset++] & 0xFF) << 24)
-                        | ((long) (in[offset++] & 0xFF) << 32)
-                        | ((long) (in[offset++] & 0xFF) << 40)
-                        | ((long) (in[offset++] & 0xFF) << 48)
-                        | ((long) (in[offset++] & 0xFF) << 56);
-        x3 =
-                ((long) in[offset++] & 0xFF)
-                        | ((long) (in[offset++] & 0xFF) << 8)
-                        | ((long) (in[offset++] & 0xFF) << 16)
-                        | ((long) (in[offset++] & 0xFF) << 24)
-                        | ((long) (in[offset++] & 0xFF) << 32)
-                        | ((long) (in[offset++] & 0xFF) << 40)
-                        | ((long) (in[offset++] & 0xFF) << 48)
-                        | ((long) (in[offset++] & 0xFF) << 56);
-        x4 =
-                ((long) in[offset++] & 0xFF)
-                        | ((long) (in[offset++] & 0xFF) << 8)
-                        | ((long) (in[offset++] & 0xFF) << 16)
-                        | ((long) (in[offset++] & 0xFF) << 24)
-                        | ((long) (in[offset++] & 0xFF) << 32)
-                        | ((long) (in[offset++] & 0xFF) << 40)
-                        | ((long) (in[offset++] & 0xFF) << 48)
-                        | ((long) (in[offset++] & 0xFF) << 56);
-        x5 =
-                ((long) in[offset++] & 0xFF)
-                        | ((long) (in[offset++] & 0xFF) << 8)
-                        | ((long) (in[offset++] & 0xFF) << 16)
-                        | ((long) (in[offset++] & 0xFF) << 24)
-                        | ((long) (in[offset++] & 0xFF) << 32)
-                        | ((long) (in[offset++] & 0xFF) << 40)
-                        | ((long) (in[offset++] & 0xFF) << 48)
-                        | ((long) (in[offset++] & 0xFF) << 56);
-        x6 =
-                ((long) in[offset++] & 0xFF)
-                        | ((long) (in[offset++] & 0xFF) << 8)
-                        | ((long) (in[offset++] & 0xFF) << 16)
-                        | ((long) (in[offset++] & 0xFF) << 24)
-                        | ((long) (in[offset++] & 0xFF) << 32)
-                        | ((long) (in[offset++] & 0xFF) << 40)
-                        | ((long) (in[offset++] & 0xFF) << 48)
-                        | ((long) (in[offset++] & 0xFF) << 56);
-        x7 =
-                ((long) in[offset++] & 0xFF)
-                        | ((long) (in[offset++] & 0xFF) << 8)
-                        | ((long) (in[offset++] & 0xFF) << 16)
-                        | ((long) (in[offset++] & 0xFF) << 24)
-                        | ((long) (in[offset++] & 0xFF) << 32)
-                        | ((long) (in[offset++] & 0xFF) << 40)
-                        | ((long) (in[offset++] & 0xFF) << 48)
-                        | ((long) (in[offset] & 0xFF) << 56);
+        x0 = ((long) in[offset++] & 0xFF)
+                | ((long) (in[offset++] & 0xFF) << 8)
+                | ((long) (in[offset++] & 0xFF) << 16)
+                | ((long) (in[offset++] & 0xFF) << 24)
+                | ((long) (in[offset++] & 0xFF) << 32)
+                | ((long) (in[offset++] & 0xFF) << 40)
+                | ((long) (in[offset++] & 0xFF) << 48)
+                | ((long) (in[offset++] & 0xFF) << 56);
+        x1 = ((long) in[offset++] & 0xFF)
+                | ((long) (in[offset++] & 0xFF) << 8)
+                | ((long) (in[offset++] & 0xFF) << 16)
+                | ((long) (in[offset++] & 0xFF) << 24)
+                | ((long) (in[offset++] & 0xFF) << 32)
+                | ((long) (in[offset++] & 0xFF) << 40)
+                | ((long) (in[offset++] & 0xFF) << 48)
+                | ((long) (in[offset++] & 0xFF) << 56);
+        x2 = ((long) in[offset++] & 0xFF)
+                | ((long) (in[offset++] & 0xFF) << 8)
+                | ((long) (in[offset++] & 0xFF) << 16)
+                | ((long) (in[offset++] & 0xFF) << 24)
+                | ((long) (in[offset++] & 0xFF) << 32)
+                | ((long) (in[offset++] & 0xFF) << 40)
+                | ((long) (in[offset++] & 0xFF) << 48)
+                | ((long) (in[offset++] & 0xFF) << 56);
+        x3 = ((long) in[offset++] & 0xFF)
+                | ((long) (in[offset++] & 0xFF) << 8)
+                | ((long) (in[offset++] & 0xFF) << 16)
+                | ((long) (in[offset++] & 0xFF) << 24)
+                | ((long) (in[offset++] & 0xFF) << 32)
+                | ((long) (in[offset++] & 0xFF) << 40)
+                | ((long) (in[offset++] & 0xFF) << 48)
+                | ((long) (in[offset++] & 0xFF) << 56);
+        x4 = ((long) in[offset++] & 0xFF)
+                | ((long) (in[offset++] & 0xFF) << 8)
+                | ((long) (in[offset++] & 0xFF) << 16)
+                | ((long) (in[offset++] & 0xFF) << 24)
+                | ((long) (in[offset++] & 0xFF) << 32)
+                | ((long) (in[offset++] & 0xFF) << 40)
+                | ((long) (in[offset++] & 0xFF) << 48)
+                | ((long) (in[offset++] & 0xFF) << 56);
+        x5 = ((long) in[offset++] & 0xFF)
+                | ((long) (in[offset++] & 0xFF) << 8)
+                | ((long) (in[offset++] & 0xFF) << 16)
+                | ((long) (in[offset++] & 0xFF) << 24)
+                | ((long) (in[offset++] & 0xFF) << 32)
+                | ((long) (in[offset++] & 0xFF) << 40)
+                | ((long) (in[offset++] & 0xFF) << 48)
+                | ((long) (in[offset++] & 0xFF) << 56);
+        x6 = ((long) in[offset++] & 0xFF)
+                | ((long) (in[offset++] & 0xFF) << 8)
+                | ((long) (in[offset++] & 0xFF) << 16)
+                | ((long) (in[offset++] & 0xFF) << 24)
+                | ((long) (in[offset++] & 0xFF) << 32)
+                | ((long) (in[offset++] & 0xFF) << 40)
+                | ((long) (in[offset++] & 0xFF) << 48)
+                | ((long) (in[offset++] & 0xFF) << 56);
+        x7 = ((long) in[offset++] & 0xFF)
+                | ((long) (in[offset++] & 0xFF) << 8)
+                | ((long) (in[offset++] & 0xFF) << 16)
+                | ((long) (in[offset++] & 0xFF) << 24)
+                | ((long) (in[offset++] & 0xFF) << 32)
+                | ((long) (in[offset++] & 0xFF) << 40)
+                | ((long) (in[offset++] & 0xFF) << 48)
+                | ((long) (in[offset] & 0xFF) << 56);
 
         // save_abc ::=
         long aa = a, bb = b, cc = c;
 
         // pass(aa, bb, cc, 5) ::=
         cc ^= x0;
-        aa -=
-                T1[(int) cc & 0xff]
-                        ^ T2[(int) (cc >> 16) & 0xff]
-                        ^ T3[(int) (cc >> 32) & 0xff]
-                        ^ T4[(int) (cc >> 48) & 0xff];
-        bb +=
-                T4[(int) (cc >> 8) & 0xff]
-                        ^ T3[(int) (cc >> 24) & 0xff]
-                        ^ T2[(int) (cc >> 40) & 0xff]
-                        ^ T1[(int) (cc >> 56) & 0xff];
+        aa -= T1[(int) cc & 0xff]
+                ^ T2[(int) (cc >> 16) & 0xff]
+                ^ T3[(int) (cc >> 32) & 0xff]
+                ^ T4[(int) (cc >> 48) & 0xff];
+        bb += T4[(int) (cc >> 8) & 0xff]
+                ^ T3[(int) (cc >> 24) & 0xff]
+                ^ T2[(int) (cc >> 40) & 0xff]
+                ^ T1[(int) (cc >> 56) & 0xff];
         bb *= 5;
         aa ^= x1;
-        bb -=
-                T1[(int) aa & 0xff]
-                        ^ T2[(int) (aa >> 16) & 0xff]
-                        ^ T3[(int) (aa >> 32) & 0xff]
-                        ^ T4[(int) (aa >> 48) & 0xff];
-        cc +=
-                T4[(int) (aa >> 8) & 0xff]
-                        ^ T3[(int) (aa >> 24) & 0xff]
-                        ^ T2[(int) (aa >> 40) & 0xff]
-                        ^ T1[(int) (aa >> 56) & 0xff];
+        bb -= T1[(int) aa & 0xff]
+                ^ T2[(int) (aa >> 16) & 0xff]
+                ^ T3[(int) (aa >> 32) & 0xff]
+                ^ T4[(int) (aa >> 48) & 0xff];
+        cc += T4[(int) (aa >> 8) & 0xff]
+                ^ T3[(int) (aa >> 24) & 0xff]
+                ^ T2[(int) (aa >> 40) & 0xff]
+                ^ T1[(int) (aa >> 56) & 0xff];
         cc *= 5;
         bb ^= x2;
-        cc -=
-                T1[(int) bb & 0xff]
-                        ^ T2[(int) (bb >> 16) & 0xff]
-                        ^ T3[(int) (bb >> 32) & 0xff]
-                        ^ T4[(int) (bb >> 48) & 0xff];
-        aa +=
-                T4[(int) (bb >> 8) & 0xff]
-                        ^ T3[(int) (bb >> 24) & 0xff]
-                        ^ T2[(int) (bb >> 40) & 0xff]
-                        ^ T1[(int) (bb >> 56) & 0xff];
+        cc -= T1[(int) bb & 0xff]
+                ^ T2[(int) (bb >> 16) & 0xff]
+                ^ T3[(int) (bb >> 32) & 0xff]
+                ^ T4[(int) (bb >> 48) & 0xff];
+        aa += T4[(int) (bb >> 8) & 0xff]
+                ^ T3[(int) (bb >> 24) & 0xff]
+                ^ T2[(int) (bb >> 40) & 0xff]
+                ^ T1[(int) (bb >> 56) & 0xff];
         aa *= 5;
         cc ^= x3;
-        aa -=
-                T1[(int) cc & 0xff]
-                        ^ T2[(int) (cc >> 16) & 0xff]
-                        ^ T3[(int) (cc >> 32) & 0xff]
-                        ^ T4[(int) (cc >> 48) & 0xff];
-        bb +=
-                T4[(int) (cc >> 8) & 0xff]
-                        ^ T3[(int) (cc >> 24) & 0xff]
-                        ^ T2[(int) (cc >> 40) & 0xff]
-                        ^ T1[(int) (cc >> 56) & 0xff];
+        aa -= T1[(int) cc & 0xff]
+                ^ T2[(int) (cc >> 16) & 0xff]
+                ^ T3[(int) (cc >> 32) & 0xff]
+                ^ T4[(int) (cc >> 48) & 0xff];
+        bb += T4[(int) (cc >> 8) & 0xff]
+                ^ T3[(int) (cc >> 24) & 0xff]
+                ^ T2[(int) (cc >> 40) & 0xff]
+                ^ T1[(int) (cc >> 56) & 0xff];
         bb *= 5;
         aa ^= x4;
-        bb -=
-                T1[(int) aa & 0xff]
-                        ^ T2[(int) (aa >> 16) & 0xff]
-                        ^ T3[(int) (aa >> 32) & 0xff]
-                        ^ T4[(int) (aa >> 48) & 0xff];
-        cc +=
-                T4[(int) (aa >> 8) & 0xff]
-                        ^ T3[(int) (aa >> 24) & 0xff]
-                        ^ T2[(int) (aa >> 40) & 0xff]
-                        ^ T1[(int) (aa >> 56) & 0xff];
+        bb -= T1[(int) aa & 0xff]
+                ^ T2[(int) (aa >> 16) & 0xff]
+                ^ T3[(int) (aa >> 32) & 0xff]
+                ^ T4[(int) (aa >> 48) & 0xff];
+        cc += T4[(int) (aa >> 8) & 0xff]
+                ^ T3[(int) (aa >> 24) & 0xff]
+                ^ T2[(int) (aa >> 40) & 0xff]
+                ^ T1[(int) (aa >> 56) & 0xff];
         cc *= 5;
         bb ^= x5;
-        cc -=
-                T1[(int) bb & 0xff]
-                        ^ T2[(int) (bb >> 16) & 0xff]
-                        ^ T3[(int) (bb >> 32) & 0xff]
-                        ^ T4[(int) (bb >> 48) & 0xff];
-        aa +=
-                T4[(int) (bb >> 8) & 0xff]
-                        ^ T3[(int) (bb >> 24) & 0xff]
-                        ^ T2[(int) (bb >> 40) & 0xff]
-                        ^ T1[(int) (bb >> 56) & 0xff];
+        cc -= T1[(int) bb & 0xff]
+                ^ T2[(int) (bb >> 16) & 0xff]
+                ^ T3[(int) (bb >> 32) & 0xff]
+                ^ T4[(int) (bb >> 48) & 0xff];
+        aa += T4[(int) (bb >> 8) & 0xff]
+                ^ T3[(int) (bb >> 24) & 0xff]
+                ^ T2[(int) (bb >> 40) & 0xff]
+                ^ T1[(int) (bb >> 56) & 0xff];
         aa *= 5;
         cc ^= x6;
-        aa -=
-                T1[(int) cc & 0xff]
-                        ^ T2[(int) (cc >> 16) & 0xff]
-                        ^ T3[(int) (cc >> 32) & 0xff]
-                        ^ T4[(int) (cc >> 48) & 0xff];
-        bb +=
-                T4[(int) (cc >> 8) & 0xff]
-                        ^ T3[(int) (cc >> 24) & 0xff]
-                        ^ T2[(int) (cc >> 40) & 0xff]
-                        ^ T1[(int) (cc >> 56) & 0xff];
+        aa -= T1[(int) cc & 0xff]
+                ^ T2[(int) (cc >> 16) & 0xff]
+                ^ T3[(int) (cc >> 32) & 0xff]
+                ^ T4[(int) (cc >> 48) & 0xff];
+        bb += T4[(int) (cc >> 8) & 0xff]
+                ^ T3[(int) (cc >> 24) & 0xff]
+                ^ T2[(int) (cc >> 40) & 0xff]
+                ^ T1[(int) (cc >> 56) & 0xff];
         bb *= 5;
         aa ^= x7;
-        bb -=
-                T1[(int) aa & 0xff]
-                        ^ T2[(int) (aa >> 16) & 0xff]
-                        ^ T3[(int) (aa >> 32) & 0xff]
-                        ^ T4[(int) (aa >> 48) & 0xff];
-        cc +=
-                T4[(int) (aa >> 8) & 0xff]
-                        ^ T3[(int) (aa >> 24) & 0xff]
-                        ^ T2[(int) (aa >> 40) & 0xff]
-                        ^ T1[(int) (aa >> 56) & 0xff];
+        bb -= T1[(int) aa & 0xff]
+                ^ T2[(int) (aa >> 16) & 0xff]
+                ^ T3[(int) (aa >> 32) & 0xff]
+                ^ T4[(int) (aa >> 48) & 0xff];
+        cc += T4[(int) (aa >> 8) & 0xff]
+                ^ T3[(int) (aa >> 24) & 0xff]
+                ^ T2[(int) (aa >> 40) & 0xff]
+                ^ T1[(int) (aa >> 56) & 0xff];
         cc *= 5;
 
         // key_schedule ::=
@@ -1410,100 +1386,84 @@ public class Tiger extends BaseHash {
 
         // pass(cc, aa, bb, 7) ::=
         bb ^= x0;
-        cc -=
-                T1[(int) bb & 0xff]
-                        ^ T2[(int) (bb >> 16) & 0xff]
-                        ^ T3[(int) (bb >> 32) & 0xff]
-                        ^ T4[(int) (bb >> 48) & 0xff];
-        aa +=
-                T4[(int) (bb >> 8) & 0xff]
-                        ^ T3[(int) (bb >> 24) & 0xff]
-                        ^ T2[(int) (bb >> 40) & 0xff]
-                        ^ T1[(int) (bb >> 56) & 0xff];
+        cc -= T1[(int) bb & 0xff]
+                ^ T2[(int) (bb >> 16) & 0xff]
+                ^ T3[(int) (bb >> 32) & 0xff]
+                ^ T4[(int) (bb >> 48) & 0xff];
+        aa += T4[(int) (bb >> 8) & 0xff]
+                ^ T3[(int) (bb >> 24) & 0xff]
+                ^ T2[(int) (bb >> 40) & 0xff]
+                ^ T1[(int) (bb >> 56) & 0xff];
         aa *= 7;
         cc ^= x1;
-        aa -=
-                T1[(int) cc & 0xff]
-                        ^ T2[(int) (cc >> 16) & 0xff]
-                        ^ T3[(int) (cc >> 32) & 0xff]
-                        ^ T4[(int) (cc >> 48) & 0xff];
-        bb +=
-                T4[(int) (cc >> 8) & 0xff]
-                        ^ T3[(int) (cc >> 24) & 0xff]
-                        ^ T2[(int) (cc >> 40) & 0xff]
-                        ^ T1[(int) (cc >> 56) & 0xff];
+        aa -= T1[(int) cc & 0xff]
+                ^ T2[(int) (cc >> 16) & 0xff]
+                ^ T3[(int) (cc >> 32) & 0xff]
+                ^ T4[(int) (cc >> 48) & 0xff];
+        bb += T4[(int) (cc >> 8) & 0xff]
+                ^ T3[(int) (cc >> 24) & 0xff]
+                ^ T2[(int) (cc >> 40) & 0xff]
+                ^ T1[(int) (cc >> 56) & 0xff];
         bb *= 7;
         aa ^= x2;
-        bb -=
-                T1[(int) aa & 0xff]
-                        ^ T2[(int) (aa >> 16) & 0xff]
-                        ^ T3[(int) (aa >> 32) & 0xff]
-                        ^ T4[(int) (aa >> 48) & 0xff];
-        cc +=
-                T4[(int) (aa >> 8) & 0xff]
-                        ^ T3[(int) (aa >> 24) & 0xff]
-                        ^ T2[(int) (aa >> 40) & 0xff]
-                        ^ T1[(int) (aa >> 56) & 0xff];
+        bb -= T1[(int) aa & 0xff]
+                ^ T2[(int) (aa >> 16) & 0xff]
+                ^ T3[(int) (aa >> 32) & 0xff]
+                ^ T4[(int) (aa >> 48) & 0xff];
+        cc += T4[(int) (aa >> 8) & 0xff]
+                ^ T3[(int) (aa >> 24) & 0xff]
+                ^ T2[(int) (aa >> 40) & 0xff]
+                ^ T1[(int) (aa >> 56) & 0xff];
         cc *= 7;
         bb ^= x3;
-        cc -=
-                T1[(int) bb & 0xff]
-                        ^ T2[(int) (bb >> 16) & 0xff]
-                        ^ T3[(int) (bb >> 32) & 0xff]
-                        ^ T4[(int) (bb >> 48) & 0xff];
-        aa +=
-                T4[(int) (bb >> 8) & 0xff]
-                        ^ T3[(int) (bb >> 24) & 0xff]
-                        ^ T2[(int) (bb >> 40) & 0xff]
-                        ^ T1[(int) (bb >> 56) & 0xff];
+        cc -= T1[(int) bb & 0xff]
+                ^ T2[(int) (bb >> 16) & 0xff]
+                ^ T3[(int) (bb >> 32) & 0xff]
+                ^ T4[(int) (bb >> 48) & 0xff];
+        aa += T4[(int) (bb >> 8) & 0xff]
+                ^ T3[(int) (bb >> 24) & 0xff]
+                ^ T2[(int) (bb >> 40) & 0xff]
+                ^ T1[(int) (bb >> 56) & 0xff];
         aa *= 7;
         cc ^= x4;
-        aa -=
-                T1[(int) cc & 0xff]
-                        ^ T2[(int) (cc >> 16) & 0xff]
-                        ^ T3[(int) (cc >> 32) & 0xff]
-                        ^ T4[(int) (cc >> 48) & 0xff];
-        bb +=
-                T4[(int) (cc >> 8) & 0xff]
-                        ^ T3[(int) (cc >> 24) & 0xff]
-                        ^ T2[(int) (cc >> 40) & 0xff]
-                        ^ T1[(int) (cc >> 56) & 0xff];
+        aa -= T1[(int) cc & 0xff]
+                ^ T2[(int) (cc >> 16) & 0xff]
+                ^ T3[(int) (cc >> 32) & 0xff]
+                ^ T4[(int) (cc >> 48) & 0xff];
+        bb += T4[(int) (cc >> 8) & 0xff]
+                ^ T3[(int) (cc >> 24) & 0xff]
+                ^ T2[(int) (cc >> 40) & 0xff]
+                ^ T1[(int) (cc >> 56) & 0xff];
         bb *= 7;
         aa ^= x5;
-        bb -=
-                T1[(int) aa & 0xff]
-                        ^ T2[(int) (aa >> 16) & 0xff]
-                        ^ T3[(int) (aa >> 32) & 0xff]
-                        ^ T4[(int) (aa >> 48) & 0xff];
-        cc +=
-                T4[(int) (aa >> 8) & 0xff]
-                        ^ T3[(int) (aa >> 24) & 0xff]
-                        ^ T2[(int) (aa >> 40) & 0xff]
-                        ^ T1[(int) (aa >> 56) & 0xff];
+        bb -= T1[(int) aa & 0xff]
+                ^ T2[(int) (aa >> 16) & 0xff]
+                ^ T3[(int) (aa >> 32) & 0xff]
+                ^ T4[(int) (aa >> 48) & 0xff];
+        cc += T4[(int) (aa >> 8) & 0xff]
+                ^ T3[(int) (aa >> 24) & 0xff]
+                ^ T2[(int) (aa >> 40) & 0xff]
+                ^ T1[(int) (aa >> 56) & 0xff];
         cc *= 7;
         bb ^= x6;
-        cc -=
-                T1[(int) bb & 0xff]
-                        ^ T2[(int) (bb >> 16) & 0xff]
-                        ^ T3[(int) (bb >> 32) & 0xff]
-                        ^ T4[(int) (bb >> 48) & 0xff];
-        aa +=
-                T4[(int) (bb >> 8) & 0xff]
-                        ^ T3[(int) (bb >> 24) & 0xff]
-                        ^ T2[(int) (bb >> 40) & 0xff]
-                        ^ T1[(int) (bb >> 56) & 0xff];
+        cc -= T1[(int) bb & 0xff]
+                ^ T2[(int) (bb >> 16) & 0xff]
+                ^ T3[(int) (bb >> 32) & 0xff]
+                ^ T4[(int) (bb >> 48) & 0xff];
+        aa += T4[(int) (bb >> 8) & 0xff]
+                ^ T3[(int) (bb >> 24) & 0xff]
+                ^ T2[(int) (bb >> 40) & 0xff]
+                ^ T1[(int) (bb >> 56) & 0xff];
         aa *= 7;
         cc ^= x7;
-        aa -=
-                T1[(int) cc & 0xff]
-                        ^ T2[(int) (cc >> 16) & 0xff]
-                        ^ T3[(int) (cc >> 32) & 0xff]
-                        ^ T4[(int) (cc >> 48) & 0xff];
-        bb +=
-                T4[(int) (cc >> 8) & 0xff]
-                        ^ T3[(int) (cc >> 24) & 0xff]
-                        ^ T2[(int) (cc >> 40) & 0xff]
-                        ^ T1[(int) (cc >> 56) & 0xff];
+        aa -= T1[(int) cc & 0xff]
+                ^ T2[(int) (cc >> 16) & 0xff]
+                ^ T3[(int) (cc >> 32) & 0xff]
+                ^ T4[(int) (cc >> 48) & 0xff];
+        bb += T4[(int) (cc >> 8) & 0xff]
+                ^ T3[(int) (cc >> 24) & 0xff]
+                ^ T2[(int) (cc >> 40) & 0xff]
+                ^ T1[(int) (cc >> 56) & 0xff];
         bb *= 7;
 
         // key_schedule ::=
@@ -1526,100 +1486,84 @@ public class Tiger extends BaseHash {
 
         // pass(bb,cc,aa,9) ::=
         aa ^= x0;
-        bb -=
-                T1[(int) aa & 0xff]
-                        ^ T2[(int) (aa >> 16) & 0xff]
-                        ^ T3[(int) (aa >> 32) & 0xff]
-                        ^ T4[(int) (aa >> 48) & 0xff];
-        cc +=
-                T4[(int) (aa >> 8) & 0xff]
-                        ^ T3[(int) (aa >> 24) & 0xff]
-                        ^ T2[(int) (aa >> 40) & 0xff]
-                        ^ T1[(int) (aa >> 56) & 0xff];
+        bb -= T1[(int) aa & 0xff]
+                ^ T2[(int) (aa >> 16) & 0xff]
+                ^ T3[(int) (aa >> 32) & 0xff]
+                ^ T4[(int) (aa >> 48) & 0xff];
+        cc += T4[(int) (aa >> 8) & 0xff]
+                ^ T3[(int) (aa >> 24) & 0xff]
+                ^ T2[(int) (aa >> 40) & 0xff]
+                ^ T1[(int) (aa >> 56) & 0xff];
         cc *= 9;
         bb ^= x1;
-        cc -=
-                T1[(int) bb & 0xff]
-                        ^ T2[(int) (bb >> 16) & 0xff]
-                        ^ T3[(int) (bb >> 32) & 0xff]
-                        ^ T4[(int) (bb >> 48) & 0xff];
-        aa +=
-                T4[(int) (bb >> 8) & 0xff]
-                        ^ T3[(int) (bb >> 24) & 0xff]
-                        ^ T2[(int) (bb >> 40) & 0xff]
-                        ^ T1[(int) (bb >> 56) & 0xff];
+        cc -= T1[(int) bb & 0xff]
+                ^ T2[(int) (bb >> 16) & 0xff]
+                ^ T3[(int) (bb >> 32) & 0xff]
+                ^ T4[(int) (bb >> 48) & 0xff];
+        aa += T4[(int) (bb >> 8) & 0xff]
+                ^ T3[(int) (bb >> 24) & 0xff]
+                ^ T2[(int) (bb >> 40) & 0xff]
+                ^ T1[(int) (bb >> 56) & 0xff];
         aa *= 9;
         cc ^= x2;
-        aa -=
-                T1[(int) cc & 0xff]
-                        ^ T2[(int) (cc >> 16) & 0xff]
-                        ^ T3[(int) (cc >> 32) & 0xff]
-                        ^ T4[(int) (cc >> 48) & 0xff];
-        bb +=
-                T4[(int) (cc >> 8) & 0xff]
-                        ^ T3[(int) (cc >> 24) & 0xff]
-                        ^ T2[(int) (cc >> 40) & 0xff]
-                        ^ T1[(int) (cc >> 56) & 0xff];
+        aa -= T1[(int) cc & 0xff]
+                ^ T2[(int) (cc >> 16) & 0xff]
+                ^ T3[(int) (cc >> 32) & 0xff]
+                ^ T4[(int) (cc >> 48) & 0xff];
+        bb += T4[(int) (cc >> 8) & 0xff]
+                ^ T3[(int) (cc >> 24) & 0xff]
+                ^ T2[(int) (cc >> 40) & 0xff]
+                ^ T1[(int) (cc >> 56) & 0xff];
         bb *= 9;
         aa ^= x3;
-        bb -=
-                T1[(int) aa & 0xff]
-                        ^ T2[(int) (aa >> 16) & 0xff]
-                        ^ T3[(int) (aa >> 32) & 0xff]
-                        ^ T4[(int) (aa >> 48) & 0xff];
-        cc +=
-                T4[(int) (aa >> 8) & 0xff]
-                        ^ T3[(int) (aa >> 24) & 0xff]
-                        ^ T2[(int) (aa >> 40) & 0xff]
-                        ^ T1[(int) (aa >> 56) & 0xff];
+        bb -= T1[(int) aa & 0xff]
+                ^ T2[(int) (aa >> 16) & 0xff]
+                ^ T3[(int) (aa >> 32) & 0xff]
+                ^ T4[(int) (aa >> 48) & 0xff];
+        cc += T4[(int) (aa >> 8) & 0xff]
+                ^ T3[(int) (aa >> 24) & 0xff]
+                ^ T2[(int) (aa >> 40) & 0xff]
+                ^ T1[(int) (aa >> 56) & 0xff];
         cc *= 9;
         bb ^= x4;
-        cc -=
-                T1[(int) bb & 0xff]
-                        ^ T2[(int) (bb >> 16) & 0xff]
-                        ^ T3[(int) (bb >> 32) & 0xff]
-                        ^ T4[(int) (bb >> 48) & 0xff];
-        aa +=
-                T4[(int) (bb >> 8) & 0xff]
-                        ^ T3[(int) (bb >> 24) & 0xff]
-                        ^ T2[(int) (bb >> 40) & 0xff]
-                        ^ T1[(int) (bb >> 56) & 0xff];
+        cc -= T1[(int) bb & 0xff]
+                ^ T2[(int) (bb >> 16) & 0xff]
+                ^ T3[(int) (bb >> 32) & 0xff]
+                ^ T4[(int) (bb >> 48) & 0xff];
+        aa += T4[(int) (bb >> 8) & 0xff]
+                ^ T3[(int) (bb >> 24) & 0xff]
+                ^ T2[(int) (bb >> 40) & 0xff]
+                ^ T1[(int) (bb >> 56) & 0xff];
         aa *= 9;
         cc ^= x5;
-        aa -=
-                T1[(int) cc & 0xff]
-                        ^ T2[(int) (cc >> 16) & 0xff]
-                        ^ T3[(int) (cc >> 32) & 0xff]
-                        ^ T4[(int) (cc >> 48) & 0xff];
-        bb +=
-                T4[(int) (cc >> 8) & 0xff]
-                        ^ T3[(int) (cc >> 24) & 0xff]
-                        ^ T2[(int) (cc >> 40) & 0xff]
-                        ^ T1[(int) (cc >> 56) & 0xff];
+        aa -= T1[(int) cc & 0xff]
+                ^ T2[(int) (cc >> 16) & 0xff]
+                ^ T3[(int) (cc >> 32) & 0xff]
+                ^ T4[(int) (cc >> 48) & 0xff];
+        bb += T4[(int) (cc >> 8) & 0xff]
+                ^ T3[(int) (cc >> 24) & 0xff]
+                ^ T2[(int) (cc >> 40) & 0xff]
+                ^ T1[(int) (cc >> 56) & 0xff];
         bb *= 9;
         aa ^= x6;
-        bb -=
-                T1[(int) aa & 0xff]
-                        ^ T2[(int) (aa >> 16) & 0xff]
-                        ^ T3[(int) (aa >> 32) & 0xff]
-                        ^ T4[(int) (aa >> 48) & 0xff];
-        cc +=
-                T4[(int) (aa >> 8) & 0xff]
-                        ^ T3[(int) (aa >> 24) & 0xff]
-                        ^ T2[(int) (aa >> 40) & 0xff]
-                        ^ T1[(int) (aa >> 56) & 0xff];
+        bb -= T1[(int) aa & 0xff]
+                ^ T2[(int) (aa >> 16) & 0xff]
+                ^ T3[(int) (aa >> 32) & 0xff]
+                ^ T4[(int) (aa >> 48) & 0xff];
+        cc += T4[(int) (aa >> 8) & 0xff]
+                ^ T3[(int) (aa >> 24) & 0xff]
+                ^ T2[(int) (aa >> 40) & 0xff]
+                ^ T1[(int) (aa >> 56) & 0xff];
         cc *= 9;
         bb ^= x7;
-        cc -=
-                T1[(int) bb & 0xff]
-                        ^ T2[(int) (bb >> 16) & 0xff]
-                        ^ T3[(int) (bb >> 32) & 0xff]
-                        ^ T4[(int) (bb >> 48) & 0xff];
-        aa +=
-                T4[(int) (bb >> 8) & 0xff]
-                        ^ T3[(int) (bb >> 24) & 0xff]
-                        ^ T2[(int) (bb >> 40) & 0xff]
-                        ^ T1[(int) (bb >> 56) & 0xff];
+        cc -= T1[(int) bb & 0xff]
+                ^ T2[(int) (bb >> 16) & 0xff]
+                ^ T3[(int) (bb >> 32) & 0xff]
+                ^ T4[(int) (bb >> 48) & 0xff];
+        aa += T4[(int) (bb >> 8) & 0xff]
+                ^ T3[(int) (bb >> 24) & 0xff]
+                ^ T2[(int) (bb >> 40) & 0xff]
+                ^ T1[(int) (bb >> 56) & 0xff];
         aa *= 9;
 
         // feedforward ::=

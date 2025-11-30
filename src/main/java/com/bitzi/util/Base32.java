@@ -113,8 +113,7 @@ public class Base32 {
 
             /* Is the current digit going to span a byte boundary? */
             if (index > 3) {
-                if ((i + 1) < bytes.length)
-                    nextByte = (bytes[i + 1] >= 0) ? bytes[i + 1] : (bytes[i + 1] + 256);
+                if ((i + 1) < bytes.length) nextByte = (bytes[i + 1] >= 0) ? bytes[i + 1] : (bytes[i + 1] + 256);
                 else nextByte = 0;
 
                 digit = currByte & (0xFF >> index);
