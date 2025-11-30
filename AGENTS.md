@@ -16,13 +16,13 @@ WebAOM (Web Anime-o-Matic) is a legacy Java Swing desktop application for identi
 
 ### Core Components
 - **Entry Point**: `src/main/java/epox/webaom/WebAOM.java` - Swing JApplet/JFrame launcher
-- **Global State**: `A.java` - Static singleton holding all subsystems (`A.db`, `A.nio`, `A.dio`, `A.jobs`, `A.gui`, etc.)
+- **Global State**: `AppContext.java` - Static singleton holding all subsystems (`AppContext.databaseManager`, `AppContext.nio`, `AppContext.dio`, `AppContext.jobs`, `AppContext.gui`, etc.)
 - **Job System**: `Job.java` with bitmask-based state machine (status + health flags)
-- **Network Layer**: `ACon.java` - AniDB UDP API v3 client with encryption/compression
+- **Network Layer**: `AniDBConnection.java` / `AniDBFileClient.java` - AniDB UDP API client and high-level file/MyList operations (encryption/compression supported)
 
 ### Package Structure
 - `epox.webaom/` - Core application logic
-- `epox.webaom.data/` - Data models (AFile, Anime, Ep, Group)
+- `epox.webaom.data/` - Data models (`AniDBFile`, `Anime`, `Episode`, `Group`)
 - `epox.webaom.net/` - AniDB UDP protocol implementation
 - `epox.webaom.ui/` - Swing UI components (JPanel*, JTable*, JDialog*)
 - `epox.util/` - Utilities and hashing
@@ -48,17 +48,17 @@ Third-party code in `com/`, `gnu/`, `jonelo/` packages is excluded from formatti
 - Run `./gradlew spotlessApply` before committing
 
 ### Legacy Patterns (To be improved as you go)
-- Single-letter class names: `A` (globals), `U` (utilities), `DB` (database)
-- Hungarian-ish prefixes: `m_` (member), `mI` (int), `mS` (string), `mB` (boolean)
+- Global state via `AppContext` static fields (historically `A`)
+- Some legacy files may use Hungarian-ish prefixes: `m_` (member), `mI` (int), `mS` (string), `mB` (boolean)
 - Bitmask constants for Job states: `S_DONE`, `H_PAUSED`, `D_DIO`, etc.
-- Static field access via `A.` class (e.g., `A.jobs`, `A.opt`, `A.gui`)
+- Static field access via `AppContext.` class (e.g., `AppContext.jobs`, `AppContext.opt`, `AppContext.gui`)
 
 ## Key Implementation Details
 
 ### Configuration
 - User settings stored in `~/.webaom` (UTF-8 encoded)
 - HTML template override: `~/.webaom.htm`
-- Options managed via `Options.java` with indexed arrays (`mBa[]`, `mIa[]`, `mSa[]`)
+- Options managed via `Options.java` with arrays (`booleanOptions[]`, `integerOptions[]`, `stringOptions[]`)
 
 ### AniDB UDP Protocol
 - Default server: `api.anidb.net:9000`
@@ -96,7 +96,7 @@ Optional body explaining the change in detail.
 
 Examples from this repo:
 - `fix(ci): remove Azul vendor requirement from toolchain`
-- `chore: switch to Google Java Format`
+- `chore(spotless): update Eclipse formatter configuration`
 - `style: fix checkstyle warnings`
 
 ### Git Commands
