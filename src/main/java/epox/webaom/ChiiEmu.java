@@ -47,7 +47,7 @@ public class ChiiEmu implements CommandModel {
 				println("!font name,size");
 			}
 		} else if (aniDbConnection == null) {
-			println("No connection");
+			println("Not logged in. Click the Login button first.");
 		} else if (workerThread == null) {
 			workerThread = new EmuWorker(command);
 			workerThread.start();
@@ -130,6 +130,18 @@ public class ChiiEmu implements CommandModel {
 				return aniDbConnection.send(commandText.substring(1), true);
 			}
 			return "Unknown command";
+		}
+
+		public String formatMinutes(int totalMinutes) {
+			int days = totalMinutes / 1440;
+			int hours = (totalMinutes % 1440) / 60;
+			int minutes = totalMinutes % 60;
+			if (days > 0) {
+				return days + "d " + hours + "h " + minutes + "m";
+			} else if (hours > 0) {
+				return hours + "h " + minutes + "m";
+			}
+			return minutes + "m";
 		}
 
 		public String formatUptime(String uptime) {
@@ -243,14 +255,17 @@ public class ChiiEmu implements CommandModel {
 
 		public String formatAnime(String response) {
 			String[] fields = U.split(response, '|');
-			if (fields.length != 19) {
+			if (fields.length < 15) {
 				return response;
 			}
-			String ratingText = ((float) Integer.parseInt(fields[4]) / 100) + " (" + fields[4] + " votes)";
-			String reviewsText = fields[9] + " (avg: " + ((float) Integer.parseInt(fields[8]) / 100) + ")";
-			String animeDescription = "ANIME: " + fields[12] + " (" + fields[0] + "), also known as " + fields[14]
-					+ ", " + fields[1] + " eps, Year: " + fields[10] + ", Rating: " + ratingText + ", Reviews: "
-					+ reviewsText + ", Cat: " + fields[18];
+			// Fields: aid|eps|highest ep|specials|rating|votes|temp rating|temp votes|
+			//         review rating|review count|year|type|romaji|kanji|english|other|short|synonyms
+			String ratingText = ((float) Integer.parseInt(fields[4]) / 100) + " (" + fields[5] + " votes)";
+			String reviewsText = fields[9] + " reviews (avg: " + ((float) Integer.parseInt(fields[8]) / 100) + ")";
+			String englishName = fields.length > 14 && !fields[14].isEmpty() ? fields[14] : fields[12];
+			String animeDescription = "ANIME: " + fields[12] + " (" + fields[0] + "), " + englishName + ", " + fields[1]
+					+ " eps, Year: " + fields[10] + ", Type: " + fields[11] + ", Rating: " + ratingText + ", "
+					+ reviewsText + " https://anidb.net/a" + fields[0];
 			return animeDescription;
 		}
 
@@ -304,7 +319,7 @@ public class ChiiEmu implements CommandModel {
 
 		public String formatMyStats(String response) {
 			String[] fields = U.split(response, '|');
-			if (fields.length != 16) {
+			if (fields.length < 16) {
 				return response;
 			}
 			String watchedEpsText = fields[13] + " / " + fields[12] + "% watched";
@@ -314,9 +329,10 @@ public class ChiiEmu implements CommandModel {
 					+ fields[7] + " groups";
 			String votesReviewsText = fields[14] + " votes, " + fields[15] + " reviews added to DB";
 			String leechLameText = "Leech factor: " + fields[8] + "%, Lameness: " + fields[9] + "%";
+			String viewedTime = fields.length > 16 ? " Viewed: " + formatMinutes(U.i(fields[16])) + "." : "";
 			String description = "MYSTATS: " + fields[0] + " animes, " + fields[1] + " eps (" + watchedEpsText
 					+ ") and " + fields[2] + " files in mylist (" + mylistSizeText + "). " + contributionText + ". "
-					+ votesReviewsText + ". " + leechLameText + ".";
+					+ votesReviewsText + ". " + leechLameText + "." + viewedTime;
 			return description;
 		}
 	}
