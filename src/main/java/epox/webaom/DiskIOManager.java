@@ -43,12 +43,12 @@ public class DiskIOManager implements Runnable {
     private static final String ABORTED_MOVE_CLEANUP_MESSAGE = "Cleanup after aborted moving operation.";
     private static final String SUCCESSFUL_MOVE_CLEANUP_MESSAGE = "Cleanup after successful moving operation.";
 
-    static class ChecksumData {
+    public static class ChecksumData {
         final String name;
         final AbstractChecksum algorithm;
         String hexValue;
 
-        ChecksumData(String name, AbstractChecksum algorithm) {
+        public ChecksumData(String name, AbstractChecksum algorithm) {
             this.name = name;
             this.algorithm = algorithm;
         }
@@ -147,16 +147,18 @@ public class DiskIOManager implements Runnable {
         long startTime = System.currentTimeMillis();
         try (InputStream inputStream = Files.newInputStream(file.toPath())) {
             while (AppContext.gui.isDiskIoOk() && (bytesRead = inputStream.read(READ_BUFFER)) != -1) {
-                checksums.values().forEach(data -> data.algorithm.update(READ_BUFFER, 0, bytesRead));
+                for (ChecksumData data : checksums.values()) {
+                    data.algorithm.update(READ_BUFFER, 0, bytesRead);
+                }
                 totalBytesRead += bytesRead;
                 progress = (float) totalBytesRead / fileLength;
                 AppContext.gui.statusProgressBar.setValue((int) (1000 * progress));
             }
         }
-        checksums.values().forEach(data -> {
+        for (ChecksumData data : checksums.values()) {
             data.hexValue = data.algorithm.getHexValue();
             data.algorithm.reset();
-        });
+        }
         long endTime = System.currentTimeMillis();
         AppContext.gui.statusProgressBar.setValue(0);
 
