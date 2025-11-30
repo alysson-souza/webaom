@@ -38,7 +38,7 @@ WebAOM (Web Anime-o-Matic) is a Java application that automatically identifies a
 
 Or run the JAR directly:
      ```bash
-     java -jar build/libs/webaom-2.1.1.jar
+     java -jar build/libs/webaom-2.2.0.jar
      ```
 
 ### Gradle Commands
