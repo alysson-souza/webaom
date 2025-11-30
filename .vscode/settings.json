@@ -15,5 +15,6 @@
       "source.fixAll.spotlessGradle": "explicit"
     }
   },
-  "java.dependency.packagePresentation": "hierarchical"
+  "java.dependency.packagePresentation": "hierarchical",
+  "sonarlint.analysisExcludesStandalone": "**/src/main/java/com/**,**/src/main/java/gnu/**,**/src/main/java/jonelo/**"
 }

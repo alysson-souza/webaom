@@ -1,7 +1,0 @@
-{
-  "fileExclusions": [
-    "src/main/java/com/**",
-    "src/main/java/gnu/**",
-    "src/main/java/jonelo/**"
-  ]
-}
