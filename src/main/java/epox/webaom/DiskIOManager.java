@@ -23,13 +23,15 @@
 package epox.webaom;
 
 import epox.av.AVInfo;
-import epox.util.HashContainer;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.nio.file.Files;
 import java.text.DecimalFormat;
+import java.util.LinkedHashMap;
+import java.util.stream.Collectors;
+import jonelo.jacksum.algorithm.AbstractChecksum;
 import jonelo.jacksum.algorithm.Edonkey;
 
 public class DiskIOManager implements Runnable {
@@ -41,13 +43,24 @@ public class DiskIOManager implements Runnable {
     private static final String ABORTED_MOVE_CLEANUP_MESSAGE = "Cleanup after aborted moving operation.";
     private static final String SUCCESSFUL_MOVE_CLEANUP_MESSAGE = "Cleanup after successful moving operation.";
 
-    private HashContainer hashContainer;
+    static class ChecksumData {
+        final String name;
+        final AbstractChecksum algorithm;
+        String hexValue;
+
+        ChecksumData(String name, AbstractChecksum algorithm) {
+            this.name = name;
+            this.algorithm = algorithm;
+        }
+    }
+
+    private LinkedHashMap<String, ChecksumData> checksums;
 
     public void run() {
         AppContext.gui.setDiskIoOptionsEnabled(false);
         Job currentJob = null;
         try {
-            hashContainer = AppContext.gui.miscOptionsPanel.getHashContainer();
+            checksums = AppContext.gui.miscOptionsPanel.getChecksums();
             AppContext.gui.status0("DiskIO thread started.");
             while (AppContext.gui.isDiskIoOk() && (currentJob = AppContext.jobs.getJobDio()) != null) {
                 switch (currentJob.getStatus()) {
@@ -134,27 +147,33 @@ public class DiskIOManager implements Runnable {
         long startTime = System.currentTimeMillis();
         try (InputStream inputStream = Files.newInputStream(file.toPath())) {
             while (AppContext.gui.isDiskIoOk() && (bytesRead = inputStream.read(READ_BUFFER)) != -1) {
-                hashContainer.update(READ_BUFFER, 0, bytesRead);
+                checksums.values().forEach(data -> data.algorithm.update(READ_BUFFER, 0, bytesRead));
                 totalBytesRead += bytesRead;
                 progress = (float) totalBytesRead / fileLength;
                 AppContext.gui.statusProgressBar.setValue((int) (1000 * progress));
             }
         }
-        hashContainer.finalizeHashes();
+        checksums.values().forEach(data -> {
+            data.hexValue = data.algorithm.getHexValue();
+            data.algorithm.reset();
+        });
         long endTime = System.currentTimeMillis();
         AppContext.gui.statusProgressBar.setValue(0);
 
         if (progress == 1) {
-            job.ed2kHash = hashContainer.getHex("ed2k");
-            job.md5Hash = hashContainer.getHex("md5");
-            job.sha1Hash = hashContainer.getHex("sha1");
-            job.tthHash = hashContainer.getHex("tth");
-            job.crc32Hash = hashContainer.getHex("crc32");
+            job.ed2kHash = checksums.get("ed2k").hexValue;
+            job.md5Hash = checksums.containsKey("md5") ? checksums.get("md5").hexValue : null;
+            job.sha1Hash = checksums.containsKey("sha1") ? checksums.get("sha1").hexValue : null;
+            job.tthHash = checksums.containsKey("tth") ? checksums.get("tth").hexValue : null;
+            job.crc32Hash = checksums.containsKey("crc32") ? checksums.get("crc32").hexValue : null;
 
             String ed2kLink = "ed2k://|file|" + file.getName() + "|" + file.length() + "|" + job.ed2kHash + "|";
 
             AppContext.gui.printHash(ed2kLink);
-            AppContext.gui.printHash(hashContainer.toString());
+            AppContext.gui.printHash(checksums.values().stream()
+                    .skip(1)
+                    .map(data -> data.name + ": " + data.hexValue)
+                    .collect(Collectors.joining("\n")));
 
             AppContext.gui.println("Hashed " + HyperlinkBuilder.formatAsName(file) + " @ "
                     + formatStats(file.length(), (endTime - startTime) / 1000f));
