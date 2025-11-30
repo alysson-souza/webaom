@@ -43,13 +43,13 @@ import javax.swing.border.EmptyBorder;
 
 public class JDialogLogin extends JDialog implements ActionListener {
 	private boolean success = false;
-	private JTextField usr;
-	private JTextField key;
-	private JPasswordField psw;
-	private JButton ok;
-	private String usrt;
-	private String pswt;
-	private String keyt;
+	private JTextField usernameField;
+	private JTextField apiPassField;
+	private JPasswordField passwordField;
+	private JButton okButton;
+	private String usernameText;
+	private String passwordText;
+	private String apiPassText;
 
 	public JDialogLogin() {
 		super(A.frame, "Enter your AniDB username and password.", true);
@@ -57,86 +57,86 @@ public class JDialogLogin extends JDialog implements ActionListener {
 	}
 
 	private void init() {
-		usr = new JTextField(A.up.usr, 20);
-		psw = new JPasswordField(A.up.psw, 20);
-		key = new JTextField(A.up.key, 20);
-		key.setToolTipText("Use blank if you don't care about encryption");
-		ok = new JButton("OK");
-		ok.setToolTipText("<html>Login is required to access the <i>AniDB UDP Service</i> which"
+		usernameField = new JTextField(A.up.usr, 20);
+		passwordField = new JPasswordField(A.up.psw, 20);
+		apiPassField = new JTextField(A.up.key, 20);
+		apiPassField.setToolTipText("Use blank if you don't care about encryption");
+		okButton = new JButton("OK");
+		okButton.setToolTipText("<html>Login is required to access the <i>AniDB UDP Service</i> which"
 				+ " enables<br>WebAOM to identify files and add them to your MyList.</html>");
 
-		usr.addActionListener(this);
-		psw.addActionListener(this);
-		key.addActionListener(this);
-		ok.addActionListener(this);
+		usernameField.addActionListener(this);
+		passwordField.addActionListener(this);
+		apiPassField.addActionListener(this);
+		okButton.addActionListener(this);
 
-		JPanel c = new JPanel();
-		c.setLayout(new GridBagLayout());
-		c.setBorder(new EmptyBorder(2, 0, 2, 0));
+		JPanel contentPanel = new JPanel();
+		contentPanel.setLayout(new GridBagLayout());
+		contentPanel.setBorder(new EmptyBorder(2, 0, 2, 0));
 
-		GridBagConstraints cs = new GridBagConstraints();
-		cs.insets = new Insets(2, 4, 2, 4);
-		cs.fill = GridBagConstraints.HORIZONTAL;
-		cs.anchor = GridBagConstraints.CENTER;
-		cs.weighty = 1.0;
+		GridBagConstraints gridConstraints = new GridBagConstraints();
+		gridConstraints.insets = new Insets(2, 4, 2, 4);
+		gridConstraints.fill = GridBagConstraints.HORIZONTAL;
+		gridConstraints.anchor = GridBagConstraints.CENTER;
+		gridConstraints.weighty = 1.0;
 
-		cs.gridwidth = GridBagConstraints.RELATIVE;
-		cs.weightx = 0.2;
-		c.add(new JLabel("Username:"), cs);
+		gridConstraints.gridwidth = GridBagConstraints.RELATIVE;
+		gridConstraints.weightx = 0.2;
+		contentPanel.add(new JLabel("Username:"), gridConstraints);
 
-		cs.gridwidth = GridBagConstraints.REMAINDER;
-		cs.weightx = 0.8;
-		c.add(usr, cs);
+		gridConstraints.gridwidth = GridBagConstraints.REMAINDER;
+		gridConstraints.weightx = 0.8;
+		contentPanel.add(usernameField, gridConstraints);
 
-		cs.gridwidth = GridBagConstraints.RELATIVE;
-		cs.weightx = 0.2;
-		c.add(new JLabel("Password:"), cs);
+		gridConstraints.gridwidth = GridBagConstraints.RELATIVE;
+		gridConstraints.weightx = 0.2;
+		contentPanel.add(new JLabel("Password:"), gridConstraints);
 
-		cs.gridwidth = GridBagConstraints.REMAINDER;
-		cs.weightx = 0.8;
-		c.add(psw, cs);
+		gridConstraints.gridwidth = GridBagConstraints.REMAINDER;
+		gridConstraints.weightx = 0.8;
+		contentPanel.add(passwordField, gridConstraints);
 
-		cs.gridwidth = GridBagConstraints.RELATIVE;
-		cs.weightx = 0.2;
-		c.add(new JLabel("ApiPass (optional):"), cs);
+		gridConstraints.gridwidth = GridBagConstraints.RELATIVE;
+		gridConstraints.weightx = 0.2;
+		contentPanel.add(new JLabel("ApiPass (optional):"), gridConstraints);
 
-		cs.gridwidth = GridBagConstraints.REMAINDER;
-		cs.weightx = 0.8;
-		c.add(key, cs);
+		gridConstraints.gridwidth = GridBagConstraints.REMAINDER;
+		gridConstraints.weightx = 0.8;
+		contentPanel.add(apiPassField, gridConstraints);
 
-		cs.weightx = 1.0;
-		c.add(ok, cs);
+		gridConstraints.weightx = 1.0;
+		contentPanel.add(okButton, gridConstraints);
 
-		setContentPane(c);
+		setContentPane(contentPanel);
 		pack();
-		Dimension d = Toolkit.getDefaultToolkit().getScreenSize();
-		Rectangle r = this.getBounds();
-		setBounds(d.width / 2 - r.width / 2, d.height / 2 - r.height / 2, r.width, r.height);
+		Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
+		Rectangle dialogBounds = this.getBounds();
+		int centeredX = screenSize.width / 2 - dialogBounds.width / 2;
+		int centeredY = screenSize.height / 2 - dialogBounds.height / 2;
+		setBounds(centeredX, centeredY, dialogBounds.width, dialogBounds.height);
 
-		if (!usr.getText().isEmpty()) {
-			psw.requestFocus();
+		if (!usernameField.getText().isEmpty()) {
+			passwordField.requestFocus();
 		}
 	}
 
-	public void actionPerformed(ActionEvent e) {
-		pswt = new String(psw.getPassword());
-		usrt = usr.getText().toLowerCase();
-		keyt = key.getText();
-		if (usrt.length() < 3) {
-			ok.setText("Username too short - OK");
-		} else if (usrt.length() > 16) {
-			ok.setText("Username too long - OK");
-		} else if (!U.alfanum(usrt)) {
-			ok.setText("Only letters and digits - OK");
-		} else if (pswt.length() < 4) {
-			ok.setText("Password too short - OK");
-		}
-		// else if(pswt.indexOf('&')>=0||pswt.indexOf('=')>=0)
-		//	ok.setText("Password cannot include '&' or '='.");
-		else {
-			A.up.usr = usrt;
-			A.up.psw = pswt;
-			A.up.key = keyt;
+	@Override
+	public void actionPerformed(ActionEvent event) {
+		passwordText = new String(passwordField.getPassword());
+		usernameText = usernameField.getText().toLowerCase();
+		apiPassText = apiPassField.getText();
+		if (usernameText.length() < 3) {
+			okButton.setText("Username too short - OK");
+		} else if (usernameText.length() > 16) {
+			okButton.setText("Username too long - OK");
+		} else if (!U.alfanum(usernameText)) {
+			okButton.setText("Only letters and digits - OK");
+		} else if (passwordText.length() < 4) {
+			okButton.setText("Password too short - OK");
+		} else {
+			A.up.usr = usernameText;
+			A.up.psw = passwordText;
+			A.up.key = apiPassText;
 			success = true;
 			dispose();
 		}
@@ -145,7 +145,7 @@ public class JDialogLogin extends JDialog implements ActionListener {
 	public UserPass getPass() {
 		setVisible(true);
 		if (success) {
-			return new UserPass(usrt, pswt, keyt);
+			return new UserPass(usernameText, passwordText, apiPassText);
 		}
 		return null;
 	}

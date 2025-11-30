@@ -16,85 +16,71 @@ import javax.swing.KeyStroke;
 import javax.swing.table.TableCellRenderer;
 
 public class JTableJobs extends JTableSortable {
-	private final TableModelJobs m_jlm;
+	private final TableModelJobs jobsTableModel;
 
-	public JTableJobs(TableModelJobs jlm) {
-		super(jlm);
-		m_jlm = jlm;
-		final JPopupMenuM pop = new JPopupMenuM(this, jlm);
-		A.com0 = pop;
-		addMouseListener(pop);
+	public JTableJobs(TableModelJobs tableModel) {
+		super(tableModel);
+		jobsTableModel = tableModel;
+		final JPopupMenuM popupMenu = new JPopupMenuM(this, tableModel);
+		A.com0 = popupMenu;
+		addMouseListener(popupMenu);
 
-		addMouseListener(new MouseAdapterJob(this, jlm, A.jobs));
+		addMouseListener(new MouseAdapterJob(this, tableModel, A.jobs));
 		getInputMap().put(KeyStroke.getKeyStroke("ESCAPE"), "stop");
 		getActionMap().put("stop", new AbstractAction() {
-			public void actionPerformed(ActionEvent e) {
-				pop.stop();
+			public void actionPerformed(ActionEvent event) {
+				popupMenu.stop();
 			}
 		});
-		addKeyListener(new KeyAdapterJob(this, jlm));
+		addKeyListener(new KeyAdapterJob(this, tableModel));
 	}
 
-	private final Color c_dio = new Color(0, 102, 153);
-	private final Color c_nio = new Color(182, 0, 20);
-	private final Color c_mis = new Color(100, 100, 100);
-	private final Color c_inv = new Color(255, 180, 180);
+	/** Color for jobs doing disk I/O (blue) */
+	private static final Color COLOR_DISK_IO = new Color(0, 102, 153);
+	/** Color for jobs doing network I/O (red) */
+	private static final Color COLOR_NETWORK_IO = new Color(182, 0, 20);
+	/** Color for missing files (gray) */
+	private static final Color COLOR_MISSING = new Color(100, 100, 100);
+	/** Background color for invalid/corrupt jobs (light red) */
+	private static final Color COLOR_INVALID = new Color(255, 180, 180);
 
-	public Component prepareRenderer(TableCellRenderer renderer, int row, int col) {
-		Component c = super.prepareRenderer(renderer, row, col);
+	@Override
+	public Component prepareRenderer(TableCellRenderer renderer, int row, int column) {
+		Component component = super.prepareRenderer(renderer, row, column);
 
 		if (isSelected(row)) {
-			return c;
+			return component;
 		}
 
-		Job j = (Job) m_jlm.getValueAt(row, TableModelJobs.JOB);
+		Job job = (Job) jobsTableModel.getValueAt(row, TableModelJobs.JOB);
 
-		if (j.isCorrupt()) {
-			c.setBackground(c_inv);
-			c.setForeground(Color.black);
+		if (job.isCorrupt()) {
+			component.setBackground(COLOR_INVALID);
+			component.setForeground(Color.black);
 		} else {
-			c.setBackground(this.getBackground());
+			component.setBackground(this.getBackground());
 
-			if (j.check(Job.D_DIO | Job.S_DOING)) {
-				c.setForeground(c_dio);
-			} else if (j.check(Job.D_NIO | Job.S_DOING)) {
-				c.setForeground(c_nio);
-			} else if (j.check(Job.H_MISSING)) {
-				c.setForeground(c_mis);
+			if (job.check(Job.D_DIO | Job.S_DOING)) {
+				component.setForeground(COLOR_DISK_IO);
+			} else if (job.check(Job.D_NIO | Job.S_DOING)) {
+				component.setForeground(COLOR_NETWORK_IO);
+			} else if (job.check(Job.H_MISSING)) {
+				component.setForeground(COLOR_MISSING);
 			} else {
-				c.setForeground(Color.black);
+				component.setForeground(Color.black);
 			}
 		}
 
-		return c;
+		return component;
 	}
 
 	private boolean isSelected(int row) {
-		int[] a = getSelectedRows();
-		Arrays.sort(a);
-		return Arrays.binarySearch(a, row) >= 0;
+		int[] selectedRows = getSelectedRows();
+		Arrays.sort(selectedRows);
+		return Arrays.binarySearch(selectedRows, row) >= 0;
 	}
 
-	public boolean upd = true;
-
-	/*
-	 * public void updateUI(){
-	 * if(!isEditing()&&upd)
-	 * SwingUtilities.invokeLater(new Runnable(){
-	 *
-	 * @SuppressWarnings("synthetic-access")
-	 * public void run(){
-	 * JTableJobs.super.updateUI();
-	 * }
-	 * });
-	 * }
-	 */
-	/*
-	 * protected boolean processKeyBinding(KeyStroke ks, KeyEvent e, int condition, boolean pressed) {
-	 * boolean retValue = super.processKeyBinding(ks, e, condition, pressed);
-	 * A.dialog("HI","HO");
-	 * return retValue;
-	 * }
-	 */
+	/** Controls whether UI updates should be processed */
+	public boolean updateEnabled = true;
 
 }

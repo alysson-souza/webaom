@@ -17,164 +17,156 @@
 package epox.swing;
 
 public class TableSorter {
-	TableModelSortable m_mod;
-	private int m_last_col;
-	private int m_last_n;
-	private int m_cmp0;
-	private int m_cmp1;
-	private boolean m_desc;
-	private boolean m_swit;
+	TableModelSortable tableModel;
+	private int lastSortedColumn;
+	private int lastRowCount;
+	private int primarySortColumn;
+	private int secondarySortColumn;
+	private boolean isDescending;
+	private boolean shouldToggleDirection;
 
 	public TableSorter(TableModelSortable model) {
-		m_mod = model;
+		tableModel = model;
 		reset();
 	}
 
 	public void reset() {
-		m_last_col = m_cmp0 = m_cmp1 = 0;
-		m_last_n = -1;
-		m_desc = m_swit = false;
+		lastSortedColumn = primarySortColumn = secondarySortColumn = 0;
+		lastRowCount = -1;
+		isDescending = shouldToggleDirection = false;
 	}
 
-	public void sort(int[] array, int col, boolean refresh) {
+	public void sort(int[] array, int column, boolean refresh) {
 		if (array.length < 1) {
 			return;
 		}
-		int num = m_mod.getRowCount();
+		int rowCount = tableModel.getRowCount();
 		if (refresh) {
-			sort0(array, 0, num - 1);
-			m_desc = m_swit;
-			if (m_desc) {
-				invert(array);
+			performSort(array, 0, rowCount - 1);
+			isDescending = shouldToggleDirection;
+			if (isDescending) {
+				invertArray(array);
 			}
 		} else {
-			if (m_cmp0 != col) {
-				m_cmp1 = m_cmp0;
+			if (primarySortColumn != column) {
+				secondarySortColumn = primarySortColumn;
 			}
-			m_cmp0 = col;
+			primarySortColumn = column;
 
-			if (col == m_last_col || m_last_n < 0) {
-				m_swit = !m_swit;
-			}
-
-			if (col != m_last_col || num != m_last_n) {
-				sort0(array, 0, num - 1);
-				m_desc = false;
-			}
-			if (m_swit || m_desc) {
-				invert(array);
-				m_desc = true;
+			if (column == lastSortedColumn || lastRowCount < 0) {
+				shouldToggleDirection = !shouldToggleDirection;
 			}
 
-			m_last_col = col;
-			m_last_n = num;
-		}
-		// System.err.println("1len="+array.length+",col="+col+",lastcol="+m_last_col+",last_n="+m_last_n+",cmp0="+m_cmp0+",cmp1="+m_cmp1+",rf="+refresh+",inv="+m_desc);
-	}
+			if (column != lastSortedColumn || rowCount != lastRowCount) {
+				performSort(array, 0, rowCount - 1);
+				isDescending = false;
+			}
+			if (shouldToggleDirection || isDescending) {
+				invertArray(array);
+				isDescending = true;
+			}
 
-	private void invert(int[] a) {
-		int x = m_mod.getRowCount() - 1;
-		for (int i = 0; i <= x / 2; i++) {
-			swap(a, i, x - i);
+			lastSortedColumn = column;
+			lastRowCount = rowCount;
 		}
 	}
 
-	public void sort0(int[] a, int l, int h) {
-		quickSort(a, l, h);
-		insertionSort(a, l, h);
+	private void invertArray(int[] array) {
+		int lastIndex = tableModel.getRowCount() - 1;
+		for (int i = 0; i <= lastIndex / 2; i++) {
+			swapElements(array, i, lastIndex - i);
+		}
 	}
 
-	private void quickSort(int[] a, int l, int r) {
-		int M = 4;
-		int i;
-		int j;
-		int v;
+	public void performSort(int[] array, int low, int high) {
+		quickSort(array, low, high);
+		insertionSort(array, low, high);
+	}
 
-		if ((r - l) > M) {
-			i = (r + l) / 2;
-			if (compare(l, i) > 0) {
-				swap(a, l, i);
+	private void quickSort(int[] array, int left, int right) {
+		final int insertionSortThreshold = 4;
+		int leftIndex;
+		int rightIndex;
+		int pivotIndex;
+
+		if ((right - left) > insertionSortThreshold) {
+			leftIndex = (right + left) / 2;
+			if (compareRows(left, leftIndex) > 0) {
+				swapElements(array, left, leftIndex);
 			}
-			if (compare(l, r) > 0) {
-				swap(a, l, r);
+			if (compareRows(left, right) > 0) {
+				swapElements(array, left, right);
 			}
-			if (compare(i, r) > 0) {
-				swap(a, i, r);
+			if (compareRows(leftIndex, right) > 0) {
+				swapElements(array, leftIndex, right);
 			}
 
-			j = r - 1;
-			swap(a, i, j);
-			i = l;
-			v = j;
+			rightIndex = right - 1;
+			swapElements(array, leftIndex, rightIndex);
+			leftIndex = left;
+			pivotIndex = rightIndex;
 			for (;;) {
 				do {
-					i++;
-				} while (compare(i, v) < 0);
+					leftIndex++;
+				} while (compareRows(leftIndex, pivotIndex) < 0);
 				do {
-					j--;
-				} while (j > 0 && compare(v, j) < 0);
-				if (j < i) {
+					rightIndex--;
+				} while (rightIndex > 0 && compareRows(pivotIndex, rightIndex) < 0);
+				if (rightIndex < leftIndex) {
 					break;
 				}
-				swap(a, i, j);
+				swapElements(array, leftIndex, rightIndex);
 			}
-			swap(a, i, r - 1);
-			quickSort(a, l, j);
-			quickSort(a, i + 1, r);
+			swapElements(array, leftIndex, right - 1);
+			quickSort(array, left, rightIndex);
+			quickSort(array, leftIndex + 1, right);
 		}
 	}
 
-	private void swap(int[] a, int i, int j) {
-		int t;
-		t = a[i];
-		a[i] = a[j];
-		a[j] = t;
+	private void swapElements(int[] array, int firstIndex, int secondIndex) {
+		int temp = array[firstIndex];
+		array[firstIndex] = array[secondIndex];
+		array[secondIndex] = temp;
 	}
 
-	private void insertionSort(int[] a, int l, int h) {
-		int i;
-		int j;
-		for (i = l; i <= h; i++) {
-			for (j = i; j > l && compare(j - 1, j) > 0; j--) {
-				swap(a, j, j - 1);
+	private void insertionSort(int[] array, int low, int high) {
+		int outerIndex;
+		int innerIndex;
+		for (outerIndex = low; outerIndex <= high; outerIndex++) {
+			for (innerIndex = outerIndex; innerIndex > low
+					&& compareRows(innerIndex - 1, innerIndex) > 0; innerIndex--) {
+				swapElements(array, innerIndex, innerIndex - 1);
 			}
 		}
 	}
 
-	public int compare(int r, int s) {
-		int x = compare0(m_cmp0, r, s);
-		if (x == 0) {
-			return compare0(m_cmp1, r, s);
+	public int compareRows(int rowIndex1, int rowIndex2) {
+		int result = compareByColumn(primarySortColumn, rowIndex1, rowIndex2);
+		if (result == 0) {
+			return compareByColumn(secondarySortColumn, rowIndex1, rowIndex2);
 		}
-		return x;
+		return result;
 	}
 
-	public int compare0(int c, int row1, int row2) {
-		Object o1 = m_mod.getValueAt(row1, c);
-		Object o2 = m_mod.getValueAt(row2, c);
-		// if (o1 == null && o2 == null) return  0;
-		// else if (o1 == null) return -1;
-		// else if (o2 == null) return  1;
-		// else{
-		Class type = m_mod.getColumnClass(c);
-		if (type.getSuperclass() == Number.class) {
-			return (int) (((Number) o1).floatValue() - ((Number) o2).floatValue()); // compare((Number)o1, (Number)o2);
-		} else if (type == String.class) {
-			return ((String) o1).compareToIgnoreCase((String) o2);
+	public int compareByColumn(int column, int row1, int row2) {
+		Object value1 = tableModel.getValueAt(row1, column);
+		Object value2 = tableModel.getValueAt(row2, column);
+		Class<?> columnType = tableModel.getColumnClass(column);
+		if (columnType.getSuperclass() == Number.class) {
+			return (int) (((Number) value1).floatValue() - ((Number) value2).floatValue());
+		} else if (columnType == String.class) {
+			return ((String) value1).compareToIgnoreCase((String) value2);
+		} else {
+			return (value1.toString()).compareToIgnoreCase(value2.toString());
 		}
-		// return ((String)o1).toLowerCase().compareTo(((String)o2).toLowerCase());
-		else {
-			return (o1.toString()).compareToIgnoreCase(o2.toString());
-		}
-		// }
 	}
 
-	public int compare(Number o1, Number o2) {
-		double n1 = o1.doubleValue();
-		double n2 = o2.doubleValue();
-		if (n1 < n2) {
+	public int compareNumbers(Number first, Number second) {
+		double firstValue = first.doubleValue();
+		double secondValue = second.doubleValue();
+		if (firstValue < secondValue) {
 			return -1;
-		} else if (n1 > n2) {
+		} else if (firstValue > secondValue) {
 			return 1;
 		} else {
 			return 0;

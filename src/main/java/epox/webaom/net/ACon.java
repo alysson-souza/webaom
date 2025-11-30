@@ -43,187 +43,187 @@ import javax.crypto.spec.SecretKeySpec;
 import javax.swing.Timer;
 
 public class ACon implements ActionListener {
-	public static final String DEF_HOST = "api.anidb.net";
-	public static final int DEF_RPORT = 9000;
-	public static final int DEF_LPORT = 45678;
+	public static final String DEFAULT_HOST = "api.anidb.net";
+	public static final int DEFAULT_REMOTE_PORT = 9000;
+	public static final int DEFAULT_LOCAL_PORT = 45678;
 
 	public static boolean shutdown = false;
-	public boolean m_authed = false;
+	public boolean authenticated = false;
 
-	private final String m_ver = "&protover=3&client=webaom&clientver=119&nat=1&comp=1&enc=utf8";
-	private final int m_tag_len = 5;
-	private final int m_buf_siz = 2048 * 2;
-	private final int m_ka_time = 3 * 1000 * 60 * 10; // 30 min
-	private final int m_ka_nat = 3 * 1000 * 60; // 3 min
-	private int m_tcnt = 0;
-	private boolean /* m_keep = false, */ m_iscon = false;
-	private UserPass m_up = null;
+	private final int tagLength = 5;
+	private final int keepAliveInterval = 3 * 1000 * 60 * 10; // 30 min
+	private int tagCounter = 0;
+	private boolean connected = false;
+	private UserPass userPass = null;
 
-	private static int m_rem_login_att = 2;
-	private long m_tused = 0;
-	private long m_tstamp = 0;
-	private int m_rem_auth_att = 3;
-	private String m_err = "Not Initialized.";
+	private static int remainingLoginAttempts = 2;
+	private long timeUsed = 0;
+	private long timestamp = 0;
+	private int remainingAuthAttempts = 3;
+	private String lastError = "Not Initialized.";
 
-	private SecretKeySpec m_key = null;
-	private Cipher m_cip;
+	private SecretKeySpec encryptionKey = null;
+	private Cipher cipher;
 
-	private DatagramSocket m_ds;
-	private InetAddress m_ia;
-	private final Timer m_tm;
+	private DatagramSocket socket;
+	private InetAddress serverAddress;
+	private final Timer keepAliveTimer;
 
-	private final AConS m_s;
+	private final AConS settings;
 
-	protected String m_session = null;
-	protected String m_tag = null;
+	protected String session = null;
+	protected String currentTag = null;
 
-	private String m_enc = "ascii";
+	private String encoding = "ascii";
 
-	private final Log m_log;
+	private final Log log;
 
-	public ACon(Log l, AConS s) {
-		m_log = l;
-		m_s = s;
+	public ACon(Log log, AConS settings) {
+		this.log = log;
+		this.settings = settings;
 		generateTag();
-		m_tm = new Timer(m_ka_time, this); // +1000
+		keepAliveTimer = new Timer(keepAliveInterval, this); // +1000
 	}
 
 	private void generateTag() {
-		m_tcnt++;
-		m_tag = "" + m_tcnt;
-		while (m_tag.length() < m_tag_len) {
-			m_tag = "0" + m_tag;
+		tagCounter++;
+		currentTag = "" + tagCounter;
+		while (currentTag.length() < tagLength) {
+			currentTag = "0" + currentTag;
 		}
-		m_tag = 't' + m_tag;
+		currentTag = 't' + currentTag;
 	}
 
-	public void actionPerformed(ActionEvent e) {
-		if (!m_s.nat) {
+	public void actionPerformed(ActionEvent event) {
+		if (!settings.nat) {
 			return;
 		}
 		try {
 			long now = System.currentTimeMillis();
-			if ((now - m_tstamp) > m_ka_time) {
+			if ((now - timestamp) > keepAliveInterval) {
 				ping();
 			}
-		} catch (SocketTimeoutException x) {
+		} catch (SocketTimeoutException ex) {
 			debug("! No response from server.");
-			m_tm.start();
-		} catch (Exception x) {
-			x.printStackTrace();
+			keepAliveTimer.start();
+		} catch (Exception ex) {
+			ex.printStackTrace();
 		}
 	}
 
 	/////////////////////////////////// PASSW////////////////////////////////////
-	public void set(String u, String p, String k) {
-		m_up = new UserPass(u, p, k);
+	public void set(String username, String password, String apiKey) {
+		userPass = new UserPass(username, password, apiKey);
 	}
 
-	private void loginAtt() {
-		m_rem_login_att--;
+	private void decrementLoginAttempts() {
+		remainingLoginAttempts--;
 	}
 
 	/////////////////////////////////// DEBUG////////////////////////////////////
-	protected void error(String str) {
-		debug(str);
-		m_err = str;
-		if (m_log == null) {
+	protected void error(String message) {
+		debug(message);
+		lastError = message;
+		if (log == null) {
 			return;
 		}
-		m_log.println("<font color=#FF0000>" + str + "</font>");
-		m_log.status1(str);
+		log.println("<font color=#FF0000>" + message + "</font>");
+		log.status1(message);
 	}
 
-	protected void debug(String str) {
-		System.out.println(str);
+	protected void debug(String message) {
+		System.out.println(message);
 	}
 
 	public String getLastError() {
-		return m_err;
+		return lastError;
 	}
 
 	////////////////////////////// BASIC COMMANDS////////////////////////////////
 	public boolean isLoggedIn() {
-		return m_authed;
+		return authenticated;
 	}
 
 	public int ping() throws Exception {
-		send_layer0("PING", true);
-		return (int) m_tused;
+		sendRaw("PING", true);
+		return (int) timeUsed;
 	}
 
-	public int enCrypt() throws Exception {
-		if (m_up.key == null || m_up.key.isEmpty()) {
+	public int encrypt() throws Exception {
+		if (userPass.key == null || userPass.key.isEmpty()) {
 			return ping();
 		}
-		AConR r = send_layer1("ENCRYPT", "user=" + m_up.usr + "&type=1", true);
-		if (r.code == AConR.ENCRYPTION_ENABLED) {
+		AConR response = sendWithSession("ENCRYPT", "user=" + userPass.usr + "&type=1", true);
+		if (response.code == AConR.ENCRYPTION_ENABLED) {
 			try {
-				MessageDigest md = MessageDigest.getInstance("MD5");
-				md.update(m_up.key.getBytes());
-				md.update(r.data.getBytes());
-				byte[] k = md.digest();
-				m_key = new SecretKeySpec(k, "AES");
-				m_cip = Cipher.getInstance("AES");
-				return (int) m_tused;
-			} catch (Exception e) {
-				e.printStackTrace();
-				m_key = null;
-				m_cip = null;
+				MessageDigest digest = MessageDigest.getInstance("MD5");
+				digest.update(userPass.key.getBytes());
+				digest.update(response.data.getBytes());
+				byte[] keyBytes = digest.digest();
+				encryptionKey = new SecretKeySpec(keyBytes, "AES");
+				cipher = Cipher.getInstance("AES");
+				return (int) timeUsed;
+			} catch (Exception ex) {
+				ex.printStackTrace();
+				encryptionKey = null;
+				cipher = null;
 			}
-		} else if (r.code == AConR.API_PASSWORD_NOT_DEFINED) {
+		} else if (response.code == AConR.API_PASSWORD_NOT_DEFINED) {
 			throw new AConEx(AConEx.ENCRYPTION, "AniPass not defined. Check your profile settings.");
-		} else if (r.code == AConR.NO_SUCH_USER) {
+		} else if (response.code == AConR.NO_SUCH_USER) {
 			throw new AConEx(AConEx.ENCRYPTION, "No such user. Check username.");
 		}
 		return -1;
 	}
 
 	private boolean showLoginDialog() throws AConEx {
-		if (m_rem_login_att <= 0) {
+		if (remainingLoginAttempts <= 0) {
 			throw new AConEx(AConEx.CLIENT_USER, "Access Denied! No more login attempts allowed.");
 		}
-		loginAtt();
-		error("Logins left: " + m_rem_login_att);
-		m_up = (new JDialogLogin()).getPass();
-		return m_up != null;
+		decrementLoginAttempts();
+		error("Logins left: " + remainingLoginAttempts);
+		userPass = (new JDialogLogin()).getPass();
+		return userPass != null;
 	}
 
 	public boolean login() throws AConEx {
-		if (m_up == null) {
+		if (userPass == null) {
 			if (!showLoginDialog()) {
 				error("User Abort");
 				return false;
 			}
 		}
-		if (m_rem_auth_att <= 0) {
+		if (remainingAuthAttempts <= 0) {
 			throw new AConEx(AConEx.CLIENT_BUG, "Invalid session.");
 		}
-		AConR r = send("AUTH", "user=" + m_up.usr + "&pass=" + m_up.psw + m_ver, true);
-		m_rem_auth_att--;
-		switch (r.code) {
+		String versionParams = "&protover=3&client=webaom&clientver=119&nat=1&comp=1&enc=utf8";
+		AConR response = send("AUTH", "user=" + userPass.usr + "&pass=" + userPass.psw + versionParams, true);
+		remainingAuthAttempts--;
+		switch (response.code) {
 			case AConR.LOGIN_ACCEPTED_NEW_VER :
 				A.dialog("Note", AConEx.defaultMsg(AConEx.CLIENT_OUTDATED));
 			case AConR.LOGIN_ACCEPTED : {
-				m_session = r.data;
-				if (r.data.length() > 5) {
-					m_session = r.data.substring(0, 5);
-					if (m_s.nat) {
+				session = response.data;
+				if (response.data.length() > 5) {
+					session = response.data.substring(0, 5);
+					if (settings.nat) {
 						try {
-							int p = Integer.parseInt(r.data.substring(1 + r.data.lastIndexOf(':')));
-							if (p != m_s.lport) {
-								m_tm.setDelay(m_ka_nat);
+							int port = Integer.parseInt(response.data.substring(1 + response.data.lastIndexOf(':')));
+							if (port != settings.lport) {
+								// 3 min
+								int natKeepAliveInterval = 3 * 1000 * 60;
+								keepAliveTimer.setDelay(natKeepAliveInterval);
 								debug("! Nat detected.");
 							}
-						} catch (Exception e) {
-							e.printStackTrace();
+						} catch (Exception ex) {
+							ex.printStackTrace();
 						}
 					}
 				} else {
-					m_session = r.data;
+					session = response.data;
 				}
-				m_authed = true;
-				m_rem_auth_att = 2;
+				authenticated = true;
+				remainingAuthAttempts = 2;
 				return true;
 			}
 			case AConR.LOGIN_FAILED :
@@ -233,39 +233,38 @@ public class ACon implements ActionListener {
 				}
 				return false;
 			default :
-				error(r.message);
+				error(response.message);
 		}
 		return false;
 	}
 
 	public boolean logout() throws AConEx {
 		if (shutdown) {
-			if (m_authed && m_session != null) { // last chance logout
-				String s = "LOGOUT s=" + m_session;
-				m_authed = false;
+			if (authenticated && session != null) { // last chance logout
+				String command = "LOGOUT s=" + session;
+				authenticated = false;
 				try {
-					// m_ds.send(new DatagramPacket(s.getBytes(), s.length(), m_ia, m_rport));
-					send_layer0(s, false);
-				} catch (IOException e) {
+					sendRaw(command, false);
+				} catch (IOException ex) {
 					// don't care
 				}
 			}
 			return true;
 		}
-		AConR r = send("LOGOUT", null, true);
-		if (r == null) {
+		AConR response = send("LOGOUT", null, true);
+		if (response == null) {
 			return false;
 		}
-		switch (r.code) {
+		switch (response.code) {
 			case AConR.LOGGED_OUT :
 			case AConR.NOT_LOGGED_IN :
 			case AConR.INVALID_SESSION :
 			case AConR.LOGIN_FIRST :
-				m_authed = false;
-				m_enc = "ascii";
+				authenticated = false;
+				encoding = "ascii";
 				return true;
 			default :
-				error(r.message);
+				error(response.message);
 		}
 		return false;
 	}
@@ -273,38 +272,38 @@ public class ACon implements ActionListener {
 	//////////////////////////////////// CORE////////////////////////////////////
 	public boolean connect() {
 		try {
-			m_ds = new DatagramSocket(m_s.lport);
-			m_ds.setSoTimeout(m_s.tout);
-			m_ia = InetAddress.getByName(m_s.host);
-			m_ia.getHostAddress();
-			m_iscon = true;
+			socket = new DatagramSocket(settings.lport);
+			socket.setSoTimeout(settings.tout);
+			serverAddress = InetAddress.getByName(settings.host);
+			serverAddress.getHostAddress();
+			connected = true;
 			return true;
-		} catch (SocketException e) {
-			e.printStackTrace();
-			error("SocketException: " + e.getMessage());
-		} catch (UnknownHostException e) {
-			error("Unknown Host: " + m_s.host);
+		} catch (SocketException ex) {
+			ex.printStackTrace();
+			error("SocketException: " + ex.getMessage());
+		} catch (UnknownHostException ex) {
+			error("Unknown Host: " + settings.host);
 		}
 		return false;
 	}
 
 	public void disconnect() {
-		if (m_iscon) {
-			m_tm.stop();
-			m_ds.disconnect();
-			m_ds.close();
-			m_ds = null;
-			m_ia = null;
-			m_iscon = false;
-			m_authed = false;
+		if (connected) {
+			keepAliveTimer.stop();
+			socket.disconnect();
+			socket.close();
+			socket = null;
+			serverAddress = null;
+			connected = false;
+			authenticated = false;
 		}
 	}
 
-	public synchronized AConR send(String op, String param, boolean wait) throws AConEx {
-		if (op == null) {
+	public synchronized AConR send(String operation, String param, boolean wait) throws AConEx {
+		if (operation == null) {
 			throw new AConEx(AConEx.CLIENT_BUG);
 		}
-		return send_layer2(op, param, wait);
+		return sendWithRetry(operation, param, wait);
 	}
 
 	public synchronized String send(String command, boolean wait) throws AConEx {
@@ -312,106 +311,109 @@ public class ACon implements ActionListener {
 			throw new AConEx(AConEx.CLIENT_BUG);
 		}
 
-		String[] arg = command.split(" ", 2);
-		AConR r = send_layer2(arg[0], arg.length > 1 ? arg[1] : null, wait);
-		return r.code + " " + r.message + (r.data != null ? "\n" + r.data : "");
+		String[] parts = command.split(" ", 2);
+		AConR response = sendWithRetry(parts[0], parts.length > 1 ? parts[1] : null, wait);
+		return response.code + " " + response.message + (response.data != null ? "\n" + response.data : "");
 	}
 
-	private AConR send_layer2(String op, String param, boolean wait) throws AConEx {
-		int timeouts = 0;
-		AConR r;
-		while (timeouts++ < m_s.max_tout && !shutdown) {
+	private AConR sendWithRetry(String operation, String param, boolean wait) throws AConEx {
+		int timeoutCount = 0;
+		AConR response;
+		while (timeoutCount++ < settings.max_tout && !shutdown) {
 			try {
-				r = send_layer1(op, param, wait);
-				if (!op.equals("LOGOUT") && (r.code == AConR.LOGIN_FIRST || r.code == AConR.INVALID_SESSION)) {
+				response = sendWithSession(operation, param, wait);
+				if (!operation.equals("LOGOUT")
+						&& (response.code == AConR.LOGIN_FIRST || response.code == AConR.INVALID_SESSION)) {
 					login();
-					return send_layer1(op, param, wait);
+					return sendWithSession(operation, param, wait);
 				}
-				return r;
-			} catch (SocketTimeoutException e) {
+				return response;
+			} catch (SocketTimeoutException ex) {
 				generateTag();
-				error("Operation Failed: TIMEOUT or SERVER BUSY. Try #" + timeouts);
-				m_s.delay += 100;
-				// m_tm.start();
-			} catch (IOException e) {
-				e.printStackTrace();
-				error("Operation Failed: IOEXCEPT: " + e.getMessage());
+				error("Operation Failed: TIMEOUT or SERVER BUSY. Try #" + timeoutCount);
+				settings.delay += 100;
+				// keepAliveTimer.start();
+			} catch (IOException ex) {
+				ex.printStackTrace();
+				error("Operation Failed: IOEXCEPT: " + ex.getMessage());
 			}
 		}
 		throw new AConEx(AConEx.ANIDB_UNREACHABLE, getLastError());
 	}
 
-	private AConR send_layer1(String op, String param, boolean wait) throws IOException, AConEx {
+	private AConR sendWithSession(String operation, String param, boolean wait) throws IOException, AConEx {
 		if (param != null) {
-			if (m_session != null) {
-				param += "&s=" + m_session;
+			if (session != null) {
+				param += "&s=" + session;
 			}
-		} else if (m_session != null) {
-			param = "s=" + m_session;
+		} else if (session != null) {
+			param = "s=" + session;
 		}
 		generateTag();
 		if (param != null) {
-			param += "&tag=" + m_tag;
+			param += "&tag=" + currentTag;
 		} else {
-			param = "tag=" + m_tag;
+			param = "tag=" + currentTag;
 		}
-		return send_layer0(op + " " + param, wait);
+		return sendRaw(operation + " " + param, wait);
 	}
 
-	private AConR send_layer0(String s, boolean wait) throws IOException, AConEx {
-		m_tm.stop();
+	private AConR sendRaw(String command, boolean wait) throws IOException, AConEx {
+		keepAliveTimer.stop();
 		if (wait) {
 			try {
-				long td = System.currentTimeMillis() - m_tstamp;
-				td = (td / 100) * 100; // round down to nearest 100
-				if (td < m_s.delay) {
-					debug("- Sleep: " + (m_s.delay - td));
-					Thread.sleep(m_s.delay - td);
+				long timeDelta = System.currentTimeMillis() - timestamp;
+				timeDelta = (timeDelta / 100) * 100; // round down to nearest 100
+				if (timeDelta < settings.delay) {
+					debug("- Sleep: " + (settings.delay - timeDelta));
+					Thread.sleep(settings.delay - timeDelta);
 				}
-			} catch (InterruptedException e) {
-				throw new AConEx(AConEx.CLIENT_SYSTEM, "Java: " + e.getMessage());
+			} catch (InterruptedException ex) {
+				throw new AConEx(AConEx.CLIENT_SYSTEM, "Java: " + ex.getMessage());
 			}
 		}
-		String cen = s;
-		int i = cen.indexOf("pass=");
-		if (i > 0) {
-			int j = cen.indexOf("&", i);
-			if (j > 0) {
-				cen = cen.substring(0, i + 5) + "xxxxx" + cen.substring(j);
+		String censoredCommand = command;
+		int passwordIndex = censoredCommand.indexOf("pass=");
+		if (passwordIndex > 0) {
+			int ampersandIndex = censoredCommand.indexOf("&", passwordIndex);
+			if (ampersandIndex > 0) {
+				censoredCommand = censoredCommand.substring(0, passwordIndex + 5) + "xxxxx"
+						+ censoredCommand.substring(ampersandIndex);
 			}
 		}
-		debug("> " + cen);
-		byte[] out = s.getBytes(m_enc);
-		int len = out.length;
+		debug("> " + censoredCommand);
+		byte[] outData = command.getBytes(encoding);
+		int length = outData.length;
 
-		if (m_key != null) {
+		if (encryptionKey != null) {
 			try {
-				m_cip.init(Cipher.ENCRYPT_MODE, m_key);
-				out = m_cip.doFinal(out);
-				len = out.length;
-			} catch (Exception e) {
-				e.printStackTrace();
+				cipher.init(Cipher.ENCRYPT_MODE, encryptionKey);
+				outData = cipher.doFinal(outData);
+				length = outData.length;
+			} catch (Exception ex) {
+				ex.printStackTrace();
 			}
 		}
 
-		DatagramPacket pckt_out = new DatagramPacket(out, len, m_ia, m_s.rport);
-		m_tstamp = System.currentTimeMillis();
+		DatagramPacket outPacket = new DatagramPacket(outData, length, serverAddress, settings.rport);
+		timestamp = System.currentTimeMillis();
 
-		m_ds.send(pckt_out);
+		socket.send(outPacket);
 
-		if ((i = s.indexOf("&enc=")) > 0) {
-			i += 5;
-			int y = s.indexOf('&', i);
-			if (y < 0) {
-				y = s.length();
+		int encIndex = command.indexOf("&enc=");
+		if (encIndex > 0) {
+			encIndex += 5;
+			int endIndex = command.indexOf('&', encIndex);
+			if (endIndex < 0) {
+				endIndex = command.length();
 			}
-			m_enc = s.substring(i, y);
+			encoding = command.substring(encIndex, endIndex);
 		}
 
 		if (!shutdown) { // wait
-			AConR r = receive();
-			m_tm.start();
-			return r;
+			AConR response = receive();
+			keepAliveTimer.start();
+			return response;
 		}
 		return null;
 	}
@@ -420,48 +422,49 @@ public class ACon implements ActionListener {
 		if (shutdown) {
 			return null;
 		}
-		byte[] buf = new byte[m_buf_siz];
-		DatagramPacket pckt_in = new DatagramPacket(buf, m_buf_siz);
+		int bufferSize = 2048 * 2;
+		byte[] buffer = new byte[bufferSize];
+		DatagramPacket inPacket = new DatagramPacket(buffer, bufferSize);
 
-		m_ds.receive(pckt_in);
-		m_tused = System.currentTimeMillis() - m_tstamp;
-		m_tstamp += m_tused / 2; // test, share used time
+		socket.receive(inPacket);
+		timeUsed = System.currentTimeMillis() - timestamp;
+		timestamp += timeUsed / 2; // test, share used time
 
-		int len = pckt_in.getLength();
+		int length = inPacket.getLength();
 
-		if (m_key != null) {
+		if (encryptionKey != null) {
 			try {
-				m_cip.init(Cipher.DECRYPT_MODE, m_key);
-				buf = m_cip.doFinal(buf, 0, len);
-				len = buf.length;
-			} catch (Exception e) {
-				debug("! Decryption failed: " + e.getMessage());
-				m_key = null;
-				m_cip = null;
+				cipher.init(Cipher.DECRYPT_MODE, encryptionKey);
+				buffer = cipher.doFinal(buffer, 0, length);
+				length = buffer.length;
+			} catch (Exception ex) {
+				debug("! Decryption failed: " + ex.getMessage());
+				encryptionKey = null;
+				cipher = null;
 				throw new AConEx(AConEx.ENCRYPTION);
 			}
 		}
-		if (buf.length > 1 && buf[0] == 0 && buf[1] == 0) {
+		if (buffer.length > 1 && buffer[0] == 0 && buffer[1] == 0) {
 			try {
-				Inflater dec = new Inflater();
-				dec.setInput(buf, 2, len - 2);
-				byte[] result = new byte[len * 3];
-				len = dec.inflate(result);
-				dec.end();
-				buf = result;
-			} catch (DataFormatException e) {
-				e.printStackTrace();
+				Inflater decompressor = new Inflater();
+				decompressor.setInput(buffer, 2, length - 2);
+				byte[] result = new byte[length * 3];
+				length = decompressor.inflate(result);
+				decompressor.end();
+				buffer = result;
+			} catch (DataFormatException ex) {
+				ex.printStackTrace();
 			}
 		}
 		try {
-			byte[] raw = new byte[len];
-			System.arraycopy(buf, 0, raw, 0, len);
-			String rs = new String(raw, m_enc);
-			rs = rs.substring(0, rs.length() - 1);
-			debug("< " + rs);
-			return new AConR(m_tag, m_tag_len, rs);
-		} catch (TagEx e) {
-			debug("! Wrong tag! Should be: " + m_tag);
+			byte[] rawData = new byte[length];
+			System.arraycopy(buffer, 0, rawData, 0, length);
+			String responseString = new String(rawData, encoding);
+			responseString = responseString.substring(0, responseString.length() - 1);
+			debug("< " + responseString);
+			return new AConR(currentTag, tagLength, responseString);
+		} catch (TagEx ex) {
+			debug("! Wrong tag! Should be: " + currentTag);
 			return receive();
 		}
 	}

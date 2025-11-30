@@ -30,217 +30,232 @@ import java.nio.charset.StandardCharsets;
 import java.util.StringTokenizer;
 
 public class Options {
-	public static final String S_SEP = "\1";
-	private static final String S_VER = "001";
-	private static final String S_SEP2 = "\2";
-	private final File m_file;
-	public int[] mIa = new int[I_LEN];
-	public String[] mSa = new String[S_LEN];
-	public boolean[] mBa = new boolean[B_LEN];
+	/** Primary field separator character (ASCII SOH) for serialization. */
+	public static final String FIELD_SEPARATOR = "\1";
+
+	private static final String OPTIONS_VERSION = "001";
+	/** Secondary separator character (ASCII STX) for section boundaries. */
+	private static final String SECTION_SEPARATOR = "\2";
+
+	private final File optionsFile;
+	public int[] integerOptions = new int[INTEGER_OPTIONS_COUNT];
+	public String[] stringOptions = new String[STRING_OPTIONS_COUNT];
+	public boolean[] booleanOptions = new boolean[BOOLEAN_OPTIONS_COUNT];
 
 	public Options() {
-		String home = System.getProperty("user.home");
-		m_file = new File(home + File.separator + ".webaom");
+		String homeDirectory = System.getProperty("user.home");
+		optionsFile = new File(homeDirectory + File.separator + ".webaom");
 	}
 
-	public boolean onDisk() {
-		return m_file.exists();
+	public boolean existsOnDisk() {
+		return optionsFile.exists();
 	}
 
-	public String path() {
-		return m_file.getAbsolutePath();
+	public String getFilePath() {
+		return optionsFile.getAbsolutePath();
 	}
 
-	public boolean equals(Options o) {
-		for (int i = 0; i < B_LEN; i++) {
-			if (mBa[i] != o.mBa[i]) {
+	public boolean equals(Options other) {
+		for (int index = 0; index < BOOLEAN_OPTIONS_COUNT; index++) {
+			if (booleanOptions[index] != other.booleanOptions[index]) {
 				return false;
 			}
 		}
-		for (int i = 0; i < I_LEN; i++) {
-			if (mIa[i] != o.mIa[i]) {
+		for (int index = 0; index < INTEGER_OPTIONS_COUNT; index++) {
+			if (integerOptions[index] != other.integerOptions[index]) {
 				return false;
 			}
 		}
-		for (int i = 0; i < S_LEN; i++) {
-			if (!strcmp(mSa[i], o.mSa[i])) {
+		for (int index = 0; index < STRING_OPTIONS_COUNT; index++) {
+			if (!areStringsEqual(stringOptions[index], other.stringOptions[index])) {
 				return false;
 			}
 		}
 		return true;
 	}
 
-	private boolean strcmp(String a, String b) {
-		return a == null && b == null || a != null && a.equals(b) || a.isEmpty() && b == null;
+	private boolean areStringsEqual(String first, String second) {
+		return first == null && second == null || first != null && first.equals(second)
+				|| first.isEmpty() && second == null;
 	}
 
-	public void save() {
-		if (!onDisk() && !A.confirm("Warning", "Options will be stored here:\n" + path(), "Continue", "Cancel")) {
+	public void saveToFile() {
+		if (!existsOnDisk()
+				&& !A.confirm("Warning", "Options will be stored here:\n" + getFilePath(), "Continue", "Cancel")) {
 			return;
 		}
 		try {
-			FileOutputStream fo = new FileOutputStream(m_file);
-			fo.write(enc().getBytes(StandardCharsets.UTF_8));
-			fo.close();
-			System.out.println("$ File written:" + m_file);
+			FileOutputStream fileOutput = new FileOutputStream(optionsFile);
+			fileOutput.write(encodeAllOptions().getBytes(StandardCharsets.UTF_8));
+			fileOutput.close();
+			System.out.println("$ File written:" + optionsFile);
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
 	}
 
-	public boolean load() {
-		if (!onDisk()) {
+	public boolean loadFromFile() {
+		if (!existsOnDisk()) {
 			return false;
 		}
 		try {
-			FileInputStream fw = new FileInputStream(m_file);
-			int len = (int) m_file.length();
-			int off = 0;
-			int read;
-			byte[] buffer = new byte[len];
+			FileInputStream fileInput = new FileInputStream(optionsFile);
+			int fileLength = (int) optionsFile.length();
+			int bytesOffset = 0;
+			int bytesRead;
+			byte[] buffer = new byte[fileLength];
 			do {
-				read = fw.read(buffer, off, len - off);
-				off += read;
-			} while (read > 0);
-			fw.close();
-			System.out.println("$ File read:" + m_file);
-			return dec(new String(buffer, StandardCharsets.UTF_8));
-		}
-		// catch(IOException e){e.printStackTrace();}
-		catch (Exception e) {
+				bytesRead = fileInput.read(buffer, bytesOffset, fileLength - bytesOffset);
+				bytesOffset += bytesRead;
+			} while (bytesRead > 0);
+			fileInput.close();
+			System.out.println("$ File read:" + optionsFile);
+			return decodeAllOptions(new String(buffer, StandardCharsets.UTF_8));
+		} catch (Exception e) {
 			e.printStackTrace();
 		}
 		return false;
 	}
 
-	public String enc() {
-		return S_VER + S_SEP2 + encB() + S_SEP2 + encI() + S_SEP2 + encS();
+	public String encodeAllOptions() {
+		return OPTIONS_VERSION + SECTION_SEPARATOR + encodeBooleans() + SECTION_SEPARATOR + encodeIntegers()
+				+ SECTION_SEPARATOR + encodeStrings();
 	}
 
-	public boolean dec(String str) {
-		StringTokenizer st = new StringTokenizer(str, S_SEP2);
-		if (st.countTokens() > 0 && st.nextToken().equals(S_VER)) {
-			decB(st.nextToken());
-			decI(st.nextToken());
-			decS(st);
+	public boolean decodeAllOptions(String encodedData) {
+		StringTokenizer tokenizer = new StringTokenizer(encodedData, SECTION_SEPARATOR);
+		if (tokenizer.countTokens() > 0 && tokenizer.nextToken().equals(OPTIONS_VERSION)) {
+			decodeBooleans(tokenizer.nextToken());
+			decodeIntegers(tokenizer.nextToken());
+			decodeStrings(tokenizer);
 			return true;
 		}
 		System.out.println("! Options file is outdated. Could not load.");
 		return false;
 	}
 
-	public boolean getB(int id) {
-		return mBa[id];
+	public boolean getBoolean(int optionId) {
+		return booleanOptions[optionId];
 	}
 
-	public void setB(int id, boolean b) {
-		mBa[id] = b;
+	public void setBoolean(int optionId, boolean value) {
+		booleanOptions[optionId] = value;
 	}
 
-	public int getI(int id) {
-		return mIa[id];
+	public int getInteger(int optionId) {
+		return integerOptions[optionId];
 	}
 
-	public void setI(int id, int i) {
-		mIa[id] = i;
+	public void setInteger(int optionId, int value) {
+		integerOptions[optionId] = value;
 	}
 
-	public String getS(int id) {
-		return mSa[id];
+	public String getString(int optionId) {
+		return stringOptions[optionId];
 	}
 
-	public void setS(int id, String s) {
-		mSa[id] = s;
+	public void setString(int optionId, String value) {
+		stringOptions[optionId] = value;
 	}
 
-	private String encB() {
-		String bool = "";
-		for (int i = 0; i < B_LEN; i++) {
-			bool += mBa[i] ? '1' : '0';
+	private String encodeBooleans() {
+		String encodedBooleans = "";
+		for (int index = 0; index < BOOLEAN_OPTIONS_COUNT; index++) {
+			encodedBooleans += booleanOptions[index] ? '1' : '0';
 		}
-		return bool;
+		return encodedBooleans;
 	}
 
-	private void decB(String bool) {
-		char[] c = bool.toCharArray();
-		for (int i = 0; i < B_LEN; i++) {
-			mBa[i] = (c[i] == '1');
-		}
-	}
-
-	private String encI() {
-		String ints = "";
-		for (int i = 0; i < I_LEN; i++) {
-			ints += mIa[i] + Options.S_SEP;
-		}
-		return ints;
-	}
-
-	private void decI(String str) {
-		StringTokenizer st = new StringTokenizer(str, Options.S_SEP);
-		for (int i = 0; i < I_LEN; i++) {
-			mIa[i] = Integer.parseInt(st.nextToken());
+	private void decodeBooleans(String encodedBooleans) {
+		char[] characters = encodedBooleans.toCharArray();
+		for (int index = 0; index < BOOLEAN_OPTIONS_COUNT; index++) {
+			booleanOptions[index] = (characters[index] == '1');
 		}
 	}
 
-	private String encS() {
-		String s = "";
-		for (int i = 0; i < S_LEN; i++) {
-			s += ((mSa[i] == null || mSa[i].isEmpty()) ? "null" : mSa[i]) + S_SEP2;
+	private String encodeIntegers() {
+		String encodedIntegers = "";
+		for (int index = 0; index < INTEGER_OPTIONS_COUNT; index++) {
+			encodedIntegers += integerOptions[index] + Options.FIELD_SEPARATOR;
 		}
-		return s;
+		return encodedIntegers;
 	}
 
-	private void decS(StringTokenizer st) {
-		String tmp;
-		for (int i = 0; i < S_LEN; i++) {
-			if (st.hasMoreTokens()) {
-				tmp = st.nextToken();
+	private void decodeIntegers(String encodedData) {
+		StringTokenizer tokenizer = new StringTokenizer(encodedData, Options.FIELD_SEPARATOR);
+		for (int index = 0; index < INTEGER_OPTIONS_COUNT; index++) {
+			integerOptions[index] = Integer.parseInt(tokenizer.nextToken());
+		}
+	}
+
+	private String encodeStrings() {
+		String encodedStrings = "";
+		for (int index = 0; index < STRING_OPTIONS_COUNT; index++) {
+			String value = stringOptions[index];
+			encodedStrings += ((value == null || value.isEmpty()) ? "null" : value) + SECTION_SEPARATOR;
+		}
+		return encodedStrings;
+	}
+
+	private void decodeStrings(StringTokenizer tokenizer) {
+		String tokenValue;
+		for (int index = 0; index < STRING_OPTIONS_COUNT; index++) {
+			if (tokenizer.hasMoreTokens()) {
+				tokenValue = tokenizer.nextToken();
 			} else {
-				tmp = null;
+				tokenValue = null;
 			}
-			mSa[i] = (tmp == null || tmp.equals("null")) ? "" : tmp;
+			stringOptions[index] = (tokenValue == null || tokenValue.equals("null")) ? "" : tokenValue;
 		}
 	}
 
-	public static final int B_UNUSED0 = 0; //
-	public static final int B_HASHCRC = 1;
-	public static final int B_HASHMD5 = 2;
-	public static final int B_HASHSHA = 3;
-	public static final int B_HASHTTH = 4;
-	public static final int B_ADDFILE = 5;
-	public static final int B_WATCHED = 6;
-	public static final int B_UNUSED1 = 7; //
-	public static final int B_NATKEEP = 8;
-	public static final int B_STORPSW = 9;
-	public static final int B_ALOADDB = 10;
-	public static final int B_AUTOLOG = 11;
-	public static final int B_AUTOSAV = 12; //
-	public static final int B_LEN = 13;
-	public static final int I_RPORT = 0;
-	public static final int I_LPORT = 1;
-	public static final int I_STATE = 2; // file state on mylist add
-	public static final int I_TIMEO = 3; // timeout
-	public static final int I_DELAY = 4; // datagram delay
-	public static final int I_USMOD = 5; // rename mode
-	public static final int I_LEN = 6;
-	public static final int S_USRNAME = 0;
-	public static final int S_HOSTURL = 1;
-	public static final int S_MYDBURL = 2;
-	public static final int S_HASHDIR = 3;
-	public static final int S_BROWSER = 4;
-	public static final int S_EXTENSN = 5;
-	public static final int S_SOURCEF = 6;
-	public static final int S_STORAGE = 7;
-	public static final int S_OTHERIN = 8;
-	public static final int S_VRLSREN = 9;
-	public static final int S_VRLSMOV = 10;
-	public static final int S_REPLSYS = 11;
-	public static final int S_HTMLCOL = 12;
-	public static final int S_LOGFILE = 13;
-	public static final int S_PATHREG = 14;
-	public static final int S_FONTSTR = 15;
-	public static final int S_LOGHEAD = 16;
-	public static final int S_JOBCOLS = 17;
-	public static final int S_LEN = 18;
+	// Boolean option indices
+	public static final int BOOL_UNUSED_0 = 0;
+	public static final int BOOL_HASH_CRC = 1;
+	public static final int BOOL_HASH_MD5 = 2;
+	public static final int BOOL_HASH_SHA = 3;
+	public static final int BOOL_HASH_TTH = 4;
+	public static final int BOOL_ADD_FILE = 5;
+	public static final int BOOL_WATCHED = 6;
+	public static final int BOOL_UNUSED_1 = 7;
+	public static final int BOOL_NAT_KEEP_ALIVE = 8;
+	public static final int BOOL_STORE_PASSWORD = 9;
+	public static final int BOOL_AUTO_LOAD_DATABASE = 10;
+	public static final int BOOL_AUTO_LOGIN = 11;
+	public static final int BOOL_AUTO_SAVE = 12;
+	public static final int BOOLEAN_OPTIONS_COUNT = 13;
+
+	// Integer option indices
+	public static final int INT_REMOTE_PORT = 0;
+	public static final int INT_LOCAL_PORT = 1;
+	/** File state on mylist add. */
+	public static final int INT_FILE_STATE = 2;
+	/** Network timeout in milliseconds. */
+	public static final int INT_TIMEOUT = 3;
+	/** Datagram delay between packets. */
+	public static final int INT_DATAGRAM_DELAY = 4;
+	/** Rename mode setting. */
+	public static final int INT_RENAME_MODE = 5;
+	public static final int INTEGER_OPTIONS_COUNT = 6;
+
+	// String option indices
+	public static final int STR_USERNAME = 0;
+	public static final int STR_HOST_URL = 1;
+	public static final int STR_DATABASE_URL = 2;
+	public static final int STR_HASH_DIRECTORY = 3;
+	public static final int STR_BROWSER = 4;
+	public static final int STR_EXTENSIONS = 5;
+	public static final int STR_SOURCE_FOLDER = 6;
+	public static final int STR_STORAGE = 7;
+	public static final int STR_OTHER_INFO = 8;
+	public static final int STR_RENAME_RULES = 9;
+	public static final int STR_MOVE_RULES = 10;
+	public static final int STR_REPLACE_RULES = 11;
+	public static final int STR_HTML_COLORS = 12;
+	public static final int STR_LOG_FILE = 13;
+	public static final int STR_PATH_REGEX = 14;
+	public static final int STR_FONT = 15;
+	public static final int STR_LOG_HEADER = 16;
+	public static final int STR_JOB_COLUMNS = 17;
+	public static final int STRING_OPTIONS_COUNT = 18;
 }

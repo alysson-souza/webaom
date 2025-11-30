@@ -31,37 +31,37 @@ import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.TableColumnModel;
 
 public class TableModelDS extends AbstractTableModel {
-	public static final int SEL = 0;
-	public static final int SRC = 1;
-	public static final int DST = 2;
+	public static final int COLUMN_SELECTED = 0;
+	public static final int COLUMN_SOURCE = 1;
+	public static final int COLUMN_DESTINATION = 2;
 
-	private Vector /* !<DSData> */ data;
-	private final String stitle0;
-	private final String stitle1;
-	private final DSData dummy;
+	private Vector /* !<DSData> */ rowDataList;
+	private final String sourceColumnTitle;
+	private final String destinationColumnTitle;
+	private final DSData emptyRowPlaceholder;
 
-	public TableModelDS(Vector /* <DSData> */ d, String s0, String s1) {
-		setData(d);
-		stitle0 = s0;
-		stitle1 = s1;
-		dummy = new DSData("", "", false);
+	public TableModelDS(Vector /* <DSData> */ dataVector, String sourceTitle, String destinationTitle) {
+		setData(dataVector);
+		sourceColumnTitle = sourceTitle;
+		destinationColumnTitle = destinationTitle;
+		emptyRowPlaceholder = new DSData("", "", false);
 	}
 
 	public Vector /* !<DSData> */ getData() {
-		return data;
+		return rowDataList;
 	}
 
-	public void setData(Vector /* !<DSData> */ d) {
-		data = d;
+	public void setData(Vector /* !<DSData> */ dataVector) {
+		rowDataList = dataVector;
 	}
 
 	public int getColumnCount() {
 		return 3;
 	}
 
-	public Class /* !<?> */ getColumnClass(int col) {
-		switch (col) {
-			case SEL :
+	public Class /* !<?> */ getColumnClass(int columnIndex) {
+		switch (columnIndex) {
+			case COLUMN_SELECTED :
 				return Boolean.class;
 			default :
 				return String.class;
@@ -69,92 +69,95 @@ public class TableModelDS extends AbstractTableModel {
 	}
 
 	public int getRowCount() {
-		return data.size() + 1;
+		return rowDataList.size() + 1;
 	}
 
-	public Object getValueAt(int row, int col) {
-		DSData rd;
-		if (row == data.size()) {
-			rd = dummy;
+	public Object getValueAt(int rowIndex, int columnIndex) {
+		DSData rowData;
+		if (rowIndex == rowDataList.size()) {
+			rowData = emptyRowPlaceholder;
 		} else {
-			rd = (DSData) data.elementAt(row); // !
+			rowData = (DSData) rowDataList.elementAt(rowIndex); // !
 		}
-		switch (col) {
-			case SEL :
-				return rd.sel;
-			case SRC :
-				return rd.src;
-			case DST :
-				return rd.dst;
+		switch (columnIndex) {
+			case COLUMN_SELECTED :
+				return rowData.enabled;
+			case COLUMN_SOURCE :
+				return rowData.source;
+			case COLUMN_DESTINATION :
+				return rowData.destination;
 		}
 		return null;
 	}
 
-	public boolean isCellEditable(int row, int col) {
+	public boolean isCellEditable(int rowIndex, int columnIndex) {
 		return true;
 	}
 
-	public void setValueAt(Object obj, int row, int col) {
-		DSData rd;
-		if (row == data.size()) {
-			rd = new DSData("", "", false);
-			data.add(rd);
-			fireTableRowsInserted(row, row);
+	public void setValueAt(Object value, int rowIndex, int columnIndex) {
+		DSData rowData;
+		if (rowIndex == rowDataList.size()) {
+			rowData = new DSData("", "", false);
+			rowDataList.add(rowData);
+			fireTableRowsInserted(rowIndex, rowIndex);
 		} else {
-			rd = (DSData) data.elementAt(row); // !
+			rowData = (DSData) rowDataList.elementAt(rowIndex); // !
 		}
-		if (rd != null) {
-			switch (col) {
-				case SEL :
-					if (!rd.src.isEmpty()) {
-						rd.sel = (Boolean) obj;
+		if (rowData != null) {
+			switch (columnIndex) {
+				case COLUMN_SELECTED :
+					if (!rowData.source.isEmpty()) {
+						rowData.enabled = (Boolean) value;
 					}
 					break;
-				case SRC :
-					rd.src = (String) obj;
-					if (rd.src.isEmpty()) {
-						data.remove(rd);
+				case COLUMN_SOURCE :
+					rowData.source = (String) value;
+					if (rowData.source.isEmpty()) {
+						rowDataList.remove(rowData);
 					}
 					break;
-				case DST :
-					rd.dst = getString(obj);
+				case COLUMN_DESTINATION :
+					rowData.destination = getValidatedDestination(value);
 					break;
 			}
 		}
 	}
 
-	private String getString(Object o) {
-		String str = (String) o;
-		DSData rd;
-		for (int i = 0; i < data.size(); i++) {
-			rd = (DSData) data.elementAt(i); // !
-			if (rd.src.equals(str)) {
+	/**
+	 * Validates the destination value, ensuring it doesn't duplicate an existing source.
+	 */
+	private String getValidatedDestination(Object destinationValue) {
+		String destination = (String) destinationValue;
+		DSData rowData;
+		for (int i = 0; i < rowDataList.size(); i++) {
+			rowData = (DSData) rowDataList.elementAt(i); // !
+			if (rowData.source.equals(destination)) {
 				return "";
 			}
 		}
-		return str;
+		return destination;
 	}
 
 	public String getColumnName(int columnIndex) {
 		switch (columnIndex) {
-			case SEL :
+			case COLUMN_SELECTED :
 				return "Enabled";
-			case SRC :
-				return stitle0;
-			case DST :
-				return stitle1;
+			case COLUMN_SOURCE :
+				return sourceColumnTitle;
+			case COLUMN_DESTINATION :
+				return destinationColumnTitle;
 		}
 		return "No such column!";
 	}
 
 	public static void formatTable(JTable table) {
-		TableColumnModel m = table.getColumnModel();
-		m.getColumn(0).setMaxWidth(50);
-		m.getColumn(1).setPreferredWidth(100);
-		m.getColumn(2).setPreferredWidth(100);
-		DefaultTableCellRenderer centerRend = new DefaultTableCellRenderer();
-		centerRend.setHorizontalAlignment(SwingConstants.CENTER);
-		m.getColumn(1).setCellRenderer(centerRend);
-		m.getColumn(2).setCellRenderer(centerRend);
+		TableColumnModel columnModel = table.getColumnModel();
+		columnModel.getColumn(COLUMN_SELECTED).setMaxWidth(50);
+		columnModel.getColumn(COLUMN_SOURCE).setPreferredWidth(100);
+		columnModel.getColumn(COLUMN_DESTINATION).setPreferredWidth(100);
+		DefaultTableCellRenderer centeredRenderer = new DefaultTableCellRenderer();
+		centeredRenderer.setHorizontalAlignment(SwingConstants.CENTER);
+		columnModel.getColumn(COLUMN_SOURCE).setCellRenderer(centeredRenderer);
+		columnModel.getColumn(COLUMN_DESTINATION).setCellRenderer(centeredRenderer);
 	}
 }

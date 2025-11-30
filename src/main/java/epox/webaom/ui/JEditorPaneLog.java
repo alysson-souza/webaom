@@ -44,76 +44,76 @@ import javax.swing.text.Document;
 import javax.swing.text.EditorKit;
 
 public class JEditorPaneLog extends JEditorPane implements Log, Action {
-	public static String HEAD = "<style"
-			+ " type=\"text/css\">body{background-color:#FFFFFF;font-family:Verdana,Arial,Helvetica,sans-serif;font-size:11pt;}</style>";
-	private PrintStream ps;
+	public static String htmlHeader = "<style type=\"text/css\">" + "body{background-color:#FFFFFF;"
+			+ "font-family:Verdana,Arial,Helvetica,sans-serif;font-size:11pt;}" + "</style>";
+	private PrintStream logOutputStream;
 
 	public JEditorPaneLog() {
-		super("text/html", HEAD);
+		super("text/html", htmlHeader);
 		setEditable(false);
 		getInputMap().put(KeyStroke.getKeyStroke("DELETE"), "remove");
 		getActionMap().put("remove", this);
 	}
 
-	public synchronized void append(String t) {
+	public synchronized void append(String htmlText) {
 		try {
-			Document doc = getDocument();
-			int len = doc.getLength();
-			if (t == null || t.equals("")) {
+			Document document = getDocument();
+			int documentLength = document.getLength();
+			if (htmlText == null || htmlText.equals("")) {
 				return;
 			}
-			Reader r = new StringReader(t);
-			EditorKit kit = getEditorKit();
-			kit.read(r, doc, len);
-		} catch (Exception e) {
-			e.printStackTrace();
+			Reader htmlReader = new StringReader(htmlText);
+			EditorKit editorKit = getEditorKit();
+			editorKit.read(htmlReader, document, documentLength);
+		} catch (Exception exception) {
+			exception.printStackTrace();
 		}
 	}
 
-	public void println(Object o) {
-		String time = Hyper.number(U.time());
-		StringBuffer line = new StringBuffer(256);
-		line.append('[');
-		line.append(time);
-		line.append("] ");
-		line.append(o);
-		line.append("<br>\n");
-		append(line.toString());
+	public void println(Object message) {
+		String formattedTime = Hyper.formatAsNumber(U.time());
+		StringBuffer logLine = new StringBuffer(256);
+		logLine.append('[');
+		logLine.append(formattedTime);
+		logLine.append("] ");
+		logLine.append(message);
+		logLine.append("<br>\n");
+		append(logLine.toString());
 
 		try {
-			ps.print(line);
-		} catch (NullPointerException e) {
-			// don't care
+			logOutputStream.print(logLine);
+		} catch (NullPointerException ignored) {
+			// Log file not yet opened, ignore
 		}
 	}
 
-	public boolean openLogFile(String path) {
+	public boolean openLogFile(String filePath) {
 		try {
 			// Use default log path if the provided path is empty or null
-			if (path == null || path.trim().isEmpty()) {
-				path = PlatformPaths.getDefaultLogFilePath();
+			if (filePath == null || filePath.trim().isEmpty()) {
+				filePath = PlatformPaths.getDefaultLogFilePath();
 			}
 
 			// Ensure the parent directory exists
-			if (!PlatformPaths.ensureParentDirectoryExists(path)) {
-				String errorMsg = "Failed to create log directory for: " + path;
-				A.dialog("Log Error", errorMsg);
+			if (!PlatformPaths.ensureParentDirectoryExists(filePath)) {
+				String errorMessage = "Failed to create log directory for: " + filePath;
+				A.dialog("Log Error", errorMessage);
 				return false;
 			}
 
-			ps = new PrintStream(new AppendFileStream(path), true, StandardCharsets.UTF_8);
+			logOutputStream = new PrintStream(new AppendFileStream(filePath), true, StandardCharsets.UTF_8);
 			return true;
-		} catch (IOException e) {
-			A.dialog("Log Error", e.getMessage());
+		} catch (IOException ioException) {
+			A.dialog("Log Error", ioException.getMessage());
 			return false;
 		}
 	}
 
 	public void closeLogFile() {
 		try {
-			ps.close();
-		} catch (Exception e) {
-			// don't care
+			logOutputStream.close();
+		} catch (Exception ignored) {
+			// Stream may already be closed or null
 		}
 	}
 
@@ -126,27 +126,27 @@ public class JEditorPaneLog extends JEditorPane implements Log, Action {
 	}
 
 	private class AppendFileStream extends OutputStream {
-		RandomAccessFile fd;
+		RandomAccessFile randomAccessFile;
 
-		AppendFileStream(String file) throws IOException {
-			fd = new RandomAccessFile(file, "rw");
-			fd.seek(fd.length());
+		AppendFileStream(String filePath) throws IOException {
+			randomAccessFile = new RandomAccessFile(filePath, "rw");
+			randomAccessFile.seek(randomAccessFile.length());
 		}
 
 		public void close() throws IOException {
-			fd.close();
+			randomAccessFile.close();
 		}
 
-		public void write(byte[] b) throws IOException {
-			fd.write(b);
+		public void write(byte[] bytes) throws IOException {
+			randomAccessFile.write(bytes);
 		}
 
-		public void write(byte[] b, int off, int len) throws IOException {
-			fd.write(b, off, len);
+		public void write(byte[] bytes, int offset, int length) throws IOException {
+			randomAccessFile.write(bytes, offset, length);
 		}
 
-		public void write(int b) throws IOException {
-			fd.write(b);
+		public void write(int byteValue) throws IOException {
+			randomAccessFile.write(byteValue);
 		}
 	}
 
@@ -158,17 +158,17 @@ public class JEditorPaneLog extends JEditorPane implements Log, Action {
 		// don't care
 	}
 
-	public void actionPerformed(ActionEvent e) {
-		setHeader((new JTextInputDialog(A.frame, "Edit header", HEAD)).getStr());
+	public void actionPerformed(ActionEvent event) {
+		setHeader((new JTextInputDialog(A.frame, "Edit header", htmlHeader)).getStr());
 	}
 
-	public void setHeader(String h) {
-		if (h == null || h.isEmpty()) {
+	public void setHeader(String newHeader) {
+		if (newHeader == null || newHeader.isEmpty()) {
 			return;
 		}
 		synchronized (this) {
-			HEAD = h;
-			setText(HEAD);
+			htmlHeader = newHeader;
+			setText(htmlHeader);
 			Runtime.getRuntime().gc();
 		}
 	}

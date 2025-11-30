@@ -26,68 +26,71 @@ import java.util.StringTokenizer;
 
 public final class Hyper {
 
-	public static String sWarn = "F00000";
-	public static String sName = "006699";
-	public static String sNumb = "000080";
+	/** Hex color code for warning/error text (red) */
+	public static String warningColor = "F00000";
+	/** Hex color code for name text (teal) */
+	public static String nameColor = "006699";
+	/** Hex color code for number text (navy) */
+	public static String numberColor = "000080";
 
 	private Hyper() {
 		// static only
 	}
 
-	public static String href(String url, String name) {
-		return "<a href=\"" + url + "\">" + name + "</a>";
+	public static String createHyperlink(String url, String linkText) {
+		return "<a href=\"" + url + "\">" + linkText + "</a>";
 	}
 
-	public static String color(String col, String str) {
-		return "<font color=#" + col + ">" + str + "</font>";
+	public static String wrapInColor(String hexColor, String text) {
+		return "<font color=#" + hexColor + ">" + text + "</font>";
 	}
 
-	public static String error(String str) {
-		return color(sWarn, str);
+	public static String formatAsError(String text) {
+		return wrapInColor(warningColor, text);
 	}
 
-	public static String name(String str) {
-		return color(sName, str);
+	public static String formatAsName(String text) {
+		return wrapInColor(nameColor, text);
 	}
 
-	public static String name(Object o) {
-		if (o != null) {
-			return color(sName, o.toString());
+	public static String formatAsName(Object obj) {
+		if (obj != null) {
+			return wrapInColor(nameColor, obj.toString());
 		}
 		return "null";
 	}
 
-	public static String number(int i) {
-		return color(sNumb, "" + i);
+	public static String formatAsNumber(int value) {
+		return wrapInColor(numberColor, "" + value);
 	}
 
-	public static String number(String str) {
-		return color(sNumb, str);
+	public static String formatAsNumber(String text) {
+		return wrapInColor(numberColor, text);
 	}
 
-	public static String enc() {
-		return sWarn + Options.S_SEP + sName + Options.S_SEP + sNumb;
+	public static String encodeColors() {
+		return warningColor + Options.FIELD_SEPARATOR + nameColor + Options.FIELD_SEPARATOR + numberColor;
 	}
 
-	public static void dec(String str) {
-		if (str == null) {
+	public static void decodeColors(String encodedColors) {
+		if (encodedColors == null) {
 			return;
 		}
-		StringTokenizer st = new StringTokenizer(str, Options.S_SEP);
-		if (st.countTokens() != 3) {
+		StringTokenizer tokenizer = new StringTokenizer(encodedColors, Options.FIELD_SEPARATOR);
+		if (tokenizer.countTokens() != 3) {
 			return;
 		}
-		String s = st.nextToken();
-		if (s.length() == 6) {
-			sWarn = s;
+		String colorToken = tokenizer.nextToken();
+		if (colorToken.length() == 6) {
+			warningColor = colorToken;
 		}
-		s = st.nextToken();
-		if (s.length() == 6) {
-			sName = s;
+		colorToken = tokenizer.nextToken();
+		if (colorToken.length() == 6) {
+			nameColor = colorToken;
 		}
-		s = st.nextToken();
-		if (s.length() == 6) {
-			sNumb = s;
+		colorToken = tokenizer.nextToken();
+		if (colorToken.length() == 6) {
+			numberColor = colorToken;
 		}
 	}
 }

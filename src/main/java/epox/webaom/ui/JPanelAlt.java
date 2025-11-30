@@ -17,74 +17,75 @@ import javax.swing.JTextField;
 import javax.swing.KeyStroke;
 
 public class JPanelAlt extends JPanel {
-	public JTreeTableR jttAlt;
-	public JComboBox jcbAm;
-	public JComboBox jcbAs;
-	public JComboBox jcbAt;
-	public JComboBox jcbEt;
-	public JTextField jtfAp;
+	public JTreeTableR altViewTreeTable;
+	public JComboBox sortModeComboBox;
+	public JComboBox fileVisibilityComboBox;
+	public JComboBox animeTitleComboBox;
+	public JComboBox episodeTitleComboBox;
+	public JTextField pathRegexField;
 
-	public JPanelAlt(ActionListener al) {
-		TableModelAlt am = new TableModelAlt();
-		jttAlt = new JTreeTableR(am);
-		am.formatTable(jttAlt.getColumnModel());
-		new HeaderListenerAlt(jttAlt);
+	public JPanelAlt(ActionListener actionListener) {
+		TableModelAlt tableModel = new TableModelAlt();
+		altViewTreeTable = new JTreeTableR(tableModel);
+		tableModel.formatTable(altViewTreeTable.getColumnModel());
+		new HeaderListenerAlt(altViewTreeTable);
 
-		JScrollPane scAlt = new JScrollPane(jttAlt);
-		scAlt.getViewport().setBackground(java.awt.Color.white);
+		JScrollPane scrollPane = new JScrollPane(altViewTreeTable);
+		scrollPane.getViewport().setBackground(java.awt.Color.white);
 
-		jcbAm = new JComboBox(Cache.S_SM);
-		jcbAm.setSelectedIndex(Cache.mImode);
-		jcbAm.setEditable(false);
-		jcbAm.addActionListener(al);
+		sortModeComboBox = new JComboBox(Cache.SORT_MODE_LABELS);
+		sortModeComboBox.setSelectedIndex(Cache.treeSortMode);
+		sortModeComboBox.setEditable(false);
+		sortModeComboBox.addActionListener(actionListener);
 
-		jcbAt = new JComboBox(new String[]{"Romaji", "Kanji", "English"});
-		jcbAt.setEditable(false);
-		jcbAt.addActionListener(al);
+		animeTitleComboBox = new JComboBox(new String[]{"Romaji", "Kanji", "English"});
+		animeTitleComboBox.setEditable(false);
+		animeTitleComboBox.addActionListener(actionListener);
 
-		jcbEt = new JComboBox(new String[]{"English", "Romaji", "Kanji"});
-		jcbEt.setEditable(false);
-		jcbEt.addActionListener(al);
+		episodeTitleComboBox = new JComboBox(new String[]{"English", "Romaji", "Kanji"});
+		episodeTitleComboBox.setEditable(false);
+		episodeTitleComboBox.addActionListener(actionListener);
 
-		jcbAs = new JComboBox(new String[]{"Show all files", "Show only existing", "Show only non existing"});
-		jcbAs.setEditable(false);
-		jcbAs.addActionListener(al);
+		fileVisibilityComboBox = new JComboBox(
+				new String[]{"Show all files", "Show only existing", "Show only non existing"});
+		fileVisibilityComboBox.setEditable(false);
+		fileVisibilityComboBox.addActionListener(actionListener);
 
-		jtfAp = new JTextField(20);
-		jtfAp.setText(A.preg);
-		jtfAp.setToolTipText("Path Regexp");
-		jtfAp.addActionListener(al);
+		pathRegexField = new JTextField(20);
+		pathRegexField.setText(A.preg);
+		pathRegexField.setToolTipText("Path Regexp");
+		pathRegexField.addActionListener(actionListener);
 
-		JPanel pAltS = new JPanel();
-		pAltS.add(jcbAt);
-		pAltS.add(jcbEt);
-		pAltS.add(jcbAm);
-		pAltS.add(jcbAs);
-		pAltS.add(jtfAp);
+		JPanel southPanel = new JPanel();
+		southPanel.add(animeTitleComboBox);
+		southPanel.add(episodeTitleComboBox);
+		southPanel.add(sortModeComboBox);
+		southPanel.add(fileVisibilityComboBox);
+		southPanel.add(pathRegexField);
 
 		setLayout(new BorderLayout());
-		add(scAlt, BorderLayout.CENTER);
-		add(pAltS, BorderLayout.SOUTH);
+		add(scrollPane, BorderLayout.CENTER);
+		add(southPanel, BorderLayout.SOUTH);
 
-		JPopupMenuM pop = new JPopupMenuM(jttAlt, jttAlt);
-		A.com1 = pop;
-		jttAlt.addMouseListener(pop);
+		JPopupMenuM popupMenu = new JPopupMenuM(altViewTreeTable, altViewTreeTable);
+		A.com1 = popupMenu;
+		altViewTreeTable.addMouseListener(popupMenu);
 
-		jttAlt.getInputMap().put(KeyStroke.getKeyStroke("F5"), "refresh");
-		jttAlt.getActionMap().put("refresh", new AbstractAction() {
+		altViewTreeTable.getInputMap().put(KeyStroke.getKeyStroke("F5"), "refresh");
+		altViewTreeTable.getActionMap().put("refresh", new AbstractAction() {
 			public void actionPerformed(ActionEvent e) {
-				updateAlt(false);
+				updateAlternativeView(false);
 			}
 		});
-		jttAlt.addKeyListener(new KeyAdapterJob(jttAlt, jttAlt));
+		altViewTreeTable.addKeyListener(new KeyAdapterJob(altViewTreeTable, altViewTreeTable));
 	}
 
-	protected void updateAlt(boolean r) {
+	protected void updateAlternativeView(boolean rebuildTree) {
 		synchronized (A.p) {
-			if (r) {
+			if (rebuildTree) {
 				A.cache.rebuildTree();
 			}
-			jttAlt.updateUI();
+			altViewTreeTable.updateUI();
 		}
 	}
 }
