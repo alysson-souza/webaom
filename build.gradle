@@ -6,7 +6,7 @@ plugins {
 }
 
 group = 'epox'
-version = '2.2.0'
+version = '2.0.0'
 description = 'WebAOM - Web Anime-o-Matic (AniDB file identification and organization)'
 
 java {
