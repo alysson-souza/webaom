@@ -22,6 +22,8 @@ package epox.swing;
 
 import java.awt.BorderLayout;
 import java.awt.Color;
+import java.awt.dnd.DropTarget;
+import java.awt.dnd.DropTargetListener;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import javax.swing.JComboBox;
@@ -78,6 +80,14 @@ public class JPanelCommand extends JPanel implements ActionListener, Log {
     public void println(Object message) {
         outputArea.append(message + "\r\n");
         outputArea.setCaretPosition(outputArea.getDocument().getLength());
+    }
+
+    /**
+     * Enables file drag-and-drop on the output area by setting a DropTarget that delegates to the specified listener.
+     * This is needed because JTextArea has its own TransferHandler that blocks file drops.
+     */
+    public void setFileDropListener(DropTargetListener dropListener) {
+        new DropTarget(outputArea, dropListener);
     }
 
     @Override

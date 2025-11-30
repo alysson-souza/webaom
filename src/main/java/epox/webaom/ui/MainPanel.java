@@ -437,9 +437,11 @@ public class MainPanel extends JPanel
         JTextArea infoTextArea = new JTextArea(AppContext.getFileString("info.txt"));
         infoTextArea.setEditable(false);
         infoTextArea.setMargin(new Insets(2, 2, 2, 2));
+        enableFileDrop(infoTextArea);
 
         //////////////////////////////// HASH PANE///////////////////////////////
         hashTextArea = new JTextArea();
+        enableFileDrop(hashTextArea);
 
         /////////////////////////////// RULES PANE///////////////////////////////
         rulesOptionsPanel = new RulesOptionsPanel(AppContext.rules);
@@ -462,6 +464,11 @@ public class MainPanel extends JPanel
                     + "Commands: !uptime !mystats !anime !group !randomanime !mylist !state !watched !storage !font\n"
                     + "Raw API: Start with '?' (e.g. ?PING) - session is added automatically.\n");
         chiiEmulator.setLog(commandPanel);
+        commandPanel.setFileDropListener(this);
+
+        ////////////////////////////// DEBUG PANEL///////////////////////////////
+        JPanelDebug debugPanel = new JPanelDebug(null);
+        debugPanel.setFileDropListener(this);
 
         ////////////////////////////// TABBED PANE///////////////////////////////
         tabbedPane = new JTabbedPane();
@@ -472,7 +479,7 @@ public class MainPanel extends JPanel
         tabbedPane.addTab("Log", logScrollPane);
         tabbedPane.addTab("Hash", new JScrollPane(hashTextArea));
         tabbedPane.addTab("Info", new JScrollPane(infoTextArea));
-        tabbedPane.addTab("Debug", new JPanelDebug(null));
+        tabbedPane.addTab("Debug", debugPanel);
         tabbedPane.addTab("Chii Emu", commandPanel);
         tabbedPane.setSelectedIndex(6);
 
@@ -964,6 +971,14 @@ public class MainPanel extends JPanel
             }
             jobsPanel.repaint();
         }
+    }
+
+    /**
+     * Enables file drag-and-drop on a component by setting a DropTarget that delegates to this panel's drop handling.
+     * This is needed for text components like JTextArea which have their own TransferHandler that blocks file drops.
+     */
+    private void enableFileDrop(java.awt.Component component) {
+        new DropTarget(component, this);
     }
 
     @Override
