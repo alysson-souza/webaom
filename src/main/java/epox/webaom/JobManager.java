@@ -1,30 +1,25 @@
-// Copyright (C) 2005-2006 epoximator
-//
-// This program is free software; you can redistribute it and/or
-// modify it under the terms of the GNU General Public License
-// as published by the Free Software Foundation; either version 2
-// of the License, or (at your option) any later version.
-//
-// This program is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-// GNU General Public License for more details.
-//
-// You should have received a copy of the GNU General Public License
-// along with this program; if not, write to the Free Software
-// Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
-
 /*
- * Created on 24.10.05
+ * WebAOM - Web Anime-O-Matic
+ * Copyright (C) 2005-2010 epoximator 2025 Alysson Souza
  *
- * @version 	01 (1.14)
- * @author 		epoximator
+ * This program is free software; you can redistribute it and/or modify it under
+ * the terms of the GNU General Public License version 2 as published by the Free
+ * Software Foundation.
+ *
+ * This program is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+ * FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License along with
+ * this program; if not, see <https://www.gnu.org/licenses/>.
  */
+
 package epox.webaom;
 
 import java.awt.Desktop;
 import java.io.File;
 import java.io.IOException;
+import java.util.Collection;
 
 public final class JobManager {
     private JobManager() {}
@@ -131,6 +126,32 @@ public final class JobManager {
         } catch (IOException ex) {
             ex.printStackTrace();
         }
+    }
+
+    /**
+     * Permanently remove jobs from the UI list.
+     * Caller is responsible for filtering out running jobs before calling this method.
+     *
+     * @param jobs jobs to delete (should not contain running jobs)
+     * @return number of jobs removed
+     */
+    public static int deleteJobs(Collection<Job> jobs) {
+        if (jobs == null || jobs.isEmpty()) {
+            return 0;
+        }
+
+        int removedCount = AppContext.jobs.removeJobs(jobs);
+        if (removedCount > 0) {
+            // Remove from cache tree - jobs are already removed from jobList
+            for (Job job : jobs) {
+                AppContext.cache.treeRemove(job);
+            }
+            // Update alternate view if visible
+            if (AppContext.gui != null && AppContext.gui.altViewPanel != null) {
+                AppContext.gui.altViewPanel.updateAlternativeView(false);
+            }
+        }
+        return removedCount;
     }
 
     public static void updateStatus(Job job, int status) {
