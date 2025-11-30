@@ -400,11 +400,9 @@ public class JPanelMain extends JPanel
 
 		////////////////////////////// CHII EMULATOR/////////////////////////////
 		ChiiEmu chiiEmulator = new ChiiEmu(A.conn);
-		JPanelCommand commandPanel = new JPanelCommand(chiiEmulator,
-				"Implemented commands:"
-						+ " !uptime,!mystats,!anime,!group,!randomanime,!mylist,!state,!watched,!storage,!font\n"
-						+ "To test API directly start command with '?'.\n"
-						+ "Login/logout is done automatically, no need to set s=.\n");
+		JPanelCommand commandPanel = new JPanelCommand(chiiEmulator, "Chii Emulator - AniDB IRC bot commands\n"
+				+ "Commands: !uptime !mystats !anime !group !randomanime !mylist !state !watched !storage !font\n"
+				+ "Raw API: Start with '?' (e.g. ?PING) - session is added automatically.\n");
 		chiiEmulator.setLog(commandPanel);
 
 		////////////////////////////// TABBED PANE///////////////////////////////
