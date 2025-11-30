@@ -328,7 +328,7 @@ public class MainPanel extends JPanel
             AppContext.jobCounter.reset();
             jobsTableModel.reset();
             jobsTable.updateUI();
-            altViewPanel.altViewTreeTable.updateUI();
+            altViewPanel.getAltViewTreeTable().updateUI();
             System.gc();
         }
     }
@@ -635,26 +635,26 @@ public class MainPanel extends JPanel
             newExtensionTextField.setText("");
         } else if (source == miscOptionsPanel.logFilePathField) {
             startLogging();
-        } else if (source == altViewPanel.sortModeComboBox) {
-            Cache.setTreeSortMode(altViewPanel.sortModeComboBox.getSelectedIndex());
+        } else if (source == altViewPanel.getSortModeComboBox()) {
+            Cache.setTreeSortMode(altViewPanel.getSortModeComboBox().getSelectedIndex());
             altViewPanel.updateAlternativeView(true);
-        } else if (source == altViewPanel.fileVisibilityComboBox) {
-            Cache.setHideNew(altViewPanel.fileVisibilityComboBox.getSelectedIndex() == 1);
-            Cache.setHideExisting(altViewPanel.fileVisibilityComboBox.getSelectedIndex() == 2);
+        } else if (source == altViewPanel.getFileVisibilityComboBox()) {
+            Cache.setHideNew(altViewPanel.getFileVisibilityComboBox().getSelectedIndex() == 1);
+            Cache.setHideExisting(altViewPanel.getFileVisibilityComboBox().getSelectedIndex() == 2);
             altViewPanel.updateAlternativeView(true);
-        } else if (source == altViewPanel.pathRegexField) {
-            String regexPattern = altViewPanel.pathRegexField.getText();
+        } else if (source == altViewPanel.getPathRegexField()) {
+            String regexPattern = altViewPanel.getPathRegexField().getText();
             if (regexPattern.isEmpty()) {
                 AppContext.pathRegex = null;
             } else {
                 AppContext.pathRegex = regexPattern;
             }
             altViewPanel.updateAlternativeView(true);
-        } else if (source == altViewPanel.animeTitleComboBox) {
-            Anime.titlePriority = altViewPanel.animeTitleComboBox.getSelectedIndex();
+        } else if (source == altViewPanel.getAnimeTitleComboBox()) {
+            Anime.titlePriority = altViewPanel.getAnimeTitleComboBox().getSelectedIndex();
             altViewPanel.updateAlternativeView(false);
-        } else if (source == altViewPanel.episodeTitleComboBox) {
-            Episode.titlePriority = altViewPanel.episodeTitleComboBox.getSelectedIndex();
+        } else if (source == altViewPanel.getEpisodeTitleComboBox()) {
+            Episode.titlePriority = altViewPanel.getEpisodeTitleComboBox().getSelectedIndex();
             altViewPanel.updateAlternativeView(false);
         }
     }
@@ -881,7 +881,7 @@ public class MainPanel extends JPanel
             String pathRegex = options.getString(Options.STR_PATH_REGEX);
             if (!pathRegex.isEmpty()) {
                 AppContext.pathRegex = pathRegex;
-                altViewPanel.pathRegexField.setText(pathRegex);
+                altViewPanel.getPathRegexField().setText(pathRegex);
             }
             AppContext.font = options.getString(Options.STR_FONT);
             logEditorPane.setHeader(options.getString(Options.STR_LOG_HEADER));

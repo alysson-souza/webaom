@@ -35,8 +35,6 @@ import java.util.HashMap;
 import java.util.logging.Logger;
 
 public class Cache {
-    private static final Logger LOGGER = Logger.getLogger(Cache.class.getName());
-
     /** Tree sort mode: Anime > File */
     public static final int MODE_ANIME_FILE = 0;
     /** Tree sort mode: Anime > Episode > File */
@@ -47,6 +45,8 @@ public class Cache {
     public static final int MODE_ANIME_FOLDER_FILE = 3;
     /** Total number of tree sort modes */
     public static final int MODE_COUNT = 4;
+
+    private static final Logger LOGGER = Logger.getLogger(Cache.class.getName());
     /** Display labels for each sort mode */
     private static final String[] SORT_MODE_LABELS = {
         "Anime, File", "Anime, Episode, File", "Anime, Group, File", "Anime, Folder, File"
@@ -59,6 +59,15 @@ public class Cache {
     private static boolean hideExisting = false;
     /** Whether to hide new/missing files from tree */
     private static boolean hideNew = false;
+
+    private final CacheMap[] cacheMaps;
+
+    public Cache() {
+        cacheMaps = new CacheMap[3];
+        for (int index = 0; index < cacheMaps.length; index++) {
+            cacheMaps[index] = new CacheMap();
+        }
+    }
 
     public static String[] getSortModeLabels() {
         return SORT_MODE_LABELS.clone();
@@ -86,15 +95,6 @@ public class Cache {
 
     public static void setHideNew(boolean hide) {
         hideNew = hide;
-    }
-
-    private final CacheMap[] cacheMaps;
-
-    public Cache() {
-        cacheMaps = new CacheMap[3];
-        for (int index = 0; index < cacheMaps.length; index++) {
-            cacheMaps[index] = new CacheMap();
-        }
     }
 
     public String toString() {

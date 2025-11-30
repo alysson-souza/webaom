@@ -32,10 +32,12 @@ import java.util.logging.Logger;
  * Provides hierarchical parent-child relationships and serialization support.
  */
 public class AniDBEntity implements Comparable<AniDBEntity> {
-    private static final Logger LOGGER = Logger.getLogger(AniDBEntity.class.getName());
-
     /** Separator character used for serialization. */
     protected static final char S = '|';
+
+    private static final Logger LOGGER = Logger.getLogger(AniDBEntity.class.getName());
+    private static final boolean IS_MAC =
+            System.getProperty("os.name").toLowerCase().contains("mac");
     /** Map of child objects keyed by their unique identifier. */
     private final HashMap<Object, AniDBEntity> childMap = new HashMap<>();
     /** Unique identifier for this object. */
@@ -119,9 +121,6 @@ public class AniDBEntity implements Comparable<AniDBEntity> {
     public int size() {
         return childMap.size();
     }
-
-    private static final boolean IS_MAC =
-            System.getProperty("os.name").toLowerCase().contains("mac");
 
     public String toString() {
         return IS_MAC ? "Press ⌘R to update." : "Press F5 to update.";

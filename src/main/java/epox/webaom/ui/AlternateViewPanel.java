@@ -7,6 +7,7 @@ package epox.webaom.ui;
 import epox.webaom.AppContext;
 import epox.webaom.Cache;
 import java.awt.BorderLayout;
+import java.awt.Color;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import javax.swing.AbstractAction;
@@ -17,44 +18,110 @@ import javax.swing.JTextField;
 import javax.swing.KeyStroke;
 
 public class AlternateViewPanel extends JPanel {
-    public JobTreeTable altViewTreeTable;
-    public JComboBox<String> sortModeComboBox;
-    public JComboBox<String> fileVisibilityComboBox;
-    public JComboBox<String> animeTitleComboBox;
-    public JComboBox<String> episodeTitleComboBox;
-    public JTextField pathRegexField;
+
+    private static final String ACTION_REFRESH = "refresh";
+
+    private final JobTreeTable altViewTreeTable;
+    private final JComboBox<String> sortModeComboBox;
+    private final JComboBox<String> fileVisibilityComboBox;
+    private final JComboBox<String> animeTitleComboBox;
+    private final JComboBox<String> episodeTitleComboBox;
+    private final JTextField pathRegexField;
 
     public AlternateViewPanel(ActionListener actionListener) {
+        altViewTreeTable = createTreeTable();
+        sortModeComboBox = createSortModeComboBox(actionListener);
+        animeTitleComboBox = createAnimeTitleComboBox(actionListener);
+        episodeTitleComboBox = createEpisodeTitleComboBox(actionListener);
+        fileVisibilityComboBox = createFileVisibilityComboBox(actionListener);
+        pathRegexField = createPathRegexField(actionListener);
+
+        initializeLayout();
+        initializeKeyBindings();
+    }
+
+    public JobTreeTable getAltViewTreeTable() {
+        return altViewTreeTable;
+    }
+
+    public JComboBox<String> getSortModeComboBox() {
+        return sortModeComboBox;
+    }
+
+    public JComboBox<String> getFileVisibilityComboBox() {
+        return fileVisibilityComboBox;
+    }
+
+    public JComboBox<String> getAnimeTitleComboBox() {
+        return animeTitleComboBox;
+    }
+
+    public JComboBox<String> getEpisodeTitleComboBox() {
+        return episodeTitleComboBox;
+    }
+
+    public JTextField getPathRegexField() {
+        return pathRegexField;
+    }
+
+    protected void updateAlternativeView(boolean rebuildTree) {
+        synchronized (AppContext.animeTreeRoot) {
+            if (rebuildTree) {
+                AppContext.cache.rebuildTree();
+            }
+            altViewTreeTable.updateUI();
+        }
+    }
+
+    private JobTreeTable createTreeTable() {
         AlternateViewTableModel tableModel = new AlternateViewTableModel();
-        altViewTreeTable = new JobTreeTable(tableModel);
-        tableModel.formatTable(altViewTreeTable.getColumnModel());
-        new AlternateViewHeaderListener(altViewTreeTable);
+        JobTreeTable treeTable = new JobTreeTable(tableModel);
+        tableModel.formatTable(treeTable.getColumnModel());
+        new AlternateViewHeaderListener(treeTable);
+        return treeTable;
+    }
 
-        JScrollPane scrollPane = new JScrollPane(altViewTreeTable);
-        scrollPane.getViewport().setBackground(java.awt.Color.white);
+    private JComboBox<String> createSortModeComboBox(ActionListener actionListener) {
+        JComboBox<String> comboBox = new JComboBox<>(Cache.getSortModeLabels());
+        comboBox.setSelectedIndex(Cache.getTreeSortMode());
+        comboBox.setEditable(false);
+        comboBox.addActionListener(actionListener);
+        return comboBox;
+    }
 
-        sortModeComboBox = new JComboBox<>(Cache.getSortModeLabels());
-        sortModeComboBox.setSelectedIndex(Cache.getTreeSortMode());
-        sortModeComboBox.setEditable(false);
-        sortModeComboBox.addActionListener(actionListener);
+    private JComboBox<String> createAnimeTitleComboBox(ActionListener actionListener) {
+        JComboBox<String> comboBox = new JComboBox<>(new String[] {"Romaji", "Kanji", "English"});
+        comboBox.setEditable(false);
+        comboBox.addActionListener(actionListener);
+        return comboBox;
+    }
 
-        animeTitleComboBox = new JComboBox<>(new String[] {"Romaji", "Kanji", "English"});
-        animeTitleComboBox.setEditable(false);
-        animeTitleComboBox.addActionListener(actionListener);
+    private JComboBox<String> createEpisodeTitleComboBox(ActionListener actionListener) {
+        JComboBox<String> comboBox = new JComboBox<>(new String[] {"English", "Romaji", "Kanji"});
+        comboBox.setEditable(false);
+        comboBox.addActionListener(actionListener);
+        return comboBox;
+    }
 
-        episodeTitleComboBox = new JComboBox<>(new String[] {"English", "Romaji", "Kanji"});
-        episodeTitleComboBox.setEditable(false);
-        episodeTitleComboBox.addActionListener(actionListener);
-
-        fileVisibilityComboBox =
+    private JComboBox<String> createFileVisibilityComboBox(ActionListener actionListener) {
+        JComboBox<String> comboBox =
                 new JComboBox<>(new String[] {"Show all files", "Show only existing", "Show only non existing"});
-        fileVisibilityComboBox.setEditable(false);
-        fileVisibilityComboBox.addActionListener(actionListener);
+        comboBox.setEditable(false);
+        comboBox.addActionListener(actionListener);
+        return comboBox;
+    }
 
-        pathRegexField = new JTextField(20);
-        pathRegexField.setText(AppContext.pathRegex);
-        pathRegexField.setToolTipText("Path Regexp");
-        pathRegexField.addActionListener(actionListener);
+    private JTextField createPathRegexField(ActionListener actionListener) {
+        JTextField textField = new JTextField(20);
+        textField.setText(AppContext.pathRegex);
+        textField.setToolTipText("Path Regexp");
+        textField.addActionListener(actionListener);
+        return textField;
+    }
+
+    private void initializeLayout() {
+        JScrollPane scrollPane = new JScrollPane(altViewTreeTable);
+        scrollPane.getViewport().setBackground(Color.white);
 
         JPanel southPanel = new JPanel();
         southPanel.add(animeTitleComboBox);
@@ -70,28 +137,24 @@ public class AlternateViewPanel extends JPanel {
         JobContextMenu popupMenu = new JobContextMenu(altViewTreeTable, altViewTreeTable);
         AppContext.secondaryPopupMenu = popupMenu;
         altViewTreeTable.addMouseListener(popupMenu);
+    }
 
+    private void initializeKeyBindings() {
         boolean isMac = System.getProperty("os.name").toLowerCase().contains("mac");
         String refreshKey = isMac ? "meta R" : "F5";
-        altViewTreeTable.getInputMap().put(KeyStroke.getKeyStroke(refreshKey), "refresh");
+
+        altViewTreeTable.getInputMap().put(KeyStroke.getKeyStroke(refreshKey), ACTION_REFRESH);
         if (isMac) {
-            // Also keep F5 as fallback on macOS
-            altViewTreeTable.getInputMap().put(KeyStroke.getKeyStroke("F5"), "refresh");
+            altViewTreeTable.getInputMap().put(KeyStroke.getKeyStroke("F5"), ACTION_REFRESH);
         }
-        altViewTreeTable.getActionMap().put("refresh", new AbstractAction() {
+
+        altViewTreeTable.getActionMap().put(ACTION_REFRESH, new AbstractAction() {
+            @Override
             public void actionPerformed(ActionEvent e) {
                 updateAlternativeView(false);
             }
         });
-        altViewTreeTable.addKeyListener(new KeyAdapterJob(altViewTreeTable, altViewTreeTable));
-    }
 
-    protected void updateAlternativeView(boolean rebuildTree) {
-        synchronized (AppContext.animeTreeRoot) {
-            if (rebuildTree) {
-                AppContext.cache.rebuildTree();
-            }
-            altViewTreeTable.updateUI();
-        }
+        altViewTreeTable.addKeyListener(new KeyAdapterJob(altViewTreeTable, altViewTreeTable));
     }
 }
