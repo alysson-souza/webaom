@@ -23,7 +23,7 @@
 package epox.webaom.ui;
 
 import epox.util.ReplacementRule;
-import java.util.Vector;
+import java.util.List;
 import javax.swing.JTable;
 import javax.swing.SwingConstants;
 import javax.swing.table.AbstractTableModel;
@@ -31,16 +31,18 @@ import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.TableColumnModel;
 
 public class ReplacementTableModel extends AbstractTableModel {
+    private static final long serialVersionUID = 1L;
+
     public static final int COLUMN_SELECTED = 0;
     public static final int COLUMN_SOURCE = 1;
     public static final int COLUMN_DESTINATION = 2;
     private final String sourceColumnTitle;
     private final String destinationColumnTitle;
-    private final ReplacementRule emptyRowPlaceholder;
-    private Vector<ReplacementRule> rowDataList;
+    private final transient ReplacementRule emptyRowPlaceholder;
+    private transient List<ReplacementRule> rowDataList;
 
-    public ReplacementTableModel(Vector<ReplacementRule> dataVector, String sourceTitle, String destinationTitle) {
-        setData(dataVector);
+    public ReplacementTableModel(List<ReplacementRule> dataList, String sourceTitle, String destinationTitle) {
+        setData(dataList);
         sourceColumnTitle = sourceTitle;
         destinationColumnTitle = destinationTitle;
         emptyRowPlaceholder = new ReplacementRule("", "", false);
@@ -57,18 +59,20 @@ public class ReplacementTableModel extends AbstractTableModel {
         columnModel.getColumn(COLUMN_DESTINATION).setCellRenderer(centeredRenderer);
     }
 
-    public Vector<ReplacementRule> getData() {
+    public List<ReplacementRule> getData() {
         return rowDataList;
     }
 
-    public void setData(Vector<ReplacementRule> dataVector) {
-        rowDataList = dataVector;
+    public void setData(List<ReplacementRule> dataList) {
+        rowDataList = dataList;
     }
 
+    @Override
     public int getColumnCount() {
         return 3;
     }
 
+    @Override
     public Class<?> getColumnClass(int columnIndex) {
         return switch (columnIndex) {
             case COLUMN_SELECTED -> Boolean.class;
@@ -76,29 +80,33 @@ public class ReplacementTableModel extends AbstractTableModel {
         };
     }
 
+    @Override
     public int getRowCount() {
         return rowDataList.size() + 1;
     }
 
+    @Override
     public Object getValueAt(int rowIndex, int columnIndex) {
         ReplacementRule rowData;
         if (rowIndex == rowDataList.size()) {
             rowData = emptyRowPlaceholder;
         } else {
-            rowData = rowDataList.elementAt(rowIndex);
+            rowData = rowDataList.get(rowIndex);
         }
         return switch (columnIndex) {
-            case COLUMN_SELECTED -> rowData.enabled;
-            case COLUMN_SOURCE -> rowData.source;
-            case COLUMN_DESTINATION -> rowData.destination;
+            case COLUMN_SELECTED -> rowData.isEnabled();
+            case COLUMN_SOURCE -> rowData.getSource();
+            case COLUMN_DESTINATION -> rowData.getDestination();
             default -> null;
         };
     }
 
+    @Override
     public boolean isCellEditable(int rowIndex, int columnIndex) {
         return true;
     }
 
+    @Override
     public void setValueAt(Object value, int rowIndex, int columnIndex) {
         ReplacementRule rowData;
         if (rowIndex == rowDataList.size()) {
@@ -106,23 +114,23 @@ public class ReplacementTableModel extends AbstractTableModel {
             rowDataList.add(rowData);
             fireTableRowsInserted(rowIndex, rowIndex);
         } else {
-            rowData = rowDataList.elementAt(rowIndex);
+            rowData = rowDataList.get(rowIndex);
         }
         if (rowData != null) {
             switch (columnIndex) {
                 case COLUMN_SELECTED:
-                    if (!rowData.source.isEmpty()) {
-                        rowData.enabled = (Boolean) value;
+                    if (!rowData.hasEmptySource()) {
+                        rowData.setEnabled((Boolean) value);
                     }
                     break;
                 case COLUMN_SOURCE:
-                    rowData.source = (String) value;
-                    if (rowData.source.isEmpty()) {
+                    rowData.setSource((String) value);
+                    if (rowData.hasEmptySource()) {
                         rowDataList.remove(rowData);
                     }
                     break;
                 case COLUMN_DESTINATION:
-                    rowData.destination = getValidatedDestination(value);
+                    rowData.setDestination(getValidatedDestination(value));
                     break;
                 default:
                     break;
@@ -137,14 +145,15 @@ public class ReplacementTableModel extends AbstractTableModel {
         String destination = (String) destinationValue;
         ReplacementRule rowData;
         for (int i = 0; i < rowDataList.size(); i++) {
-            rowData = rowDataList.elementAt(i);
-            if (rowData.source.equals(destination)) {
+            rowData = rowDataList.get(i);
+            if (rowData.getSource().equals(destination)) {
                 return "";
             }
         }
         return destination;
     }
 
+    @Override
     public String getColumnName(int columnIndex) {
         return switch (columnIndex) {
             case COLUMN_SELECTED -> "Enabled";

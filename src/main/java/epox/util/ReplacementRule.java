@@ -23,6 +23,7 @@
 package epox.util;
 
 import epox.webaom.Options;
+import java.io.Serializable;
 import java.util.List;
 import java.util.StringTokenizer;
 
@@ -30,18 +31,44 @@ import java.util.StringTokenizer;
  * Represents a source-to-destination mapping rule with an enabled/disabled state.
  * Used for character replacement rules in file renaming.
  */
-public class ReplacementRule {
+public class ReplacementRule implements Serializable {
+    private static final long serialVersionUID = 1L;
+
     /** The source pattern to match */
-    public String source;
+    private String source;
     /** The destination string to replace the source with */
-    public String destination;
+    private String destination;
     /** Whether this mapping rule is enabled */
-    public boolean enabled;
+    private boolean enabled;
 
     public ReplacementRule(String sourcePattern, String destinationPattern, boolean isEnabled) {
-        source = sourcePattern;
-        destination = destinationPattern;
-        enabled = isEnabled;
+        this.source = sourcePattern;
+        this.destination = destinationPattern;
+        this.enabled = isEnabled;
+    }
+
+    public String getSource() {
+        return source;
+    }
+
+    public void setSource(String source) {
+        this.source = source;
+    }
+
+    public String getDestination() {
+        return destination;
+    }
+
+    public void setDestination(String destination) {
+        this.destination = destination;
+    }
+
+    public boolean isEnabled() {
+        return enabled;
+    }
+
+    public void setEnabled(boolean enabled) {
+        this.enabled = enabled;
     }
 
     /**
@@ -94,5 +121,12 @@ public class ReplacementRule {
             return source + Options.FIELD_SEPARATOR + destValue;
         }
         return "#" + source + Options.FIELD_SEPARATOR + destValue;
+    }
+
+    /**
+     * Checks if the source pattern is empty.
+     */
+    public boolean hasEmptySource() {
+        return source.isEmpty();
     }
 }

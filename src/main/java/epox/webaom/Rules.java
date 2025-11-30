@@ -29,7 +29,6 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.StringTokenizer;
-import java.util.Vector;
 import java.util.regex.PatternSyntaxException;
 
 public class Rules {
@@ -40,7 +39,7 @@ public class Rules {
     public static final String TRUNC = "TRUNCATE<";
 
     /** Characters to replace in filenames (illegal filesystem characters) */
-    public Vector<ReplacementRule> illegalCharReplacements;
+    public List<ReplacementRule> illegalCharReplacements;
 
     private String renameRulesScript;
     private String moveRulesScript;
@@ -49,7 +48,7 @@ public class Rules {
     // private int mItruncate = 0;
 
     public Rules() {
-        illegalCharReplacements = new Vector<>();
+        illegalCharReplacements = new ArrayList<>();
         illegalCharReplacements.add(new ReplacementRule("`", "'", true));
         illegalCharReplacements.add(new ReplacementRule("\"", "", true));
         illegalCharReplacements.add(new ReplacementRule("<", "", true));
@@ -84,8 +83,8 @@ public class Rules {
 
     private static String applyReplacements(String text, List<ReplacementRule> replacements) {
         for (ReplacementRule replacement : replacements) {
-            if (replacement.enabled) {
-                text = StringUtilities.replace(text, replacement.source, replacement.destination);
+            if (replacement.isEnabled()) {
+                text = StringUtilities.replace(text, replacement.getSource(), replacement.getDestination());
             }
         }
         return text;
