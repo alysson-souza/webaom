@@ -40,14 +40,14 @@ import javax.swing.JTextArea;
  * to a file.
  */
 public class JPanelDebug extends JPanel {
-    public static DecimalFormat nf = new DecimalFormat("000.00");
+    private static final DecimalFormat nf = new DecimalFormat("000.00");
     protected JTextArea textArea;
     protected JScrollBar scrollBar;
     protected boolean logToFile = false;
-    protected Updater updater;
-    private PrintStream originalErr;
-    private PrintStream originalOut;
-    private File logFile;
+    protected transient Updater updater;
+    private transient PrintStream originalErr;
+    private transient PrintStream originalOut;
+    private transient PrintStream logFileStream;
 
     public JPanelDebug(String file, boolean captureOut, boolean captureErr, boolean echoOut, boolean echoErr) {
         super(new java.awt.BorderLayout());
@@ -59,18 +59,18 @@ public class JPanelDebug extends JPanel {
         scrollBar = scroll.getVerticalScrollBar();
         add(scroll);
         try {
-            FileOutputStream outputStream = null;
             if (file != null) {
                 logToFile = true;
-                logFile = new File(file);
-                outputStream = new FileOutputStream(logFile);
+                logFileStream = new PrintStream(new FileOutputStream(new File(file)), true);
             }
 
-            originalErr = System.err;
-            originalOut = System.out;
+            // Intentionally capturing System.out/err - this debug panel's purpose is to intercept
+            // standard streams and display them in a GUI text area while optionally echoing to original
+            originalErr = System.err; // NOSONAR - intentional capture of stderr
+            originalOut = System.out; // NOSONAR - intentional capture of stdout
 
-            WinStream errStream = new WinStream(outputStream, echoErr, originalErr);
-            WinStream outStream = new WinStream(outputStream, echoOut, originalOut);
+            WinStream errStream = new WinStream(echoErr, originalErr);
+            WinStream outStream = new WinStream(echoOut, originalOut);
 
             if (captureErr) {
                 System.setErr(errStream);
@@ -98,16 +98,14 @@ public class JPanelDebug extends JPanel {
     }
 
     private class WinStream extends PrintStream {
-        FileOutputStream fileOutputStream;
         PrintStream echoStream;
         boolean echoEnabled;
         boolean isNewLine = true;
         long startTime;
         long currentTime;
 
-        public WinStream(FileOutputStream stream, boolean echoEnabled, PrintStream echoStream) {
+        public WinStream(boolean echoEnabled, PrintStream echoStream) {
             super(echoStream);
-            this.fileOutputStream = stream;
             this.echoStream = echoStream;
             this.echoEnabled = echoEnabled;
             this.startTime = System.currentTimeMillis();
@@ -115,35 +113,54 @@ public class JPanelDebug extends JPanel {
 
         private synchronized void appendToTextArea(String text) {
             currentTime = System.currentTimeMillis();
-            if (text == "\n") {
-                if (!isNewLine) {
-                    textArea.append("\n");
-                }
-                isNewLine = true;
-                startTime = currentTime;
-
+            if ("\n".equals(text)) {
+                handleNewline();
             } else {
-                String prefix = "[" + StringUtilities.time() + "|" + nf.format((float) (currentTime - startTime) / 1000)
-                        + "] " + Thread.currentThread().getName() + ": ";
-
-                if (text.indexOf('\n') < 0) {
-                    if (isNewLine) {
-                        textArea.append(prefix);
-                    }
-                    textArea.append(text);
-                    isNewLine = false;
-                } else {
-                    String[] lines = StringUtilities.split(text, '\n');
-                    for (String line : lines) {
-                        if (isNewLine) {
-                            textArea.append(prefix);
-                        }
-                        textArea.append(line + "\n");
-                        isNewLine = true;
-                    }
-                    startTime = currentTime;
-                }
+                handleTextWithPrefix(text);
             }
+            scheduleScrollUpdate();
+        }
+
+        private void handleNewline() {
+            if (!isNewLine) {
+                textArea.append("\n");
+            }
+            isNewLine = true;
+            startTime = currentTime;
+        }
+
+        private void handleTextWithPrefix(String text) {
+            String prefix = "[" + StringUtilities.time() + "|" + nf.format((float) (currentTime - startTime) / 1000)
+                    + "] " + Thread.currentThread().getName() + ": ";
+
+            if (text.indexOf('\n') < 0) {
+                appendSingleLine(prefix, text);
+            } else {
+                appendMultipleLines(prefix, text);
+            }
+        }
+
+        private void appendSingleLine(String prefix, String text) {
+            if (isNewLine) {
+                textArea.append(prefix);
+            }
+            textArea.append(text);
+            isNewLine = false;
+        }
+
+        private void appendMultipleLines(String prefix, String text) {
+            String[] lines = StringUtilities.split(text, '\n');
+            for (String line : lines) {
+                if (isNewLine) {
+                    textArea.append(prefix);
+                }
+                textArea.append(line + "\n");
+                isNewLine = true;
+            }
+            startTime = currentTime;
+        }
+
+        private void scheduleScrollUpdate() {
             if (textArea.isVisible()) {
                 javax.swing.SwingUtilities.invokeLater(updater);
             }
@@ -154,8 +171,8 @@ public class JPanelDebug extends JPanel {
             if (echoEnabled) {
                 echoStream.print(value);
             }
-            if (logToFile) {
-                super.print(value);
+            if (logToFile && logFileStream != null) {
+                logFileStream.print(value);
             }
             appendToTextArea(value + "");
         }
@@ -165,8 +182,8 @@ public class JPanelDebug extends JPanel {
             if (echoEnabled) {
                 echoStream.print(value);
             }
-            if (logToFile) {
-                super.print(value);
+            if (logToFile && logFileStream != null) {
+                logFileStream.print(value);
             }
             appendToTextArea(value + "");
         }
@@ -176,8 +193,8 @@ public class JPanelDebug extends JPanel {
             if (echoEnabled) {
                 echoStream.print(value);
             }
-            if (logToFile) {
-                super.print(value);
+            if (logToFile && logFileStream != null) {
+                logFileStream.print(value);
             }
             appendToTextArea(value + "");
         }
@@ -187,8 +204,8 @@ public class JPanelDebug extends JPanel {
             if (echoEnabled) {
                 echoStream.print(value);
             }
-            if (logToFile) {
-                super.print(value);
+            if (logToFile && logFileStream != null) {
+                logFileStream.print(value);
             }
             appendToTextArea(value + "");
         }
@@ -198,8 +215,8 @@ public class JPanelDebug extends JPanel {
             if (echoEnabled) {
                 echoStream.print(value);
             }
-            if (logToFile) {
-                super.print(value);
+            if (logToFile && logFileStream != null) {
+                logFileStream.print(value);
             }
             appendToTextArea(value + "");
         }
@@ -209,8 +226,8 @@ public class JPanelDebug extends JPanel {
             if (echoEnabled) {
                 echoStream.print(value);
             }
-            if (logToFile) {
-                super.print(value);
+            if (logToFile && logFileStream != null) {
+                logFileStream.print(value);
             }
             appendToTextArea(value + "");
         }
@@ -220,8 +237,8 @@ public class JPanelDebug extends JPanel {
             if (echoEnabled) {
                 echoStream.print(value);
             }
-            if (logToFile) {
-                super.print(new String(value));
+            if (logToFile && logFileStream != null) {
+                logFileStream.print(new String(value));
             }
             appendToTextArea(new String(value));
         }
@@ -234,8 +251,8 @@ public class JPanelDebug extends JPanel {
             if (echoEnabled) {
                 echoStream.print(text);
             }
-            if (logToFile) {
-                super.print(text);
+            if (logToFile && logFileStream != null) {
+                logFileStream.print(text);
             }
             if (text.endsWith("\n")) {
                 isNewLine = true;
@@ -248,8 +265,8 @@ public class JPanelDebug extends JPanel {
             if (echoEnabled) {
                 echoStream.print(value);
             }
-            if (logToFile) {
-                super.print(value.toString());
+            if (logToFile && logFileStream != null) {
+                logFileStream.print(value.toString());
             }
             appendToTextArea("" + value);
         }
@@ -259,8 +276,8 @@ public class JPanelDebug extends JPanel {
             if (echoEnabled) {
                 echoStream.println();
             }
-            if (logToFile) {
-                super.println();
+            if (logToFile && logFileStream != null) {
+                logFileStream.println();
             }
             appendToTextArea("\n");
         }

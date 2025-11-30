@@ -36,7 +36,7 @@ public class JPanelCommand extends JPanel implements ActionListener, Log {
     private final JTextArea outputArea;
     private final JComboBox<String> commandComboBox;
 
-    private final CommandModel commandModel;
+    private final transient CommandModel commandModel;
 
     public JPanelCommand(CommandModel commandModel, String initialText) {
         this.commandModel = commandModel;

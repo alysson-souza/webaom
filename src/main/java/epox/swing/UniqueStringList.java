@@ -22,7 +22,8 @@
  */
 package epox.swing;
 
-import java.util.Vector;
+import java.util.ArrayList;
+import java.util.List;
 import javax.swing.ListModel;
 import javax.swing.event.ListDataEvent;
 import javax.swing.event.ListDataListener;
@@ -30,14 +31,14 @@ import javax.swing.event.ListDataListener;
 /**
  * A ListModel that stores unique strings. Duplicates are silently ignored when adding.
  */
-public class UniqueStringList implements ListModel {
-    private final Vector<String> stringList;
+public class UniqueStringList implements ListModel<String> {
+    private final List<String> stringList;
     private final String separator;
     private ListDataListener listDataListener;
 
     public UniqueStringList(String separator) {
         this.separator = separator;
-        stringList = new Vector<>();
+        stringList = new ArrayList<>();
     }
 
     public void add(String element) {
@@ -56,7 +57,7 @@ public class UniqueStringList implements ListModel {
 
     public void reset() {
         int size = getSize();
-        stringList.removeAllElements();
+        stringList.clear();
         listDataListener.intervalRemoved(new ListDataEvent(this, ListDataEvent.INTERVAL_REMOVED, 0, size - 1));
     }
 
@@ -84,12 +85,12 @@ public class UniqueStringList implements ListModel {
     }
 
     @Override
-    public Object getElementAt(int row) {
-        return stringList.elementAt(row);
+    public String getElementAt(int row) {
+        return stringList.get(row);
     }
 
     public String getStringAt(int row) {
-        return stringList.elementAt(row);
+        return stringList.get(row);
     }
 
     @Override

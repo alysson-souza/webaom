@@ -26,16 +26,18 @@ import javax.swing.table.JTableHeader;
 import javax.swing.table.TableColumn;
 import javax.swing.table.TableColumnModel;
 
+/**
+ * Header listener for column visibility popup menu. Right-click on table header to show/hide columns.
+ * Sorting is now handled by TableRowSorter.
+ */
 public class HeaderListener extends MouseAdapter {
     protected JTableHeader tableHeader;
     protected TableColumnModel columnModel;
-    protected SortButtonRenderer sortButtonRenderer;
     protected JPopupMenu columnPopup = null;
 
-    public HeaderListener(JTableHeader header, TableColumnModel columns, SortButtonRenderer renderer) {
+    public HeaderListener(JTableHeader header, TableColumnModel columns) {
         tableHeader = header;
         columnModel = columns;
-        sortButtonRenderer = renderer;
         columnPopup = null;
     }
 
@@ -59,38 +61,11 @@ public class HeaderListener extends MouseAdapter {
 
     @Override
     public void mouseClicked(MouseEvent event) {
-        if (event.getButton() == MouseEvent.BUTTON1) {
-            int columnIndex = tableHeader.columnAtPoint(event.getPoint());
-            int modelIndex = tableHeader.getTable().convertColumnIndexToModel(columnIndex);
-            try {
-                ((TableModelSortable) tableHeader.getTable().getModel()).sortByColumn(modelIndex);
-            } catch (Exception ignored) {
-                // don't care
-            }
-        } else if (columnPopup != null) {
+        // Right-click shows column visibility popup
+        if (event.getButton() != MouseEvent.BUTTON1 && columnPopup != null) {
             columnPopup.show(tableHeader, event.getX(), event.getY());
         }
-    }
-
-    @Override
-    public void mousePressed(MouseEvent event) {
-        if (event.getButton() == MouseEvent.BUTTON1) {
-            int columnIndex = tableHeader.columnAtPoint(event.getPoint());
-            sortButtonRenderer.setPressedColumn(columnIndex);
-            tableHeader.repaint();
-
-            if (tableHeader.getTable().isEditing()) {
-                tableHeader.getTable().getCellEditor().stopCellEditing();
-            }
-        }
-    }
-
-    @Override
-    public void mouseReleased(MouseEvent event) {
-        if (event.getButton() == MouseEvent.BUTTON1) {
-            sortButtonRenderer.setPressedColumn(-1);
-            tableHeader.repaint();
-        }
+        // Left-click sorting is now handled by TableRowSorter automatically
     }
 
     private class ColumnAction implements ActionListener {
