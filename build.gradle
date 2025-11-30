@@ -6,7 +6,7 @@ plugins {
 }
 
 group = 'epox'
-version = '2.1.1'
+version = '2.2.0'
 description = 'WebAOM - Web Anime-o-Matic (AniDB file identification and organization)'
 
 java {
@@ -24,8 +24,9 @@ repositories {
 }
 
 dependencies {
-	runtimeOnly 'org.postgresql:postgresql:42.7.7'
-	runtimeOnly 'com.mysql:mysql-connector-j:9.3.0'
+	runtimeOnly 'org.postgresql:postgresql:42.7.8'
+	runtimeOnly 'com.mysql:mysql-connector-j:9.5.0'
+	runtimeOnly 'com.h2database:h2:2.4.240'
 }
 
 tasks.register('generateVersionProperties') {
