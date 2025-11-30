@@ -401,8 +401,8 @@ public class MainPanel extends JPanel
         JPanelCommand commandPanel = new JPanelCommand(
                 chiiEmulator,
                 "Chii Emulator - AniDB IRC bot commands\n"
-                    + "Commands: !uptime !mystats !anime !group !randomanime !mylist !state !watched !storage !font\n"
-                    + "Raw API: Start with '?' (e.g. ?PING) - session is added automatically.\n");
+                        + "Commands: !uptime !mystats !anime !group !randomanime !mylist !state !watched !storage !font\n"
+                        + "Raw API: Start with '?' (e.g. ?PING) - session is added automatically.\n");
         chiiEmulator.setLog(commandPanel);
 
         ////////////////////////////// TABBED PANE///////////////////////////////

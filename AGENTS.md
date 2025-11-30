@@ -45,8 +45,8 @@ Third-party code in `com/`, `gnu/`, `jonelo/` packages is excluded from formatti
 - Java 21 toolchain
 - No star imports, unused imports removed automatically
 - Run `./gradlew spotlessApply` before committing
-- IntelliJ IDEA: auto-configured via `com.palantir.java-format` Gradle plugin (install the Palantir Java Format plugin when prompted)
-- VS Code: uses `richardwillis.vscode-spotless-gradle` extension for format-on-save via Spotless
+- IntelliJ IDEA: install the [Palantir Java Format](https://plugins.jetbrains.com/plugin/13180-palantir-java-format) plugin for consistent formatting
+- VS Code: install [Spotless Gradle](https://marketplace.visualstudio.com/items?itemName=richardwillis.vscode-spotless-gradle) extension for format-on-save via Spotless
 
 ### Linting
 - SonarLint for IDE-based code quality analysis (VS Code and IntelliJ IDEA)
