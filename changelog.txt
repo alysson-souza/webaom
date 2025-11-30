@@ -1,33 +1,24 @@
 Please note that this version is marked "unstable", meaning it can be broken from time
 to time. Do at least check the changelog for relevant info before using it.
 
-2.2.0 30.11.2025:
+2.0.0 30.11.2025:
+*First public release of the modernized WebAOM.
+*Migrated to Gradle build system with Java 21 LTS.
+*Added automatic embedded database support (H2). If PostgreSQL/MySQL is unavailable, WebAOM will now use an embedded database automatically.
 *Added "Auto rename" option to disable automatic file renaming after identification.
-*Fixed embedded database not working.
-*Fixed Help button not working on macOS and Linux.
-*Fixed !mystats, !anime and !group commands in Chii emulator.
-*Updated database drivers.
-
-2.1.1 29.11.2025:
-*Fixed drag-and-drop operations.
-
-2.1.0 29.11.2025:
-*Upgraded Java runtime to Java 21 LTS.
-*Updated PostgreSQL JDBC driver to 42.7.7 (fixes CVE-2024-1597 and CVE-2025-49146).
-*Updated MySQL Connector/J to 9.1.0.
-*Regenerated Gradle wrapper for compatibility with Java 21.
-*Jobs table columns now display user-friendly descriptions instead of cryptic tags (e.g., "Mylist ID" instead of "lid").
-
-2.0.0 16.11.2025:
-*Added automatic embedded database support. If PostgreSQL/MySQL is unavailable, WebAOM will now use an embedded database automatically.
-*Log files and database now use platform-appropriate default locations when not specified.
 *Added startup validation that shows helpful messages if there are configuration issues.
-*Application will now continue to run even if optional features (logging, external database) fail to initialize.
-*Log directories are now created automatically if they don't exist.
-*Fixed credential loading from saved options - credentials are now properly restored on startup.
-*Fixed login dialog layout - password field no longer stretches incorrectly.
+*Fixed Help button not working on macOS and Linux.
+*Fixed drag-and-drop operations with visual feedback.
+*Fixed embedded database not working.
+*Fixed credential loading from saved options.
+*Fixed login dialog layout.
+*Fixed !mystats, !anime, !group and !mylist commands in Chii emulator.
 *Added support for more video formats (3gp, asf, dat, divx, f4v, flv, m2ts, m2v, m4v, mov, mpeg, mpg, mts, ogv, qt, ram, rm, rmvb, ts, vob, webm, wmv).
 *Added support for more subtitle formats (sbv, smi, vtt).
+*Jobs table columns now display user-friendly descriptions.
+*Updated database drivers (PostgreSQL 42.7.8, MySQL 9.5.0, H2 2.4.240).
+*Log files and database now use platform-appropriate default locations.
+*Application will now continue to run even if optional features fail to initialize.
 *Fixed several minor bugs and improved compatibility with modern Java versions.
 
 1.19 20.11.2006:
