@@ -1,3 +1,7 @@
 <component name="CopyrightManager">
-  <settings default="GPL_2_0.txt"/>
+  <settings>
+    <module2copyright>
+      <element module="WebAOM" copyright="GPL-2.0-only" />
+    </module2copyright>
+  </settings>
 </component>
