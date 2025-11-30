@@ -23,7 +23,6 @@
  */
 package epox.webaom.data;
 
-import epox.util.Bits;
 import epox.util.StringUtilities;
 import epox.webaom.ui.AlternateViewTableModel;
 
@@ -58,7 +57,7 @@ public class Anime extends AniDBEntity {
     /** Categories/genres (comma-separated). */
     public String categories;
     /** Episode progress tracker (bit per episode). */
-    public Bits episodeProgress = null;
+    public EpisodeProgress episodeProgress = null;
 
     public Anime(int id) {
         this.id = id;
@@ -101,7 +100,7 @@ public class Anime extends AniDBEntity {
 
     public void init() {
         if (episodeProgress == null) {
-            episodeProgress = new Bits(episodeCount > 0 ? episodeCount : latestEpisode);
+            episodeProgress = new EpisodeProgress(episodeCount > 0 ? episodeCount : latestEpisode);
         }
     }
 
@@ -126,7 +125,7 @@ public class Anime extends AniDBEntity {
     }
 
     private void setOrFill(int episodeNumber, boolean value) {
-        if (!episodeProgress.set(episodeNumber - 1, value)) {
+        if (!episodeProgress.set(episodeNumber, value)) {
             if (episodeNumber > (episodeCount > 0 ? episodeCount : latestEpisode)) {
                 if (!episodeProgress.fill(value)) {
                     epox.webaom.AppContext.gui.println("@ Completion " + (value ? "over" : "under") + "flow: " + this
@@ -178,7 +177,7 @@ public class Anime extends AniDBEntity {
                             spaceIndex = episode.eng.length();
                         }
                         int endEp = StringUtilities.i(episode.eng.substring(dashIndex + 1, spaceIndex));
-                        for (int epIndex = startEp - 1; epIndex < endEp; epIndex++) {
+                        for (int epIndex = startEp; epIndex <= endEp; epIndex++) {
                             episodeProgress.set(epIndex, watched);
                         }
                     }
