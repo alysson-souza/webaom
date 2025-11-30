@@ -49,7 +49,7 @@ public class JPanelDebug extends JPanel {
 		super(new java.awt.BorderLayout());
 		jta = new JTextArea();
 		jta.setMargin(new java.awt.Insets(2, 2, 2, 2));
-		jta.append("Please report bugs! (http://wiki.anidb.net/w/User:Epoximator) Version:" + A.S_VER + "\r\n");
+		jta.append("Please report bugs at https://github.com/alysson-souza/webaom - Version:" + A.S_VER + "\r\n");
 		JScrollPane scroll = new JScrollPane(jta);
 		jsb = scroll.getVerticalScrollBar();
 		add(scroll);
