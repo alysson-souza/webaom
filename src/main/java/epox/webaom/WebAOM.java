@@ -17,6 +17,9 @@
 package epox.webaom;
 
 import java.awt.Font;
+import java.awt.Image;
+import java.io.InputStream;
+import javax.imageio.ImageIO;
 import javax.swing.JFrame;
 import javax.swing.UIManager;
 import javax.swing.WindowConstants;
@@ -38,6 +41,7 @@ public class WebAOM {
         setGlobalFont(new Font("Tahoma", Font.PLAIN, 11), new Font("Times", Font.PLAIN, 11));
 
         JFrame frame = new JFrame("WebAOM " + AppContext.VERSION + " Loading...");
+        setWindowIcon(frame);
         AppContext.frame = frame;
         AppContext.component = frame;
         frame.setSize(800, 600);
@@ -98,5 +102,23 @@ public class WebAOM {
         UIManager.put("ToolTip.font", primaryFontResource);
         UIManager.put("Tree.font", primaryFontResource);
         UIManager.put("Viewport.font", primaryFontResource);
+    }
+
+    private static void setWindowIcon(JFrame frame) {
+        try (InputStream iconStream = WebAOM.class.getResourceAsStream("/webaom.png")) {
+            if (iconStream != null) {
+                Image icon = ImageIO.read(iconStream);
+                frame.setIconImage(icon);
+
+                if (java.awt.Taskbar.isTaskbarSupported()) {
+                    java.awt.Taskbar taskbar = java.awt.Taskbar.getTaskbar();
+                    if (taskbar.isSupported(java.awt.Taskbar.Feature.ICON_IMAGE)) {
+                        taskbar.setIconImage(icon);
+                    }
+                }
+            }
+        } catch (Exception e) {
+            // Ignore - icon is not critical
+        }
     }
 }

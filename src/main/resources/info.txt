@@ -3,6 +3,7 @@ WebAOM!
 2.0.0 2025.11.30
 *First public release of the modernized WebAOM.
 *Added native app packages for macOS (.dmg), Windows (.msi), and Linux (.deb).
+*Added application window icon for taskbar/dock.
 *Added ⌘R keyboard shortcut for refresh on macOS (F5 still works).
 *Added automatic embedded database support (H2). If PostgreSQL/MySQL is unavailable, WebAOM will now use an embedded database automatically.
 *Added "Auto rename" option to disable automatic file renaming after identification.
