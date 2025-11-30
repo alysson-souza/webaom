@@ -29,59 +29,65 @@ import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
 
+/**
+ * Panel with a command input combo box and output text area. Used for command-line style interfaces.
+ */
 public class JPanelCommand extends JPanel implements ActionListener, Log {
-	private final JTextArea jta;
-	private final JComboBox jcb;
-	private final JScrollPane jsp;
+	private final JTextArea outputArea;
+	private final JComboBox commandComboBox;
+	private final JScrollPane scrollPane;
 
-	private final CommandModel cm;
+	private final CommandModel commandModel;
 
-	public JPanelCommand(CommandModel cm, String str) {
-		this.cm = cm;
+	public JPanelCommand(CommandModel commandModel, String initialText) {
+		this.commandModel = commandModel;
 
-		jta = new JTextArea(str);
-		jta.setMargin(new java.awt.Insets(2, 2, 2, 2));
-		// jta.setFont(new Font("monospaced", Font.PLAIN, 12));
-		jcb = new JComboBox();
-		jcb.setBackground(Color.white);
+		outputArea = new JTextArea(initialText);
+		outputArea.setMargin(new java.awt.Insets(2, 2, 2, 2));
+		commandComboBox = new JComboBox();
+		commandComboBox.setBackground(Color.white);
 
-		jsp = new JScrollPane(jta);
+		scrollPane = new JScrollPane(outputArea);
 
 		setLayout(new BorderLayout());
-		add(jsp, BorderLayout.CENTER);
-		add(jcb, BorderLayout.SOUTH);
+		add(scrollPane, BorderLayout.CENTER);
+		add(commandComboBox, BorderLayout.SOUTH);
 
-		jcb.addActionListener(this);
-		jcb.setEditable(true);
+		commandComboBox.addActionListener(this);
+		commandComboBox.setEditable(true);
 	}
 
-	public void actionPerformed(ActionEvent e) {
-		if (e.getActionCommand().equals("comboBoxEdited")) {
-			handleCommand(jcb.getSelectedItem().toString().trim());
+	@Override
+	public void actionPerformed(ActionEvent event) {
+		if (event.getActionCommand().equals("comboBoxEdited")) {
+			handleCommand(commandComboBox.getSelectedItem().toString().trim());
 		}
 	}
 
-	private void handleCommand(Object o) {
-		jcb.removeItem(o);
-		if (o.toString().isEmpty()) {
+	private void handleCommand(Object command) {
+		commandComboBox.removeItem(command);
+		if (command.toString().isEmpty()) {
 			return;
 		}
-		jcb.insertItemAt(o, 0);
-		jcb.setSelectedItem("");
-		println(o);
-		cm.handleCommand(o.toString());
+		commandComboBox.insertItemAt(command, 0);
+		commandComboBox.setSelectedItem("");
+		println(command);
+		commandModel.handleCommand(command.toString());
 	}
 
-	public void println(Object o) {
-		jta.append(o + "\r\n");
-		jta.setCaretPosition(jta.getDocument().getLength());
+	@Override
+	public void println(Object message) {
+		outputArea.append(message + "\r\n");
+		outputArea.setCaretPosition(outputArea.getDocument().getLength());
 	}
 
-	public void status0(String str) {
-		println(str);
+	@Override
+	public void status0(String message) {
+		println(message);
 	}
 
-	public void status1(String str) {
-		println(str);
+	@Override
+	public void status1(String message) {
+		println(message);
 	}
 }

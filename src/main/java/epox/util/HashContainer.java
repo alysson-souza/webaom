@@ -25,58 +25,97 @@ package epox.util;
 
 import jonelo.jacksum.algorithm.AbstractChecksum;
 
+/**
+ * Container for multiple hash algorithms, allowing simultaneous computation of multiple hash types.
+ * Stores hash algorithm names, computed hex values, and the checksum algorithm instances.
+ */
 public class HashContainer {
-	private final String[] na;
-	private final String[] ha;
-	private final AbstractChecksum[] ca;
+	/** Names of the hash algorithms (e.g., "MD5", "SHA-1") */
+	private final String[] hashNames;
+	/** Computed hex string values for each hash */
+	private final String[] hashValues;
+	/** Checksum algorithm instances for computing hashes */
+	private final AbstractChecksum[] checksumAlgorithms;
+	/** Number of hash algorithms in this container */
 	private final int size;
 
-	public HashContainer(int s) {
-		size = s;
-		na = new String[size];
-		ha = new String[size];
-		ca = new AbstractChecksum[size];
+	public HashContainer(int capacity) {
+		size = capacity;
+		hashNames = new String[size];
+		hashValues = new String[size];
+		checksumAlgorithms = new AbstractChecksum[size];
 	}
 
-	public void add(int index, String name, AbstractChecksum csum) {
-		na[index] = name;
-		ha[index] = null;
-		ca[index] = csum;
+	/**
+	 * Adds a hash algorithm to this container at the specified index.
+	 *
+	 * @param index
+	 *            the slot index for this algorithm
+	 * @param name
+	 *            the name of the hash algorithm
+	 * @param checksumAlgorithm
+	 *            the checksum algorithm instance
+	 */
+	public void add(int index, String name, AbstractChecksum checksumAlgorithm) {
+		hashNames[index] = name;
+		hashValues[index] = null;
+		checksumAlgorithms[index] = checksumAlgorithm;
 	}
 
+	/**
+	 * Updates all hash algorithms with the given data.
+	 *
+	 * @param buffer
+	 *            the byte buffer containing data
+	 * @param offset
+	 *            the starting offset in the buffer
+	 * @param length
+	 *            the number of bytes to process
+	 */
 	public void update(byte[] buffer, int offset, int length) {
-		for (int i = 0; i < size; i++) {
-			ca[i].update(buffer, offset, length);
+		for (int index = 0; index < size; index++) {
+			checksumAlgorithms[index].update(buffer, offset, length);
 		}
 	}
 
+	/**
+	 * Computes final hash values from all algorithms and resets them for reuse.
+	 */
 	public void finalizeHashes() {
-		for (int i = 0; i < size; i++) {
-			ha[i] = ca[i].getHexValue();
-			ca[i].reset();
+		for (int index = 0; index < size; index++) {
+			hashValues[index] = checksumAlgorithms[index].getHexValue();
+			checksumAlgorithms[index].reset();
 		}
 	}
 
+	@Override
 	protected void finalize() {
 		finalizeHashes();
 	}
 
+	@Override
 	public String toString() {
-		String res = "";
-		for (int i = 1; i < size; i++) {
-			res += na[i] + ": " + ha[i] + "\n";
+		String result = "";
+		for (int index = 1; index < size; index++) {
+			result += hashNames[index] + ": " + hashValues[index] + "\n";
 		}
-		if (res.isEmpty()) {
+		if (result.isEmpty()) {
 			return "";
 		}
-		// return res;
-		return res.substring(0, res.length() - 1);
+		return result.substring(0, result.length() - 1);
 	}
 
+	/**
+	 * Retrieves the computed hash value for the specified algorithm name.
+	 *
+	 * @param name
+	 *            the name of the hash algorithm (case-insensitive)
+	 * @return the hex hash value, or null if not found
+	 */
 	public String getHex(String name) {
-		for (int i = 0; i < size; i++) {
-			if (na[i].equalsIgnoreCase(name)) {
-				return ha[i];
+		for (int index = 0; index < size; index++) {
+			if (hashNames[index].equalsIgnoreCase(name)) {
+				return hashValues[index];
 			}
 		}
 		return null;

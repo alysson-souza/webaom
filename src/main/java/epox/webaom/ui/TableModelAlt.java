@@ -66,23 +66,23 @@ public class TableModelAlt extends AbstractTreeTableModel implements TreeTableMo
 		if (node instanceof Base g) {
 			switch (c) {
 				case SIZE :
-					return U.sbyte(g.mLs);
+					return U.sbyte(g.totalSize);
 			}
 		}
 		if (node instanceof Anime a) {
 			switch (c) {
 				case NAME :
-					return a.rom;
+					return a.romajiTitle;
 				case TYPE :
-					return a.typ;
+					return a.type;
 				case YEAR :
-					return Integer.valueOf(a.yea);
+					return Integer.valueOf(a.year);
 				case NUMB :
 					return Integer.valueOf(a.size());
 				case PRCT :
-					return Integer.valueOf(a.getPct()); // return new Integer(a.getPct());
+					return Integer.valueOf(a.getCompletionPercent());
 				case LAST :
-					return new Character(a.miss());
+					return Character.valueOf(a.getMissingPattern());
 				default :
 					return null;
 			}
@@ -100,9 +100,9 @@ public class TableModelAlt extends AbstractTreeTableModel implements TreeTableMo
 				case TYPE :
 					return f.getJob() == null ? null : f.getJob().getStatusText();
 				case YEAR :
-					return f.vid; // new Integer(f.fid);
+					return f.videoCodec; // new Integer(f.fileId);
 				case NUMB :
-					return f.aud; // U.sbyte(f.mLs);
+					return f.audioCodec; // U.sbyte(f.totalSize);
 				default :
 					return null;
 			}
@@ -112,7 +112,7 @@ public class TableModelAlt extends AbstractTreeTableModel implements TreeTableMo
 				case NUMB :
 					return Integer.valueOf(g.size());
 				case PRCT :
-					return Integer.valueOf(g.getPct());
+					return Integer.valueOf(g.getCompletionPercent());
 				default :
 					return null;
 			}
@@ -121,7 +121,7 @@ public class TableModelAlt extends AbstractTreeTableModel implements TreeTableMo
 			switch (c) {
 				case NUMB :
 					return Integer.valueOf(p.size());
-				// case PRCT: return new Integer(g.getPct());
+				// case PRCT: return new Integer(g.getCompletionPercent());
 				default :
 					return null;
 			}
@@ -150,7 +150,7 @@ public class TableModelAlt extends AbstractTreeTableModel implements TreeTableMo
 
 	public int getChildCount(Object parent) {
 		Base p = (Base) parent;
-		p.mkArray();
+		p.buildSortedChildArray();
 
 		return p.size();
 	}

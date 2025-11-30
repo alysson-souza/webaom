@@ -150,14 +150,14 @@ public class ACon implements ActionListener {
 	}
 
 	public int encrypt() throws Exception {
-		if (userPass.key == null || userPass.key.isEmpty()) {
+		if (userPass.apiKey == null || userPass.apiKey.isEmpty()) {
 			return ping();
 		}
-		AConR response = sendWithSession("ENCRYPT", "user=" + userPass.usr + "&type=1", true);
+		AConR response = sendWithSession("ENCRYPT", "user=" + userPass.username + "&type=1", true);
 		if (response.code == AConR.ENCRYPTION_ENABLED) {
 			try {
 				MessageDigest digest = MessageDigest.getInstance("MD5");
-				digest.update(userPass.key.getBytes());
+				digest.update(userPass.apiKey.getBytes());
 				digest.update(response.data.getBytes());
 				byte[] keyBytes = digest.digest();
 				encryptionKey = new SecretKeySpec(keyBytes, "AES");
@@ -197,7 +197,7 @@ public class ACon implements ActionListener {
 			throw new AConEx(AConEx.CLIENT_BUG, "Invalid session.");
 		}
 		String versionParams = "&protover=3&client=webaom&clientver=119&nat=1&comp=1&enc=utf8";
-		AConR response = send("AUTH", "user=" + userPass.usr + "&pass=" + userPass.psw + versionParams, true);
+		AConR response = send("AUTH", "user=" + userPass.username + "&pass=" + userPass.password + versionParams, true);
 		remainingAuthAttempts--;
 		switch (response.code) {
 			case AConR.LOGIN_ACCEPTED_NEW_VER :

@@ -308,49 +308,49 @@ public class Rules {
 		switch (Character.toUpperCase(conditionType)) {
 			case 'A' : { // Anime name or ID
 				try {
-					return job.anidbFile.aid == Integer.parseInt(testValue.trim());
+					return job.anidbFile.animeId == Integer.parseInt(testValue.trim());
 				} catch (NumberFormatException e) {
-					return matchesPattern(job.anidbFile.anime.rom, testValue)
-							|| matchesPattern(job.anidbFile.anime.kan, testValue)
-							|| matchesPattern(job.anidbFile.anime.eng, testValue);
+					return matchesPattern(job.anidbFile.anime.romajiTitle, testValue)
+							|| matchesPattern(job.anidbFile.anime.kanjiTitle, testValue)
+							|| matchesPattern(job.anidbFile.anime.englishTitle, testValue);
 				}
 			}
 			case 'E' : // Episode
 				return matchesPattern(job.anidbFile.ep.num, testValue)
 						|| matchesPattern(job.anidbFile.ep.eng, testValue);
 			case 'C' : // Codec
-				return job.anidbFile.vid.equalsIgnoreCase(testValue)
-						|| containsIgnoreCase(job.anidbFile.aud, testValue);
+				return job.anidbFile.videoCodec.equalsIgnoreCase(testValue)
+						|| containsIgnoreCase(job.anidbFile.audioCodec, testValue);
 			case 'Q' : // Quality
-				return job.anidbFile.qua.equalsIgnoreCase(testValue);
+				return job.anidbFile.quality.equalsIgnoreCase(testValue);
 			case 'R' : // Rip source
-				return job.anidbFile.rip.equalsIgnoreCase(testValue);
+				return job.anidbFile.ripSource.equalsIgnoreCase(testValue);
 			case 'T' : // Type
-				return job.anidbFile.anime.typ.equalsIgnoreCase(testValue);
+				return job.anidbFile.anime.type.equalsIgnoreCase(testValue);
 			case 'G' : { // Group name or ID
-				if (job.anidbFile.gid == 0) {
+				if (job.anidbFile.groupId == 0) {
 					return testValue.equalsIgnoreCase("unknown");
 				}
 				try {
-					return job.anidbFile.gid == Integer.parseInt(testValue.trim());
+					return job.anidbFile.groupId == Integer.parseInt(testValue.trim());
 				} catch (NumberFormatException e) {
 					/* Expected when testValue is a group name */
 				}
 				return job.anidbFile.group.name.equalsIgnoreCase(testValue)
-						|| job.anidbFile.group.sname.equalsIgnoreCase(testValue);
+						|| job.anidbFile.group.shortName.equalsIgnoreCase(testValue);
 			}
 			case 'Y' : // Year
 				return job.anidbFile.inYear(testValue);
 			case 'D' : // Dub language
-				return containsIgnoreCase(job.anidbFile.dub, testValue);
+				return containsIgnoreCase(job.anidbFile.dubLanguage, testValue);
 			case 'S' : // Sub language
-				return containsIgnoreCase(job.anidbFile.sub, testValue);
+				return containsIgnoreCase(job.anidbFile.subLanguage, testValue);
 			case 'X' : // Episode count
-				return testValue.equals("" + job.anidbFile.anime.eps);
+				return testValue.equals("" + job.anidbFile.anime.episodeCount);
 			case 'P' : // Path
 				return matchesPattern(job.currentFile.getAbsolutePath(), testValue);
 			case 'N' : // Genre/category
-				return containsIgnoreCase(job.anidbFile.anime.cat, testValue);
+				return containsIgnoreCase(job.anidbFile.anime.categories, testValue);
 			case 'I' : { // Is tag defined
 				String tagValue = (String) tagValueMap.get(testValue);
 				return tagValue != null && !tagValue.isEmpty();

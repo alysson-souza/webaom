@@ -20,6 +20,15 @@
  */
 package epox.swing;
 
+/**
+ * Interface for command handlers that process text commands.
+ */
 public interface CommandModel {
-	void handleCommand(String s);
+	/**
+	 * Handles a command entered by the user.
+	 *
+	 * @param command
+	 *            the command text to process
+	 */
+	void handleCommand(String command);
 }

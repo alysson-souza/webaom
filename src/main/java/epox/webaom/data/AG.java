@@ -4,33 +4,42 @@
  */
 package epox.webaom.data;
 
+/**
+ * AG (Anime-Group) represents the association between an Anime and a Group (fansub/release group).
+ * Used for organizing files by which group released them.
+ */
 public class AG extends Base {
-	private final Group m_g;
-	private final Anime m_a;
+	private final Group group;
+	private final Anime anime;
 
-	public AG(Anime a, Group g) {
-		this.id = g.id;
-		m_g = g;
-		m_a = a;
+	public AG(Anime anime, Group group) {
+		this.id = group.id;
+		this.group = group;
+		this.anime = anime;
 	}
 
 	/*
 	 * public Object getKey(){
-	 * return m_g.getKey();
+	 * return group.getKey();
 	 * }
 	 */
 	public String toString() {
-		return m_g.name + " (" + m_g.sname + ")";
+		return group.name + " (" + group.shortName + ")";
 	}
 
-	public int getPct() {
-		int max = m_a.eps;
-		if (max == 0) {
-			max = -m_a.lep;
+	/**
+	 * Calculate completion percentage for this group's releases.
+	 *
+	 * @return percentage of episodes available from this group
+	 */
+	public int getCompletionPercent() {
+		int maxEpisodes = anime.episodeCount;
+		if (maxEpisodes == 0) {
+			maxEpisodes = -anime.latestEpisode;
 		}
-		if (max == 0) {
+		if (maxEpisodes == 0) {
 			return 0;
 		}
-		return (size() * 100) / max;
+		return (size() * 100) / maxEpisodes;
 	}
 }

@@ -68,13 +68,13 @@ public class AConE extends ACon {
 	}
 
 	public int addFileToMylist(Job job, Mylist mylistEntry) throws AConEx {
-		String escapedSource = escapeForXml(mylistEntry.sou);
-		String escapedStorage = escapeForXml(mylistEntry.sto);
-		String escapedOther = escapeForXml(mylistEntry.oth);
+		String escapedSource = escapeForXml(mylistEntry.source);
+		String escapedStorage = escapeForXml(mylistEntry.storage);
+		String escapedOther = escapeForXml(mylistEntry.other);
 		StringBuilder params = new StringBuilder();
-		params.append("fid=").append(job.anidbFile.fid);
-		params.append("&state=").append(mylistEntry.stt);
-		params.append("&viewed=").append(mylistEntry.vie);
+		params.append("fid=").append(job.anidbFile.fileId);
+		params.append("&state=").append(mylistEntry.state);
+		params.append("&viewed=").append(mylistEntry.viewed);
 		params.append("&source=").append(escapedSource);
 		params.append("&storage=").append(escapedStorage);
 		params.append("&other=").append(escapedOther);
@@ -88,10 +88,10 @@ public class AConE extends ACon {
 			case AConR.MYLIST_ENTRY_ADDED :
 				return Integer.parseInt(response.data);
 			case AConR.FILE_ALREADY_IN_MYLIST :
-				error(job.anidbFile.def + " is already in mylist.");
+				error(job.anidbFile.defaultName + " is already in mylist.");
 				return Integer.parseInt(response.data);
 			case AConR.NO_SUCH_MYLIST_FILE :
-				error(job.anidbFile.def + " was not found in AniDB.");
+				error(job.anidbFile.defaultName + " was not found in AniDB.");
 			case AConR.MYLIST_ENTRY_EDITED :
 			case AConR.NO_SUCH_MYLIST_ENTRY :
 			default :

@@ -31,181 +31,275 @@ import java.util.HashMap;
 import java.util.Locale;
 
 /**
- * Utility class.
+ * Utility class providing common helper methods for string manipulation,
+ * formatting, and file operations.
  *
  * @author JV
  * @version X
  */
 public class U {
-	private static final DateFormat daf = DateFormat.getTimeInstance(DateFormat.MEDIUM, Locale.GERMANY);
-	private static final DecimalFormat def = new DecimalFormat("0.00");
+	/** Date formatter for time display (German locale, medium format) */
+	private static final DateFormat TIME_FORMAT = DateFormat.getTimeInstance(DateFormat.MEDIUM, Locale.GERMANY);
+	/** Decimal formatter for two decimal places */
+	private static final DecimalFormat DECIMAL_FORMAT = new DecimalFormat("0.00");
 
+	/**
+	 * Returns the current time formatted as a string.
+	 *
+	 * @return formatted time string
+	 */
 	public static String time() {
-		return daf.format(new Date(System.currentTimeMillis()));
+		return TIME_FORMAT.format(new Date(System.currentTimeMillis()));
 	}
 
-	public static void err(Object o) {
-		System.err.println("! " + o);
+	/**
+	 * Prints an error message to stderr with "! " prefix.
+	 *
+	 * @param message
+	 *            the message to print
+	 */
+	public static void err(Object message) {
+		System.err.println("! " + message);
 	}
 
-	public static void out(Object o) {
-		System.out.println(o);
+	/**
+	 * Prints a message to stdout.
+	 *
+	 * @param message
+	 *            the message to print
+	 */
+	public static void out(Object message) {
+		System.out.println(message);
 	}
 
-	public static boolean alfanum(String str) {
-		return str.matches("^[a-zA-Z0-9\\-\\_]{3,16}$");
+	/**
+	 * Checks if a string contains only alphanumeric characters, hyphens, and underscores.
+	 * Must be 3-16 characters long.
+	 *
+	 * @param text
+	 *            the string to validate
+	 * @return true if the string matches the pattern
+	 */
+	public static boolean alfanum(String text) {
+		return text.matches("^[a-zA-Z0-9\\-\\_]{3,16}$");
 	}
 
-	public static String replace(String str, String src, String dst) {
-		int ls = src.length();
-		int ld = dst.length();
-		int i = str.indexOf(src);
-		while (i >= 0) {
-			str = str.substring(0, i) + dst + str.substring(i + ls);
-			i = str.indexOf(src, i + ld);
+	/**
+	 * Replaces all occurrences of a source string with a destination string.
+	 *
+	 * @param text
+	 *            the original text
+	 * @param source
+	 *            the substring to find
+	 * @param destination
+	 *            the replacement string
+	 * @return the text with all replacements made
+	 */
+	public static String replace(String text, String source, String destination) {
+		int sourceLength = source.length();
+		int destLength = destination.length();
+		int index = text.indexOf(source);
+		while (index >= 0) {
+			text = text.substring(0, index) + destination + text.substring(index + sourceLength);
+			index = text.indexOf(source, index + destLength);
 		}
-		return str;
+		return text;
 	}
 
-	public static String getInTag(String str, String tag) {
-		int x = str.indexOf("<" + tag + ">");
-		if (x < 0) {
+	/**
+	 * Extracts the content between XML/HTML opening and closing tags.
+	 *
+	 * @param text
+	 *            the text containing the tag
+	 * @param tag
+	 *            the tag name (without angle brackets)
+	 * @return the content between the tags, or null if not found
+	 */
+	public static String getInTag(String text, String tag) {
+		int startIndex = text.indexOf("<" + tag + ">");
+		if (startIndex < 0) {
 			return null;
 		}
-		x += tag.length() + 2;
-		int y = str.indexOf("</" + tag + ">", x);
-		if (y < 0) {
+		startIndex += tag.length() + 2;
+		int endIndex = text.indexOf("</" + tag + ">", startIndex);
+		if (endIndex < 0) {
 			return null;
 		}
-		return str.substring(x, y);
+		return text.substring(startIndex, endIndex);
 	}
 
-	public static int i(String s) throws NumberFormatException {
-		return Integer.parseInt(s);
+	/**
+	 * Parses a string to an integer. Shorthand for Integer.parseInt().
+	 *
+	 * @param text
+	 *            the string to parse
+	 * @return the integer value
+	 * @throws NumberFormatException
+	 *             if the string is not a valid integer
+	 */
+	public static int i(String text) throws NumberFormatException {
+		return Integer.parseInt(text);
 	}
 
-	public static String n(String str) {
-		if (str == null || str.isEmpty() || str.equals("null")) {
+	/**
+	 * Normalizes a string by returning null for empty or "null" strings.
+	 *
+	 * @param text
+	 *            the string to normalize
+	 * @return the original string, or null if empty or "null"
+	 */
+	public static String n(String text) {
+		if (text == null || text.isEmpty() || text.equals("null")) {
 			return null;
 		}
-		return str;
+		return text;
 	}
 
-	public static String[] split(String sb, char c) { // includes empty strings (vs String.split())
-		int cnt = 1;
-		// StringBuffer sb = new StringBuffer(src);
-		for (int i = 0; i < sb.length(); i++) {
-			if (sb.charAt(i) == c) {
-				cnt++;
+	/**
+	 * Splits a string by a delimiter, including empty strings (unlike String.split()).
+	 *
+	 * @param text
+	 *            the string to split
+	 * @param delimiter
+	 *            the character to split on
+	 * @return array of substrings
+	 */
+	public static String[] split(String text, char delimiter) {
+		int segmentCount = 1;
+		for (int index = 0; index < text.length(); index++) {
+			if (text.charAt(index) == delimiter) {
+				segmentCount++;
 			}
 		}
-		if (cnt < 2) {
-			return new String[]{sb};
+		if (segmentCount < 2) {
+			return new String[]{text};
 		}
-		int[] pos = new int[cnt];
-		int j = 0;
-		for (int i = 0; i < sb.length(); i++) {
-			if (sb.charAt(i) == c) {
-				pos[j++] = i;
+		int[] delimiterPositions = new int[segmentCount];
+		int posIndex = 0;
+		for (int index = 0; index < text.length(); index++) {
+			if (text.charAt(index) == delimiter) {
+				delimiterPositions[posIndex++] = index;
 			}
 		}
-		pos[cnt - 1] = sb.length();
-		String[] res = new String[cnt];
-		j = 0;
-		for (int i = 0; i < cnt; i++) {
-			res[i] = sb.substring(j, pos[i]);
-			j = pos[i] + 1;
+		delimiterPositions[segmentCount - 1] = text.length();
+		String[] result = new String[segmentCount];
+		int startPos = 0;
+		for (int index = 0; index < segmentCount; index++) {
+			result[index] = text.substring(startPos, delimiterPositions[index]);
+			startPos = delimiterPositions[index] + 1;
 		}
-		return res;
+		return result;
 	}
 
-	public static String dehtmlize(String htm) {
-		if (htm == null) {
+	/**
+	 * Strips all HTML tags from a string.
+	 *
+	 * @param html
+	 *            the HTML string
+	 * @return the text content without tags
+	 */
+	public static String dehtmlize(String html) {
+		if (html == null) {
 			return null;
 		}
-		StringBuffer sb0 = new StringBuffer(htm.length());
-		StringBuffer sb1 = new StringBuffer(htm);
-		boolean in = false;
-		char c;
-		for (int i = 0; i < sb1.length(); i++) {
-			c = sb1.charAt(i);
-			if (c == '<') {
-				in = true;
+		StringBuilder result = new StringBuilder(html.length());
+		StringBuffer source = new StringBuffer(html);
+		boolean insideTag = false;
+		char currentChar;
+		for (int index = 0; index < source.length(); index++) {
+			currentChar = source.charAt(index);
+			if (currentChar == '<') {
+				insideTag = true;
 				continue;
 			}
-			if (c == '>') {
-				in = false;
+			if (currentChar == '>') {
+				insideTag = false;
 				continue;
 			}
-			if (!in) {
-				sb0.append(c);
+			if (!insideTag) {
+				result.append(currentChar);
 			}
 		}
-		return sb0.toString();
+		return result.toString();
 	}
 
-	public static String htmldesc(String s) {
-		if (s == null) {
+	/**
+	 * Decodes HTML numeric character references (&#nnnn;) to their character equivalents.
+	 *
+	 * @param text
+	 *            the text containing HTML character references
+	 * @return the text with character references decoded
+	 */
+	public static String htmldesc(String text) {
+		if (text == null) {
 			return null;
 		}
-		StringBuffer sb0 = new StringBuffer(s);
-		StringBuffer sb1 = new StringBuffer(s.length());
-		StringBuffer sb2 = new StringBuffer(5);
-		char c;
-		boolean ok = false;
-		int len = sb0.length();
-		for (int i = 0; i < len; i++) {
-			c = sb0.charAt(i);
-			if (c == '&' && i < (len - 2)) {
-				if (sb0.charAt(i + 1) == '#') {
-					ok = true;
-					i++;
-					sb2.delete(0, sb2.length());
+		StringBuffer source = new StringBuffer(text);
+		StringBuilder result = new StringBuilder(text.length());
+		StringBuffer numericCode = new StringBuffer(5);
+		char currentChar;
+		boolean inNumericRef = false;
+		int length = source.length();
+		for (int index = 0; index < length; index++) {
+			currentChar = source.charAt(index);
+			if (currentChar == '&' && index < (length - 2)) {
+				if (source.charAt(index + 1) == '#') {
+					inNumericRef = true;
+					index++;
+					numericCode.delete(0, numericCode.length());
 				} else {
-					sb1.append(c);
+					result.append(currentChar);
 				}
-			} else if (c == ';') {
-				if (ok) {
+			} else if (currentChar == ';') {
+				if (inNumericRef) {
 					try {
-						sb1.append((char) Integer.parseInt(sb2.toString()));
-					} catch (NumberFormatException e) {
-						sb1.append('&');
-						sb1.append('#');
-						sb1.append(sb2);
-						sb1.append(c);
+						result.append((char) Integer.parseInt(numericCode.toString()));
+					} catch (NumberFormatException ex) {
+						result.append('&');
+						result.append('#');
+						result.append(numericCode);
+						result.append(currentChar);
 					}
-					ok = false;
+					inNumericRef = false;
 				} else {
-					sb1.append(';');
+					result.append(';');
 				}
-			} else if (ok) {
-				if (Character.isDigit(c) && sb2.length() < 11) {
-					sb2.append(c);
+			} else if (inNumericRef) {
+				if (Character.isDigit(currentChar) && numericCode.length() < 11) {
+					numericCode.append(currentChar);
 				} else {
-					ok = false;
-					sb1.append('&');
-					sb1.append('#');
-					sb1.append(sb2);
-					sb1.append(c);
+					inNumericRef = false;
+					result.append('&');
+					result.append('#');
+					result.append(numericCode);
+					result.append(currentChar);
 				}
 			} else {
-				sb1.append(c);
+				result.append(currentChar);
 			}
 		}
-		return sb1.toString();
+		return result.toString();
 	}
 
-	private static final char[] S = {' ', 'K', 'M', 'G', 'T', 'P', 'E'};
+	/** Size unit prefixes for byte formatting (B, KB, MB, GB, TB, PB, EB) */
+	private static final char[] SIZE_UNIT_PREFIXES = {' ', 'K', 'M', 'G', 'T', 'P', 'E'};
 
-	private static String sbyte(double d, int p) {
-		if (d < 1000) {
-			return def.format(d) + " " + S[p] + "B";
+	private static String sbyte(double bytes, int unitIndex) {
+		if (bytes < 1000) {
+			return DECIMAL_FORMAT.format(bytes) + " " + SIZE_UNIT_PREFIXES[unitIndex] + "B";
 		}
-		return sbyte(d / 1024, p + 1);
+		return sbyte(bytes / 1024, unitIndex + 1);
 	}
 
-	public static String sbyte(long l) {
-		return sbyte(l, 0);
+	/**
+	 * Formats a byte size into a human-readable string with appropriate unit.
+	 *
+	 * @param bytes
+	 *            the size in bytes
+	 * @return formatted string (e.g., "1.50 MB")
+	 */
+	public static String sbyte(long bytes) {
+		return sbyte(bytes, 0);
 		/*
 		 * if(l<1000) return def.format(l)+" B";//1024
 		 * if(l<1024000) return def.format(l/1024)+" KB";//1048576
@@ -215,43 +309,60 @@ public class U {
 		 */
 	}
 
+	/**
+	 * Reads a file's content as a string (limited to 1MB files).
+	 *
+	 * @param path
+	 *            the file path
+	 * @return the file content, or null if file is too large or on error
+	 */
 	public static String fileToString(String path) {
 		try {
-			File f = new File(path);
-			if (f.length() > 1024 * 1024) {
+			File file = new File(path);
+			if (file.length() > 1024 * 1024) {
 				return null;
 			}
-			BufferedInputStream bis = new BufferedInputStream(new FileInputStream(f), (int) f.length());
-			byte[] buf = new byte[(int) f.length()];
-			bis.read(buf);
-			bis.close();
-			return new String(buf);
-		} catch (IOException e) {
-			// e.printStackTrace();
+			BufferedInputStream inputStream = new BufferedInputStream(new FileInputStream(file), (int) file.length());
+			byte[] buffer = new byte[(int) file.length()];
+			inputStream.read(buffer);
+			inputStream.close();
+			return new String(buffer);
+		} catch (IOException ex) {
+			// Silently fail and return null
 		}
 		return null;
 	}
 
-	public static String replaceCCCode(String s, HashMap m) {
-		StringBuffer sb = new StringBuffer(s.length() * 4);
-		char c;
-		Object o;
-		int i;
-		for (i = 0; i < s.length() - 3; i++) {
-			c = s.charAt(i);
-			if (c == '%') {
-				o = m.get(s.substring(i + 1, i + 4));
-				if (o != null) {
-					sb.append(o);
-					i += 3;
+	/**
+	 * Replaces 3-character codes prefixed with '%' using a lookup map.
+	 *
+	 * @param text
+	 *            the text containing codes to replace
+	 * @param codeMap
+	 *            map of 3-char codes to replacement values
+	 * @return the text with codes replaced
+	 */
+	@SuppressWarnings("rawtypes")
+	public static String replaceCCCode(String text, HashMap codeMap) {
+		StringBuilder result = new StringBuilder(text.length() * 4);
+		char currentChar;
+		Object replacement;
+		int index;
+		for (index = 0; index < text.length() - 3; index++) {
+			currentChar = text.charAt(index);
+			if (currentChar == '%') {
+				replacement = codeMap.get(text.substring(index + 1, index + 4));
+				if (replacement != null) {
+					result.append(replacement);
+					index += 3;
 					continue;
 				}
 			}
-			sb.append(c);
+			result.append(currentChar);
 		}
-		for (; i < s.length(); i++) {
-			sb.append(s.charAt(i));
+		for (; index < text.length(); index++) {
+			result.append(text.charAt(index));
 		}
-		return sb.toString();
+		return result.toString();
 	}
 }

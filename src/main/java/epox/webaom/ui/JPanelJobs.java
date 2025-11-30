@@ -136,7 +136,7 @@ public class JPanelJobs extends JPanel implements ActionListener {
 		if (visibilityMask == 0) {
 			visibilityMask = TableModelJobs.MASK;
 		}
-		jobsTable.m_hl.setMask(visibilityMask);
+		jobsTable.headerListener.setMask(visibilityMask);
 	}
 
 	private int updateCounter = 0;

@@ -104,7 +104,7 @@ public class Job {
 	}
 
 	public String getExtension() {
-		if (anidbFile == null || anidbFile.ext == null) {
+		if (anidbFile == null || anidbFile.extension == null) {
 			String fileName = currentFile.getName();
 			int dotIndex = fileName.lastIndexOf('.');
 			if (dotIndex < 1) {
@@ -113,7 +113,7 @@ public class Job {
 			}
 			return fileName.substring(dotIndex + 1);
 		}
-		return anidbFile.ext;
+		return anidbFile.extension;
 	}
 
 	public int getStatus() {
@@ -138,7 +138,7 @@ public class Job {
 		if (unknownOnly) {
 			return anidbFile == null && matches;
 		}
-		return matches && (fileFlags < 1 || (anidbFile != null && (anidbFile.stt & fileFlags) > 0));
+		return matches && (fileFlags < 1 || (anidbFile != null && (anidbFile.state & fileFlags) > 0));
 	}
 
 	public boolean isLocked(int targetStatus) {
@@ -158,7 +158,7 @@ public class Job {
 	}
 
 	public boolean isCorrupt() {
-		return anidbFile != null && ((anidbFile.stt & AFile.F_CRCERR) == AFile.F_CRCERR);
+		return anidbFile != null && ((anidbFile.state & AFile.F_CRCERR) == AFile.F_CRCERR);
 	}
 
 	public boolean incompl() {
@@ -402,10 +402,10 @@ public class Job {
 		am.put("sta", stat);
 
 		if (anidbFile != null) {
-			am.put("aid", anidbFile.aid);
-			am.put("eid", anidbFile.eid);
-			am.put("fid", anidbFile.fid);
-			am.put("gid", anidbFile.gid);
+			am.put("aid", anidbFile.animeId);
+			am.put("eid", anidbFile.episodeId);
+			am.put("fid", anidbFile.fileId);
+			am.put("gid", anidbFile.groupId);
 			am.put("lid", mylistId);
 			am.put("ver", anidbFile.getVersion());
 			am.put("ula", anidbFile.urlAnime());
@@ -415,40 +415,40 @@ public class Job {
 			am.put("ulx", anidbFile.urlMylistE(mylistId));
 			am.put("ulm", anidbFile.urlMylist());
 			am.put("uly", anidbFile.urlYear());
-			am.put("ed2", anidbFile.ed2.toLowerCase());
-			am.put("ED2", anidbFile.ed2.toUpperCase());
+			am.put("ed2", anidbFile.ed2kHash.toLowerCase());
+			am.put("ED2", anidbFile.ed2kHash.toUpperCase());
 			am.put("cen", anidbFile.getCensored());
 			am.put("inv", anidbFile.getInvalid());
-			am.put("dub", anidbFile.dub);
-			am.put("sub", anidbFile.sub);
-			am.put("src", anidbFile.rip);
-			am.put("res", anidbFile.res);
-			am.put("vid", anidbFile.vid);
-			am.put("aud", anidbFile.aud);
-			am.put("qua", anidbFile.qua);
+			am.put("dub", anidbFile.dubLanguage);
+			am.put("sub", anidbFile.subLanguage);
+			am.put("src", anidbFile.ripSource);
+			am.put("res", anidbFile.resolution);
+			am.put("vid", anidbFile.videoCodec);
+			am.put("aud", anidbFile.audioCodec);
+			am.put("qua", anidbFile.quality);
 
-			if (anidbFile.sha != null) {
-				am.put("sha", anidbFile.sha.toLowerCase());
-				am.put("SHA", anidbFile.sha.toUpperCase());
+			if (anidbFile.shaHash != null) {
+				am.put("sha", anidbFile.shaHash.toLowerCase());
+				am.put("SHA", anidbFile.shaHash.toUpperCase());
 			}
-			if (anidbFile.md5 != null) {
-				am.put("md5", anidbFile.md5.toLowerCase());
-				am.put("MD5", anidbFile.md5.toUpperCase());
+			if (anidbFile.md5Hash != null) {
+				am.put("md5", anidbFile.md5Hash.toLowerCase());
+				am.put("MD5", anidbFile.md5Hash.toUpperCase());
 			}
-			if (anidbFile.crc != null) {
-				am.put("CRC", anidbFile.crc.toUpperCase());
-				am.put("crc", anidbFile.crc.toLowerCase());
+			if (anidbFile.crcHash != null) {
+				am.put("CRC", anidbFile.crcHash.toUpperCase());
+				am.put("crc", anidbFile.crcHash.toLowerCase());
 			}
 			if (anidbFile.anime != null) {
-				am.put("ann", anidbFile.anime.rom);
-				am.put("kan", anidbFile.anime.kan);
-				am.put("eng", anidbFile.anime.eng);
-				am.put("eps", anidbFile.anime.eps);
-				am.put("typ", anidbFile.anime.typ);
-				am.put("yea", anidbFile.anime.yea);
-				am.put("gen", anidbFile.anime.cat.replaceAll(",", ", "));
-				am.put("lep", anidbFile.anime.lep);
-				am.put("yen", anidbFile.anime.yen); // NvrBst: Unsure about this change; Needs Testing
+				am.put("ann", anidbFile.anime.romajiTitle);
+				am.put("kan", anidbFile.anime.kanjiTitle);
+				am.put("eng", anidbFile.anime.englishTitle);
+				am.put("eps", anidbFile.anime.episodeCount);
+				am.put("typ", anidbFile.anime.type);
+				am.put("yea", anidbFile.anime.year);
+				am.put("gen", anidbFile.anime.categories.replaceAll(",", ", "));
+				am.put("lep", anidbFile.anime.latestEpisode);
+				am.put("yen", anidbFile.anime.endYear);
 			}
 			if (anidbFile.ep != null) {
 				am.put("epn", anidbFile.ep.eng);
@@ -458,8 +458,8 @@ public class Job {
 			if (anidbFile.anime != null && anidbFile.ep != null) {
 				am.put("enr", Parser.pad(anidbFile.ep.num, anidbFile.anime.getTotal()));
 			}
-			if (anidbFile.group != null && anidbFile.gid > 0) {
-				am.put("grp", anidbFile.group.sname);
+			if (anidbFile.group != null && anidbFile.groupId > 0) {
+				am.put("grp", anidbFile.group.shortName);
 				am.put("grn", anidbFile.group.name);
 			} else {
 				am.put("grp", "unknown");

@@ -57,9 +57,9 @@ public class JDialogLogin extends JDialog implements ActionListener {
 	}
 
 	private void init() {
-		usernameField = new JTextField(A.up.usr, 20);
-		passwordField = new JPasswordField(A.up.psw, 20);
-		apiPassField = new JTextField(A.up.key, 20);
+		usernameField = new JTextField(A.up.username, 20);
+		passwordField = new JPasswordField(A.up.password, 20);
+		apiPassField = new JTextField(A.up.apiKey, 20);
 		apiPassField.setToolTipText("Use blank if you don't care about encryption");
 		okButton = new JButton("OK");
 		okButton.setToolTipText("<html>Login is required to access the <i>AniDB UDP Service</i> which"
@@ -134,9 +134,9 @@ public class JDialogLogin extends JDialog implements ActionListener {
 		} else if (passwordText.length() < 4) {
 			okButton.setText("Password too short - OK");
 		} else {
-			A.up.usr = usernameText;
-			A.up.psw = passwordText;
-			A.up.key = apiPassText;
+			A.up.username = usernameText;
+			A.up.password = passwordText;
+			A.up.apiKey = apiPassText;
 			success = true;
 			dispose();
 		}

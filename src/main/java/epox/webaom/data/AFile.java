@@ -27,26 +27,46 @@ import epox.webaom.A;
 import epox.webaom.Job;
 
 public class AFile extends Base {
-	public int fid;
-	public int aid;
-	public int eid;
-	public int gid;
-	public int lid;
-	public int stt;
-	public int len;
-	public String ed2;
-	public String md5;
-	public String sha;
-	public String crc;
-	public String dub;
-	public String sub;
-	public String qua;
-	public String rip;
-	public String res;
-	public String vid;
-	public String aud;
-	public String def;
-	public String ext;
+	/** AniDB file ID. */
+	public int fileId;
+	/** AniDB anime ID. */
+	public int animeId;
+	/** AniDB episode ID. */
+	public int episodeId;
+	/** AniDB group ID (0 if no group/raw). */
+	public int groupId;
+	/** AniDB mylist entry ID. */
+	public int mylistEntryId;
+	/** File state bitmask (CRC status, version, censored). */
+	public int state;
+	/** Video length in seconds. */
+	public int lengthInSeconds;
+	/** ED2K hash. */
+	public String ed2kHash;
+	/** MD5 hash. */
+	public String md5Hash;
+	/** SHA-1 hash. */
+	public String shaHash;
+	/** CRC32 hash. */
+	public String crcHash;
+	/** Dub language(s). */
+	public String dubLanguage;
+	/** Subtitle language(s). */
+	public String subLanguage;
+	/** Quality descriptor. */
+	public String quality;
+	/** Rip source (TV, DVD, BluRay, etc). */
+	public String ripSource;
+	/** Video resolution (e.g. "1920x1080"). */
+	public String resolution;
+	/** Video codec (e.g. "H264"). */
+	public String videoCodec;
+	/** Audio codec (e.g. "AAC"). */
+	public String audioCodec;
+	/** Default/computed file name. */
+	public String defaultName;
+	/** File extension. */
+	public String extension;
 
 	public Ep ep;
 	public AG ag;
@@ -55,69 +75,72 @@ public class AFile extends Base {
 	private Job job = null;
 
 	public AFile(int id) {
-		fid = id;
-		ext = null;
+		fileId = id;
+		extension = null;
 	}
 
-	public AFile(String[] s) {
-		int i = 0;
-		fid = U.i(s[i++]);
-		aid = U.i(s[i++]);
-		eid = U.i(s[i++]);
-		if (s[i].isEmpty()) {
-			gid = 0;
+	public AFile(String[] fields) {
+		int index = 0;
+		fileId = U.i(fields[index++]);
+		animeId = U.i(fields[index++]);
+		episodeId = U.i(fields[index++]);
+		if (fields[index].isEmpty()) {
+			groupId = 0;
 		} else {
-			gid = U.i(s[i]);
+			groupId = U.i(fields[index]);
 		}
-		i++;
-		lid = U.i(s[i++]);
-		stt = U.i(s[i++]);
-		if (s[i].isEmpty()) {
-			mLs = 0;
+		index++;
+		mylistEntryId = U.i(fields[index++]);
+		state = U.i(fields[index++]);
+		if (fields[index].isEmpty()) {
+			totalSize = 0;
 		} else {
-			mLs = Long.parseLong(s[i]);
+			totalSize = Long.parseLong(fields[index]);
 		}
-		i++;
-		ed2 = s[i++];
-		md5 = U.n(s[i++]);
-		sha = U.n(s[i++]);
-		crc = U.n(s[i++]);
+		index++;
+		ed2kHash = fields[index++];
+		md5Hash = U.n(fields[index++]);
+		shaHash = U.n(fields[index++]);
+		crcHash = U.n(fields[index++]);
 
-		dub = s[i++].intern();
-		sub = s[i++].intern();
-		qua = s[i++].intern();
-		rip = s[i++].intern();
-		aud = s[i++].intern();
-		vid = s[i++].intern();
-		res = s[i++].intern();
-		ext = s[i++].intern();
-		len = U.i(s[i++]);
+		dubLanguage = fields[index++].intern();
+		subLanguage = fields[index++].intern();
+		quality = fields[index++].intern();
+		ripSource = fields[index++].intern();
+		audioCodec = fields[index++].intern();
+		videoCodec = fields[index++].intern();
+		resolution = fields[index++].intern();
+		extension = fields[index++].intern();
+		lengthInSeconds = U.i(fields[index++]);
 	}
 
 	public Job getJob() {
 		return job;
 	}
 
-	public void setJob(Job j) {
-		job = j;
+	public void setJob(Job newJob) {
+		job = newJob;
 	}
 
 	public String toString() {
 		if (job != null) {
 			return job.getFile().getName();
 		}
-		return def;
+		return defaultName;
 	}
 
 	/*
 	 * public String toString(){
-	 * return ed2+md5+sha+crc+dub+sub+qua+rip+res+vid+aud+def+ep;
+	 * return
+	 * ed2kHash+md5Hash+shaHash+crcHash+dubLanguage+subLanguage+quality+ripSource+resolution+videoCodec+audioCodec+
+	 * defaultName+ep;
 	 * }
 	 */
 	public String serialize() {
-		return "" + fid + S + aid + S + eid + S + gid + S + lid + S + stt + S + mLs + S + ed2 + S + md5 + S + sha + S
-				+ crc + S + dub + S + sub + S + qua + S + rip + S + aud + S + vid + S + res + S + ext + S + len + S
-				+ (group != null ? group.serialize() : "");
+		return "" + fileId + S + animeId + S + episodeId + S + groupId + S + mylistEntryId + S + state + S + totalSize
+				+ S + ed2kHash + S + md5Hash + S + shaHash + S + crcHash + S + dubLanguage + S + subLanguage + S
+				+ quality + S + ripSource + S + audioCodec + S + videoCodec + S + resolution + S + extension + S
+				+ lengthInSeconds + S + (group != null ? group.serialize() : "");
 	}
 
 	public static Base getInst(String[] s) {
@@ -125,7 +148,7 @@ public class AFile extends Base {
 	}
 
 	public Object getKey() {
-		return Integer.valueOf(fid);
+		return Integer.valueOf(fileId);
 	}
 
 	public void clear() {
@@ -133,24 +156,24 @@ public class AFile extends Base {
 	}
 
 	public void pack() {
-		dub = dub.replace('/', '&'); // for jap/eng
-		vid = vid.replace('/', ' '); // for 'H264/AVC'
-		int i = vid.indexOf(" ");
-		if (i > 0) {
-			vid = vid.substring(0, i);
+		dubLanguage = dubLanguage.replace('/', '&'); // for jap/eng
+		videoCodec = videoCodec.replace('/', ' '); // for 'H264/AVC'
+		int spaceIndex = videoCodec.indexOf(" ");
+		if (spaceIndex > 0) {
+			videoCodec = videoCodec.substring(0, spaceIndex);
 		}
-		i = aud.indexOf(" ("); // for Vorbis (Ogg Vorbis)
-		if (i > 0) {
-			aud = aud.substring(0, i);
+		spaceIndex = audioCodec.indexOf(" ("); // for Vorbis (Ogg Vorbis)
+		if (spaceIndex > 0) {
+			audioCodec = audioCodec.substring(0, spaceIndex);
 		}
-		if (dub.startsWith("dual (")) // remove dual()
+		if (dubLanguage.startsWith("dual (")) // remove dual()
 		{
-			dub = dub.substring(6, dub.lastIndexOf(')'));
+			dubLanguage = dubLanguage.substring(6, dubLanguage.lastIndexOf(')'));
 		}
 
-		vid = vid.intern();
-		aud = aud.intern();
-		dub = dub.intern();
+		videoCodec = videoCodec.intern();
+		audioCodec = audioCodec.intern();
+		dubLanguage = dubLanguage.intern();
 	}
 
 	private String url0(String str, boolean non) {
@@ -165,44 +188,44 @@ public class AFile extends Base {
 	}
 
 	public String urlAnime() {
-		return url1("anime&aid=" + aid);
+		return url1("anime&aid=" + animeId);
 	}
 
 	public String urlExport() {
-		return url1("ed2kexport&h=1&aid=" + aid);
+		return url1("ed2kexport&h=1&aid=" + animeId);
 	}
 
 	public String urlEp() {
-		return url1("ep&aid=" + aid + "&eid=" + eid);
+		return url1("ep&aid=" + animeId + "&eid=" + episodeId);
 	}
 
 	public String urlFile() {
-		return url1("file&aid=" + aid + "&eid=" + eid + "&fid=" + fid);
+		return url1("file&aid=" + animeId + "&eid=" + episodeId + "&fid=" + fileId);
 	}
 
 	public String urlGroup() {
-		return url1("group&gid=" + gid);
+		return url1("group&gid=" + groupId);
 	}
 
-	public String urlMylistE(int i) {
-		if (i < 2) {
+	public String urlMylistE(int listId) {
+		if (listId < 2) {
 			return urlMylist();
 		}
-		return url1("mylist&do=add&aid=" + aid + "&eid=" + eid + "&fid=" + fid + "&lid=" + i);
+		return url1("mylist&do=add&aid=" + animeId + "&eid=" + episodeId + "&fid=" + fileId + "&lid=" + listId);
 	}
 
 	public String urlMylist() {
 		try {
-			return url1("mylist&expand=" + aid + "&char=" + anime.rom.charAt(0) + "#a" + aid);
-		} catch (Exception e) {
+			return url1("mylist&expand=" + animeId + "&char=" + anime.romajiTitle.charAt(0) + "#a" + animeId);
+		} catch (Exception ex) {
 			return url1("mylist");
 		}
 	}
 
 	public String urlYear() {
 		try {
-			return url0("do.search=%20Start%20Search%20&show=search&noalias=1&search.anime.year=" + anime.yea, false);
-		} catch (Exception e) {
+			return url0("do.search=%20Start%20Search%20&show=search&noalias=1&search.anime.year=" + anime.year, false);
+		} catch (Exception ex) {
 			return url1("search");
 		}
 	}
@@ -216,20 +239,20 @@ public class AFile extends Base {
 	public static final int F_UNC = 64;
 	public static final int F_CEN = 128;
 
-	public boolean inYear(String s) {
-		s.replaceAll(" ", "");
-		int i = s.indexOf('-');
-		if (i > 0) { // Range
-			int start = Integer.parseInt(s.substring(0, i));
-			int end = Integer.parseInt(s.substring(i + 1));
-			if (start > end) {
-				int t = end;
-				end = start;
-				start = t;
+	public boolean inYear(String yearRange) {
+		yearRange.replaceAll(" ", "");
+		int dashIndex = yearRange.indexOf('-');
+		if (dashIndex > 0) { // Range
+			int startYear = Integer.parseInt(yearRange.substring(0, dashIndex));
+			int endYear = Integer.parseInt(yearRange.substring(dashIndex + 1));
+			if (startYear > endYear) {
+				int temp = endYear;
+				endYear = startYear;
+				startYear = temp;
 			}
-			return anime.yea >= start && anime.yea <= end;
+			return anime.year >= startYear && anime.year <= endYear;
 		}
-		return anime.yea == Integer.parseInt(s);
+		return anime.year == Integer.parseInt(yearRange);
 	}
 
 	/*
@@ -244,7 +267,7 @@ public class AFile extends Base {
 	 * 7 - censored
 	 */
 	public String getVersion() {
-		switch (stt & 0x3C) {
+		switch (state & 0x3C) {
 			case F_ISV2 :
 				return "v2";
 			case F_ISV3 :
@@ -259,7 +282,7 @@ public class AFile extends Base {
 	}
 
 	public String getCensored() {
-		switch (stt & 0xC0) {
+		switch (state & 0xC0) {
 			case F_CEN :
 				return "cen";
 			case F_UNC :
@@ -270,70 +293,80 @@ public class AFile extends Base {
 	}
 
 	public String getInvalid() {
-		if ((stt & F_CRCERR) == F_CRCERR) {
+		if ((state & F_CRCERR) == F_CRCERR) {
 			return "invalid crc";
 		}
 		return "";
 	}
 
-	public String mds() {
+	/**
+	 * Gets missing data indicators (strict).
+	 * Returns a string of characters indicating what data is missing:
+	 * c=CRC, h=hashes, l=length, d=dub, s=sub, a=audio, v=video, x=resolution
+	 */
+	public String getMissingDataStrict() {
 		if (anime == null || ep == null) {
 			return "N/A";
 		}
-		String x = "";
+		String missingFlags = "";
 
-		if (crc == null || crc.isEmpty()) {
-			x += 'c';
+		if (crcHash == null || crcHash.isEmpty()) {
+			missingFlags += 'c';
 		}
-		if (md5 == null || md5.isEmpty() || sha == null || sha.isEmpty()) {
-			x += 'h';
+		if (md5Hash == null || md5Hash.isEmpty() || shaHash == null || shaHash.isEmpty()) {
+			missingFlags += 'h';
 		}
-		if (len < 1) {
-			x += 'l';
+		if (lengthInSeconds < 1) {
+			missingFlags += 'l';
 		}
-		if (dub.indexOf("unknown") >= 0) {
-			x += 'd';
+		if (dubLanguage.indexOf("unknown") >= 0) {
+			missingFlags += 'd';
 		}
-		if (sub.indexOf("unknown") >= 0) {
-			x += 's';
+		if (subLanguage.indexOf("unknown") >= 0) {
+			missingFlags += 's';
 		}
-		if (aud.indexOf("unknown") >= 0) {
-			x += 'a';
+		if (audioCodec.indexOf("unknown") >= 0) {
+			missingFlags += 'a';
 		}
-		if (vid.indexOf("unknown") >= 0) {
-			x += 'v';
+		if (videoCodec.indexOf("unknown") >= 0) {
+			missingFlags += 'v';
 		}
-		if (res.equals("0x0") || res.equals("unknown")) {
-			x += 'x';
+		if (resolution.equals("0x0") || resolution.equals("unknown")) {
+			missingFlags += 'x';
 		}
 
-		return x;
+		return missingFlags;
 	}
 
-	public String mda() {
+	/**
+	 * Gets missing data indicators (additional/optional).
+	 * Returns a string of characters indicating what data is missing:
+	 * q=quality, o=rip source, e=english title, k=kanji title, r=romaji title
+	 */
+	public String getMissingDataAdditional() {
 		if (anime == null || ep == null) {
 			return "N/A";
 		}
-		String x = "";
+		String missingFlags = "";
 
-		if (qua.indexOf("unknown") >= 0) {
-			x += 'q';
+		if (quality.indexOf("unknown") >= 0) {
+			missingFlags += 'q';
 		}
-		if (rip.indexOf("unknown") >= 0) {
-			x += 'o';
+		if (ripSource.indexOf("unknown") >= 0) {
+			missingFlags += 'o';
 		}
 
 		if (ep.eng == null || ep.eng.isEmpty()) {
-			x += 'e';
+			missingFlags += 'e';
 		}
 		if (ep.kan == null || ep.kan.isEmpty()) {
-			x += 'k';
+			missingFlags += 'k';
 		}
 		if (ep.rom == null || ep.rom.isEmpty()) {
-			x += 'r';
+			missingFlags += 'r';
 		}
 
-		return x;
+		return missingFlags;
 	}
 	/*
 	 * public int compareTo(Object o){

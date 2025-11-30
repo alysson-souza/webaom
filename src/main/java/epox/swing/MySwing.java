@@ -8,10 +8,22 @@ import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.Rectangle;
 
-public class MySwing {
-	public static void centerComponent(Component c) {
-		Dimension d = java.awt.Toolkit.getDefaultToolkit().getScreenSize();
-		Rectangle r = c.getBounds();
-		c.setBounds(d.width / 2 - r.width / 2, d.height / 2 - r.height / 2, r.width, r.height);
+/**
+ * Utility class for Swing-related helper methods.
+ */
+public final class MySwing {
+	private MySwing() {
+		// Prevent instantiation
+	}
+
+	/**
+	 * Centers a component on the screen.
+	 */
+	public static void centerComponent(Component component) {
+		Dimension screenSize = java.awt.Toolkit.getDefaultToolkit().getScreenSize();
+		Rectangle bounds = component.getBounds();
+		int centeredX = screenSize.width / 2 - bounds.width / 2;
+		int centeredY = screenSize.height / 2 - bounds.height / 2;
+		component.setBounds(centeredX, centeredY, bounds.width, bounds.height);
 	}
 }

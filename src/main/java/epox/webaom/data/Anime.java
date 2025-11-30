@@ -27,223 +27,250 @@ import epox.util.Bits;
 import epox.util.U;
 import epox.webaom.ui.TableModelAlt;
 
+/**
+ * Represents an anime entry from AniDB with metadata and episode tracking.
+ */
 public class Anime extends Base {
-	private static int s0 = 1;
-	private static int s1 = 1;
+	/** Primary sort column index (positive = ascending, negative = descending). */
+	private static int primarySortColumn = 1;
+	/** Secondary sort column index for tie-breaking. */
+	private static int secondarySortColumn = 1;
 
-	public static void setCol(int i) {
-		if (Math.abs(i) != Math.abs(s0)) {
-			s1 = s0;
+	/**
+	 * Sets the sort column, updating primary/secondary sort order.
+	 *
+	 * @param column
+	 *            column index (positive = ascending, negative = descending)
+	 */
+	public static void setSortColumn(int column) {
+		if (Math.abs(column) != Math.abs(primarySortColumn)) {
+			secondarySortColumn = primarySortColumn;
 		}
-		s0 = i;
+		primarySortColumn = column;
 	}
 
-	public int yea;
-	public int yen;
-	public int eps;
-	public int lep;
-	public int pct;
-	public String typ;
-	public String rom;
-	public String kan;
-	public String eng;
-	public String cat;
-	public Bits pro = null;
+	/** Start year of the anime. */
+	public int year;
+	/** End year of the anime (same as year if still ongoing or single year). */
+	public int endYear;
+	/** Total episode count (0 if unknown/ongoing). */
+	public int episodeCount;
+	/** Latest known episode number. */
+	public int latestEpisode;
+	/** Completion percentage (0-100). */
+	public int completionPercent;
+	/** Anime type (TV, OVA, Movie, etc). */
+	public String type;
+	/** Romaji title. */
+	public String romajiTitle;
+	/** Kanji/Japanese title. */
+	public String kanjiTitle;
+	/** English title. */
+	public String englishTitle;
+	/** Categories/genres (comma-separated). */
+	public String categories;
+	/** Episode progress tracker (bit per episode). */
+	public Bits episodeProgress = null;
 
 	public Anime(int id) {
 		this.id = id;
 	}
 
-	public Anime(String[] s) {
-		int i = 0;
-		id = U.i(s[i++]);
-		eps = U.i(s[i++]);
-		lep = U.i(s[i++]);
-		yea = U.i(s[i++].substring(0, 4));
-		if (s[i - 1].length() == 9) // Data is From AniDB and is in XXXX-YYYY Format
-		{
-			yen = U.i(s[i - 1].substring(5, 9));
-		} else if (s.length == 10) // Data is From the serialize File
-		{
-			yen = U.i(s[9].substring(0, 4));
-		} else // Data is From AniDB and is in XXXX Format
-		{
-			yen = yea;
+	public Anime(String[] fields) {
+		int index = 0;
+		id = U.i(fields[index++]);
+		episodeCount = U.i(fields[index++]);
+		latestEpisode = U.i(fields[index++]);
+		year = U.i(fields[index++].substring(0, 4));
+		if (fields[index - 1].length() == 9) { // Data is from AniDB in XXXX-YYYY format
+			endYear = U.i(fields[index - 1].substring(5, 9));
+		} else if (fields.length == 10) { // Data is from serialize file
+			endYear = U.i(fields[9].substring(0, 4));
+		} else { // Data is from AniDB in XXXX format
+			endYear = year;
 		}
-		typ = s[i++];
-		rom = s[i++];
-		kan = U.n(s[i++]);
-		eng = U.n(s[i++]);
-		cat = s[i++];
+		type = fields[index++];
+		romajiTitle = fields[index++];
+		kanjiTitle = U.n(fields[index++]);
+		englishTitle = U.n(fields[index++]);
+		categories = fields[index++];
 
 		init();
 	}
 
 	public void init() {
-		if (pro == null) {
-			pro = new Bits(eps > 0 ? eps : lep);
+		if (episodeProgress == null) {
+			episodeProgress = new Bits(episodeCount > 0 ? episodeCount : latestEpisode);
 		}
 	}
 
 	public int getTotal() {
-		return (eps < 1 ? (lep < 10 ? 99 : lep) : eps);
+		return (episodeCount < 1 ? (latestEpisode < 10 ? 99 : latestEpisode) : episodeCount);
 	}
 
-	public static int TPRI = 0;
+	/** Title display priority: 0=romaji, 1=kanji, 2=english. */
+	public static int TITLE_PRIORITY = 0;
 
 	public String toString() {
-		switch (TPRI) {
+		switch (TITLE_PRIORITY) {
 			case 1 :
-				return (kan == null ? rom : kan) + " (" + eps + ":" + lep + ")";
+				return (kanjiTitle == null ? romajiTitle : kanjiTitle) + " (" + episodeCount + ":" + latestEpisode
+						+ ")";
 			case 2 :
-				return (eng == null ? rom : eng) + " (" + eps + ":" + lep + ")";
+				return (englishTitle == null ? romajiTitle : englishTitle) + " (" + episodeCount + ":" + latestEpisode
+						+ ")";
 			default :
-				return rom + " (" + eps + ":" + lep + ")";
+				return romajiTitle + " (" + episodeCount + ":" + latestEpisode + ")";
 		}
 	}
 
 	public String serialize() {
-		return "" + id + S + eps + S + lep + S + yea + S + typ + S + rom + S + kan + S + eng + S + cat + S + yen;
+		return "" + id + S + episodeCount + S + latestEpisode + S + year + S + type + S + romajiTitle + S + kanjiTitle
+				+ S + englishTitle + S + categories + S + endYear;
 	}
 
-	private void setorfill(int no, boolean b) {
-		if (!pro.set(no - 1, b)) {
-			if (no > (eps > 0 ? eps : lep)) {
-				if (!pro.fill(b)) {
-					System.out.println(
-							"@ Completion " + (b ? "over" : "under") + "flow: " + this + " [" + typ + "] epno=" + no);
+	private void setOrFill(int episodeNumber, boolean value) {
+		if (!episodeProgress.set(episodeNumber - 1, value)) {
+			if (episodeNumber > (episodeCount > 0 ? episodeCount : latestEpisode)) {
+				if (!episodeProgress.fill(value)) {
+					System.out.println("@ Completion " + (value ? "over" : "under") + "flow: " + this + " [" + type
+							+ "] epno=" + episodeNumber);
 				}
 			}
 		}
 	}
 
-	public void regEp(Ep e, boolean b) {
-		if (Character.isDigit(e.num.charAt(0))) {
+	/**
+	 * Registers an episode as watched/unwatched.
+	 *
+	 * @param episode
+	 *            the episode to register
+	 * @param watched
+	 *            true if watched, false if unwatched
+	 */
+	public void registerEpisode(Ep episode, boolean watched) {
+		if (Character.isDigit(episode.num.charAt(0))) {
 			try {
-				setorfill(Integer.parseInt(e.num), b);
-			} catch (NumberFormatException x) {
-				String[] sa = e.num.split(",");
-				for (int i = 0; i < sa.length; i++) {
-					String[] sb = sa[0].split("-");
-					switch (sb.length) {
+				setOrFill(Integer.parseInt(episode.num), watched);
+			} catch (NumberFormatException ex) {
+				String[] commaParts = episode.num.split(",");
+				for (int i = 0; i < commaParts.length; i++) {
+					String[] rangeParts = commaParts[0].split("-");
+					switch (rangeParts.length) {
 						case 2 :
-							for (int j = Integer.parseInt(sb[0]); j <= Integer.parseInt(sb[1]); j++) {
-								setorfill(j, b);
+							for (int j = Integer.parseInt(rangeParts[0]); j <= Integer.parseInt(rangeParts[1]); j++) {
+								setOrFill(j, watched);
 							}
 							break;
 						case 1 :
-							setorfill(Integer.parseInt(sb[0]), b);
+							setOrFill(Integer.parseInt(rangeParts[0]), watched);
 							break;
 						default :
-							System.out.println("@ Anime.regEp: Unexpected epno format!");
+							System.out.println("@ Anime.registerEpisode: Unexpected epno format!");
 					}
 				}
 			}
-		} else if (e.num.charAt(0) == 'O') {
+		} else if (episode.num.charAt(0) == 'O') {
 			try {
-				if (e.eng.startsWith("Episodes ")) {
-					int i = e.eng.indexOf('-');
+				if (episode.eng.startsWith("Episodes ")) {
+					int dashIndex = episode.eng.indexOf('-');
 
-					if (i > 0) {
-						int x = U.i(e.eng.substring(9, i));
-						int j = e.eng.indexOf(' ', i);
-						if (j < i) {
-							j = e.eng.length();
+					if (dashIndex > 0) {
+						int startEp = U.i(episode.eng.substring(9, dashIndex));
+						int spaceIndex = episode.eng.indexOf(' ', dashIndex);
+						if (spaceIndex < dashIndex) {
+							spaceIndex = episode.eng.length();
 						}
-						int y = U.i(e.eng.substring(i + 1, j));
-						for (i = x - 1; i < y; i++) {
-							pro.set(i, b);
+						int endEp = U.i(episode.eng.substring(dashIndex + 1, spaceIndex));
+						for (int epIndex = startEp - 1; epIndex < endEp; epIndex++) {
+							episodeProgress.set(epIndex, watched);
 						}
 					}
 				}
-			} catch (Exception x) {
-				//
+			} catch (Exception ignored) {
+				// Ignore parsing errors for special episode formats
 			}
 		}
 	}
 
-	public void updatePct() {
-		int max = eps;
-		if (max == 0) {
-			max = -lep;
+	/** Updates the completion percentage based on episode progress. */
+	public void updateCompletionPercent() {
+		int maxEpisodes = episodeCount;
+		if (maxEpisodes == 0) {
+			maxEpisodes = -latestEpisode;
 		}
-		if (max == 0) {
-			pct = 0;
+		if (maxEpisodes == 0) {
+			completionPercent = 0;
 		} else {
-			pct = (pro.cnt() * 100) / max;
+			completionPercent = (episodeProgress.countSetBits() * 100) / maxEpisodes;
 		}
 	}
 
-	public int getPct() {
-		return pct;
+	public int getCompletionPercent() {
+		return completionPercent;
 	}
 
-	/*
-	 * |XXX | _ - normal
-	 * | XXX| F - missing First part - could be burned
-	 * |XX XX| L - hole and has Last - should be able to complete
-	 * | XXX | E - Ends missing. fist part could be burned, probably not able to complete
-	 * | X X | # - there are # holes
-	 * |X X X| ^
+	/**
+	 * Returns a character indicating the missing episode pattern.
+	 * ' ' = complete or no gaps
+	 * 'f' = missing first episodes
+	 * 'l' = has gaps but has last
+	 * 'e' = ends missing
+	 * Other chars = multiple holes
 	 */
-	public char miss() {
-		/*
-		 * if(!pro.hole()) return ' ';
-		 * return pro.last()?!pro.first()?'F':'L':'H';
-		 */
-		int x = pro.switchCount();
-		// return (""+x).charAt(0);
-		if (x < 1) {
+	public char getMissingPattern() {
+		int transitions = episodeProgress.switchCount();
+		if (transitions < 1) {
 			return ' ';
 		}
-		if (x < 2) {
-			return pro.last() ? 'f' : ' ';
+		if (transitions < 2) {
+			return episodeProgress.last() ? 'f' : ' ';
 		}
-		if (x < 3) {
-			return pro.first() ? 'l' : 'e';
+		if (transitions < 3) {
+			return episodeProgress.first() ? 'l' : 'e';
 		}
-		return (char) (62 + x); // (""+x).charAt(0);
+		return (char) (62 + transitions);
 	}
 
 	public int compareTo(Object o) {
-		int i = comp(o, s0);
-		if (i == 0 && s0 != s1) {
-			return comp(o, s1);
+		int result = compareBy(o, primarySortColumn);
+		if (result == 0 && primarySortColumn != secondarySortColumn) {
+			return compareBy(o, secondarySortColumn);
 		}
-		return i;
+		return result;
 	}
 
-	public int comp(Object obj, int i) {
+	/**
+	 * Compares this anime with another by the specified column.
+	 *
+	 * @param obj
+	 *            the object to compare
+	 * @param column
+	 *            the column index (negative for descending)
+	 * @return comparison result
+	 */
+	public int compareBy(Object obj, int column) {
 		if (obj instanceof Anime a) {
 			Anime b = this;
-			if (i < 0) {
+			if (column < 0) {
 				b = a;
 				a = this;
 			}
-			switch (Math.abs(i) - 1) {
+			switch (Math.abs(column) - 1) {
 				case TableModelAlt.NAME :
-					return b.rom.compareTo(a.rom);
+					return b.romajiTitle.compareTo(a.romajiTitle);
 				case TableModelAlt.TYPE :
-					return b.typ.compareTo(a.typ);
+					return b.type.compareTo(a.type);
 				case TableModelAlt.YEAR :
-					return b.yea - a.yea;
+					return b.year - a.year;
 				case TableModelAlt.NUMB :
 					return b.size() - a.size();
 				case TableModelAlt.SIZE :
-					return (int) ((b.mLs - a.mLs) / 100000);
-				// case AnimeModel.PRCT: return b.pro.pct()-a.pro.pct();
+					return (int) ((b.totalSize - a.totalSize) / 100000);
 				case TableModelAlt.PRCT :
-					return a.getPct() - b.getPct();
+					return a.getCompletionPercent() - b.getCompletionPercent();
 				case TableModelAlt.LAST :
-					return a.miss() - b.miss();
-				/*
-				 * {
-				 * if(b.last()==a.last())
-				 * return 0;//a.getPct()-b.getPct();
-				 * if(b.last()=='F') return 1;
-				 * return -1;
-				 * }
-				 */
+					return a.getMissingPattern() - b.getMissingPattern();
 			}
 		}
 		return super.compareTo(obj);
@@ -251,6 +278,6 @@ public class Anime extends Base {
 
 	public void clear() {
 		super.clear();
-		pro.reset();
+		episodeProgress.reset();
 	}
 }

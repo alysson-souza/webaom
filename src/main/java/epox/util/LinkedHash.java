@@ -24,12 +24,16 @@
 package epox.util;
 
 /**
- * Combined linked list and hash map. Fast and ordered.
+ * Combined linked list and hash map. Provides both fast O(1) lookup via hash map
+ * and maintains insertion order via a doubly-linked list.
  *
  * @author JV
  * @version 1
  */
+@SuppressWarnings("rawtypes")
 public class LinkedHash extends java.util.HashMap /* !<Object,Object> */ {
+	private static final long serialVersionUID = 1L;
+
 	private Node head = null;
 	private Node tail = null;
 
@@ -38,49 +42,77 @@ public class LinkedHash extends java.util.HashMap /* !<Object,Object> */ {
 		head = tail = new Node(null, null);
 	}
 
-	public boolean addLast(Object o) {
-		Node n = new Node(o, tail);
-		if (super.put(o, n) == null) {
-			tail = tail.next = n;
+	/**
+	 * Adds an element to the end of the list if not already present.
+	 *
+	 * @param element
+	 *            the element to add
+	 * @return true if the element was added, false if it already existed
+	 */
+	@SuppressWarnings("unchecked")
+	public boolean addLast(Object element) {
+		Node newNode = new Node(element, tail);
+		if (super.put(element, newNode) == null) {
+			tail = tail.next = newNode;
 			return true;
 		}
 		return false;
 	}
 
-	public Object remove(Object o) {
-		Node n = (Node) super.remove(o);
-		if (n == null) {
-			System.out.println("! LinkedHash: Tried to remove non existing entry: " + o);
+	/**
+	 * Removes an element from both the hash map and the linked list.
+	 *
+	 * @param element
+	 *            the element to remove
+	 * @return null (the element is removed but not returned)
+	 */
+	@Override
+	public Object remove(Object element) {
+		Node removedNode = (Node) super.remove(element);
+		if (removedNode == null) {
+			System.out.println("! LinkedHash: Tried to remove non existing entry: " + element);
 		}
-		n.prev.next = n.next;
-		if (n.next != null) {
-			n.next.prev = n.prev;
+		removedNode.prev.next = removedNode.next;
+		if (removedNode.next != null) {
+			removedNode.next.prev = removedNode.prev;
 		} else {
-			tail = n.prev;
+			tail = removedNode.prev;
 		}
 		return null;
 	}
 
+	/**
+	 * Clears both the hash map and the linked list.
+	 */
+	@Override
 	public void clear() {
 		super.clear();
 		head.next = head.prev = null;
 		tail = head;
 	}
 
+	/**
+	 * Returns the first element in the list without removing it.
+	 *
+	 * @return the first element, or null if the list is empty
+	 */
 	public Object getFirst() {
 		if (head.next == null) {
 			return null;
 		}
-		return head.next.o;
+		return head.next.data;
 	}
 
+	/**
+	 * Internal doubly-linked list node.
+	 */
 	private class Node {
 		Node prev;
 		Node next;
-		Object o;
+		Object data;
 
-		Node(Object o, Node prev) {
-			this.o = o;
+		Node(Object data, Node prev) {
+			this.data = data;
 			this.prev = prev;
 		}
 	}

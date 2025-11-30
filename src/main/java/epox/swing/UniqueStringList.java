@@ -27,78 +27,78 @@ import javax.swing.ListModel;
 import javax.swing.event.ListDataEvent;
 import javax.swing.event.ListDataListener;
 
+/**
+ * A ListModel that stores unique strings. Duplicates are silently ignored when adding.
+ */
 public class UniqueStringList implements ListModel {
-	private ListDataListener ldl;
-	private final Vector /* !<String> */ table;
-	private final String sep;
+	private ListDataListener listDataListener;
+	private final Vector<String> stringList;
+	private final String separator;
 
-	public UniqueStringList(String s) {
-		sep = s;
-		table = new Vector /* !<String> */();
+	public UniqueStringList(String separator) {
+		this.separator = separator;
+		stringList = new Vector<>();
 	}
 
-	public void add(String ext) {
-		if (!table.contains(ext)) {
+	public void add(String element) {
+		if (!stringList.contains(element)) {
 			int size = getSize();
-			table.add(ext);
-			ldl.intervalAdded(new ListDataEvent(this, ListDataEvent.INTERVAL_ADDED, size, size));
+			stringList.add(element);
+			listDataListener.intervalAdded(new ListDataEvent(this, ListDataEvent.INTERVAL_ADDED, size, size));
 		}
 	}
 
-	/*
-	 * public void addSilent(String ext){
-	 * if(!table.contains(ext))
-	 * {
-	 * table.add(ext);
-	 * }
-	 * }
-	 */
-	public String removeElementAt(int i) {
-		String str = (String) table.remove(i); // !
-		ldl.intervalRemoved(new ListDataEvent(this, ListDataEvent.INTERVAL_REMOVED, i, i));
-		return str;
+	public String removeElementAt(int index) {
+		String removed = stringList.remove(index);
+		listDataListener.intervalRemoved(new ListDataEvent(this, ListDataEvent.INTERVAL_REMOVED, index, index));
+		return removed;
 	}
 
 	public void reset() {
-		int i = getSize();
-		table.removeAllElements();
-		ldl.intervalRemoved(new ListDataEvent(this, ListDataEvent.INTERVAL_REMOVED, 0, i - 1));
+		int size = getSize();
+		stringList.removeAllElements();
+		listDataListener.intervalRemoved(new ListDataEvent(this, ListDataEvent.INTERVAL_REMOVED, 0, size - 1));
 	}
 
-	public boolean includes(String ext) {
-		return table.contains(ext);
+	public boolean includes(String element) {
+		return stringList.contains(element);
 	}
 
+	@Override
 	public String toString() {
-		String tmp = "";
-		Object[] o = getStrings();
-		for (int i = 0; i < o.length; i++) {
-			tmp += o[i] + sep;
+		StringBuilder result = new StringBuilder();
+		Object[] strings = getStrings();
+		for (int index = 0; index < strings.length; index++) {
+			result.append(strings[index]).append(separator);
 		}
-		return tmp.trim();
+		return result.toString().trim();
 	}
 
 	public Object[] getStrings() {
-		return table.toArray();
+		return stringList.toArray();
 	}
 
+	@Override
 	public int getSize() {
-		return table.size();
+		return stringList.size();
 	}
 
+	@Override
 	public Object getElementAt(int row) {
-		return table.elementAt(row);
+		return stringList.elementAt(row);
 	}
 
 	public String getStringAt(int row) {
-		return (String) table.elementAt(row);
+		return stringList.elementAt(row);
 	}
 
-	public void addListDataListener(ListDataListener l) {
-		ldl = l;
+	@Override
+	public void addListDataListener(ListDataListener listener) {
+		listDataListener = listener;
 	}
 
-	public void removeListDataListener(ListDataListener l) {
-		ldl = null;
+	@Override
+	public void removeListDataListener(ListDataListener listener) {
+		listDataListener = null;
 	}
 }

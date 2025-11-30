@@ -22,21 +22,27 @@
  */
 package epox.webaom.data;
 
+/**
+ * Represents a fansub/release group from AniDB.
+ */
 public class Group extends Base {
+	/** Full group name. */
 	public String name = "none";
-	public String sname = "";
+	/** Short group name/tag (e.g., "a-f" for "Anime-Fansubs"). */
+	public String shortName = "";
 
 	public Group(int id) {
 		this.id = id;
 	}
 
 	public String serialize() {
-		return name + S + sname;
+		return name + S + shortName;
 	}
 
 	public String toString() {
-		return name + "|" + sname;
+		return name + "|" + shortName;
 	}
 
+	/** Singleton representing no group (raw release). */
 	public static final Group none = new Group(0);
 }

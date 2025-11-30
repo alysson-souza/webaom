@@ -18,53 +18,60 @@ package epox.swing;
 
 import javax.swing.table.AbstractTableModel;
 
+/**
+ * Abstract table model that supports sorting by column. Maintains an index array for row mapping.
+ */
 public abstract class TableModelSortable extends AbstractTableModel {
-	protected int[] m_idx; // , m_rev;
-	private final TableSorter m_ts = new TableSorter(this);
-	private int m_sort_col;
+	/** Index mapping from sorted row to original row */
+	protected int[] sortedRowIndices;
+
+	/** Sorter for comparing and reordering rows */
+	private final TableSorter tableSorter = new TableSorter(this);
+
+	/** Currently sorted column index, -1 if not sorted */
+	private int sortColumn;
 
 	public void reset() {
-		m_sort_col = -1;
-		m_ts.reset();
-		m_idx = null;
+		sortColumn = -1;
+		tableSorter.reset();
+		sortedRowIndices = null;
 	}
 
 	protected int getRowIndex(int row) {
 		try {
-			return m_idx[row];
-		} catch (NullPointerException e) {
+			return sortedRowIndices[row];
+		} catch (NullPointerException ex) {
 			return row;
-		} catch (ArrayIndexOutOfBoundsException e) {
+		} catch (ArrayIndexOutOfBoundsException ex) {
 			return row;
 		}
 	}
 
 	public void sortByColumn(int column) {
-		m_sort_col = column;
+		sortColumn = column;
 		sort(false);
 	}
 
 	public void sort(boolean refresh) {
-		if (m_sort_col < 0) {
+		if (sortColumn < 0) {
 			return;
 		}
-		m_ts.sort(getIndexes(), m_sort_col, refresh);
+		tableSorter.sort(getIndexes(), sortColumn, refresh);
 
 		fireTableDataChanged();
 	}
 
 	private int[] getIndexes() {
-		int n = getRowCount();
-		if (m_idx != null && m_idx.length == n) {
-			return m_idx;
+		int rowCount = getRowCount();
+		if (sortedRowIndices != null && sortedRowIndices.length == rowCount) {
+			return sortedRowIndices;
 		}
 
-		m_idx = new int[n];
-		// m_rev = new int[n];
-		for (int i = 0; i < n; i++) {
-			m_idx[i] = i;
+		sortedRowIndices = new int[rowCount];
+		for (int index = 0; index < rowCount; index++) {
+			sortedRowIndices[index] = index;
 		}
 
-		return m_idx;
+		return sortedRowIndices;
 	}
 }

@@ -46,7 +46,7 @@ public class Parser {
 		}
 		Group group = new Group(Integer.parseInt(fields[0]));
 		group.name = fields[5];
-		group.sname = fields[6];
+		group.shortName = fields[6];
 		return group;
 	}
 
@@ -67,15 +67,15 @@ public class Parser {
 			return null;
 		}
 		Anime anime = new Anime(Integer.parseInt(fields[0]));
-		anime.eps = Integer.parseInt(fields[1]);
-		anime.lep = Integer.parseInt(fields[2]);
-		anime.yea = Integer.parseInt(fields[10].substring(0, 4));
-		anime.yen = fields[10].length() != 9 ? anime.yea : Integer.parseInt(fields[10].substring(5, 9));
-		anime.typ = fields[11].intern();
-		anime.rom = fields[12];
-		anime.kan = fields[13];
-		anime.eng = fields[14];
-		anime.cat = fields[18];
+		anime.episodeCount = Integer.parseInt(fields[1]);
+		anime.latestEpisode = Integer.parseInt(fields[2]);
+		anime.year = Integer.parseInt(fields[10].substring(0, 4));
+		anime.endYear = fields[10].length() != 9 ? anime.year : Integer.parseInt(fields[10].substring(5, 9));
+		anime.type = fields[11].intern();
+		anime.romajiTitle = fields[12];
+		anime.kanjiTitle = fields[13];
+		anime.englishTitle = fields[14];
+		anime.categories = fields[18];
 		return anime;
 	}
 
@@ -151,14 +151,14 @@ public class Parser {
 						FileOutputStream outputStream = new FileOutputStream(file);
 						Writer writer = new OutputStreamWriter(outputStream, StandardCharsets.UTF_8);
 						writer.write("a0\r\n");
-						A.p.mkArray();
+						A.p.buildSortedChildArray();
 						for (int animeIndex = 0; animeIndex < A.p.size(); animeIndex++) {
 							Base animeEntry = A.p.get(animeIndex);
-							animeEntry.mkArray();
+							animeEntry.buildSortedChildArray();
 							writer.write("a" + animeEntry.serialize() + A.S_N);
 							for (int episodeIndex = 0; episodeIndex < animeEntry.size(); episodeIndex++) {
 								Base episodeEntry = animeEntry.get(episodeIndex);
-								episodeEntry.mkArray();
+								episodeEntry.buildSortedChildArray();
 								writer.write("e" + episodeEntry.serialize() + A.S_N);
 								for (int fileIndex = 0; fileIndex < episodeEntry.size(); fileIndex++) {
 									AFile anidbFile = (AFile) episodeEntry.get(fileIndex);
@@ -201,7 +201,7 @@ public class Parser {
 						} else if (!formatVersion.equals("a0")) {
 							throw new Exception("format not supported");
 						}
-						// A.p.mkArray();
+						// A.p.buildSortedChildArray();
 						String line;
 						Anime currentAnime = null;
 						Ep currentEpisode = null;
@@ -225,17 +225,17 @@ public class Parser {
 								case 'f' :
 									String[] fields = U.split(line.substring(1), '|');
 									currentFile = new AFile(fields);
-									Group group = new Group(currentFile.gid);
+									Group group = new Group(currentFile.groupId);
 									group.name = fields[20];
-									group.sname = fields[21];
+									group.shortName = fields[21];
 									A.cache.add(group, 1, DB.INDEX_GROUP);
 									currentFile.anime = currentAnime;
 									currentFile.ep = currentEpisode;
 									currentFile.group = group;
-									currentFile.def = currentAnime.rom + " - " + currentEpisode.num + " - "
-											+ currentEpisode.eng + " - ["
-											+ ((currentFile.gid > 0) ? group.sname : "RAW") + "]";
-									A.db.update(currentFile.fid, currentFile, DB.INDEX_FILE);
+									currentFile.defaultName = currentAnime.romajiTitle + " - " + currentEpisode.num
+											+ " - " + currentEpisode.eng + " - ["
+											+ ((currentFile.groupId > 0) ? group.shortName : "RAW") + "]";
+									A.db.update(currentFile.fileId, currentFile, DB.INDEX_FILE);
 									break;
 								case 'j' :
 									line = line.substring(1);
@@ -243,8 +243,8 @@ public class Parser {
 										currentJob = new Job(new File(File.separatorChar + U.replace(line, "/", "")),
 												Job.FINISHED);
 										currentJob.originalName = line;
-										currentJob.ed2kHash = currentFile.ed2;
-										currentJob.fileSize = currentFile.mLs;
+										currentJob.ed2kHash = currentFile.ed2kHash;
+										currentJob.fileSize = currentFile.totalSize;
 									} else {
 										currentJob = new Job(U.split(line, '|'));
 									}

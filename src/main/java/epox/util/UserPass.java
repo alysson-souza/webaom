@@ -26,77 +26,124 @@ import java.security.NoSuchAlgorithmException;
 import javax.crypto.Cipher;
 import javax.crypto.spec.SecretKeySpec;
 
+/**
+ * Container for user credentials (username, password, API key) with AES encryption support.
+ * Used for storing and retrieving AniDB login credentials securely.
+ */
 public class UserPass {
-	public String usr;
-	public String psw;
-	public String key;
+	/** The username for authentication */
+	public String username;
+	/** The password for authentication */
+	public String password;
+	/** The optional API key for encryption */
+	public String apiKey;
 
-	public UserPass(String u, String p, String k) {
-		usr = u;
-		psw = p;
-		key = k;
+	public UserPass(String username, String password, String apiKey) {
+		this.username = username;
+		this.password = password;
+		this.apiKey = apiKey;
 	}
 
-	public void set(String s) {
+	/**
+	 * Parses and sets credentials from an encoded string (format: "user:encpass:enckey").
+	 *
+	 * @param encoded
+	 *            the encoded credentials string
+	 */
+	public void set(String encoded) {
 		try {
-			String[] a = U.split(s, ':');
-			usr = a[0];
-			if (a.length >= 2) {
-				psw = dec(a[1]);
+			String[] parts = U.split(encoded, ':');
+			username = parts[0];
+			if (parts.length >= 2) {
+				password = decrypt(parts[1]);
 			} else {
-				psw = null;
+				password = null;
 			}
-			if (a.length >= 3) {
-				key = dec(a[2]);
+			if (parts.length >= 3) {
+				apiKey = decrypt(parts[2]);
 			} else {
-				key = null;
+				apiKey = null;
 			}
-		} catch (Exception e) {
-			//
+		} catch (Exception ex) {
+			// Silently fail on parse errors
 		}
 	}
 
-	public String get(boolean sp) {
-		if (!sp) {
-			return usr;
+	/**
+	 * Returns the credentials as a string.
+	 *
+	 * @param includePassword
+	 *            if true, includes encrypted password and API key
+	 * @return the credentials string
+	 */
+	public String get(boolean includePassword) {
+		if (!includePassword) {
+			return username;
 		}
-		return usr + ":" + nne(psw) + ":" + nne(key);
+		return username + ":" + encryptIfNotEmpty(password) + ":" + encryptIfNotEmpty(apiKey);
 	}
 
-	private static String nne(String s) {
-		if (s == null || s.isEmpty()) {
+	/**
+	 * Encrypts a string if it's not null or empty.
+	 *
+	 * @param value
+	 *            the value to encrypt
+	 * @return the encrypted value, or empty string if null/empty
+	 */
+	private static String encryptIfNotEmpty(String value) {
+		if (value == null || value.isEmpty()) {
 			return "";
 		}
-		return enc(s);
+		return encrypt(value);
 	}
 
-	private static byte[] envk() throws NoSuchAlgorithmException {
-		MessageDigest md = MessageDigest.getInstance("MD5");
-		md.update(System.getProperty("os.name", "").getBytes());
-		md.update(System.getProperty("os.version", "").getBytes());
-		md.update(System.getProperty("os.arch", "").getBytes());
-		md.update(System.getProperty("user.name", "").getBytes());
-		md.update(System.getProperty("user.home", "").getBytes());
-		md.update(System.getProperty("user.language", "").getBytes());
-		return md.digest();
+	/**
+	 * Generates an encryption key based on environment properties.
+	 * This makes the encrypted passwords machine-specific.
+	 *
+	 * @return 16-byte MD5 hash of environment properties
+	 */
+	private static byte[] generateEnvironmentKey() throws NoSuchAlgorithmException {
+		MessageDigest digest = MessageDigest.getInstance("MD5");
+		digest.update(System.getProperty("os.name", "").getBytes());
+		digest.update(System.getProperty("os.version", "").getBytes());
+		digest.update(System.getProperty("os.arch", "").getBytes());
+		digest.update(System.getProperty("user.name", "").getBytes());
+		digest.update(System.getProperty("user.home", "").getBytes());
+		digest.update(System.getProperty("user.language", "").getBytes());
+		return digest.digest();
 	}
 
-	private static String enc(String p) {
+	/**
+	 * Encrypts a plain text string using AES and encodes as Base32.
+	 *
+	 * @param plainText
+	 *            the text to encrypt
+	 * @return the Base32-encoded encrypted text, or null on error
+	 */
+	private static String encrypt(String plainText) {
 		try {
-			Cipher c = Cipher.getInstance("AES");
-			c.init(Cipher.ENCRYPT_MODE, new SecretKeySpec(envk(), "AES"));
-			return Base32.encode(c.doFinal(p.getBytes()));
-		} catch (Exception e) {
+			Cipher cipher = Cipher.getInstance("AES");
+			cipher.init(Cipher.ENCRYPT_MODE, new SecretKeySpec(generateEnvironmentKey(), "AES"));
+			return Base32.encode(cipher.doFinal(plainText.getBytes()));
+		} catch (Exception ex) {
 			return null;
 		}
 	}
 
-	private static String dec(String p) {
+	/**
+	 * Decrypts a Base32-encoded AES-encrypted string.
+	 *
+	 * @param cipherText
+	 *            the Base32-encoded encrypted text
+	 * @return the decrypted plain text, or null on error
+	 */
+	private static String decrypt(String cipherText) {
 		try {
-			Cipher c = Cipher.getInstance("AES");
-			c.init(Cipher.DECRYPT_MODE, new SecretKeySpec(envk(), "AES"));
-			return new String(c.doFinal(Base32.decode(p)));
-		} catch (Exception e) {
+			Cipher cipher = Cipher.getInstance("AES");
+			cipher.init(Cipher.DECRYPT_MODE, new SecretKeySpec(generateEnvironmentKey(), "AES"));
+			return new String(cipher.doFinal(Base32.decode(cipherText)));
+		} catch (Exception ex) {
 			return null;
 		}
 	}

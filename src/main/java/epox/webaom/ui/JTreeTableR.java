@@ -70,7 +70,7 @@ public class JTreeTableR extends JTreeTable implements RowModel, MouseListener {
 			}
 			return;
 		}
-		parent.mkArray();
+		parent.buildSortedChildArray();
 		for (int index = 0; index < parent.size(); index++) {
 			collectJobsRecursively(jobsList, parent.get(index));
 		}

@@ -241,7 +241,7 @@ public class A {
 			if (b == null) {
 				continue;
 			}
-			b.mkArray();
+			b.buildSortedChildArray();
 			sub0 += b.size();
 			for (int j = 0; j < b.size(); j++) {
 				c = b.get(j);

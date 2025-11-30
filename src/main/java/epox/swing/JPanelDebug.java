@@ -35,46 +35,50 @@ import javax.swing.JScrollBar;
 import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
 
+/**
+ * Debug panel that captures System.out and System.err, displaying output in a scrollable text area. Optionally logs
+ * to a file.
+ */
 public class JPanelDebug extends JPanel {
 	public static DecimalFormat nf = new DecimalFormat("000.00");
-	private PrintStream perr;
-	private PrintStream pout;
-	private File log;
-	protected JTextArea jta;
-	protected JScrollBar jsb;
-	protected boolean log_file = false;
+	private PrintStream originalErr;
+	private PrintStream originalOut;
+	private File logFile;
+	protected JTextArea textArea;
+	protected JScrollBar scrollBar;
+	protected boolean logToFile = false;
 	protected Updater updater;
 
-	public JPanelDebug(String file, boolean out, boolean err, boolean echo_out, boolean echo_err) {
+	public JPanelDebug(String file, boolean captureOut, boolean captureErr, boolean echoOut, boolean echoErr) {
 		super(new java.awt.BorderLayout());
-		jta = new JTextArea();
-		jta.setMargin(new java.awt.Insets(2, 2, 2, 2));
-		jta.append("Please report bugs at https://github.com/alysson-souza/webaom - Version:" + A.S_VER + "\r\n");
-		JScrollPane scroll = new JScrollPane(jta);
-		jsb = scroll.getVerticalScrollBar();
+		textArea = new JTextArea();
+		textArea.setMargin(new java.awt.Insets(2, 2, 2, 2));
+		textArea.append("Please report bugs at https://github.com/alysson-souza/webaom - Version:" + A.S_VER + "\r\n");
+		JScrollPane scroll = new JScrollPane(textArea);
+		scrollBar = scroll.getVerticalScrollBar();
 		add(scroll);
 		try {
-			FileOutputStream os = null;
+			FileOutputStream outputStream = null;
 			if (file != null) {
-				log_file = true;
-				log = new File(file);
-				os = new FileOutputStream(log);
+				logToFile = true;
+				logFile = new File(file);
+				outputStream = new FileOutputStream(logFile);
 			}
 
-			perr = System.err;
-			pout = System.out;
+			originalErr = System.err;
+			originalOut = System.out;
 
-			WinStream errstream = new WinStream(os, echo_err, perr);
-			WinStream outstream = new WinStream(os, echo_out, pout);
+			WinStream errStream = new WinStream(outputStream, echoErr, originalErr);
+			WinStream outStream = new WinStream(outputStream, echoOut, originalOut);
 
-			if (err) {
-				System.setErr(errstream);
+			if (captureErr) {
+				System.setErr(errStream);
 			}
-			if (out) {
-				System.setOut(outstream);
+			if (captureOut) {
+				System.setOut(outStream);
 			}
-		} catch (FileNotFoundException e) {
-			jta.append("Could not openfile" + file);
+		} catch (FileNotFoundException ex) {
+			textArea.append("Could not openfile" + file);
 		}
 		updater = new Updater();
 	}
@@ -86,214 +90,231 @@ public class JPanelDebug extends JPanel {
 	protected class Updater implements Runnable {
 		@Override
 		public void run() {
-			if (!jsb.getValueIsAdjusting()) {
-				jsb.setValue(jsb.getMaximum());
+			if (!scrollBar.getValueIsAdjusting()) {
+				scrollBar.setValue(scrollBar.getMaximum());
 			}
 		}
 	}
 
 	private class WinStream extends PrintStream {
-		FileOutputStream fos;
-		PrintStream pecho;
-		boolean echo;
-		boolean newl = true;
-		long t0;
-		long t1;
+		FileOutputStream fileOutputStream;
+		PrintStream echoStream;
+		boolean echoEnabled;
+		boolean isNewLine = true;
+		long startTime;
+		long currentTime;
 
-		public WinStream(FileOutputStream stream, boolean echo, PrintStream pecho) {
-			super(pecho);
-			this.fos = stream;
-			this.pecho = pecho;
-			this.echo = echo;
-			this.t0 = System.currentTimeMillis();
+		public WinStream(FileOutputStream stream, boolean echoEnabled, PrintStream echoStream) {
+			super(echoStream);
+			this.fileOutputStream = stream;
+			this.echoStream = echoStream;
+			this.echoEnabled = echoEnabled;
+			this.startTime = System.currentTimeMillis();
 		}
 
-		private synchronized void append(String str) {
-			t1 = System.currentTimeMillis();
-			if (str == "\n") {
-				if (!newl) {
-					jta.append("\n");
+		private synchronized void appendToTextArea(String text) {
+			currentTime = System.currentTimeMillis();
+			if (text == "\n") {
+				if (!isNewLine) {
+					textArea.append("\n");
 				}
-				newl = true;
-				t0 = t1;
+				isNewLine = true;
+				startTime = currentTime;
 
 			} else {
-				String pre = "[" + U.time() + "|" + nf.format((float) (t1 - t0) / 1000) + "] "
+				String prefix = "[" + U.time() + "|" + nf.format((float) (currentTime - startTime) / 1000) + "] "
 						+ Thread.currentThread().getName() + ": ";
 
-				if (str.indexOf('\n') < 0) {
-					if (newl) {
-						jta.append(pre);
+				if (text.indexOf('\n') < 0) {
+					if (isNewLine) {
+						textArea.append(prefix);
 					}
-					jta.append(str);
-					newl = false;
+					textArea.append(text);
+					isNewLine = false;
 				} else {
-					String[] arg = U.split(str, '\n');
-					for (int i = 0; i < arg.length; i++) {
-						if (newl) {
-							jta.append(pre);
+					String[] lines = U.split(text, '\n');
+					for (int index = 0; index < lines.length; index++) {
+						if (isNewLine) {
+							textArea.append(prefix);
 						}
-						jta.append(arg[i] + "\n");
-						newl = true;
+						textArea.append(lines[index] + "\n");
+						isNewLine = true;
 					}
-					t0 = t1;
+					startTime = currentTime;
 				}
 			}
-			if (jta.isVisible()) {
+			if (textArea.isVisible()) {
 				javax.swing.SwingUtilities.invokeLater(updater);
 			}
 		}
 
-		public void print(boolean x) {
-			if (echo) {
-				pecho.print(x);
+		@Override
+		public void print(boolean value) {
+			if (echoEnabled) {
+				echoStream.print(value);
 			}
-			if (log_file) {
-				super.print(x);
+			if (logToFile) {
+				super.print(value);
 			}
-			append(x + "");
+			appendToTextArea(value + "");
 		}
 
-		public void print(char x) {
-			if (echo) {
-				pecho.print(x);
+		@Override
+		public void print(char value) {
+			if (echoEnabled) {
+				echoStream.print(value);
 			}
-			if (log_file) {
-				super.print(x);
+			if (logToFile) {
+				super.print(value);
 			}
-			append(x + "");
+			appendToTextArea(value + "");
 		}
 
-		public void print(int x) {
-			if (echo) {
-				pecho.print(x);
+		@Override
+		public void print(int value) {
+			if (echoEnabled) {
+				echoStream.print(value);
 			}
-			if (log_file) {
-				super.print(x);
+			if (logToFile) {
+				super.print(value);
 			}
-			append(x + "");
+			appendToTextArea(value + "");
 		}
 
-		public void print(long x) {
-			if (echo) {
-				pecho.print(x);
+		@Override
+		public void print(long value) {
+			if (echoEnabled) {
+				echoStream.print(value);
 			}
-			if (log_file) {
-				super.print(x);
+			if (logToFile) {
+				super.print(value);
 			}
-			append(x + "");
+			appendToTextArea(value + "");
 		}
 
-		public void print(float x) {
-			if (echo) {
-				pecho.print(x);
+		@Override
+		public void print(float value) {
+			if (echoEnabled) {
+				echoStream.print(value);
 			}
-			if (log_file) {
-				super.print(x);
+			if (logToFile) {
+				super.print(value);
 			}
-			append(x + "");
+			appendToTextArea(value + "");
 		}
 
-		public void print(double x) {
-			if (echo) {
-				pecho.print(x);
+		@Override
+		public void print(double value) {
+			if (echoEnabled) {
+				echoStream.print(value);
 			}
-			if (log_file) {
-				super.print(x);
+			if (logToFile) {
+				super.print(value);
 			}
-			append(x + "");
+			appendToTextArea(value + "");
 		}
 
-		public void print(char[] x) {
-			if (echo) {
-				pecho.print(x);
+		@Override
+		public void print(char[] value) {
+			if (echoEnabled) {
+				echoStream.print(value);
 			}
-			if (log_file) {
-				super.print(new String(x));
+			if (logToFile) {
+				super.print(new String(value));
 			}
-			append(new String(x));
+			appendToTextArea(new String(value));
 		}
 
-		public void print(String x) {
-			if (x == null) {
-				x = "null";
+		@Override
+		public void print(String text) {
+			if (text == null) {
+				text = "null";
 			}
-			if (echo) {
-				pecho.print(/* Thread.currentThread().getName()+": "+ */ x);
+			if (echoEnabled) {
+				echoStream.print(text);
 			}
-			if (log_file) {
-				super.print(x);
+			if (logToFile) {
+				super.print(text);
 			}
-			if (x.endsWith("\n")) {
-				newl = true;
+			if (text.endsWith("\n")) {
+				isNewLine = true;
 			}
-			append(x);
+			appendToTextArea(text);
 		}
 
-		public void print(Object x) {
-			if (echo) {
-				pecho.print(x);
+		@Override
+		public void print(Object value) {
+			if (echoEnabled) {
+				echoStream.print(value);
 			}
-			if (log_file) {
-				super.print(x.toString());
+			if (logToFile) {
+				super.print(value.toString());
 			}
-			append("" + x);
+			appendToTextArea("" + value);
 		}
 
+		@Override
 		public void println() {
-			if (echo) {
-				pecho.println();
+			if (echoEnabled) {
+				echoStream.println();
 			}
-			if (log_file) {
+			if (logToFile) {
 				super.println();
 			}
-			// newl = true;
-			append("\n");
-			// jta.append("\n");
+			appendToTextArea("\n");
 		}
 
-		public void println(boolean x) {
-			print(x);
+		@Override
+		public void println(boolean value) {
+			print(value);
 			println();
 		}
 
-		public void println(char x) {
-			print(x);
+		@Override
+		public void println(char value) {
+			print(value);
 			println();
 		}
 
-		public void println(int x) {
-			print(x);
+		@Override
+		public void println(int value) {
+			print(value);
 			println();
 		}
 
-		public void println(long x) {
-			print(x);
+		@Override
+		public void println(long value) {
+			print(value);
 			println();
 		}
 
-		public void println(float x) {
-			print(x);
+		@Override
+		public void println(float value) {
+			print(value);
 			println();
 		}
 
-		public void println(double x) {
-			print(x);
+		@Override
+		public void println(double value) {
+			print(value);
 			println();
 		}
 
-		public void println(char[] x) {
-			print(x);
+		@Override
+		public void println(char[] value) {
+			print(value);
 			println();
 		}
 
-		public void println(String x) {
-			print(x);
+		@Override
+		public void println(String text) {
+			print(text);
 			println();
 		}
 
-		public void println(Object x) {
-			print(x);
+		@Override
+		public void println(Object value) {
+			print(value);
 			println();
 		}
 	}

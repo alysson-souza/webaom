@@ -4,18 +4,22 @@
  */
 package epox.webaom.data;
 
+/**
+ * Represents a file system path in the data tree.
+ * Used for organizing files by their parent directory.
+ */
 public class Path extends Base {
-	private final String mSp;
+	private final String pathString;
 
-	public Path(String p) {
-		mSp = p;
+	public Path(String path) {
+		pathString = path;
 	}
 
 	public Object getKey() {
-		return mSp;
+		return pathString;
 	}
 
 	public String toString() {
-		return mSp;
+		return pathString;
 	}
 }

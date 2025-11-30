@@ -10,12 +10,15 @@ import java.awt.event.MouseListener;
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
 
+/**
+ * A JScrollPane wrapper for a JTable that provides convenient methods to get visible row range.
+ */
 public class JScrollTable extends JScrollPane implements MouseListener {
-	private final JTable m_jt;
+	private final JTable table;
 
-	public JScrollTable(JTable jt) {
-		super(jt);
-		m_jt = jt;
+	public JScrollTable(JTable table) {
+		super(table);
+		this.table = table;
 		getViewport().setBackground(java.awt.Color.white);
 
 		setFocusable(true);
@@ -23,33 +26,38 @@ public class JScrollTable extends JScrollPane implements MouseListener {
 	}
 
 	public int getTopVisibleRow() {
-		return m_jt.rowAtPoint(getViewport().getViewPosition());
+		return table.rowAtPoint(getViewport().getViewPosition());
 	}
 
 	public int getBottomVisibleRow() {
-		int y = getViewport().getViewPosition().y;
-		y += getViewport().getExtentSize().getHeight();
-		int row = m_jt.rowAtPoint(new Point(0, y));
-		return (row > -1) ? row : (m_jt.getRowCount() - 1);
+		int yPosition = getViewport().getViewPosition().y;
+		yPosition += getViewport().getExtentSize().getHeight();
+		int row = table.rowAtPoint(new Point(0, yPosition));
+		return (row > -1) ? row : (table.getRowCount() - 1);
 	}
 
-	public void mouseClicked(MouseEvent e) {
+	@Override
+	public void mouseClicked(MouseEvent event) {
 		requestFocusInWindow();
 	}
 
-	public void mousePressed(MouseEvent e) {
-		//
+	@Override
+	public void mousePressed(MouseEvent event) {
+		// No action required
 	}
 
-	public void mouseReleased(MouseEvent e) {
-		//
+	@Override
+	public void mouseReleased(MouseEvent event) {
+		// No action required
 	}
 
-	public void mouseEntered(MouseEvent e) {
-		//
+	@Override
+	public void mouseEntered(MouseEvent event) {
+		// No action required
 	}
 
-	public void mouseExited(MouseEvent e) {
-		//
+	@Override
+	public void mouseExited(MouseEvent event) {
+		// No action required
 	}
 }
