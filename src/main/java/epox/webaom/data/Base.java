@@ -103,8 +103,11 @@ public class Base implements Comparable {
         return childMap.size();
     }
 
+    private static final boolean IS_MAC =
+            System.getProperty("os.name").toLowerCase().contains("mac");
+
     public String toString() {
-        return "Press F5 to update.";
+        return IS_MAC ? "Press ⌘R to update." : "Press F5 to update.";
     }
 
     public void buildSortedChildArray() {
