@@ -85,3 +85,212 @@ spotless {
 		greclipse()
 	}
 }
+
+// Native app packaging with jpackage (requires Java 21+)
+def jpackageOutputDir = layout.buildDirectory.dir('installer')
+def jlinkOutputDir = layout.buildDirectory.dir('jlink')
+def appName = 'WebAOM'
+def appDescription = 'AniDB file identification and organization tool'
+def appVendor = 'Alysson Souza'
+def appCopyright = 'Copyright (C) 2005-2010 epoximator, 2025 Alysson Souza'
+
+// Modules required by the application (Swing + networking + database drivers)
+def requiredModules = [
+	'java.base',
+	'java.desktop',
+	'java.logging',
+	'java.naming',
+	'java.net.http',
+	'java.prefs',
+	'java.security.jgss',
+	'java.sql',
+	'java.xml',
+	'jdk.crypto.ec',
+	'jdk.unsupported'
+].join(',')
+
+tasks.register('jlink', Exec) {
+	dependsOn build
+	group = 'distribution'
+	description = 'Creates a minimal custom JRE using jlink'
+
+	def outputDir = jlinkOutputDir.get().asFile
+
+	commandLine 'jlink',
+			'--add-modules', requiredModules,
+			'--strip-debug',
+			'--no-man-pages',
+			'--no-header-files',
+			'--compress', 'zip-9',
+			'--output', outputDir.absolutePath
+
+	doFirst {
+		delete outputDir
+		println "Creating minimal JRE with jlink..."
+	}
+
+	doLast {
+		println "Custom JRE created in: ${outputDir.absolutePath}"
+	}
+}
+
+tasks.register('jpackage', Exec) {
+	dependsOn build, jlink
+	group = 'distribution'
+	description = 'Creates native application package for the current platform'
+
+	def os = System.getProperty('os.name').toLowerCase()
+	def packageType = os.contains('mac') ? 'dmg' :
+			os.contains('win') ? 'msi' :
+			os.contains('linux') ? 'deb' : 'app-image'
+
+	def outputDir = jpackageOutputDir.get().asFile
+
+	def args = [
+		'jpackage',
+		'--input',
+		"${layout.buildDirectory.get()}/libs",
+		'--main-jar',
+		"webaom-${version}.jar",
+		'--name',
+		appName,
+		'--app-version',
+		version,
+		'--description',
+		appDescription,
+		'--vendor',
+		appVendor,
+		'--copyright',
+		appCopyright,
+		'--type',
+		packageType,
+		'--runtime-image',
+		jlinkOutputDir.get().asFile.absolutePath,
+		'--dest',
+		outputDir.absolutePath
+	]
+
+	// Platform-specific options
+	if (os.contains('mac')) {
+		args.addAll([
+			'--mac-package-name',
+			appName,
+			'--mac-package-identifier',
+			'epox.webaom'
+		])
+		def macIcon = file('src/main/resources/webaom.icns')
+		if (macIcon.exists()) {
+			args.addAll([
+				'--icon',
+				macIcon.absolutePath
+			])
+		}
+	} else if (os.contains('win')) {
+		args.addAll([
+			'--win-menu',
+			'--win-shortcut',
+			'--win-dir-chooser'
+		])
+		def winIcon = file('src/main/resources/webaom.ico')
+		if (winIcon.exists()) {
+			args.addAll([
+				'--icon',
+				winIcon.absolutePath
+			])
+		}
+	} else if (os.contains('linux')) {
+		args.addAll([
+			'--linux-shortcut',
+			'--linux-menu-group',
+			'Utility'
+		])
+		def linuxIcon = file('src/main/resources/webaom.png')
+		if (linuxIcon.exists()) {
+			args.addAll([
+				'--icon',
+				linuxIcon.absolutePath
+			])
+		}
+	}
+
+	commandLine args
+
+	doFirst {
+		outputDir.mkdirs()
+		println "Creating ${packageType} package with minimal runtime..."
+	}
+
+	doLast {
+		println "Package created in: ${outputDir.absolutePath}"
+	}
+}
+
+tasks.register('jpackageAppImage', Exec) {
+	dependsOn build, jlink
+	group = 'distribution'
+	description = 'Creates a portable app-image (no installer) for the current platform'
+
+	def outputDir = jpackageOutputDir.get().asFile
+
+	def args = [
+		'jpackage',
+		'--input',
+		"${layout.buildDirectory.get()}/libs",
+		'--main-jar',
+		"webaom-${version}.jar",
+		'--name',
+		appName,
+		'--app-version',
+		version,
+		'--description',
+		appDescription,
+		'--vendor',
+		appVendor,
+		'--copyright',
+		appCopyright,
+		'--type',
+		'app-image',
+		'--runtime-image',
+		jlinkOutputDir.get().asFile.absolutePath,
+		'--dest',
+		outputDir.absolutePath
+	]
+
+	def os = System.getProperty('os.name').toLowerCase()
+	if (os.contains('mac')) {
+		def macIcon = file('src/main/resources/webaom.icns')
+		if (macIcon.exists()) {
+			args.addAll([
+				'--icon',
+				macIcon.absolutePath
+			])
+		}
+	} else if (os.contains('win')) {
+		def winIcon = file('src/main/resources/webaom.ico')
+		if (winIcon.exists()) {
+			args.addAll([
+				'--icon',
+				winIcon.absolutePath
+			])
+		}
+	} else if (os.contains('linux')) {
+		def linuxIcon = file('src/main/resources/webaom.png')
+		if (linuxIcon.exists()) {
+			args.addAll([
+				'--icon',
+				linuxIcon.absolutePath
+			])
+		}
+	}
+
+	commandLine args
+
+	doFirst {
+		outputDir.mkdirs()
+		println "Creating app-image with minimal runtime..."
+	}
+
+	doLast {
+		println "App image created in: ${outputDir.absolutePath}"
+	}
+}

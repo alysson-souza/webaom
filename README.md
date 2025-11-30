@@ -74,6 +74,33 @@ If you have a pre-built JAR file:
 java -jar webaom-2.0.0.jar
 ```
 
+## Native App Packages
+
+Pre-built native packages are available for each platform:
+
+- **macOS**: `WebAOM-2.0.0.dmg`
+- **Windows**: `WebAOM-2.0.0.msi`
+- **Linux**: `webaom_2.0.0_amd64.deb`
+
+### macOS Gatekeeper Notice
+
+The macOS app is not notarized with Apple, so Gatekeeper will block it by default. To run the app, use one of these methods:
+
+**Option 1: Right-click to open**
+1. Right-click (or Control-click) on WebAOM.app
+2. Select "Open" from the context menu
+3. Click "Open" in the dialog that appears
+
+**Option 2: Remove quarantine attribute**
+```bash
+xattr -cr /Applications/WebAOM.app
+```
+
+**Option 3: Allow in System Settings**
+1. Try to open the app (it will be blocked)
+2. Go to System Settings → Privacy & Security
+3. Scroll down and click "Open Anyway" next to the WebAOM message
+
 ## Usage
 
 ### Basic Workflow

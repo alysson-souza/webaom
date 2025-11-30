@@ -12,6 +12,9 @@ Originally developed 2005-2010, revived in 2025 for modernization.
 ./gradlew run            # Run application
 ./gradlew spotlessApply  # Format code (Palantir Java Format)
 ./gradlew spotlessCheck  # Check formatting without applying changes
+./gradlew jpackage       # Create native installer (.dmg/.msi/.deb) for current platform
+./gradlew jpackageAppImage  # Create portable app bundle for current platform
+./gradlew jlink          # Create minimal custom JRE
 ```
 
 ## Architecture
@@ -96,6 +99,26 @@ Third-party code in `com/`, `gnu/`, `jonelo/` packages is excluded from formatti
 ## Testing
 
 No automated test suite exists. Test manually by running the application.
+
+## Native Packaging
+
+Native app packages are built using `jpackage` (Java 21+) with a minimal JRE created by `jlink`.
+
+### Output Locations
+
+- `build/jlink/` - Minimal custom JRE (~51MB vs ~166MB full JRE)
+- `build/installer/` - Native packages and app bundles
+
+### macOS Notarization
+
+The app is **not notarized** with Apple. Users must bypass Gatekeeper:
+```bash
+xattr -cr /Applications/WebAOM.app
+```
+
+### CI/CD
+
+GitHub Actions workflow (`.github/workflows/build.yml`) builds native packages for all platforms on tagged releases.
 
 ## Version Bumping
 
