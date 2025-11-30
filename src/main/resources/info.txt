@@ -2,12 +2,15 @@ WebAOM!
 
 2.0.0 2025.11.30
 *First public release of the modernized WebAOM.
-*Migrated to Gradle build system with Java 21 LTS.
+*Added ⌘R keyboard shortcut for refresh on macOS (F5 still works).
 *Added automatic embedded database support (H2). If PostgreSQL/MySQL is unavailable, WebAOM will now use an embedded database automatically.
 *Added "Auto rename" option to disable automatic file renaming after identification.
 *Added startup validation that shows helpful messages if there are configuration issues.
 *Added support for more video formats (3gp, asf, dat, divx, f4v, flv, m2ts, m2v, m4v, mov, mpeg, mpg, mts, ogv, qt, ram, rm, rmvb, ts, vob, webm, wmv).
 *Added support for more subtitle formats (sbv, smi, vtt).
+*Added user-friendly descriptions to Jobs table columns.
+*Added platform-appropriate default locations for log files and database.
+*Added directory memory to file and directory pickers across sessions.
 *Fixed "Add to mylist" failing when file is already in mylist.
 *Fixed Help button not working on macOS and Linux.
 *Fixed drag-and-drop operations with visual feedback.
@@ -16,11 +19,9 @@ WebAOM!
 *Fixed login dialog layout.
 *Fixed !mystats, !anime, !group and !mylist commands in Chii emulator.
 *Fixed several minor bugs and improved compatibility with modern Java versions.
+*Fixed application to continue running even if optional features fail to initialize.
+*Migrated to Gradle build system with Java 21 LTS.
 *Updated database drivers (PostgreSQL 42.7.8, MySQL 9.5.0, H2 2.4.240).
-*Jobs table columns now display user-friendly descriptions.
-*Log files and database now use platform-appropriate default locations.
-*File and directory pickers now remember the last used directory across sessions.
-*Application will now continue to run even if optional features fail to initialize.
 
 1.19p 2010.03.07
 *Hack to keep receive thread from dribbling all over itself and quitting if the server replies with a 602.  Probably.

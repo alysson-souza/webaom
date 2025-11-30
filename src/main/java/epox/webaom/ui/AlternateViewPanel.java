@@ -71,7 +71,13 @@ public class AlternateViewPanel extends JPanel {
         AppContext.com1 = popupMenu;
         altViewTreeTable.addMouseListener(popupMenu);
 
-        altViewTreeTable.getInputMap().put(KeyStroke.getKeyStroke("F5"), "refresh");
+        boolean isMac = System.getProperty("os.name").toLowerCase().contains("mac");
+        String refreshKey = isMac ? "meta R" : "F5";
+        altViewTreeTable.getInputMap().put(KeyStroke.getKeyStroke(refreshKey), "refresh");
+        if (isMac) {
+            // Also keep F5 as fallback on macOS
+            altViewTreeTable.getInputMap().put(KeyStroke.getKeyStroke("F5"), "refresh");
+        }
         altViewTreeTable.getActionMap().put("refresh", new AbstractAction() {
             public void actionPerformed(ActionEvent e) {
                 updateAlternativeView(false);
