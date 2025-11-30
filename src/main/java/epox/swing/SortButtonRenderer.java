@@ -26,7 +26,7 @@ import javax.swing.table.TableCellRenderer;
  * Table cell renderer that renders column headers as clickable buttons for sorting.
  */
 public class SortButtonRenderer extends JButton implements TableCellRenderer {
-	/** Currently pressed column index, -1 if none */
+	/** Currently pressed column index, -1 if NONE */
 	private int pressedColumn;
 
 	public SortButtonRenderer() {

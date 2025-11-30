@@ -9,7 +9,7 @@ import java.nio.file.Paths;
  * Utility class for obtaining platform-specific default paths. Provides sensible defaults for logs,
  * data, and configuration directories based on the operating system and platform conventions.
  */
-public class PlatformPaths {
+public final class PlatformPaths {
 
 	private static final String OS_NAME = System.getProperty("os.name").toLowerCase();
 	private static final String USER_HOME = System.getProperty("user.home");
@@ -20,6 +20,9 @@ public class PlatformPaths {
 	private static final boolean IS_LINUX = OS_NAME.contains("linux");
 
 	private static final String APP_NAME = "webaom";
+
+	private PlatformPaths() {
+	}
 
 	/**
 	 * Get the default log directory for the current platform.

@@ -26,7 +26,10 @@ import java.awt.Desktop;
 import java.io.File;
 import java.io.IOException;
 
-public class JobManager {
+public final class JobManager {
+	private JobManager() {
+	}
+
 	public static void setPath(Job job, String path, boolean includeParent) {
 		synchronized (job) {
 			if (job.check(Job.S_DOING)) {
@@ -126,8 +129,7 @@ public class JobManager {
 				job.updateHealth(status);
 				return;
 			}
-			if (job.isLocked(status)) // we don't wanna mess with all types
-			{
+			if (job.isLocked(status)) { // we don't wanna mess with all types
 				return;
 			}
 			int newStatus = -1;

@@ -336,7 +336,7 @@ public class ChiiEmu implements CommandModel {
 	 *
 	 * <p>
 	 * !watched <anime> <epnumber> !watched <fid> !watched <ed2k link> !watched <anime> upto
-	 * <epnumber> !watched <anime> all !watched <anime> none
+	 * <epnumber> !watched <anime> all !watched <anime> NONE
 	 */
 	public String updateWatchedStatus(String arguments) {
 		try {
@@ -348,7 +348,7 @@ public class ChiiEmu implements CommandModel {
 				apiParameters += "&ed2k=" + fields[2];
 			} else {
 				int episodeNumber = 0;
-				ed2kIndex = arguments.indexOf(" none");
+				ed2kIndex = arguments.indexOf(" NONE");
 				if (ed2kIndex < 0) {
 					ed2kIndex = arguments.indexOf(" all");
 					apiParameters += "1";
@@ -477,7 +477,7 @@ public class ChiiEmu implements CommandModel {
 		switch (usageType) {
 			case USAGE_WATCHED :
 				return "WATCHED: usage: !watched <anime> <epnumber>, !state <fid>, !state <ed2k"
-						+ " link>, epnumber may be 'all', 'upto <epno>' or 'none'.";
+						+ " link>, epnumber may be 'all', 'upto <epno>' or 'NONE'.";
 			case USAGE_STATE :
 				return "STATE: usage: !state <anime> <epnumber> <state>, !state <fid> <state>,"
 						+ " !state <ed2k link> <state>, !state last <state>, epnumber may be"

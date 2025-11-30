@@ -43,6 +43,8 @@ public class KeyAdapterJob extends KeyAdapter {
 					AppContext.p.clear();
 					AppContext.gui.altViewPanel.updateAlternativeView(false);
 					return;
+				default :
+					break;
 			}
 			int selectedRow = table.getSelectedRow();
 			if (selectedRow < 0) {

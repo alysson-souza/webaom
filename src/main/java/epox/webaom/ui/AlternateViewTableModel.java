@@ -67,6 +67,8 @@ public class AlternateViewTableModel extends AbstractTreeTableModel implements T
 			switch (c) {
 				case SIZE :
 					return StringUtilities.sbyte(g.totalSize);
+				default :
+					return null;
 			}
 		}
 		if (node instanceof Anime a) {

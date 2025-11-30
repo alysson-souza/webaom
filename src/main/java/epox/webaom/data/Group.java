@@ -27,7 +27,7 @@ package epox.webaom.data;
  */
 public class Group extends Base {
 	/** Full group name. */
-	public String name = "none";
+	public String name = "NONE";
 	/** Short group name/tag (e.g., "a-f" for "Anime-Fansubs"). */
 	public String shortName = "";
 
@@ -44,5 +44,5 @@ public class Group extends Base {
 	}
 
 	/** Singleton representing no group (raw release). */
-	public static final Group none = new Group(0);
+	public static final Group NONE = new Group(0);
 }
