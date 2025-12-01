@@ -8,7 +8,7 @@ WebAOM (Web Anime-O-Matic) is a Java desktop application that hashes anime files
 - AniDB MyList integration with automatic metadata retrieval
 - Rule-based file renaming and moving using customizable templates
 - Drag-and-drop file processing with concurrent hashing
-- Optional database backend (H2 embedded, PostgreSQL, or MySQL)
+- Optional database backend (SQLite embedded, PostgreSQL, or MySQL)
 - Encrypted and compressed UDP communication
 
 ## Requirements
@@ -35,10 +35,10 @@ Download pre-built packages from the [Releases](https://github.com/alysson-souza
 Requires Java 21+:
 
 ```bash
-# Lite (H2 only, ~4MB) - recommended for most users
+# Lite (SQLite only, ~4MB) - recommended for most users
 java -jar webaom-2.0.0-lite.jar
 
-# Full (H2 + PostgreSQL + MySQL, ~10MB)
+# Full (SQLite + PostgreSQL + MySQL, ~10MB)
 java -jar webaom-2.0.0-full.jar
 ```
 

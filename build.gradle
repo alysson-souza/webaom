@@ -26,20 +26,20 @@ repositories {
 
 // Dependency configurations for different JAR variants
 configurations {
-	h2Only
+	sqliteOnly
 	allDrivers
 }
 
 dependencies {
-	// H2 is always included (embedded database)
-	runtimeOnly 'com.h2database:h2:2.4.240'
-	h2Only 'com.h2database:h2:2.4.240'
+	// SQLite is always included (embedded database)
+	runtimeOnly 'org.xerial:sqlite-jdbc:3.51.0.0'
+	sqliteOnly 'org.xerial:sqlite-jdbc:3.51.0.0'
 
 	// External database drivers (PostgreSQL, MySQL)
 	runtimeOnly 'org.postgresql:postgresql:42.7.8'
 	runtimeOnly 'com.mysql:mysql-connector-j:9.5.0'
 
-	allDrivers 'com.h2database:h2:2.4.240'
+	allDrivers 'org.xerial:sqlite-jdbc:3.51.0.0'
 	allDrivers 'org.postgresql:postgresql:42.7.8'
 	allDrivers 'com.mysql:mysql-connector-j:9.5.0'
 }
@@ -77,11 +77,11 @@ jar {
 	duplicatesStrategy = DuplicatesStrategy.EXCLUDE
 }
 
-// Lite JAR with H2 only (smaller, for most users)
+// Lite JAR with SQLite only (smaller, for most users)
 tasks.register('jarLite', Jar) {
 	dependsOn classes, generateVersionProperties
 	group = 'build'
-	description = 'Creates a lite JAR with H2 database only'
+	description = 'Creates a lite JAR with SQLite database only'
 
 	archiveClassifier = 'lite'
 
@@ -101,7 +101,7 @@ tasks.register('jarLite', Jar) {
 	from("${layout.buildDirectory.get()}/resources/main")
 
 	from {
-		configurations.h2Only.collect { it.isDirectory() ? it : zipTree(it) }
+		configurations.sqliteOnly.collect { it.isDirectory() ? it : zipTree(it) }
 	}
 
 	duplicatesStrategy = DuplicatesStrategy.EXCLUDE
@@ -111,7 +111,7 @@ tasks.register('jarLite', Jar) {
 tasks.register('jarFull', Jar) {
 	dependsOn classes, generateVersionProperties
 	group = 'build'
-	description = 'Creates a full JAR with all database drivers (H2, PostgreSQL, MySQL)'
+	description = 'Creates a full JAR with all database drivers (SQLite, PostgreSQL, MySQL)'
 
 	archiveClassifier = 'full'
 
