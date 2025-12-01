@@ -23,6 +23,7 @@ import java.awt.Color;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import javax.swing.AbstractAction;
+import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
@@ -39,6 +40,7 @@ public class AlternateViewPanel extends JPanel {
     private final JComboBox<String> animeTitleComboBox;
     private final JComboBox<String> episodeTitleComboBox;
     private final JTextField pathRegexField;
+    private final JCheckBox loadAllJobsCheckbox;
 
     public AlternateViewPanel(ActionListener actionListener) {
         altViewTreeTable = createTreeTable();
@@ -47,6 +49,7 @@ public class AlternateViewPanel extends JPanel {
         episodeTitleComboBox = createEpisodeTitleComboBox(actionListener);
         fileVisibilityComboBox = createFileVisibilityComboBox(actionListener);
         pathRegexField = createPathRegexField(actionListener);
+        loadAllJobsCheckbox = createLoadAllJobsCheckbox(actionListener);
 
         initializeLayout();
         initializeKeyBindings();
@@ -74,6 +77,10 @@ public class AlternateViewPanel extends JPanel {
 
     public JTextField getPathRegexField() {
         return pathRegexField;
+    }
+
+    public JCheckBox getLoadAllJobsCheckbox() {
+        return loadAllJobsCheckbox;
     }
 
     public void updateAlternativeView(boolean rebuildTree) {
@@ -131,11 +138,19 @@ public class AlternateViewPanel extends JPanel {
         return textField;
     }
 
+    private JCheckBox createLoadAllJobsCheckbox(ActionListener actionListener) {
+        JCheckBox checkBox = new JCheckBox("Load completed");
+        checkBox.setToolTipText("Load completed jobs from the database");
+        checkBox.addActionListener(actionListener);
+        return checkBox;
+    }
+
     private void initializeLayout() {
         JScrollPane scrollPane = new JScrollPane(altViewTreeTable);
         scrollPane.getViewport().setBackground(Color.white);
 
         JPanel southPanel = new JPanel();
+        southPanel.add(loadAllJobsCheckbox);
         southPanel.add(animeTitleComboBox);
         southPanel.add(episodeTitleComboBox);
         southPanel.add(sortModeComboBox);
