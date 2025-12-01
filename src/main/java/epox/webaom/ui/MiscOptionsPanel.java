@@ -1,25 +1,19 @@
-// Copyright (C) 2005-2006 epoximator
-//
-// This program is free software; you can redistribute it and/or
-// modify it under the terms of the GNU General Public License
-// as published by the Free Software Foundation; either version 2
-// of the License, or (at your option) any later version.
-//
-// This program is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-// GNU General Public License for more details.
-//
-// You should have received a copy of the GNU General Public License
-// along with this program; if not, write to the Free Software
-// Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
-
 /*
- * Created on 31.08.05
+ * WebAOM - Web Anime-O-Matic
+ * Copyright (C) 2005-2010 epoximator 2025 Alysson Souza
  *
- * @version 	1.09
- * @author 		epoximator
+ * This program is free software; you can redistribute it and/or modify it under
+ * the terms of the GNU General Public License version 2 as published by the Free
+ * Software Foundation.
+ *
+ * This program is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+ * FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License along with
+ * this program; if not, see <https://www.gnu.org/licenses/>.
  */
+
 package epox.webaom.ui;
 
 import epox.swing.JComboBoxLF;
@@ -34,6 +28,7 @@ import java.awt.Insets;
 import java.io.File;
 import java.util.LinkedHashMap;
 import java.util.StringTokenizer;
+import javax.swing.JButton;
 import javax.swing.JCheckBox;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
@@ -55,6 +50,7 @@ public class MiscOptionsPanel extends JPanel {
     public JTextField hashDirectoriesField;
     public JTextField browserPathField;
     public JTextField databaseUrlField;
+    public JButton disconnectButton;
     public JTextField logFilePathField;
 
     public MiscOptionsPanel() {
@@ -63,13 +59,16 @@ public class MiscOptionsPanel extends JPanel {
         hashDirectoriesField = new JTextField();
         browserPathField = new JTextField();
         databaseUrlField = new JTextField();
+        disconnectButton = new JButton("Disconnect");
+        disconnectButton.setToolTipText("Disconnect from database");
+        disconnectButton.setEnabled(false);
         logFilePathField = new JTextField();
 
         hashDirectoriesField.setToolTipText("Check these directories for new files every now and then");
         browserPathField.setToolTipText("Absolute path to preferred browser");
         databaseUrlField.setToolTipText(
                 "JDBC url (e.g. jdbc:postgresql://localhost:5432/webaom?user=root&password=pass)."
-                        + " If empty, H2 embedded database will be used. Press enter to connect.");
+                        + " If empty, embedded SQLite database will be used. Press enter to connect.");
         logFilePathField.setToolTipText("Absolute path to log file, press enter to enable");
 
         autoLoadDatabaseCheckBox = new JCheckBox("Auto db");
@@ -91,7 +90,18 @@ public class MiscOptionsPanel extends JPanel {
 
         addLabeledComponent("Hash Dirs", hashDirectoriesField, constraints);
         addLabeledComponent("Browser Path", browserPathField, constraints);
-        addLabeledComponent("My Database", databaseUrlField, constraints);
+
+        // Database row with disconnect button
+        JPanel databasePanel = new JPanel(new GridBagLayout());
+        GridBagConstraints dbConstraints = new GridBagConstraints();
+        dbConstraints.fill = GridBagConstraints.HORIZONTAL;
+        dbConstraints.weightx = 1.0;
+        databasePanel.add(databaseUrlField, dbConstraints);
+        dbConstraints.weightx = 0;
+        dbConstraints.insets = new Insets(0, 4, 0, 0);
+        databasePanel.add(disconnectButton, dbConstraints);
+        addLabeledComponent("My Database", databasePanel, constraints);
+
         addLabeledComponent("Log File", logFilePathField, constraints);
         addLabeledComponent("LookAndFeel", new JComboBoxLF(AppContext.component), constraints);
 
