@@ -1,25 +1,19 @@
-// Copyright (C) 2005-2006 epoximator
-//
-// This program is free software; you can redistribute it and/or
-// modify it under the terms of the GNU General Public License
-// as published by the Free Software Foundation; either version 2
-// of the License, or (at your option) any later version.
-//
-// This program is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-// GNU General Public License for more details.
-//
-// You should have received a copy of the GNU General Public License
-// along with this program; if not, write to the Free Software
-// Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
-
 /*
- * Created on 22.01.05
+ * WebAOM - Web Anime-O-Matic
+ * Copyright (C) 2005-2010 epoximator 2025 Alysson Souza
  *
- * @version 	1.15, 1.09, 1.07, 1.06, 1.05, 1.03, 1.00 (WebAOMJPanel)
- * @author 		epoximator
+ * This program is free software; you can redistribute it and/or modify it under
+ * the terms of the GNU General Public License version 2 as published by the Free
+ * Software Foundation.
+ *
+ * This program is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+ * FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License along with
+ * this program; if not, see <https://www.gnu.org/licenses/>.
  */
+
 package epox.webaom.ui;
 
 import epox.swing.JPanelCommand;
@@ -390,6 +384,7 @@ public class MainPanel extends JPanel
         // OTHER PANEL
         miscOptionsPanel = new MiscOptionsPanel();
         miscOptionsPanel.databaseUrlField.addActionListener(this);
+        miscOptionsPanel.disconnectButton.addActionListener(this);
         miscOptionsPanel.logFilePathField.addActionListener(this);
         JPanel otherPanel = new JPanel(new BorderLayout());
         otherPanel.setBorder(new TitledBorder("Other"));
@@ -639,6 +634,8 @@ public class MainPanel extends JPanel
             new Pinger(this);
         } else if (source == miscOptionsPanel.databaseUrlField) {
             startDatabase();
+        } else if (source == miscOptionsPanel.disconnectButton) {
+            disconnectDatabase();
         } else if (source == newExtensionTextField) {
             AppContext.fileHandler.addExtension(newExtensionTextField.getText());
             newExtensionTextField.setText("");
@@ -665,6 +662,8 @@ public class MainPanel extends JPanel
         } else if (source == altViewPanel.getEpisodeTitleComboBox()) {
             Episode.titlePriority = altViewPanel.getEpisodeTitleComboBox().getSelectedIndex();
             altViewPanel.updateAlternativeView(false);
+        } else if (source == altViewPanel.getLoadAllJobsCheckbox()) {
+            reloadJobs();
         }
     }
 
@@ -680,6 +679,36 @@ public class MainPanel extends JPanel
         }
         workerThread = new DatabaseInitThread(miscOptionsPanel.databaseUrlField);
         workerThread.start();
+    }
+
+    private void reloadJobs() {
+        if (!AppContext.databaseManager.isConnected()) {
+            return;
+        }
+        boolean loadAll = altViewPanel.getLoadAllJobsCheckbox().isSelected();
+        AppContext.databaseManager.setLoadAllJobs(loadAll);
+        AppContext.jobs.clear();
+        AppContext.cache.clear();
+        AppContext.databaseManager.getJobs();
+        // Gather anime/episode/group info for each job to populate the tree
+        for (Job job : AppContext.jobs.array()) {
+            AppContext.cache.gatherInfo(job, false);
+        }
+        altViewPanel.updateAlternativeView(true);
+        println("Reloaded " + AppContext.jobs.size() + " jobs" + (loadAll ? " (including finished)" : "") + ".");
+    }
+
+    private void disconnectDatabase() {
+        if (!AppContext.databaseManager.isConnected()) {
+            return;
+        }
+        AppContext.databaseManager.shutdown();
+        AppContext.jobs.clear();
+        AppContext.cache.clear();
+        altViewPanel.updateAlternativeView(true);
+        miscOptionsPanel.databaseUrlField.setEnabled(true);
+        miscOptionsPanel.disconnectButton.setEnabled(false);
+        println("Disconnected from database.");
     }
 
     public void stateChanged(ChangeEvent event) {
@@ -858,6 +887,9 @@ public class MainPanel extends JPanel
     /////////////////////////////////// OPTIONS//////////////////////////////////
     public void saveOptions(Options options) {
         options.setBoolean(Options.BOOL_ADD_FILE, autoAddToMylistCheckbox.isSelected());
+        options.setBoolean(
+                Options.BOOL_LOAD_ALL_JOBS,
+                altViewPanel.getLoadAllJobsCheckbox().isSelected());
         options.setString(Options.STR_HTML_COLORS, HyperlinkBuilder.encodeColors());
         options.setString(Options.STR_USERNAME, AppContext.userPass.get(miscOptionsPanel.isStorePasswordEnabled()));
 
@@ -877,6 +909,7 @@ public class MainPanel extends JPanel
     public void loadOptions(Options options) {
         try {
             autoAddToMylistCheckbox.setSelected(options.getBoolean(Options.BOOL_ADD_FILE));
+            altViewPanel.getLoadAllJobsCheckbox().setSelected(options.getBoolean(Options.BOOL_LOAD_ALL_JOBS));
             HyperlinkBuilder.decodeColors(options.getString(Options.STR_HTML_COLORS));
             AppContext.userPass.set(options.getString(Options.STR_USERNAME));
             mylistOptionsPanel.loadFromOptions(options);
@@ -1129,7 +1162,19 @@ public class MainPanel extends JPanel
         public void run() {
             guiUpdateTimer.stop();
             databasePathField.setEnabled(false);
-            if (AppContext.databaseManager.initialize(databasePathField.getText())) {
+
+            // Create the appropriate database manager for the connection string
+            String connectionString = databasePathField.getText();
+            if (connectionString == null || connectionString.isEmpty()) {
+                connectionString = epox.webaom.db.DatabaseManagerFactory.getEmbeddedConnectionString();
+            }
+            AppContext.databaseManager = epox.webaom.db.DatabaseManagerFactory.create(connectionString);
+
+            // Set load all jobs based on checkbox
+            boolean loadCompleted = altViewPanel.getLoadAllJobsCheckbox().isSelected();
+            AppContext.databaseManager.setLoadAllJobs(loadCompleted);
+
+            if (AppContext.databaseManager.initialize(connectionString)) {
                 long startTime = System.currentTimeMillis();
                 // A.mem3 = A.getUsed();
                 AppContext.databaseManager.getJobs();
@@ -1138,7 +1183,7 @@ public class MainPanel extends JPanel
 
                 // A.mem4 = A.getUsed();
 
-                AppContext.databaseManager.debug = false;
+                AppContext.databaseManager.setDebug(false);
                 for (Object o : jobArray) {
                     job = (Job) o;
                     job.isFresh = false;
@@ -1146,16 +1191,15 @@ public class MainPanel extends JPanel
                     if (job.getStatus() == Job.MOVEWAIT) {
                         JobManager.updatePath(job);
                     }
-                    // updateJobTable(job);
                 }
                 int elapsedMs = (int) (System.currentTimeMillis() - startTime);
                 println("Loaded db in " + HyperlinkBuilder.formatAsNumber(elapsedMs) + " ms. "
                         + HyperlinkBuilder.formatAsNumber(AppContext.jobs.size()) + " files found.");
                 altViewPanel.updateAlternativeView(true);
+                miscOptionsPanel.disconnectButton.setEnabled(true);
             } else {
                 databasePathField.setEnabled(true);
             }
-            AppContext.databaseManager.debug = true;
             workerThread = null;
 
             guiUpdateTimer.start();
