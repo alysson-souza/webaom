@@ -13,7 +13,7 @@ WebAOM (Web Anime-O-Matic) is a Java desktop application that hashes anime files
 
 ## Requirements
 
-- [AniDB account](https://anidb.net/perl-bin/animedb.pl?show=signup) (required)
+- [AniDB account](https://anidb.net/user/register) (required)
 - Java 21+ (for JAR files) or use native packages
 
 ## Installation

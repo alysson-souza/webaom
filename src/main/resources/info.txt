@@ -4,6 +4,8 @@ WebAOM!
 *First public release of the modernized WebAOM.
 *Added "Load completed" checkbox in Anime panel to reload completed jobs from the database.
 *Added native app packages for macOS (.dmg), Windows (.msi), and Linux (.deb).
+*Improved MD5 hashing performance by 70% using JDK intrinsics.
+*Improved TTH (Tiger Tree Hash) memory efficiency with stack-based algorithm.
 *Added automatic switch to Jobs panel when adding files.
 *Added Delete/Backspace keyboard shortcut to remove jobs from list.
 *Added application window icon for taskbar/dock.
