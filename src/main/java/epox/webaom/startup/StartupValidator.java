@@ -1,3 +1,19 @@
+/*
+ * WebAOM - Web Anime-O-Matic
+ * Copyright (C) 2005-2010 epoximator 2025 Alysson Souza
+ *
+ * This program is free software; you can redistribute it and/or modify it under
+ * the terms of the GNU General Public License version 2 as published by the Free
+ * Software Foundation.
+ *
+ * This program is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+ * FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License along with
+ * this program; if not, see <https://www.gnu.org/licenses/>.
+ */
+
 package epox.webaom.startup;
 
 import epox.webaom.Options;
@@ -46,7 +62,7 @@ public final class StartupValidator {
 
     /**
      * Validate database configuration and provide helpful information. Only reports actual problems
-     * - H2 fallback is silent and expected behavior.
+     * - SQLite fallback is silent and expected behavior.
      *
      * @param autoLoadDBEnabled
      *            whether auto-loading DB is enabled
@@ -61,7 +77,7 @@ public final class StartupValidator {
             return issues; // Database not enabled
         }
 
-        // Empty URL is fine - will use H2 fallback silently
+        // Empty URL is fine - will use SQLite fallback silently
         if (dbUrl == null || dbUrl.trim().isEmpty()) {
             return issues;
         }
@@ -70,14 +86,14 @@ public final class StartupValidator {
         String dbUrlLower = dbUrl.toLowerCase();
         boolean hasPostgresql = dbUrlLower.contains("postgresql");
         boolean hasMysql = dbUrlLower.contains("mysql");
-        boolean hasH2 = dbUrlLower.contains("h2");
+        boolean hasSqlite = dbUrlLower.contains("sqlite");
         boolean hasJdbc = dbUrlLower.contains("jdbc:");
-        boolean looksLikeJdbcUrl = hasPostgresql || hasMysql || hasH2 || hasJdbc;
+        boolean looksLikeJdbcUrl = hasPostgresql || hasMysql || hasSqlite || hasJdbc;
         if (!looksLikeJdbcUrl) {
             String message = "Database URL doesn't look like a valid JDBC URL: " + dbUrl;
             String formatHint = "Expected format: jdbc:postgresql://host:port/db";
             String altFormat = " or jdbc:mysql://host:port/db";
-            String fallbackNote = "\nThe application will use embedded H2 database as fallback.";
+            String fallbackNote = "\nThe application will use embedded SQLite database as fallback.";
             String suggestion = formatHint + altFormat + fallbackNote;
             String title = "Invalid Database URL";
             StartupIssue issue = new StartupIssue(StartupIssue.Severity.WARN, title, message, suggestion);
@@ -120,6 +136,11 @@ public final class StartupValidator {
         // Validate database
         boolean autoLoadDatabaseEnabled = options.getBoolean(Options.BOOL_AUTO_LOAD_DATABASE);
         String databaseUrl = options.getString(Options.STR_DATABASE_URL);
+        // Allow env var override for devcontainer/testing
+        String envDatabaseUrl = System.getenv("WEBAOM_DB");
+        if (envDatabaseUrl != null && !envDatabaseUrl.isEmpty()) {
+            databaseUrl = envDatabaseUrl;
+        }
         List<StartupIssue> databaseIssues = validateDatabase(autoLoadDatabaseEnabled, databaseUrl);
         issues.addAll(databaseIssues);
 
