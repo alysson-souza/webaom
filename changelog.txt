@@ -1,14 +1,15 @@
 Please note that this version is marked "unstable", meaning it can be broken from time
 to time. Do at least check the changelog for relevant info before using it.
 
-2.0.0 30.11.2025:
+2.0.0 01.12.2025:
 *First public release of the modernized WebAOM.
+*Added "Load completed" checkbox in Anime panel to reload completed jobs from the database.
 *Added native app packages for macOS (.dmg), Windows (.msi), and Linux (.deb).
 *Added automatic switch to Jobs panel when adding files.
 *Added Delete/Backspace keyboard shortcut to remove jobs from list.
 *Added application window icon for taskbar/dock.
 *Added ⌘R keyboard shortcut for refresh on macOS (F5 still works).
-*Added automatic embedded database support (H2). If PostgreSQL/MySQL is unavailable, WebAOM will now use an embedded database automatically.
+*Added automatic embedded database support (SQLite). If PostgreSQL/MySQL is unavailable, WebAOM will now use an embedded database automatically.
 *Added "Auto rename" option to disable automatic file renaming after identification.
 *Added startup validation that shows helpful messages if there are configuration issues.
 *Added support for more video formats (3gp, asf, dat, divx, f4v, flv, m2ts, m2v, m4v, mov, mpeg, mpg, mts, ogv, qt, ram, rm, rmvb, ts, vob, webm, wmv).
@@ -28,7 +29,7 @@ to time. Do at least check the changelog for relevant info before using it.
 *Fixed several minor bugs and improved compatibility with modern Java versions.
 *Fixed application to continue running even if optional features fail to initialize.
 *Migrated to Gradle build system with Java 21 LTS.
-*Updated database drivers (PostgreSQL 42.7.8, MySQL 9.5.0, H2 2.4.240).
+*Updated database drivers (PostgreSQL 42.7.8, MySQL 9.5.0, SQLite 3.47.1).
 
 1.19 20.11.2006:
 *Fixed 'year' parsing exception.
