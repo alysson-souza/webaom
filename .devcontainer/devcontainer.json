@@ -1,0 +1,32 @@
+{
+  "name": "WebAOM - SQLite",
+  "dockerComposeFile": "docker-compose.yml",
+  "service": "app-sqlite",
+  "workspaceFolder": "/workspace",
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "redhat.java",
+        "redhat.vscode-xml",
+        "richardwillis.vscode-spotless-gradle",
+        "SonarSource.sonarlint-vscode",
+        "vscjava.vscode-gradle",
+        "vscjava.vscode-java-debug",
+        "vscjava.vscode-java-dependency",
+        "vscjava.vscode-java-pack",
+        "vscjava.vscode-java-test"
+      ],
+      "settings": {
+        "java.configuration.updateBuildConfiguration": "automatic"
+      }
+    }
+  },
+  "forwardPorts": [6080],
+  "postCreateCommand": "./gradlew build -x test",
+  "remoteUser": "vscode"
+}
+
+// To test other databases, change "service" to:
+//   "app-postgres" - PostgreSQL
+//   "app-mysql"    - MySQL
+//   "app-sqlite"   - SQLite (embedded)

@@ -1,0 +1,62 @@
+services:
+  # PostgreSQL testing environment
+  app-postgres:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    volumes:
+      - ..:/workspace:cached
+    environment:
+      - DISPLAY=:1
+      - WEBAOM_DB=jdbc:postgresql://postgres:5432/webaom?user=webaom&password=webaom
+    depends_on:
+      - postgres
+    command: sleep infinity
+
+  # MySQL testing environment
+  app-mysql:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    volumes:
+      - ..:/workspace:cached
+    environment:
+      - DISPLAY=:1
+      - WEBAOM_DB=jdbc:mysql://mysql:3306/webaom?user=webaom&password=webaom
+    depends_on:
+      - mysql
+    command: sleep infinity
+
+  # SQLite testing environment (embedded, no external DB needed)
+  app-sqlite:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    volumes:
+      - ..:/workspace:cached
+    environment:
+      - DISPLAY=:1
+    command: sleep infinity
+
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: webaom
+      POSTGRES_PASSWORD: webaom
+      POSTGRES_DB: webaom
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+
+  mysql:
+    image: mysql:8
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_USER: webaom
+      MYSQL_PASSWORD: webaom
+      MYSQL_DATABASE: webaom
+    volumes:
+      - mysql-data:/var/lib/mysql
+
+volumes:
+  postgres-data:
+  mysql-data:
