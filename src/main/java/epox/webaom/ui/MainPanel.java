@@ -436,13 +436,11 @@ public class MainPanel extends JPanel
 
         ////////////////////////////// CHII EMULATOR/////////////////////////////
         ChiiEmu chiiEmulator = new ChiiEmu(AppContext.conn);
-        JPanelCommand commandPanel = new JPanelCommand(
-                chiiEmulator,
-                """
-                        Chii Emulator - AniDB IRC bot commands
-                        Commands: !uptime !mystats !anime !group !randomanime !mylist !state !watched !storage !font
-                        Raw API: Start with '?' (e.g. ?PING) - session is added automatically.
-                        """);
+        JPanelCommand commandPanel = new JPanelCommand(chiiEmulator, """
+            Chii Emulator - AniDB IRC bot commands
+            Commands: !uptime !mystats !anime !group !randomanime !mylist !state !watched !storage !font
+            Raw API: Start with '?' (e.g. ?PING) - session is added automatically.
+            """);
         chiiEmulator.setLog(commandPanel);
         commandPanel.setFileDropListener(this);
 

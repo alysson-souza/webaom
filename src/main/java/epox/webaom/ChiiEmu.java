@@ -39,11 +39,13 @@ public class ChiiEmu implements CommandModel {
 
     protected static String getUsageMessage(int usageType) {
         return switch (usageType) {
-            case USAGE_WATCHED -> "WATCHED: usage: !watched <anime> <epnumber>, !state <fid>, !state <ed2k"
-                    + " link>, epnumber may be 'all', 'upto <epno>' or 'NONE'.";
-            case USAGE_STATE -> "STATE: usage: !state <anime> <epnumber> <state>, !state <fid> <state>,"
-                    + " !state <ed2k link> <state>, !state last <state>, epnumber may be"
-                    + " 'all' or 'upto <epno>'. State is: unknown/hdd/cd/deleted.";
+            case USAGE_WATCHED ->
+                "WATCHED: usage: !watched <anime> <epnumber>, !state <fid>, !state <ed2k"
+                        + " link>, epnumber may be 'all', 'upto <epno>' or 'NONE'.";
+            case USAGE_STATE ->
+                "STATE: usage: !state <anime> <epnumber> <state>, !state <fid> <state>,"
+                        + " !state <ed2k link> <state>, !state last <state>, epnumber may be"
+                        + " 'all' or 'upto <epno>'. State is: unknown/hdd/cd/deleted.";
             case USAGE_STATE2 -> "!state2 anime/aid, group/gid/all, all/upto x/x, unknown/hdd/cd/deleted";
             case USAGE_STORAGE -> "!storage anime/aid, group/gid/all, all/upto x/x, text";
             default -> "NOO!";
@@ -409,12 +411,13 @@ public class ChiiEmu implements CommandModel {
         }
 
         public String randomAnime(String param) throws AniDBException {
-            int type = switch (param) {
-                case "watched" -> 1;
-                case "unwatched" -> 2;
-                case "all" -> 3;
-                default -> 0;
-            };
+            int type =
+                    switch (param) {
+                        case "watched" -> 1;
+                        case "unwatched" -> 2;
+                        case "all" -> 3;
+                        default -> 0;
+                    };
             AniDBConnectionResponse response = aniDbConnection.send("RANDOMANIME", "type=" + type, true);
             return "RANDOM " + formatAnime(response.data);
         }

@@ -163,8 +163,7 @@ public class TableModelJobs extends AbstractTableModel implements RowModel {
             case FMDA -> {
                 return defaultString(job.anidbFile.getMissingDataAdditional());
             }
-            default -> {
-            }
+            default -> {}
         }
 
         if (job.anidbFile.getAnime() != null) {
@@ -213,8 +212,7 @@ public class TableModelJobs extends AbstractTableModel implements RowModel {
                 case GSHO -> {
                     return defaultString(job.anidbFile.getGroup().shortName);
                 }
-                default -> {
-                }
+                default -> {}
             }
         }
 
