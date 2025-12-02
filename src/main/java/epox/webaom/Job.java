@@ -22,9 +22,12 @@ import epox.webaom.data.AniDBFile;
 import epox.webaom.data.AttributeMap;
 import epox.webaom.db.DatabaseManager;
 import java.io.File;
+import java.util.logging.Logger;
 
 public class Job {
-    /// STATIC
+    private static final Logger LOGGER = Logger.getLogger(Job.class.getName());
+
+    // STATIC
     public static final int S_DONE = 0x00000001; // status
     public static final int S_DO = 0x00000002;
     public static final int S_DOING = 0x00000014;
@@ -120,57 +123,32 @@ public class Job {
     }
 
     private static String statusStr(int i) {
-        switch (i) {
-            case HASHWAIT:
-                return "Wait/Hash";
-            case HASHING:
-                return "Hashing";
-            case HASHED:
-                return "Hashed";
-            case IDENTWAIT:
-                return "Wait/ID";
-            case IDENTIFYING:
-                return "Identifying";
-            case IDENTIFIED:
-                return "Identified";
-            case ADDWAIT:
-                return "Wait/Add";
-            case ADDING:
-                return "Adding";
-            case ADDED:
-                return "Added";
-            case MOVEWAIT:
-                return "Wait/Move";
-            case MOVING:
-                return "Moving";
-            case MOVECHECK:
-                return "Checking";
-            case MOVED:
-                return "Moved";
-            case FINISHED:
-                return "Finished";
-            case UNKNOWN:
-                return "Unknown";
-            case FAILED:
-                return "Failed";
-            //			case INPUTWAIT:		return "Wait/Input";
-            case H_PAUSED:
-                return "P";
-            case H_DELETED:
-                return "D";
-            case H_MISSING:
-                return "M";
-            case REMWAIT:
-                return "Wait/Rem";
-            case REMING:
-                return "Removing";
-            case PARSEWAIT:
-                return "Wait/Parse";
-            case PARSING:
-                return "Parsing";
-            default:
-                return "" + i;
-        }
+        return switch (i) {
+            case HASHWAIT -> "Wait/Hash";
+            case HASHING -> "Hashing";
+            case HASHED -> "Hashed";
+            case IDENTWAIT -> "Wait/ID";
+            case IDENTIFYING -> "Identifying";
+            case IDENTIFIED -> "Identified";
+            case ADDWAIT -> "Wait/Add";
+            case ADDING -> "Adding";
+            case ADDED -> "Added";
+            case MOVEWAIT -> "Wait/Move";
+            case MOVING -> "Moving";
+            case MOVECHECK -> "Checking";
+            case MOVED -> "Moved";
+            case FINISHED -> "Finished";
+            case UNKNOWN -> "Unknown";
+            case FAILED -> "Failed";
+            case H_PAUSED -> "P";
+            case H_DELETED -> "D";
+            case H_MISSING -> "M";
+            case REMWAIT -> "Wait/Rem";
+            case REMING -> "Removing";
+            case PARSEWAIT -> "Wait/Parse";
+            case PARSING -> "Parsing";
+            default -> "" + i;
+        };
     }
 
     public String serialize() {
@@ -198,16 +176,16 @@ public class Job {
     }
 
     public String getExtension() {
-        if (anidbFile == null || anidbFile.extension == null) {
+        if (anidbFile == null || anidbFile.getExtension() == null) {
             String fileName = currentFile.getName();
             int dotIndex = fileName.lastIndexOf('.');
             if (dotIndex < 1) {
-                System.out.println("No ext: " + fileName);
+                LOGGER.warning(() -> "No extension found in file: " + fileName);
                 return "unk";
             }
             return fileName.substring(dotIndex + 1);
         }
-        return anidbFile.extension;
+        return anidbFile.getExtension();
     }
 
     public int getStatus() {
@@ -226,7 +204,6 @@ public class Job {
             AppContext.jobs.updateQueues(this, currentStatus, -1);
         }
 
-        // A.jobCounter.register(getRegVal(), currentStatus|health);
         AppContext.jobCounter.register(status & M_R, getHealth(), status & M_R, health);
         setHealth0(health);
     }
@@ -246,7 +223,7 @@ public class Job {
         if (unknownOnly) {
             return anidbFile == null && matches;
         }
-        return matches && (fileFlags < 1 || (anidbFile != null && (anidbFile.state & fileFlags) > 0));
+        return matches && (fileFlags < 1 || (anidbFile != null && (anidbFile.getState() & fileFlags) > 0));
     }
 
     public boolean isLocked(int targetStatus) {
@@ -256,21 +233,23 @@ public class Job {
         }
         if (health == H_MISSING) {
             switch (targetStatus) {
-                case FINISHED:
-                case ADDWAIT:
-                case REMWAIT:
+                case FINISHED, ADDWAIT, REMWAIT -> {
                     return false;
+                }
+                default -> {
+                    // All other statuses remain locked when health is MISSING
+                }
             }
         }
         return true;
     }
 
     public boolean isCorrupt() {
-        return anidbFile != null && ((anidbFile.state & AniDBFile.F_CRCERR) == AniDBFile.F_CRCERR);
+        return anidbFile != null && ((anidbFile.getState() & AniDBFile.F_CRCERR) == AniDBFile.F_CRCERR);
     }
 
     public boolean incompl() {
-        return anidbFile == null || anidbFile.anime == null || anidbFile.episode == null;
+        return anidbFile == null || anidbFile.getAnime() == null || anidbFile.getEpisode() == null;
     }
 
     public String getStatusText() {
@@ -280,14 +259,9 @@ public class Job {
         return statusStr(getStatus()) + " [" + statusStr(getHealth()) + "]";
     }
 
-    //	INPUTWAIT	= M_USR|U_1|S_DO|F_DB,	//0xb0,
-
     public void setStatus(int newStatus, boolean test) {
         int health = getHealth();
         if (test) {
-            // if(health>H_PAUSED&&!(newStatus==FINISHED||newStatus==REMWAIT||newStatus==ADDWAIT))
-            // &&(newStatus&F_PD)==0)//extra check, could be removed maybe
-            //	return;
             if (isLocked(newStatus)) {
                 return;
             }
@@ -300,7 +274,6 @@ public class Job {
             if (test && health == H_NORMAL) {
                 AppContext.jobs.updateQueues(this, getStatus(), newStatus & M_S); // TODO pause off fix
             }
-            // A.jobCounter.register(getRegVal(), (newStatus|H_NORMAL)&M_R);
             health = H_NORMAL;
             if (newStatus == FINISHED && !currentFile.exists()) {
                 health = H_MISSING;
@@ -327,14 +300,14 @@ public class Job {
         }
         int health = getHealth();
         switch (healthUpdate) {
-            case H_PAUSED:
+            case H_PAUSED -> {
                 if (health == H_NORMAL) {
                     health = H_PAUSED; // turn pause on
                 } else if (health == H_PAUSED) {
                     health = H_NORMAL; // turn pause off
                 }
-                break;
-            case H_DELETED:
+            }
+            case H_DELETED -> {
                 if (health == H_DELETED) {
                     health = (currentFile.exists() ? H_NORMAL : H_MISSING);
                     AppContext.databaseManager.update(0, this, DatabaseManager.INDEX_JOB);
@@ -342,10 +315,11 @@ public class Job {
                     health = H_DELETED; // delete
                     AppContext.databaseManager.removeJob(this);
                 }
-                break;
-            case H_MISSING:
-                health = H_MISSING;
-                break;
+            }
+            case H_MISSING -> health = H_MISSING;
+            default -> {
+                // Unknown health update value - no action needed
+            }
         }
         setHealth(health);
     }
@@ -396,65 +370,68 @@ public class Job {
         am.put("sta", stat);
 
         if (anidbFile != null) {
-            am.put("aid", anidbFile.animeId);
-            am.put("eid", anidbFile.episodeId);
-            am.put("fid", anidbFile.fileId);
-            am.put("gid", anidbFile.groupId);
+            am.put("aid", anidbFile.getAnimeId());
+            am.put("eid", anidbFile.getEpisodeId());
+            am.put("fid", anidbFile.getFileId());
+            am.put("gid", anidbFile.getGroupId());
             am.put("lid", mylistId);
             am.put("ver", anidbFile.getVersion());
-            am.put("ula", anidbFile.urlAnime());
-            am.put("ule", anidbFile.urlEp());
-            am.put("ulf", anidbFile.urlFile());
-            am.put("ulg", anidbFile.urlGroup());
-            am.put("ulx", anidbFile.urlMylistE(mylistId));
-            am.put("ulm", anidbFile.urlMylist());
-            am.put("uly", anidbFile.urlYear());
-            am.put("ed2", anidbFile.ed2kHash.toLowerCase());
-            am.put("ED2", anidbFile.ed2kHash.toUpperCase());
+            am.put("ula", anidbFile.getAnimeUrl());
+            am.put("ule", anidbFile.getEpisodeUrl());
+            am.put("ulf", anidbFile.getFileUrl());
+            am.put("ulg", anidbFile.getGroupUrl());
+            am.put("ulx", anidbFile.getMylistEditUrl(mylistId));
+            am.put("ulm", anidbFile.getMylistUrl());
+            am.put("uly", anidbFile.getYearUrl());
+            am.put("ed2", anidbFile.getEd2kHash().toLowerCase());
+            am.put("ED2", anidbFile.getEd2kHash().toUpperCase());
             am.put("cen", anidbFile.getCensored());
             am.put("inv", anidbFile.getInvalid());
-            am.put("dub", anidbFile.dubLanguage);
-            am.put("sub", anidbFile.subLanguage);
-            am.put("src", anidbFile.ripSource);
-            am.put("res", anidbFile.resolution);
-            am.put("vid", anidbFile.videoCodec);
-            am.put("aud", anidbFile.audioCodec);
-            am.put("qua", anidbFile.quality);
+            am.put("dub", anidbFile.getDubLanguage());
+            am.put("sub", anidbFile.getSubLanguage());
+            am.put("src", anidbFile.getRipSource());
+            am.put("res", anidbFile.getResolution());
+            am.put("vid", anidbFile.getVideoCodec());
+            am.put("aud", anidbFile.getAudioCodec());
+            am.put("qua", anidbFile.getQuality());
 
-            if (anidbFile.shaHash != null) {
-                am.put("sha", anidbFile.shaHash.toLowerCase());
-                am.put("SHA", anidbFile.shaHash.toUpperCase());
+            if (anidbFile.getShaHash() != null) {
+                am.put("sha", anidbFile.getShaHash().toLowerCase());
+                am.put("SHA", anidbFile.getShaHash().toUpperCase());
             }
-            if (anidbFile.md5Hash != null) {
-                am.put("md5", anidbFile.md5Hash.toLowerCase());
-                am.put("MD5", anidbFile.md5Hash.toUpperCase());
+            if (anidbFile.getMd5Hash() != null) {
+                am.put("md5", anidbFile.getMd5Hash().toLowerCase());
+                am.put("MD5", anidbFile.getMd5Hash().toUpperCase());
             }
-            if (anidbFile.crcHash != null) {
-                am.put("CRC", anidbFile.crcHash.toUpperCase());
-                am.put("crc", anidbFile.crcHash.toLowerCase());
+            if (anidbFile.getCrcHash() != null) {
+                am.put("CRC", anidbFile.getCrcHash().toUpperCase());
+                am.put("crc", anidbFile.getCrcHash().toLowerCase());
             }
-            if (anidbFile.anime != null) {
-                am.put("ann", anidbFile.anime.romajiTitle);
-                am.put("kan", anidbFile.anime.kanjiTitle);
-                am.put("eng", anidbFile.anime.englishTitle);
-                am.put("eps", anidbFile.anime.episodeCount);
-                am.put("typ", anidbFile.anime.type);
-                am.put("yea", anidbFile.anime.year);
-                am.put("gen", anidbFile.anime.categories.replaceAll(",", ", "));
-                am.put("lep", anidbFile.anime.latestEpisode);
-                am.put("yen", anidbFile.anime.endYear);
+            if (anidbFile.getAnime() != null) {
+                am.put("ann", anidbFile.getAnime().romajiTitle);
+                am.put("kan", anidbFile.getAnime().kanjiTitle);
+                am.put("eng", anidbFile.getAnime().englishTitle);
+                am.put("eps", anidbFile.getAnime().episodeCount);
+                am.put("typ", anidbFile.getAnime().type);
+                am.put("yea", anidbFile.getAnime().year);
+                am.put("gen", anidbFile.getAnime().categories.replace(",", ", "));
+                am.put("lep", anidbFile.getAnime().latestEpisode);
+                am.put("yen", anidbFile.getAnime().endYear);
             }
-            if (anidbFile.episode != null) {
-                am.put("epn", anidbFile.episode.eng);
-                am.put("epk", anidbFile.episode.kan);
-                am.put("epr", anidbFile.episode.rom);
+            if (anidbFile.getEpisode() != null) {
+                am.put("epn", anidbFile.getEpisode().eng);
+                am.put("epk", anidbFile.getEpisode().kan);
+                am.put("epr", anidbFile.getEpisode().rom);
             }
-            if (anidbFile.anime != null && anidbFile.episode != null) {
-                am.put("enr", Parser.pad(anidbFile.episode.num, anidbFile.anime.getTotal()));
+            if (anidbFile.getAnime() != null && anidbFile.getEpisode() != null) {
+                am.put(
+                        "enr",
+                        Parser.pad(
+                                anidbFile.getEpisode().num, anidbFile.getAnime().getTotal()));
             }
-            if (anidbFile.group != null && anidbFile.groupId > 0) {
-                am.put("grp", anidbFile.group.shortName);
-                am.put("grn", anidbFile.group.name);
+            if (anidbFile.getGroup() != null && anidbFile.getGroupId() > 0) {
+                am.put("grp", anidbFile.getGroup().shortName);
+                am.put("grn", anidbFile.getGroup().name);
             } else {
                 am.put("grp", "unknown");
                 am.put("grn", "unknown");

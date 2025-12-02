@@ -1,30 +1,32 @@
-// Copyright (C) 2005-2006 epoximator
-//
-// This program is free software; you can redistribute it and/or
-// modify it under the terms of the GNU General Public License
-// as published by the Free Software Foundation; either version 2
-// of the License, or (at your option) any later version.
-//
-// This program is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-// GNU General Public License for more details.
-//
-// You should have received a copy of the GNU General Public License
-// along with this program; if not, write to the Free Software
-// Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
-
 /*
- * Created on 22.01.05
+ * WebAOM - Web Anime-O-Matic
+ * Copyright (C) 2005-2010 epoximator 2025 Alysson Souza
  *
- * @version 	03
- * @author 		epoximator
+ * This program is free software; you can redistribute it and/or modify it under
+ * the terms of the GNU General Public License version 2 as published by the Free
+ * Software Foundation.
+ *
+ * This program is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+ * FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License along with
+ * this program; if not, see <https://www.gnu.org/licenses/>.
  */
+
 package epox.webaom.data;
 
 import epox.util.StringUtilities;
 import epox.webaom.AppContext;
 import epox.webaom.Job;
+import java.net.URI;
+import java.net.URISyntaxException;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
+import java.util.Arrays;
+import java.util.Map;
+import java.util.Objects;
+import java.util.stream.Collectors;
 
 public class AniDBFile extends AniDBEntity {
     public static final int F_CRCOK = 1;
@@ -35,52 +37,58 @@ public class AniDBFile extends AniDBEntity {
     public static final int F_ISV5 = 32;
     public static final int F_UNC = 64;
     public static final int F_CEN = 128;
-    /** AniDB file ID. */
-    public int fileId;
-    /** AniDB anime ID. */
-    public int animeId;
-    /** AniDB episode ID. */
-    public int episodeId;
-    /** AniDB group ID (0 if no group/raw). */
-    public int groupId;
-    /** AniDB mylist entry ID. */
-    public int mylistEntryId;
-    /** File state bitmask (CRC status, version, censored). */
-    public int state;
-    /** Video length in seconds. */
-    public int lengthInSeconds;
-    /** ED2K hash. */
-    public String ed2kHash;
-    /** MD5 hash. */
-    public String md5Hash;
-    /** SHA-1 hash. */
-    public String shaHash;
-    /** CRC32 hash. */
-    public String crcHash;
-    /** Dub language(s). */
-    public String dubLanguage;
-    /** Subtitle language(s). */
-    public String subLanguage;
-    /** Quality descriptor. */
-    public String quality;
-    /** Rip source (TV, DVD, BluRay, etc). */
-    public String ripSource;
-    /** Video resolution (e.g. "1920x1080"). */
-    public String resolution;
-    /** Video codec (e.g. "H264"). */
-    public String videoCodec;
-    /** Audio codec (e.g. "AAC"). */
-    public String audioCodec;
-    /** Default/computed file name. */
-    public String defaultName;
-    /** File extension. */
-    public String extension;
 
-    public Episode episode;
-    public AnimeGroup animeGroup;
-    public Group group;
-    public Anime anime;
-    private Job job = null;
+    private static final String PATH_ANIME = "anime";
+    private static final String PARAM_NONAV = "nonav";
+    private static final String PARAM_MYLIST = "mylist";
+    private static final String VALUE_UNKNOWN = "unknown";
+
+    /** AniDB file ID. */
+    private int fileId;
+    /** AniDB anime ID. */
+    private int animeId;
+    /** AniDB episode ID. */
+    private int episodeId;
+    /** AniDB group ID (0 if no group/raw). */
+    private int groupId;
+    /** AniDB mylist entry ID. */
+    private int mylistEntryId;
+    /** File state bitmask (CRC status, version, censored). */
+    private int state;
+    /** Video length in seconds. */
+    private int lengthInSeconds;
+    /** ED2K hash. */
+    private String ed2kHash;
+    /** MD5 hash. */
+    private String md5Hash;
+    /** SHA-1 hash. */
+    private String shaHash;
+    /** CRC32 hash. */
+    private String crcHash;
+    /** Dub language(s). */
+    private String dubLanguage;
+    /** Subtitle language(s). */
+    private String subLanguage;
+    /** Quality descriptor. */
+    private String quality;
+    /** Rip source (TV, DVD, BluRay, etc). */
+    private String ripSource;
+    /** Video resolution (e.g. "1920x1080"). */
+    private String resolution;
+    /** Video codec (e.g. "H264"). */
+    private String videoCodec;
+    /** Audio codec (e.g. "AAC"). */
+    private String audioCodec;
+    /** Default/computed file name. */
+    private String defaultName;
+    /** File extension. */
+    private String extension;
+
+    private Episode episode;
+    private AnimeGroup animeGroup;
+    private Group group;
+    private Anime anime;
+    private Job job;
 
     public AniDBFile(int id) {
         fileId = id;
@@ -122,12 +130,206 @@ public class AniDBFile extends AniDBEntity {
         lengthInSeconds = StringUtilities.i(fields[index++]);
     }
 
-    public static AniDBEntity getInst(String[] s) {
-        return new AniDBFile(s);
+    public static AniDBEntity createFromFields(String[] fields) {
+        return new AniDBFile(fields);
+    }
+
+    // Getters
+    public int getFileId() {
+        return fileId;
+    }
+
+    public int getAnimeId() {
+        return animeId;
+    }
+
+    public int getEpisodeId() {
+        return episodeId;
+    }
+
+    public int getGroupId() {
+        return groupId;
+    }
+
+    public int getMylistEntryId() {
+        return mylistEntryId;
+    }
+
+    public int getState() {
+        return state;
+    }
+
+    public int getLengthInSeconds() {
+        return lengthInSeconds;
+    }
+
+    public String getEd2kHash() {
+        return ed2kHash;
+    }
+
+    public String getMd5Hash() {
+        return md5Hash;
+    }
+
+    public String getShaHash() {
+        return shaHash;
+    }
+
+    public String getCrcHash() {
+        return crcHash;
+    }
+
+    public String getDubLanguage() {
+        return dubLanguage;
+    }
+
+    public String getSubLanguage() {
+        return subLanguage;
+    }
+
+    public String getQuality() {
+        return quality;
+    }
+
+    public String getRipSource() {
+        return ripSource;
+    }
+
+    public String getResolution() {
+        return resolution;
+    }
+
+    public String getVideoCodec() {
+        return videoCodec;
+    }
+
+    public String getAudioCodec() {
+        return audioCodec;
+    }
+
+    public String getDefaultName() {
+        return defaultName;
+    }
+
+    public String getExtension() {
+        return extension;
+    }
+
+    public Episode getEpisode() {
+        return episode;
+    }
+
+    public AnimeGroup getAnimeGroup() {
+        return animeGroup;
+    }
+
+    public Group getGroup() {
+        return group;
+    }
+
+    public Anime getAnime() {
+        return anime;
     }
 
     public Job getJob() {
         return job;
+    }
+
+    // Setters
+    public void setFileId(int fileId) {
+        this.fileId = fileId;
+    }
+
+    public void setAnimeId(int animeId) {
+        this.animeId = animeId;
+    }
+
+    public void setEpisodeId(int episodeId) {
+        this.episodeId = episodeId;
+    }
+
+    public void setGroupId(int groupId) {
+        this.groupId = groupId;
+    }
+
+    public void setMylistEntryId(int mylistEntryId) {
+        this.mylistEntryId = mylistEntryId;
+    }
+
+    public void setState(int state) {
+        this.state = state;
+    }
+
+    public void setLengthInSeconds(int lengthInSeconds) {
+        this.lengthInSeconds = lengthInSeconds;
+    }
+
+    public void setEd2kHash(String ed2kHash) {
+        this.ed2kHash = ed2kHash;
+    }
+
+    public void setMd5Hash(String md5Hash) {
+        this.md5Hash = md5Hash;
+    }
+
+    public void setShaHash(String shaHash) {
+        this.shaHash = shaHash;
+    }
+
+    public void setCrcHash(String crcHash) {
+        this.crcHash = crcHash;
+    }
+
+    public void setDubLanguage(String dubLanguage) {
+        this.dubLanguage = dubLanguage;
+    }
+
+    public void setSubLanguage(String subLanguage) {
+        this.subLanguage = subLanguage;
+    }
+
+    public void setQuality(String quality) {
+        this.quality = quality;
+    }
+
+    public void setRipSource(String ripSource) {
+        this.ripSource = ripSource;
+    }
+
+    public void setResolution(String resolution) {
+        this.resolution = resolution;
+    }
+
+    public void setVideoCodec(String videoCodec) {
+        this.videoCodec = videoCodec;
+    }
+
+    public void setAudioCodec(String audioCodec) {
+        this.audioCodec = audioCodec;
+    }
+
+    public void setDefaultName(String defaultName) {
+        this.defaultName = defaultName;
+    }
+
+    public void setExtension(String extension) {
+        this.extension = extension;
+    }
+
+    public void setEpisode(Episode episode) {
+        this.episode = episode;
+    }
+
+    public void setAnimeGroup(AnimeGroup animeGroup) {
+        this.animeGroup = animeGroup;
+    }
+
+    public void setGroup(Group group) {
+        this.group = group;
+    }
+
+    public void setAnime(Anime anime) {
+        this.anime = anime;
     }
 
     public void setJob(Job newJob) {
@@ -152,7 +354,24 @@ public class AniDBFile extends AniDBEntity {
 
     @Override
     public Object getKey() {
-        return Integer.valueOf(fileId);
+        return fileId;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj) {
+            return true;
+        }
+        if (obj == null || getClass() != obj.getClass()) {
+            return false;
+        }
+        AniDBFile other = (AniDBFile) obj;
+        return fileId == other.fileId;
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(fileId);
     }
 
     @Override
@@ -181,57 +400,91 @@ public class AniDBFile extends AniDBEntity {
         dubLanguage = dubLanguage.intern();
     }
 
-    private String url0(String str, boolean non) {
-        if (non) {
-            return "https://" + AppContext.ANIDB_HOST + "/perl-bin/animedb.pl?" + str + "&nonav=1";
+    private static String encodeQuery(Map<String, Object> params) {
+        return params.entrySet().stream()
+                .map(e -> URLEncoder.encode(e.getKey(), StandardCharsets.UTF_8) + "="
+                        + URLEncoder.encode(String.valueOf(e.getValue()), StandardCharsets.UTF_8))
+                .collect(Collectors.joining("&"));
+    }
+
+    private static String encodePath(String... segments) {
+        return Arrays.stream(segments)
+                .map(s -> URLEncoder.encode(s, StandardCharsets.UTF_8))
+                .collect(Collectors.joining("/", "/", ""));
+    }
+
+    private URI buildUri(String path, Map<String, Object> queryParams, String fragment) {
+        try {
+            String query = queryParams != null ? encodeQuery(queryParams) : null;
+            return new URI("https", AppContext.ANIDB_HOST, path, query, fragment);
+        } catch (URISyntaxException e) {
+            throw new IllegalArgumentException("Invalid URI", e);
         }
-        return "https://" + AppContext.ANIDB_HOST + "/perl-bin/animedb.pl?" + str;
     }
 
-    private String url1(String str) {
-        return url0("show=" + str, true);
+    public String getAnimeUrl() {
+        return buildUri(encodePath("a" + animeId), null, null).toString();
     }
 
-    public String urlAnime() {
-        return url1("anime&aid=" + animeId);
+    public String getExportUrl() {
+        return buildUri(
+                        encodePath(PATH_ANIME, String.valueOf(animeId), "export"),
+                        Map.of("show", "ed2kexport", "h", 1, PARAM_NONAV, 1),
+                        null)
+                .toString();
     }
 
-    public String urlExport() {
-        return url1("ed2kexport&h=1&aid=" + animeId);
+    public String getEpisodeUrl() {
+        return buildUri(encodePath("e" + episodeId), null, null).toString();
     }
 
-    public String urlEp() {
-        return url1("ep&aid=" + animeId + "&eid=" + episodeId);
+    public String getFileUrl() {
+        return buildUri(encodePath("f" + fileId), null, null).toString();
     }
 
-    public String urlFile() {
-        return url1("file&aid=" + animeId + "&eid=" + episodeId + "&fid=" + fileId);
+    public String getGroupUrl() {
+        return buildUri(encodePath("g" + groupId), null, null).toString();
     }
 
-    public String urlGroup() {
-        return url1("group&gid=" + groupId);
-    }
-
-    public String urlMylistE(int listId) {
+    public String getMylistEditUrl(int listId) {
         if (listId < 2) {
-            return urlMylist();
+            return getMylistUrl();
         }
-        return url1("mylist&do=add&aid=" + animeId + "&eid=" + episodeId + "&fid=" + fileId + "&lid=" + listId);
+        Map<String, Object> params = Map.of(
+                "show",
+                PARAM_MYLIST,
+                "do",
+                "add",
+                "aid",
+                animeId,
+                "eid",
+                episodeId,
+                "fid",
+                fileId,
+                "lid",
+                listId,
+                PARAM_NONAV,
+                1);
+        return buildUri(encodePath("perl-bin", "animedb.pl"), params, null).toString();
     }
 
-    public String urlMylist() {
+    public String getMylistUrl() {
         try {
-            return url1("mylist&expand=" + animeId + "&char=" + anime.romajiTitle.charAt(0) + "#a" + animeId);
+            Map<String, Object> params = Map.of(
+                    "show", PARAM_MYLIST, "expand", animeId, "char", anime.romajiTitle.charAt(0), PARAM_NONAV, 1);
+            return buildUri(encodePath("perl-bin", "animedb.pl"), params, "a" + animeId)
+                    .toString();
         } catch (Exception ex) {
-            return url1("mylist");
+            return buildUri(encodePath(PARAM_MYLIST), null, null).toString();
         }
     }
 
-    public String urlYear() {
+    public String getYearUrl() {
         try {
-            return url0("do.search=%20Start%20Search%20&show=search&noalias=1&search.anime.year=" + anime.year, false);
+            return buildUri(encodePath(PATH_ANIME, ""), Map.of("season.year", anime.year), null)
+                    .toString();
         } catch (Exception ex) {
-            return url1("search");
+            return buildUri(encodePath(PATH_ANIME), null, null).toString();
         }
     }
 
@@ -263,29 +516,21 @@ public class AniDBFile extends AniDBEntity {
      * 7 - censored
      */
     public String getVersion() {
-        switch (state & 0x3C) {
-            case F_ISV2:
-                return "v2";
-            case F_ISV3:
-                return "v3";
-            case F_ISV4:
-                return "v4";
-            case F_ISV5:
-                return "v5";
-            default:
-                return "";
-        }
+        return switch (state & 0x3C) {
+            case F_ISV2 -> "v2";
+            case F_ISV3 -> "v3";
+            case F_ISV4 -> "v4";
+            case F_ISV5 -> "v5";
+            default -> "";
+        };
     }
 
     public String getCensored() {
-        switch (state & 0xC0) {
-            case F_CEN:
-                return "cen";
-            case F_UNC:
-                return "unc";
-            default:
-                return "";
-        }
+        return switch (state & 0xC0) {
+            case F_CEN -> "cen";
+            case F_UNC -> "unc";
+            default -> "";
+        };
     }
 
     public String getInvalid() {
@@ -315,19 +560,19 @@ public class AniDBFile extends AniDBEntity {
         if (lengthInSeconds < 1) {
             missingFlags += 'l';
         }
-        if (dubLanguage.contains("unknown")) {
+        if (dubLanguage.contains(VALUE_UNKNOWN)) {
             missingFlags += 'd';
         }
-        if (subLanguage.contains("unknown")) {
+        if (subLanguage.contains(VALUE_UNKNOWN)) {
             missingFlags += 's';
         }
-        if (audioCodec.contains("unknown")) {
+        if (audioCodec.contains(VALUE_UNKNOWN)) {
             missingFlags += 'a';
         }
-        if (videoCodec.contains("unknown")) {
+        if (videoCodec.contains(VALUE_UNKNOWN)) {
             missingFlags += 'v';
         }
-        if (resolution.equals("0x0") || resolution.equals("unknown")) {
+        if (resolution.equals("0x0") || resolution.equals(VALUE_UNKNOWN)) {
             missingFlags += 'x';
         }
 
@@ -345,10 +590,10 @@ public class AniDBFile extends AniDBEntity {
         }
         String missingFlags = "";
 
-        if (quality.contains("unknown")) {
+        if (quality.contains(VALUE_UNKNOWN)) {
             missingFlags += 'q';
         }
-        if (ripSource.contains("unknown")) {
+        if (ripSource.contains(VALUE_UNKNOWN)) {
             missingFlags += 'o';
         }
 

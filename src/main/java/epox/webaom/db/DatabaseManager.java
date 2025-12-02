@@ -73,7 +73,7 @@ public abstract class DatabaseManager {
     protected boolean isConnectionReady = false;
     protected boolean isInitialized = false;
     protected boolean loadAllJobs = false;
-    protected boolean shouldCleanDatabase = false;
+    protected final boolean shouldCleanDatabase = false;
     protected boolean debug = false;
 
     // ========== Debug control ==========
@@ -264,9 +264,10 @@ public abstract class DatabaseManager {
                 if (version < 4
                         && !AppContext.confirm(
                                 "Warning",
-                                "The database definition has to be upgraded.\n"
-                                        + "This will make it incompatible with previous versions of WebAOM.\n"
-                                        + "Do you want to continue? (Backup now, if needed.)",
+                        """
+                                The database definition has to be upgraded.
+                                This will make it incompatible with previous versions of WebAOM.
+                                Do you want to continue? (Backup now, if needed.)""",
                                 "Yes",
                                 "No")) {
                     return false;
@@ -545,7 +546,7 @@ public abstract class DatabaseManager {
             job.anidbFile = new AniDBFile(fields);
             job.anidbFile.pack();
             job.anidbFile.setJob(job);
-            job.anidbFile.defaultName = defaultName;
+            job.anidbFile.setDefaultName(defaultName);
             job.anidbFile.pack();
 
             fields = new String[5];
@@ -556,8 +557,8 @@ public abstract class DatabaseManager {
         }
     }
 
-    public synchronized boolean removeJob(Job job) {
-        return exec(
+    public synchronized void removeJob(Job job) {
+        exec(
                 "delete from jtb where ed2k=" + quoteString(job.ed2kHash) + " and name="
                         + quoteString(job.currentFile.getName()),
                 false);
@@ -604,26 +605,26 @@ public abstract class DatabaseManager {
             ps.setString(paramIndex++, episode.num);
             ps.setInt(paramIndex, entityId);
         } else if (dataObject instanceof AniDBFile file) {
-            ps.setInt(paramIndex++, file.animeId);
-            ps.setInt(paramIndex++, file.episodeId);
-            ps.setInt(paramIndex++, file.groupId);
-            ps.setString(paramIndex++, file.defaultName);
-            ps.setInt(paramIndex++, file.state);
+            ps.setInt(paramIndex++, file.getAnimeId());
+            ps.setInt(paramIndex++, file.getEpisodeId());
+            ps.setInt(paramIndex++, file.getGroupId());
+            ps.setString(paramIndex++, file.getDefaultName());
+            ps.setInt(paramIndex++, file.getState());
             ps.setLong(paramIndex++, file.getTotalSize());
-            ps.setInt(paramIndex++, file.lengthInSeconds);
-            ps.setString(paramIndex++, file.ed2kHash);
-            ps.setString(paramIndex++, file.md5Hash);
-            ps.setString(paramIndex++, file.shaHash);
-            ps.setString(paramIndex++, file.crcHash);
-            ps.setString(paramIndex++, file.dubLanguage);
-            ps.setString(paramIndex++, file.subLanguage);
-            ps.setString(paramIndex++, file.quality);
-            ps.setString(paramIndex++, file.ripSource);
-            ps.setString(paramIndex++, file.audioCodec);
-            ps.setString(paramIndex++, file.videoCodec);
-            ps.setString(paramIndex++, file.resolution);
-            ps.setString(paramIndex++, file.extension);
-            ps.setInt(paramIndex, file.fileId);
+            ps.setInt(paramIndex++, file.getLengthInSeconds());
+            ps.setString(paramIndex++, file.getEd2kHash());
+            ps.setString(paramIndex++, file.getMd5Hash());
+            ps.setString(paramIndex++, file.getShaHash());
+            ps.setString(paramIndex++, file.getCrcHash());
+            ps.setString(paramIndex++, file.getDubLanguage());
+            ps.setString(paramIndex++, file.getSubLanguage());
+            ps.setString(paramIndex++, file.getQuality());
+            ps.setString(paramIndex++, file.getRipSource());
+            ps.setString(paramIndex++, file.getAudioCodec());
+            ps.setString(paramIndex++, file.getVideoCodec());
+            ps.setString(paramIndex++, file.getResolution());
+            ps.setString(paramIndex++, file.getExtension());
+            ps.setInt(paramIndex, file.getFileId());
         } else if (dataObject instanceof Group group) {
             ps.setString(paramIndex++, group.name);
             ps.setString(paramIndex++, group.shortName);
@@ -639,7 +640,7 @@ public abstract class DatabaseManager {
             ps.setString(paramIndex++, job.sha1Hash);
             ps.setString(paramIndex++, job.tthHash);
             ps.setString(paramIndex++, job.crc32Hash);
-            ps.setInt(paramIndex++, job.anidbFile != null ? job.anidbFile.fileId : 0);
+            ps.setInt(paramIndex++, job.anidbFile != null ? job.anidbFile.getFileId() : 0);
             ps.setInt(paramIndex++, job.mylistId);
             ps.setString(paramIndex++, job.avFileInfo == null ? null : job.avFileInfo.m_xml);
             ps.setLong(paramIndex++, job.currentFile.exists() ? job.currentFile.length() : job.fileSize);

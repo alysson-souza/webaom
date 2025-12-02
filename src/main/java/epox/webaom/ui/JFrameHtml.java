@@ -1,24 +1,17 @@
-// Copyright (C) 2005-2006 epoximator
-//
-// This program is free software; you can redistribute it and/or
-// modify it under the terms of the GNU General Public License
-// as published by the Free Software Foundation; either version 2
-// of the License, or (at your option) any later version.
-//
-// This program is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-// GNU General Public License for more details.
-//
-// You should have received a copy of the GNU General Public License
-// along with this program; if not, write to the Free Software
-// Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
-
 /*
- * Created on 10.06.05
+ * WebAOM - Web Anime-O-Matic
+ * Copyright (C) 2005-2010 epoximator 2025 Alysson Souza
  *
- * @version 	1.07
- * @author 		epoximator
+ * This program is free software; you can redistribute it and/or modify it under
+ * the terms of the GNU General Public License version 2 as published by the Free
+ * Software Foundation.
+ *
+ * This program is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+ * FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License along with
+ * this program; if not, see <https://www.gnu.org/licenses/>.
  */
 
 package epox.webaom.ui;
@@ -43,6 +36,7 @@ public class JFrameHtml extends JFrame implements HyperlinkListener, KeyListener
         super(title);
 
         JEditorPane htmlEditorPane = new JEditorPane("text/html", text) {
+            @Override
             protected void paintComponent(Graphics graphics) {
                 Graphics2D graphics2D = (Graphics2D) graphics;
                 graphics2D.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
@@ -75,22 +69,26 @@ public class JFrameHtml extends JFrame implements HyperlinkListener, KeyListener
         htmlEditorPane.addKeyListener(this);
     }
 
+    @Override
     public void hyperlinkUpdate(HyperlinkEvent event) {
         if (event.getEventType() == HyperlinkEvent.EventType.ACTIVATED) {
             AppContext.gui.openHyperlink(event.getDescription());
         }
     }
 
+    @Override
     public void keyTyped(KeyEvent event) {
         if (event.getKeyChar() == 'q') {
             dispose();
         }
     }
 
+    @Override
     public void keyPressed(KeyEvent event) {
         // No action needed on key press
     }
 
+    @Override
     public void keyReleased(KeyEvent event) {
         // No action needed on key release
     }

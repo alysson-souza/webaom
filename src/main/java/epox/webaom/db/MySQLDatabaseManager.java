@@ -108,9 +108,10 @@ public class MySQLDatabaseManager extends DatabaseManager {
                 if (version < 4
                         && !AppContext.confirm(
                                 "Warning",
-                                "The database definition has to be upgraded.\n"
-                                        + "This will make it incompatible with previous versions of WebAOM.\n"
-                                        + "Do you want to continue? (Backup now, if needed.)",
+                        """
+                                The database definition has to be upgraded.
+                                This will make it incompatible with previous versions of WebAOM.
+                                Do you want to continue? (Backup now, if needed.)""",
                                 "Yes",
                                 "No")) {
                     return false;

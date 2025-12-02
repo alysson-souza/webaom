@@ -56,6 +56,7 @@ import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
 import java.io.File;
 import java.util.List;
+import java.util.Objects;
 import java.util.logging.Logger;
 import javax.swing.AbstractAction;
 import javax.swing.JButton;
@@ -115,10 +116,10 @@ public class MainPanel extends JPanel
     protected JScrollBar jobsScrollBar;
     protected TableModelJobs jobsTableModel;
     protected boolean cancelRecursiveWorker;
-    protected Timer diskIoTimer;
-    protected Timer progressTimer;
-    protected Timer unfreezeTimer;
-    protected Timer guiUpdateTimer;
+    protected final Timer diskIoTimer;
+    protected final Timer progressTimer;
+    protected final Timer unfreezeTimer;
+    protected final Timer guiUpdateTimer;
     private JTextField newExtensionTextField;
     private JEditorPaneLog logEditorPane;
     private JTextArea hashTextArea;
@@ -190,49 +191,31 @@ public class MainPanel extends JPanel
     }
 
     private static String getButtonName(int buttonIndex) {
-        switch (buttonIndex) {
-            case BUTTON_SELECT_FILES:
-                return "Files...";
-            case BUTTON_SELECT_DIRS:
-                return "Folders...";
-            case BUTTON_HASH:
-                return LABEL_DISK_IO_ENABLE;
-            case BUTTON_CONNECTION:
-                return LABEL_NETWORK_IO_ENABLE;
-            case BUTTON_SAVE:
-                return "Save opt";
-            case BUTTON_WIKI:
-                return "Help!";
-            case BUTTON_EXPORT:
-                return "Export";
-            case BUTTON_IMPORT:
-                return "Import";
-            default:
-                return "No text!";
-        }
+        return switch (buttonIndex) {
+            case BUTTON_SELECT_FILES -> "Files...";
+            case BUTTON_SELECT_DIRS -> "Folders...";
+            case BUTTON_HASH -> LABEL_DISK_IO_ENABLE;
+            case BUTTON_CONNECTION -> LABEL_NETWORK_IO_ENABLE;
+            case BUTTON_SAVE -> "Save opt";
+            case BUTTON_WIKI -> "Help!";
+            case BUTTON_EXPORT -> "Export";
+            case BUTTON_IMPORT -> "Import";
+            default -> "No text!";
+        };
     }
 
     private static String getButtonToolTip(int buttonIndex) {
-        switch (buttonIndex) {
-            case BUTTON_SELECT_FILES:
-                return "Add files you want to hash";
-            case BUTTON_SELECT_DIRS:
-                return "Add folders with files you want to hash";
-            case BUTTON_HASH:
-                return "Start/stop the disk operations thread. (Hashing and moving)";
-            case BUTTON_CONNECTION:
-                return "Log on / log off the AniDB UDP Service";
-            case BUTTON_SAVE:
-                return "Save the options to disk";
-            case BUTTON_WIKI:
-                return "Check out the documentation @ AniDB WIKI";
-            case BUTTON_EXPORT:
-                return "Export loaded data";
-            case BUTTON_IMPORT:
-                return "Import exported data";
-            default:
-                return "No help!";
-        }
+        return switch (buttonIndex) {
+            case BUTTON_SELECT_FILES -> "Add files you want to hash";
+            case BUTTON_SELECT_DIRS -> "Add folders with files you want to hash";
+            case BUTTON_HASH -> "Start/stop the disk operations thread. (Hashing and moving)";
+            case BUTTON_CONNECTION -> "Log on / log off the AniDB UDP Service";
+            case BUTTON_SAVE -> "Save the options to disk";
+            case BUTTON_WIKI -> "Check out the documentation @ AniDB WIKI";
+            case BUTTON_EXPORT -> "Export loaded data";
+            case BUTTON_IMPORT -> "Import exported data";
+            default -> "No help!";
+        };
     }
 
     public void startup() {
@@ -455,9 +438,11 @@ public class MainPanel extends JPanel
         ChiiEmu chiiEmulator = new ChiiEmu(AppContext.conn);
         JPanelCommand commandPanel = new JPanelCommand(
                 chiiEmulator,
-                "Chii Emulator - AniDB IRC bot commands\n"
-                    + "Commands: !uptime !mystats !anime !group !randomanime !mylist !state !watched !storage !font\n"
-                    + "Raw API: Start with '?' (e.g. ?PING) - session is added automatically.\n");
+                """
+                        Chii Emulator - AniDB IRC bot commands
+                        Commands: !uptime !mystats !anime !group !randomanime !mylist !state !watched !storage !font
+                        Raw API: Start with '?' (e.g. ?PING) - session is added automatically.
+                        """);
         chiiEmulator.setLog(commandPanel);
         commandPanel.setFileDropListener(this);
 
@@ -500,6 +485,7 @@ public class MainPanel extends JPanel
 
         KeyboardFocusManager focusManager = KeyboardFocusManager.getCurrentKeyboardFocusManager();
         focusManager.addKeyEventDispatcher(new DefaultKeyboardFocusManager() {
+            @Override
             public boolean dispatchKeyEvent(KeyEvent event) {
                 if (event.getKeyCode() == KeyEvent.VK_F9 && (event.getID() == KeyEvent.KEY_PRESSED)) {
                     reset();
@@ -579,6 +565,7 @@ public class MainPanel extends JPanel
     }
 
     ///////////////////////////// IMPLEMENTATIONS////////////////////////////////
+    @Override
     public void hyperlinkUpdate(HyperlinkEvent event) {
         if (event.getEventType() == HyperlinkEvent.EventType.ACTIVATED) {
             openHyperlink(event.getDescription());
@@ -590,6 +577,7 @@ public class MainPanel extends JPanel
         }
     }
 
+    @Override
     public void actionPerformed(ActionEvent event) {
         Object source = event.getSource();
         if (source == toolbarButtons[BUTTON_SELECT_FILES]) {
@@ -711,6 +699,7 @@ public class MainPanel extends JPanel
         println("Disconnected from database.");
     }
 
+    @Override
     public void stateChanged(ChangeEvent event) {
         Object source = event.getSource();
         if (source == autoAddToMylistCheckbox) {
@@ -803,6 +792,8 @@ public class MainPanel extends JPanel
         JOptionPane.showMessageDialog(AppContext.component, msg, title, JOptionPane.WARNING_MESSAGE);
     }
 
+    @Override
+    @Override
     public void println(Object message) {
         logEditorPane.println(message.toString());
         if (logEditorPane.isVisible()) {
@@ -811,12 +802,16 @@ public class MainPanel extends JPanel
     }
 
     /** Sets the status message in the main status bar. Required by Log interface. */
+    @Override
+    @Override
     public void status0(String str) {
         statusProgressBar.setString(str);
         lastStatusMessage = str;
     }
 
     /** Sets the status message in the job progress bar. Required by Log interface. */
+    @Override
+    @Override
     public void status1(String str) {
         jobProgressBar.setString(str);
     }
@@ -997,11 +992,7 @@ public class MainPanel extends JPanel
 
     private void clearHighlight() {
         if (jobsPanel != null) {
-            if (originalJobsBorder != null) {
-                jobsPanel.setBorder(originalJobsBorder);
-            } else {
-                jobsPanel.setBorder(new EtchedBorder());
-            }
+            jobsPanel.setBorder(Objects.requireNonNullElseGet(originalJobsBorder, EtchedBorder::new));
             jobsPanel.repaint();
         }
     }

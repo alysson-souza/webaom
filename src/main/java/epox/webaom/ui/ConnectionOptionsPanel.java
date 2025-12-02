@@ -1,25 +1,19 @@
-// Copyright (C) 2005-2006 epoximator
-//
-// This program is free software; you can redistribute it and/or
-// modify it under the terms of the GNU General Public License
-// as published by the Free Software Foundation; either version 2
-// of the License, or (at your option) any later version.
-//
-// This program is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-// GNU General Public License for more details.
-//
-// You should have received a copy of the GNU General Public License
-// along with this program; if not, write to the Free Software
-// Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
-
 /*
- * Created on 22.01.05
+ * WebAOM - Web Anime-O-Matic
+ * Copyright (C) 2005-2010 epoximator 2025 Alysson Souza
  *
- * @version 	1.09
- * @author 		epoximator
+ * This program is free software; you can redistribute it and/or modify it under
+ * the terms of the GNU General Public License version 2 as published by the Free
+ * Software Foundation.
+ *
+ * This program is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+ * FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License along with
+ * this program; if not, see <https://www.gnu.org/licenses/>.
  */
+
 package epox.webaom.ui;
 
 import epox.webaom.Options;
@@ -45,10 +39,10 @@ public class ConnectionOptionsPanel extends JPanel implements ChangeListener {
     private final JSlider timeoutSlider;
     private final JSlider delaySlider;
     private final JCheckBox natKeepAliveCheckbox;
-    public JButton pingButton;
-    public JTextField hostTextField;
-    public JTextField remotePortTextField;
-    public JTextField localPortTextField;
+    public final JButton pingButton;
+    public final JTextField hostTextField;
+    public final JTextField remotePortTextField;
+    public final JTextField localPortTextField;
 
     public ConnectionOptionsPanel() {
         super(new GridBagLayout());
@@ -71,6 +65,7 @@ public class ConnectionOptionsPanel extends JPanel implements ChangeListener {
         localPortTextField = new JTextField("" + AniDBConnection.DEFAULT_LOCAL_PORT);
 
         KeyAdapter numericOnlyAdapter = new KeyAdapter() {
+            @Override
             public void keyTyped(KeyEvent e) {
                 if (!Character.isDigit(e.getKeyChar())) {
                     e.consume();
@@ -120,6 +115,7 @@ public class ConnectionOptionsPanel extends JPanel implements ChangeListener {
         add(component, constraints);
     }
 
+    @Override
     public void stateChanged(ChangeEvent event) {
         timeoutSlider.setToolTipText(timeoutSlider.getValue() + " sec");
     }
@@ -136,6 +132,7 @@ public class ConnectionOptionsPanel extends JPanel implements ChangeListener {
         return natKeepAliveCheckbox.isSelected();
     }
 
+    @Override
     public void setEnabled(boolean enabled) {
         hostTextField.setEnabled(enabled);
         localPortTextField.setEnabled(enabled);

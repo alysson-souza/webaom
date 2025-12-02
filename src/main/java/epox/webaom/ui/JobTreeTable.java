@@ -1,23 +1,19 @@
-// Copyright (C) 2005-2006 epoximator
-//
-// This program is free software; you can redistribute it and/or
-// modify it under the terms of the GNU General Public License
-// as published by the Free Software Foundation; either version 2
-// of the License, or (at your option) any later version.
-//
-// This program is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-// GNU General Public License for more details.
-//
-// You should have received a copy of the GNU General Public License
-// along with this program; if not, write to the Free Software
-// Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
-
 /*
- * Created on 25.des.2005 20:18:12
- * Filename: JTreeTableR.java
+ * WebAOM - Web Anime-O-Matic
+ * Copyright (C) 2005-2010 epoximator 2025 Alysson Souza
+ *
+ * This program is free software; you can redistribute it and/or modify it under
+ * the terms of the GNU General Public License version 2 as published by the Free
+ * Software Foundation.
+ *
+ * This program is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+ * FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License along with
+ * this program; if not, see <https://www.gnu.org/licenses/>.
  */
+
 package epox.webaom.ui;
 
 import com.sun.swing.JTreeTable;
@@ -42,6 +38,7 @@ public class JobTreeTable extends JTreeTable implements RowModel, MouseListener 
         addMouseListener(this);
     }
 
+    @Override
     public void updateUI() {
         long elapsedTime = System.currentTimeMillis();
         super.updateUI();
@@ -49,6 +46,7 @@ public class JobTreeTable extends JTreeTable implements RowModel, MouseListener 
         System.out.println("@ Alt.updateUI() in " + elapsedTime + " ms. (" + AppContext.cache.stats() + ")");
     }
 
+    @Override
     public Job[] getJobs(int row) {
         Object treeNode = tree.getPathForRow(row).getLastPathComponent();
         if (treeNode instanceof AniDBFile file) {
@@ -76,6 +74,7 @@ public class JobTreeTable extends JTreeTable implements RowModel, MouseListener 
         }
     }
 
+    @Override
     public void mouseClicked(MouseEvent event) {
         if (event.getClickCount() == 2) {
             Object treeNode = tree.getPathForRow(getSelectedRow()).getLastPathComponent();
@@ -91,18 +90,22 @@ public class JobTreeTable extends JTreeTable implements RowModel, MouseListener 
         }
     }
 
+    @Override
     public void mousePressed(MouseEvent event) {
         // No action required
     }
 
+    @Override
     public void mouseReleased(MouseEvent event) {
         // No action required
     }
 
+    @Override
     public void mouseEntered(MouseEvent event) {
         // No action required
     }
 
+    @Override
     public void mouseExited(MouseEvent event) {
         // No action required
     }
@@ -113,6 +116,7 @@ public class JobTreeTable extends JTreeTable implements RowModel, MouseListener 
         setRowHeight(fontMetrics.getHeight() + 3);
     }
 
+    @Override
     public void paint(Graphics graphics) {
         if (needsRowHeightCalculation) {
             calculateRowHeight(graphics);
@@ -121,6 +125,7 @@ public class JobTreeTable extends JTreeTable implements RowModel, MouseListener 
         super.paint(graphics);
     }
 
+    @Override
     public void setFont(Font font) {
         needsRowHeightCalculation = true;
         super.setFont(font);

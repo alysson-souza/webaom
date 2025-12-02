@@ -45,13 +45,13 @@ public class MiscOptionsPanel extends JPanel {
     private final JCheckBox autoLogCheckBox;
     private final JCheckBox autoSaveCheckBox;
     private final JCheckBox autoRenameCheckBox;
-    public JCheckBox[] hashCheckBoxes = new JCheckBox[5];
+    public final JCheckBox[] hashCheckBoxes = new JCheckBox[5];
     public JTextField newExtensionField;
-    public JTextField hashDirectoriesField;
-    public JTextField browserPathField;
-    public JTextField databaseUrlField;
-    public JButton disconnectButton;
-    public JTextField logFilePathField;
+    public final JTextField hashDirectoriesField;
+    public final JTextField browserPathField;
+    public final JTextField databaseUrlField;
+    public final JButton disconnectButton;
+    public final JTextField logFilePathField;
 
     public MiscOptionsPanel() {
         super(new GridBagLayout());
@@ -129,20 +129,14 @@ public class MiscOptionsPanel extends JPanel {
     }
 
     private static String getHashName(int hashTypeCode) {
-        switch (hashTypeCode) {
-            case HASH_ED2K:
-                return "ed2k";
-            case HASH_CRC32:
-                return "crc32";
-            case HASH_MD5:
-                return "md5";
-            case HASH_SHA1:
-                return "sha1";
-            case HASH_TTH:
-                return "tth";
-            default:
-                return "NOT HASH";
-        }
+        return switch (hashTypeCode) {
+            case HASH_ED2K -> "ed2k";
+            case HASH_CRC32 -> "crc32";
+            case HASH_MD5 -> "md5";
+            case HASH_SHA1 -> "sha1";
+            case HASH_TTH -> "tth";
+            default -> "NOT HASH";
+        };
     }
 
     private void addLabeledComponent(String labelText, Component component, GridBagConstraints constraints) {
@@ -175,6 +169,7 @@ public class MiscOptionsPanel extends JPanel {
         return directories;
     }
 
+    @Override
     public void setEnabled(boolean enabled) {
         hashDirectoriesField.setEnabled(enabled);
         for (int i = 1; i < hashCheckBoxes.length; i++) {

@@ -1,18 +1,18 @@
-// Copyright (C) 2005-2006 epoximator
-//
-// This program is free software; you can redistribute it and/or
-// modify it under the terms of the GNU General Public License
-// as published by the Free Software Foundation; either version 2
-// of the License, or (at your option) any later version.
-//
-// This program is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-// GNU General Public License for more details.
-//
-// You should have received a copy of the GNU General Public License
-// along with this program; if not, write to the Free Software
-// Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+/*
+ * WebAOM - Web Anime-O-Matic
+ * Copyright (C) 2005-2010 epoximator 2025 Alysson Souza
+ *
+ * This program is free software; you can redistribute it and/or modify it under
+ * the terms of the GNU General Public License version 2 as published by the Free
+ * Software Foundation.
+ *
+ * This program is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+ * FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License along with
+ * this program; if not, see <https://www.gnu.org/licenses/>.
+ */
 
 /*
  * Created on 25.feb.2006 18:58:58
@@ -184,7 +184,7 @@ public final class StringUtilities {
             return null;
         }
         StringBuilder result = new StringBuilder(html.length());
-        StringBuffer source = new StringBuffer(html);
+        StringBuilder source = new StringBuilder(html);
         boolean insideTag = false;
         char currentChar;
         for (int index = 0; index < source.length(); index++) {
@@ -215,9 +215,9 @@ public final class StringUtilities {
         if (text == null) {
             return null;
         }
-        StringBuffer source = new StringBuffer(text);
+        StringBuilder source = new StringBuilder(text);
         StringBuilder result = new StringBuilder(text.length());
-        StringBuffer numericCode = new StringBuffer(5);
+        StringBuilder numericCode = new StringBuilder(5);
         char currentChar;
         boolean inNumericRef = false;
         int length = source.length();

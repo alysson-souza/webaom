@@ -29,6 +29,7 @@ public class NetworkIOManager implements Runnable {
 
     private Job currentJob;
 
+    @Override
     public void run() {
         AppContext.gui.status1("Checking connection...");
         boolean timedOut = false;
@@ -49,8 +50,12 @@ public class NetworkIOManager implements Runnable {
                     if (!e.is(AniDBException.ENCRYPTION)) {
                         AppContext.gui.kill();
                         AppContext.gui.handleFatalError(true);
-                    } // else A.userPass.apiKey = null;
+                    }
                     cleanCurrentJob(e.getMessage());
+                } catch (InterruptedException e) {
+                    Thread.currentThread().interrupt();
+                    AppContext.gui.println(" " + HyperlinkBuilder.formatAsError("Thread interrupted"));
+                    cleanCurrentJob("Thread interrupted");
                 } catch (Exception e) {
                     e.printStackTrace();
                     AppContext.gui.println(" " + HyperlinkBuilder.formatAsError(e.getMessage()));
@@ -64,12 +69,11 @@ public class NetworkIOManager implements Runnable {
             } else {
                 ac.disconnect();
                 ac = null;
-                // web.setEnabled_conn(true);
                 AppContext.gui.status1("Sleeping...");
                 try {
                     Thread.sleep(100);
-                } catch (Exception e) {
-                    /* don't care */
+                } catch (InterruptedException e) {
+                    Thread.currentThread().interrupt();
                 }
                 AppContext.gui.status1(THREAD_TERMINATED_MESSAGE);
             }
@@ -88,7 +92,6 @@ public class NetworkIOManager implements Runnable {
             AppContext.gui.println(HyperlinkBuilder.formatAsError(errorMsg));
             AppContext.gui.showMessage(errorMsg);
         }
-        // !A.nr_nio = -1;
         AppContext.gui.setNetworkIoOptionsEnabled(true);
         AppContext.gui.setNetworkIoEnabled(false);
         AppContext.gui.networkIoThread = null;
@@ -100,7 +103,6 @@ public class NetworkIOManager implements Runnable {
             JobManager.updateStatus(currentJob, Job.FAILED);
             currentJob = null;
         }
-        // !A.nr_nio = -1;
     }
 
     private void doWork() throws AniDBException, InterruptedException {
@@ -110,7 +112,6 @@ public class NetworkIOManager implements Runnable {
             do {
                 currentJob = AppContext.jobs.getJobNio();
                 if (currentJob != null) {
-                    // !A.nr_nio = currentJob.mIid;
                     if (currentJob.getStatus() == Job.REMWAIT) {
                         remove(currentJob);
                     } else {
@@ -133,7 +134,6 @@ public class NetworkIOManager implements Runnable {
 
     private void remove(Job job) throws AniDBException {
         JobManager.updateStatus(job, Job.REMING);
-        // A.gui.updateJobTable(job);
         AppContext.gui.status1("Removing from mylist: " + job.getFile());
         if (job.mylistId > 0) {
             if (AppContext.conn.removeFromMylist(job.mylistId, job.getFile().getName())) {
@@ -152,7 +152,6 @@ public class NetworkIOManager implements Runnable {
 
     private void identify(Job job) throws AniDBException {
         JobManager.updateStatus(job, Job.IDENTIFYING);
-        // A.gui.updateJobTable(job);
         AppContext.gui.status1("Retrieving file data for " + job.getFile().getName());
         if (job.anidbFile == null) {
             String[] fileData;
@@ -164,27 +163,29 @@ public class NetworkIOManager implements Runnable {
                         job.fileSize, job.ed2kHash, job.getFile().getName());
             }
             if (fileData != null && AppContext.cache.parseFile(fileData, job) != null) {
-                job.mylistId = job.anidbFile.mylistEntryId;
+                job.mylistId = job.anidbFile.getMylistEntryId();
                 job.anidbFile.setJob(job);
-                String fileName = HyperlinkBuilder.formatAsName(job.anidbFile.defaultName);
-                String animeLink = HyperlinkBuilder.createHyperlink(job.anidbFile.urlAnime(), "a");
-                String epLink = HyperlinkBuilder.createHyperlink(job.anidbFile.urlEp(), "e");
-                String fileLink = HyperlinkBuilder.createHyperlink(job.anidbFile.urlFile(), "f");
+                String fileName = HyperlinkBuilder.formatAsName(job.anidbFile.getDefaultName());
+                String animeLink = HyperlinkBuilder.createHyperlink(job.anidbFile.getAnimeUrl(), "a");
+                String epLink = HyperlinkBuilder.createHyperlink(job.anidbFile.getEpisodeUrl(), "e");
+                String fileLink = HyperlinkBuilder.createHyperlink(job.anidbFile.getFileUrl(), "f");
                 AppContext.gui.println("Found " + fileName + " " + animeLink + " " + epLink + " " + fileLink);
                 JobManager.updateStatus(job, Job.IDENTIFIED);
             } else {
                 JobManager.updateStatus(job, Job.UNKNOWN);
             }
         } else {
-            if (job.anidbFile.group == null) {
-                job.anidbFile.group = (Group) AppContext.cache.get(job.anidbFile.groupId, DatabaseManager.INDEX_GROUP);
+            if (job.anidbFile.getGroup() == null) {
+                job.anidbFile.setGroup(
+                        (Group) AppContext.cache.get(job.anidbFile.getGroupId(), DatabaseManager.INDEX_GROUP));
             }
-            if (job.anidbFile.episode == null) {
-                job.anidbFile.episode =
-                        (Episode) AppContext.cache.get(job.anidbFile.episodeId, DatabaseManager.INDEX_EPISODE);
+            if (job.anidbFile.getEpisode() == null) {
+                job.anidbFile.setEpisode(
+                        (Episode) AppContext.cache.get(job.anidbFile.getEpisodeId(), DatabaseManager.INDEX_EPISODE));
             }
-            if (job.anidbFile.group == null) {
-                job.anidbFile.anime = (Anime) AppContext.cache.get(job.anidbFile.animeId, DatabaseManager.INDEX_ANIME);
+            if (job.anidbFile.getGroup() == null) {
+                job.anidbFile.setAnime(
+                        (Anime) AppContext.cache.get(job.anidbFile.getAnimeId(), DatabaseManager.INDEX_ANIME));
             }
             JobManager.updateStatus(job, Job.IDENTIFIED);
         }
@@ -192,7 +193,6 @@ public class NetworkIOManager implements Runnable {
 
     private void mylistAdd(Job job) throws AniDBException {
         JobManager.updateStatus(job, Job.ADDING);
-        // A.gui.updateJobTable(job);
         AppContext.gui.status1("Adding " + job.getFile() + " to your list...");
         int listId = AppContext.conn.addFileToMylist(job, AppContext.gui.mylistOptionsPanel.getMylistData());
         if (listId > 0) {

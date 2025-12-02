@@ -1,25 +1,19 @@
-// Copyright (C) 2005-2006 epoximator
-//
-// This program is free software; you can redistribute it and/or
-// modify it under the terms of the GNU General Public License
-// as published by the Free Software Foundation; either version 2
-// of the License, or (at your option) any later version.
-//
-// This program is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-// GNU General Public License for more details.
-//
-// You should have received a copy of the GNU General Public License
-// along with this program; if not, write to the Free Software
-// Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
-
 /*
- * Created on 03.09.05
+ * WebAOM - Web Anime-O-Matic
+ * Copyright (C) 2005-2010 epoximator 2025 Alysson Souza
  *
- * @version 	1.09
- * @author 		epoximator
+ * This program is free software; you can redistribute it and/or modify it under
+ * the terms of the GNU General Public License version 2 as published by the Free
+ * Software Foundation.
+ *
+ * This program is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+ * FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License along with
+ * this program; if not, see <https://www.gnu.org/licenses/>.
  */
+
 package epox.webaom.ui;
 
 import epox.av.AVInfo;
@@ -83,72 +77,42 @@ public class JobContextMenu extends JPopupMenu implements MouseListener, ActionL
     }
 
     public static String commandText(int commandId) {
-        switch (commandId) {
-            case APPLY_RULES:
-                return "Apply Rules";
-            case SHOW_INFO:
-                return "Show Info";
-            case EXPLORER:
-                return "Explore Folder";
-            case WATCH_NOW:
-                return "Watch Now";
-            case SET_FINISHED:
-                return "Set Finished";
-            case SET_FOLDER:
-                return "Set Folder";
-            case SET_PAR_FLD:
-                return "Set Parent Folder";
-            case REMOVE_DB:
-                return "Remove from DB";
-            case RESTORE_NAME:
-                return "Restore Name";
-            case PAUSE:
-                return "Pause";
-            case REHASH:
-                return "Rehash";
-            case REID:
-                return "Identify";
-            case READD:
-                return "Add to mylist";
-            case EDIT_PATH:
-                return "Edit Folder Path";
-            case EDIT_NAME:
-                return "Edit File Name";
-            case SET_FID:
-                return "Set fid (force)";
-            case REMOVE:
-                return "Remove from mylist";
-            case PARSE:
-                return "Parse with avinfo";
-            default:
-                return "fook";
-        }
+        return switch (commandId) {
+            case APPLY_RULES -> "Apply Rules";
+            case SHOW_INFO -> "Show Info";
+            case EXPLORER -> "Explore Folder";
+            case WATCH_NOW -> "Watch Now";
+            case SET_FINISHED -> "Set Finished";
+            case SET_FOLDER -> "Set Folder";
+            case SET_PAR_FLD -> "Set Parent Folder";
+            case REMOVE_DB -> "Remove from DB";
+            case RESTORE_NAME -> "Restore Name";
+            case PAUSE -> "Pause";
+            case REHASH -> "Rehash";
+            case REID -> "Identify";
+            case READD -> "Add to mylist";
+            case EDIT_PATH -> "Edit Folder Path";
+            case EDIT_NAME -> "Edit File Name";
+            case SET_FID -> "Set fid (force)";
+            case REMOVE -> "Remove from mylist";
+            case PARSE -> "Parse with avinfo";
+            default -> "fook";
+        };
     }
 
     public static boolean separator(int commandId) {
-        switch (commandId) {
-            case SEPARATOR_0:
-            case SEPARATOR_1:
-            case SEPARATOR_2:
-            case SEPARATOR_3:
-                return true;
-            default:
-                return false;
-        }
+        return switch (commandId) {
+            case SEPARATOR_0, SEPARATOR_1, SEPARATOR_2, SEPARATOR_3 -> true;
+            default -> false;
+        };
     }
 
     /** Returns true if the command only applies to a single selected job. */
     public static boolean single(int commandId) {
-        switch (commandId) {
-            case SHOW_INFO:
-            case WATCH_NOW:
-            case EXPLORER:
-            case SET_FID:
-            case EDIT_NAME:
-                return true;
-            default:
-                return false;
-        }
+        return switch (commandId) {
+            case SHOW_INFO, WATCH_NOW, EXPLORER, SET_FID, EDIT_NAME -> true;
+            default -> false;
+        };
     }
 
     public void stop() {
@@ -317,7 +281,7 @@ public class JobContextMenu extends JPopupMenu implements MouseListener, ActionL
     }
 
     private class MenuWorker extends Thread {
-        int commandId;
+        final int commandId;
         boolean run = true;
 
         MenuWorker(int command) {

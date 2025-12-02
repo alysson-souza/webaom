@@ -220,7 +220,7 @@ public final class JobManager {
                     }
                     break;
                 case Job.IDENTIFIED:
-                    if (job.anidbFile == null || job.anidbFile.fileId == 0 || !updatePath(job)) {
+                    if (job.anidbFile == null || job.anidbFile.getFileId() == 0 || !updatePath(job)) {
                         newStatus = Job.FAILED;
                     } else if (AppContext.autoadd && job.mylistId == 0) {
                         newStatus = Job.ADDWAIT;
@@ -231,7 +231,7 @@ public final class JobManager {
                     }
                     break;
                 case Job.ADDED:
-                    if (job.anidbFile == null || job.anidbFile.fileId == 0) {
+                    if (job.anidbFile == null || job.anidbFile.getFileId() == 0) {
                         return;
                     }
                     if (job.targetFile != null) {
@@ -239,7 +239,6 @@ public final class JobManager {
                     } else {
                         newStatus = Job.FINISHED;
                     }
-                    // A.db.addMylistEntry(this);
                     break;
                 case Job.MOVED:
                     newStatus = Job.FINISHED;

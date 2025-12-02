@@ -78,11 +78,11 @@ public final class AppContext {
     /** Secondary popup menu component (alternate view context menu). */
     public static Component secondaryPopupMenu;
     /** Root node of the anime tree structure for alternate view. */
-    public static AniDBEntity animeTreeRoot = new AniDBEntity();
+    public static final AniDBEntity animeTreeRoot = new AniDBEntity();
 
     public static boolean autoadd = false;
     public static boolean optionsChanged = false;
-    public static UserPass userPass = new UserPass(null, null, null);
+    public static final UserPass userPass = new UserPass(null, null, null);
 
     private AppContext() {
         // static only

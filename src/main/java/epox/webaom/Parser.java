@@ -220,18 +220,18 @@ public final class Parser {
                                     case 'f':
                                         String[] fields = StringUtilities.split(line.substring(1), '|');
                                         currentFile = new AniDBFile(fields);
-                                        Group group = new Group(currentFile.groupId);
+                                        Group group = new Group(currentFile.getGroupId());
                                         group.name = fields[20];
                                         group.shortName = fields[21];
                                         AppContext.cache.add(group, 1, DatabaseManager.INDEX_GROUP);
-                                        currentFile.anime = currentAnime;
-                                        currentFile.episode = currentEpisode;
-                                        currentFile.group = group;
-                                        currentFile.defaultName = currentAnime.romajiTitle + " - " + currentEpisode.num
+                                        currentFile.setAnime(currentAnime);
+                                        currentFile.setEpisode(currentEpisode);
+                                        currentFile.setGroup(group);
+                                        currentFile.setDefaultName(currentAnime.romajiTitle + " - " + currentEpisode.num
                                                 + " - " + currentEpisode.eng + " - ["
-                                                + ((currentFile.groupId > 0) ? group.shortName : "RAW") + "]";
+                                                + ((currentFile.getGroupId() > 0) ? group.shortName : "RAW") + "]");
                                         AppContext.databaseManager.update(
-                                                currentFile.fileId, currentFile, DatabaseManager.INDEX_FILE);
+                                                currentFile.getFileId(), currentFile, DatabaseManager.INDEX_FILE);
                                         break;
                                     case 'j':
                                         line = line.substring(1);
@@ -239,7 +239,7 @@ public final class Parser {
                                             currentJob = new Job(
                                                     new File(File.separatorChar + line.replace("/", "")), Job.FINISHED);
                                             currentJob.originalName = line;
-                                            currentJob.ed2kHash = currentFile.ed2kHash;
+                                            currentJob.ed2kHash = currentFile.getEd2kHash();
                                             currentJob.fileSize = currentFile.getTotalSize();
                                         } else {
                                             currentJob = new Job(StringUtilities.split(line, '|'));

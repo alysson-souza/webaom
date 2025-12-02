@@ -84,9 +84,9 @@ public class Options {
     private static final String SECTION_SEPARATOR = "\2";
 
     private final File optionsFile;
-    public int[] integerOptions = new int[INTEGER_OPTIONS_COUNT];
-    public String[] stringOptions = new String[STRING_OPTIONS_COUNT];
-    public boolean[] booleanOptions = new boolean[BOOLEAN_OPTIONS_COUNT];
+    public final int[] integerOptions = new int[INTEGER_OPTIONS_COUNT];
+    public final String[] stringOptions = new String[STRING_OPTIONS_COUNT];
+    public final boolean[] booleanOptions = new boolean[BOOLEAN_OPTIONS_COUNT];
 
     public Options() {
         String homeDirectory = System.getProperty("user.home");

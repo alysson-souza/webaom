@@ -1,7 +1,19 @@
 /*
- * Created on 24.feb.2006 22:21:45
- * Filename: Setup.java
+ * WebAOM - Web Anime-O-Matic
+ * Copyright (C) 2005-2010 epoximator 2025 Alysson Souza
+ *
+ * This program is free software; you can redistribute it and/or modify it under
+ * the terms of the GNU General Public License version 2 as published by the Free
+ * Software Foundation.
+ *
+ * This program is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+ * FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License along with
+ * this program; if not, see <https://www.gnu.org/licenses/>.
  */
+
 package epox.webaom.net;
 
 /**
@@ -10,25 +22,25 @@ package epox.webaom.net;
 public class AniDBConnectionSettings {
 
     /** AniDB API server hostname */
-    public String host;
+    public final String host;
 
     /** Remote server port */
-    public int remotePort;
+    public final int remotePort;
 
     /** Local port to bind for UDP communication */
-    public int localPort;
+    public final int localPort;
 
     /** Connection timeout in milliseconds */
-    public int timeoutMillis;
+    public final int timeoutMillis;
 
     /** Maximum number of timeout retries before giving up */
-    public int maxTimeouts;
+    public final int maxTimeouts;
 
     /** Delay between packets in milliseconds */
     public int packetDelay;
 
     /** Whether NAT traversal check is enabled */
-    public boolean natEnabled;
+    public final boolean natEnabled;
 
     /**
      * Constructor for AniDB connection settings.

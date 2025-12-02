@@ -109,29 +109,29 @@ public class KeyAdapterJob extends KeyAdapter {
         if (selectedJob.anidbFile != null) {
             switch (keyCode) {
                 case 'A':
-                    AppContext.gui.openHyperlink(selectedJob.anidbFile.urlAnime());
+                    AppContext.gui.openHyperlink(selectedJob.anidbFile.getAnimeUrl());
                     return true;
                 case 'M':
-                    AppContext.gui.openHyperlink(selectedJob.anidbFile.urlMylist());
+                    AppContext.gui.openHyperlink(selectedJob.anidbFile.getMylistUrl());
                     return true;
                 case 'N':
-                    AppContext.gui.openHyperlink(selectedJob.anidbFile.urlMylistE(selectedJob.mylistId));
+                    AppContext.gui.openHyperlink(selectedJob.anidbFile.getMylistEditUrl(selectedJob.mylistId));
                     return true;
                 case 'E':
-                    AppContext.gui.openHyperlink(selectedJob.anidbFile.urlEp());
+                    AppContext.gui.openHyperlink(selectedJob.anidbFile.getEpisodeUrl());
                     return true;
                 case 'G':
-                    AppContext.gui.openHyperlink(selectedJob.anidbFile.urlGroup());
+                    AppContext.gui.openHyperlink(selectedJob.anidbFile.getGroupUrl());
                     return true;
                 case 'F':
-                    AppContext.gui.openHyperlink(selectedJob.anidbFile.urlFile());
+                    AppContext.gui.openHyperlink(selectedJob.anidbFile.getFileUrl());
                     return true;
                 case 'K':
-                    AppContext.gui.openHyperlink(selectedJob.anidbFile.urlExport());
+                    AppContext.gui.openHyperlink(selectedJob.anidbFile.getExportUrl());
                     return true;
                 case 'C':
                     JobManager.runAvdump(selectedJob);
-                    AppContext.gui.openHyperlink(selectedJob.anidbFile.urlFile());
+                    AppContext.gui.openHyperlink(selectedJob.anidbFile.getFileUrl());
                     return true;
                 default:
                     break;
