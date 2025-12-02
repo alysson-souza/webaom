@@ -79,8 +79,8 @@ public class JobList {
         return filePathSet.contains(file);
     }
 
-    public synchronized boolean addPath(File file) {
-        return filePathSet.add(file);
+    public synchronized void addPath(File file) {
+        filePathSet.add(file);
     }
 
     public synchronized void filter(int status, int state, boolean includeUnknown) {

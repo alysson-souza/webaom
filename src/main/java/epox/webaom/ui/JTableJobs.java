@@ -1,7 +1,19 @@
 /*
- * Created on 09.mar.2006 20:51:26
- * Filename: JTableJobs.java
+ * WebAOM - Web Anime-O-Matic
+ * Copyright (C) 2005-2010 epoximator 2025 Alysson Souza
+ *
+ * This program is free software; you can redistribute it and/or modify it under
+ * the terms of the GNU General Public License version 2 as published by the Free
+ * Software Foundation.
+ *
+ * This program is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+ * FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License along with
+ * this program; if not, see <https://www.gnu.org/licenses/>.
  */
+
 package epox.webaom.ui;
 
 import epox.swing.JTableSortable;
@@ -39,6 +51,7 @@ public class JTableJobs extends JTableSortable {
         addMouseListener(new MouseAdapterJob(this, tableModel, AppContext.jobs));
         getInputMap().put(KeyStroke.getKeyStroke("ESCAPE"), "stop");
         getActionMap().put("stop", new AbstractAction() {
+            @Override
             public void actionPerformed(ActionEvent event) {
                 popupMenu.stop();
             }

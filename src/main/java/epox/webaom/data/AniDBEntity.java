@@ -1,29 +1,24 @@
-// Copyright (C) 2005-2006 epoximator
-//
-// This program is free software; you can redistribute it and/or
-// modify it under the terms of the GNU General Public License
-// as published by the Free Software Foundation; either version 2
-// of the License, or (at your option) any later version.
-//
-// This program is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-// GNU General Public License for more details.
-//
-// You should have received a copy of the GNU General Public License
-// along with this program; if not, write to the Free Software
-// Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
-
 /*
- * Created on 25.des.2005 16:37:58
- * Filename: AniDBEntity.java
+ * WebAOM - Web Anime-O-Matic
+ * Copyright (C) 2005-2010 epoximator 2025 Alysson Souza
+ *
+ * This program is free software; you can redistribute it and/or modify it under
+ * the terms of the GNU General Public License version 2 as published by the Free
+ * Software Foundation.
+ *
+ * This program is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+ * FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License along with
+ * this program; if not, see <https://www.gnu.org/licenses/>.
  */
+
 package epox.webaom.data;
 
 import epox.util.StringUtilities;
 import java.util.Arrays;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.Objects;
 import java.util.logging.Logger;
 
@@ -102,9 +97,8 @@ public class AniDBEntity implements Comparable<AniDBEntity> {
 
     public void clear() {
         totalSize = 0;
-        Iterator<AniDBEntity> it = childMap.values().iterator();
-        while (it.hasNext()) {
-            it.next().clear();
+        for (AniDBEntity aniDBEntity : childMap.values()) {
+            aniDBEntity.clear();
         }
 
         childMap.clear();
@@ -112,9 +106,8 @@ public class AniDBEntity implements Comparable<AniDBEntity> {
 
     public void dump(String prefix) {
         LOGGER.info(() -> prefix + this);
-        Iterator<AniDBEntity> it = childMap.values().iterator();
-        while (it.hasNext()) {
-            it.next().dump(prefix + ".");
+        for (AniDBEntity aniDBEntity : childMap.values()) {
+            aniDBEntity.dump(prefix + ".");
         }
     }
 
@@ -154,7 +147,7 @@ public class AniDBEntity implements Comparable<AniDBEntity> {
     }
 
     public Object getKey() {
-        return Integer.valueOf(id);
+        return id;
     }
 
     public String serialize() {

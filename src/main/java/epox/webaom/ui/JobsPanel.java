@@ -1,7 +1,19 @@
 /*
- * Created on 27.mai.2006 17:48:04
- * Filename: JPanelJobs.java
+ * WebAOM - Web Anime-O-Matic
+ * Copyright (C) 2005-2010 epoximator 2025 Alysson Souza
+ *
+ * This program is free software; you can redistribute it and/or modify it under
+ * the terms of the GNU General Public License version 2 as published by the Free
+ * Software Foundation.
+ *
+ * This program is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+ * FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License along with
+ * this program; if not, see <https://www.gnu.org/licenses/>.
  */
+
 package epox.webaom.ui;
 
 import epox.swing.JScrollTable;
@@ -65,40 +77,26 @@ public class JobsPanel extends JPanel implements ActionListener {
     }
 
     private static String getCheckboxLabel(int checkboxIndex) {
-        switch (checkboxIndex) {
-            case INDEX_DELETED:
-                return "Deleted";
-            case INDEX_DISK_IO:
-                return "DiskIO";
-            case INDEX_DOING:
-                return "Doing";
-            case INDEX_DONE:
-                return "Done";
-            case INDEX_FAILED:
-                return "Failed";
-            case INDEX_MISSING:
-                return "Missing";
-            case INDEX_NET_IO:
-                return "NetIO";
-            case INDEX_NORMAL:
-                return "Normal";
-            case INDEX_PAUSED:
-                return "Paused";
-            case INDEX_AUTO_UPDATE:
-                return "Auto Update";
-            case INDEX_WAITING:
-                return "Waiting";
-            case INDEX_UNKNOWN:
-                return "Unknown";
-            case INDEX_CRC_ERROR:
-                return "Corrupt";
-            case INDEX_CENSORED:
-                return "Censored";
-            default:
-                return "No such checkbox";
-        }
+        return switch (checkboxIndex) {
+            case INDEX_DELETED -> "Deleted";
+            case INDEX_DISK_IO -> "DiskIO";
+            case INDEX_DOING -> "Doing";
+            case INDEX_DONE -> "Done";
+            case INDEX_FAILED -> "Failed";
+            case INDEX_MISSING -> "Missing";
+            case INDEX_NET_IO -> "NetIO";
+            case INDEX_NORMAL -> "Normal";
+            case INDEX_PAUSED -> "Paused";
+            case INDEX_AUTO_UPDATE -> "Auto Update";
+            case INDEX_WAITING -> "Waiting";
+            case INDEX_UNKNOWN -> "Unknown";
+            case INDEX_CRC_ERROR -> "Corrupt";
+            case INDEX_CENSORED -> "Censored";
+            default -> "No such checkbox";
+        };
     }
 
+    @Override
     public void actionPerformed(ActionEvent event) {
         statusFilterMask = 0;
         fileStateFilterMask = 0;

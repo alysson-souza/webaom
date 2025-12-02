@@ -104,7 +104,7 @@ public class Cache {
     }
 
     public void add(AniDBEntity baseObject, int updateMode, int cacheType) {
-        Integer id = Integer.valueOf(baseObject.getId());
+        Integer id = baseObject.getId();
         if (!cacheMaps[cacheType].containsKey(id)) {
             cacheMaps[cacheType].put(id, baseObject);
             if (updateMode == 1) {
@@ -117,38 +117,36 @@ public class Cache {
     }
 
     public AniDBEntity get(int id, int cacheType) {
-        AniDBEntity baseObject = cacheMaps[cacheType].get(Integer.valueOf(id));
+        AniDBEntity baseObject = cacheMaps[cacheType].get(id);
         if (baseObject == null) {
             baseObject = AppContext.databaseManager.getGeneric(id, cacheType);
             if (baseObject != null) {
-                cacheMaps[cacheType].put(Integer.valueOf(id), baseObject);
+                cacheMaps[cacheType].put(id, baseObject);
             }
         }
         return baseObject;
     }
 
     /** Gathers related info (anime, group, episode) for a job's file. */
-    public synchronized String gatherInfo(Job job, boolean addToTree) {
+    public synchronized void gatherInfo(Job job, boolean addToTree) {
         if (job == null || job.anidbFile == null) {
-            return null;
+            return;
         }
         AniDBFile file = job.anidbFile;
         try {
-            file.anime = (Anime) get(file.animeId, DatabaseManager.INDEX_ANIME);
-            if (file.groupId != 0) {
-                file.group = (Group) get(file.groupId, DatabaseManager.INDEX_GROUP);
+            file.setAnime((Anime) get(file.getAnimeId(), DatabaseManager.INDEX_ANIME));
+            if (file.getGroupId() != 0) {
+                file.setGroup((Group) get(file.getGroupId(), DatabaseManager.INDEX_GROUP));
             } else {
-                file.group = Group.NONE;
+                file.setGroup(Group.NONE);
             }
-            file.episode = (Episode) get(file.episodeId, DatabaseManager.INDEX_EPISODE);
+            file.setEpisode((Episode) get(file.getEpisodeId(), DatabaseManager.INDEX_EPISODE));
             if (addToTree) {
                 treeAdd(job);
             }
-            return null;
         } catch (Exception ex) {
             StringUtilities.err(file);
             ex.printStackTrace();
-            return ex.getMessage();
         }
     }
 
@@ -161,61 +159,64 @@ public class Cache {
         AniDBFile file = new AniDBFile(fields);
         int fieldIndex = 20;
         // create/retrieve data objects
-        file.anime = (Anime) cacheMaps[DatabaseManager.INDEX_ANIME].get(Integer.valueOf(file.animeId));
-        if (file.anime == null) {
-            file.anime = new Anime(file.animeId);
+        Anime anime = (Anime) cacheMaps[DatabaseManager.INDEX_ANIME].get(file.getAnimeId());
+        if (anime == null) {
+            anime = new Anime(file.getAnimeId());
         } else {
-            AppContext.animeTreeRoot.remove(file.anime);
+            AppContext.animeTreeRoot.remove(anime);
         }
+        file.setAnime(anime);
 
-        file.episode = (Episode) cacheMaps[DatabaseManager.INDEX_EPISODE].get(Integer.valueOf(file.episodeId));
-        if (file.episode == null) {
-            file.episode = new Episode(file.episodeId);
+        Episode episode = (Episode) cacheMaps[DatabaseManager.INDEX_EPISODE].get(file.getEpisodeId());
+        if (episode == null) {
+            episode = new Episode(file.getEpisodeId());
         }
+        file.setEpisode(episode);
 
-        file.group = (Group) cacheMaps[DatabaseManager.INDEX_GROUP].get(Integer.valueOf(file.groupId));
-        if (file.group == null) {
-            file.group = new Group(file.groupId);
+        Group group = (Group) cacheMaps[DatabaseManager.INDEX_GROUP].get(file.getGroupId());
+        if (group == null) {
+            group = new Group(file.getGroupId());
         }
+        file.setGroup(group);
 
         // set group data
-        file.group.name = fields[fieldIndex++];
-        file.group.shortName = fields[fieldIndex++];
+        file.getGroup().name = fields[fieldIndex++];
+        file.getGroup().shortName = fields[fieldIndex++];
         // set episode data
-        file.episode.num = fields[fieldIndex++];
-        file.episode.eng = fields[fieldIndex++];
-        file.episode.rom = StringUtilities.n(fields[fieldIndex++]);
-        file.episode.kan = StringUtilities.n(fields[fieldIndex++]);
+        file.getEpisode().num = fields[fieldIndex++];
+        file.getEpisode().eng = fields[fieldIndex++];
+        file.getEpisode().rom = StringUtilities.n(fields[fieldIndex++]);
+        file.getEpisode().kan = StringUtilities.n(fields[fieldIndex++]);
         // set anime data
-        file.anime.episodeCount = Integer.parseInt(fields[fieldIndex++]);
-        file.anime.latestEpisode = Integer.parseInt(fields[fieldIndex++]);
+        file.getAnime().episodeCount = Integer.parseInt(fields[fieldIndex++]);
+        file.getAnime().latestEpisode = Integer.parseInt(fields[fieldIndex++]);
 
         try {
-            file.anime.year = Integer.parseInt(fields[fieldIndex++].substring(0, 4));
+            file.getAnime().year = Integer.parseInt(fields[fieldIndex++].substring(0, 4));
         } catch (Exception ex) {
-            file.anime.year = 0;
+            file.getAnime().year = 0;
         }
         try {
-            file.anime.endYear = Integer.parseInt(fields[fieldIndex - 1].substring(5, 9));
+            file.getAnime().endYear = Integer.parseInt(fields[fieldIndex - 1].substring(5, 9));
         } catch (Exception ex) {
-            file.anime.endYear = file.anime.year;
+            file.getAnime().endYear = file.getAnime().year;
         }
-        file.anime.type = fields[fieldIndex++];
-        file.anime.romajiTitle = fields[fieldIndex++];
-        file.anime.kanjiTitle = StringUtilities.n(fields[fieldIndex++]);
-        file.anime.englishTitle = StringUtilities.n(fields[fieldIndex++]);
-        file.anime.categories = fields[fieldIndex];
-        file.anime.init();
+        file.getAnime().type = fields[fieldIndex++];
+        file.getAnime().romajiTitle = fields[fieldIndex++];
+        file.getAnime().kanjiTitle = StringUtilities.n(fields[fieldIndex++]);
+        file.getAnime().englishTitle = StringUtilities.n(fields[fieldIndex++]);
+        file.getAnime().categories = fields[fieldIndex];
+        file.getAnime().init();
         // wrap up
-        file.defaultName = file.anime.romajiTitle + " - " + file.episode.num + " - " + file.episode.eng + " - ["
-                + ((file.groupId > 0) ? file.group.shortName : "RAW") + "]";
+        file.setDefaultName(file.getAnime().romajiTitle + " - " + file.getEpisode().num + " - " + file.getEpisode().eng
+                + " - [" + ((file.getGroupId() > 0) ? file.getGroup().shortName : "RAW") + "]");
         file.pack();
 
         // update cache/db
-        add(file.anime, 2, DatabaseManager.INDEX_ANIME);
-        add(file.episode, 2, DatabaseManager.INDEX_EPISODE);
-        add(file.group, 2, DatabaseManager.INDEX_GROUP);
-        AppContext.databaseManager.update(file.fileId, file, DatabaseManager.INDEX_FILE);
+        add(file.getAnime(), 2, DatabaseManager.INDEX_ANIME);
+        add(file.getEpisode(), 2, DatabaseManager.INDEX_EPISODE);
+        add(file.getGroup(), 2, DatabaseManager.INDEX_GROUP);
+        AppContext.databaseManager.update(file.getFileId(), file, DatabaseManager.INDEX_FILE);
 
         // update data tree
         job.anidbFile = file;
@@ -246,7 +247,7 @@ public class Cache {
             return;
         }
         AniDBFile file = job.anidbFile;
-        Anime anime = file.anime;
+        Anime anime = file.getAnime();
         if (AppContext.animeTreeRoot.has(anime)) {
             AppContext.animeTreeRoot.remove(anime);
         }
@@ -258,26 +259,26 @@ public class Cache {
                 break;
             case MODE_ANIME_EPISODE_FILE:
                 {
-                    if (anime.has(file.episode)) {
-                        anime.remove(file.episode);
+                    if (anime.has(file.getEpisode())) {
+                        anime.remove(file.getEpisode());
                     }
-                    if (file.episode.has(file)) {
-                        file.episode.remove(file);
+                    if (file.getEpisode().has(file)) {
+                        file.getEpisode().remove(file);
                     }
-                    file.episode.add(file);
-                    anime.add(file.episode);
+                    file.getEpisode().add(file);
+                    anime.add(file.getEpisode());
                 }
                 break;
             case MODE_ANIME_GROUP_FILE:
                 {
-                    if (file.groupId < 1) {
-                        file.group = Group.NONE;
+                    if (file.getGroupId() < 1) {
+                        file.setGroup(Group.NONE);
                     }
-                    AniDBEntity groupNode = anime.get(file.group.getKey());
+                    AniDBEntity groupNode = anime.get(file.getGroup().getKey());
                     if (groupNode != null) {
                         anime.remove(groupNode);
                     } else {
-                        groupNode = new AnimeGroup(anime, file.group);
+                        groupNode = new AnimeGroup(anime, file.getGroup());
                     }
                     if (groupNode.has(file)) {
                         groupNode.remove(file);
@@ -305,7 +306,7 @@ public class Cache {
             default:
                 break;
         }
-        anime.registerEpisode(file.episode, true);
+        anime.registerEpisode(file.getEpisode(), true);
         anime.updateCompletionPercent();
         AppContext.animeTreeRoot.add(anime);
     }
@@ -315,7 +316,7 @@ public class Cache {
             return;
         }
         AniDBFile file = job.anidbFile;
-        Anime anime = file.anime;
+        Anime anime = file.getAnime();
         if (AppContext.animeTreeRoot.has(anime)) {
             AppContext.animeTreeRoot.remove(anime);
         }
@@ -327,19 +328,19 @@ public class Cache {
                 break;
             case MODE_ANIME_EPISODE_FILE:
                 {
-                    anime.remove(file.episode);
-                    file.episode.remove(file);
-                    if (file.episode.size() > 0) {
-                        anime.add(file.episode);
+                    anime.remove(file.getEpisode());
+                    file.getEpisode().remove(file);
+                    if (file.getEpisode().size() > 0) {
+                        anime.add(file.getEpisode());
                     }
                 }
                 break;
             case MODE_ANIME_GROUP_FILE:
                 {
-                    if (file.groupId < 1) {
-                        file.group = Group.NONE;
+                    if (file.getGroupId() < 1) {
+                        file.setGroup(Group.NONE);
                     }
-                    AniDBEntity groupNode = anime.get(file.group.getKey());
+                    AniDBEntity groupNode = anime.get(file.getGroup().getKey());
                     if (groupNode != null) {
                         anime.remove(groupNode);
                         groupNode.remove(file);
@@ -365,7 +366,7 @@ public class Cache {
             default:
                 break;
         }
-        anime.registerEpisode(file.episode, file.episode.size() > 0);
+        anime.registerEpisode(file.getEpisode(), file.getEpisode().size() > 0);
         anime.updateCompletionPercent();
         if (anime.size() > 0) {
             AppContext.animeTreeRoot.add(anime);

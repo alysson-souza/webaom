@@ -1,18 +1,18 @@
-// Copyright (C) 2005-2006 epoximator
-//
-// This program is free software; you can redistribute it and/or
-// modify it under the terms of the GNU General Public License
-// as published by the Free Software Foundation; either version 2
-// of the License, or (at your option) any later version.
-//
-// This program is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-// GNU General Public License for more details.
-//
-// You should have received a copy of the GNU General Public License
-// along with this program; if not, write to the Free Software
-// Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+/*
+ * WebAOM - Web Anime-O-Matic
+ * Copyright (C) 2005-2010 epoximator 2025 Alysson Souza
+ *
+ * This program is free software; you can redistribute it and/or modify it under
+ * the terms of the GNU General Public License version 2 as published by the Free
+ * Software Foundation.
+ *
+ * This program is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+ * FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License along with
+ * this program; if not, see <https://www.gnu.org/licenses/>.
+ */
 
 /*
  * Created on 10.des.2005 18:58:48
@@ -71,8 +71,9 @@ public class AniDBFileClient extends AniDBConnection {
         String escapedSource = escapeForXml(mylistEntry.source);
         String escapedStorage = escapeForXml(mylistEntry.storage);
         String escapedOther = escapeForXml(mylistEntry.other);
-        String params = "fid=" + job.anidbFile.fileId + "&state=" + mylistEntry.state + "&viewed=" + mylistEntry.viewed
-                + "&source=" + escapedSource + "&storage=" + escapedStorage + "&other=" + escapedOther + "&edit=0";
+        String params = "fid=" + job.anidbFile.getFileId() + "&state=" + mylistEntry.state + "&viewed="
+                + mylistEntry.viewed + "&source=" + escapedSource + "&storage=" + escapedStorage + "&other="
+                + escapedOther + "&edit=0";
 
         AniDBConnectionResponse response = send("MYLISTADD", params, true);
         if (response == null) {
@@ -82,12 +83,12 @@ public class AniDBFileClient extends AniDBConnection {
             case AniDBConnectionResponse.MYLIST_ENTRY_ADDED:
                 return Integer.parseInt(response.data);
             case AniDBConnectionResponse.FILE_ALREADY_IN_MYLIST:
-                error(job.anidbFile.defaultName + " is already in mylist.");
+                error(job.anidbFile.getDefaultName() + " is already in mylist.");
                 // Response format: {lid}|{fid}|{eid}|{aid}|{gid}|{date}|{state}|...
                 String[] fields = StringUtilities.split(response.data, '|');
                 return Integer.parseInt(fields[0]);
             case AniDBConnectionResponse.NO_SUCH_MYLIST_FILE:
-                error(job.anidbFile.defaultName + " was not found in AniDB.");
+                error(job.anidbFile.getDefaultName() + " was not found in AniDB.");
             case AniDBConnectionResponse.MYLIST_ENTRY_EDITED:
             case AniDBConnectionResponse.NO_SUCH_MYLIST_ENTRY:
             default:

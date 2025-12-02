@@ -69,13 +69,6 @@ Third-party code in `com/`, `gnu/`, `jonelo/` packages is excluded from formatti
 - SonarLint for IDE-based code quality analysis (VS Code and IntelliJ IDEA)
 - No CI-based linting - rely on IDE integration
 
-### Legacy Patterns (To be improved as you go)
-
-- Global state via `AppContext` static fields (historically `A`)
-- Some legacy files may use Hungarian-ish prefixes: `m_` (member), `mI` (int), `mS` (string), `mB` (boolean)
-- Bitmask constants for Job states: `S_DONE`, `H_PAUSED`, `D_DIO`, etc.
-- Static field access via `AppContext.` class (e.g., `AppContext.jobs`, `AppContext.opt`, `AppContext.gui`)
-
 ## Key Implementation Details
 
 ### Configuration

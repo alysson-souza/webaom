@@ -1,24 +1,17 @@
-// Copyright (C) 2005-2006 epoximator
-//
-// This program is free software; you can redistribute it and/or
-// modify it under the terms of the GNU General Public License
-// as published by the Free Software Foundation; either version 2
-// of the License, or (at your option) any later version.
-//
-// This program is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-// GNU General Public License for more details.
-//
-// You should have received a copy of the GNU General Public License
-// along with this program; if not, write to the Free Software
-// Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
-
 /*
- * Created on 31.08.05
+ * WebAOM - Web Anime-O-Matic
+ * Copyright (C) 2005-2010 epoximator 2025 Alysson Souza
  *
- * @version 	1.09
- * @author 		epoximator
+ * This program is free software; you can redistribute it and/or modify it under
+ * the terms of the GNU General Public License version 2 as published by the Free
+ * Software Foundation.
+ *
+ * This program is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+ * FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License along with
+ * this program; if not, see <https://www.gnu.org/licenses/>.
  */
 
 package epox.webaom.ui;
@@ -62,8 +55,8 @@ public class RulesOptionsPanel extends JPanel implements Action, ItemListener {
 
     private final transient Rules rules;
 
-    protected JTable replacementsTable;
-    protected ReplacementTableModel replacementsTableModel;
+    protected final JTable replacementsTable;
+    protected final ReplacementTableModel replacementsTableModel;
 
     public RulesOptionsPanel(Rules rules) {
         super(new BorderLayout());
@@ -123,11 +116,13 @@ public class RulesOptionsPanel extends JPanel implements Action, ItemListener {
         replacementsTable.getInputMap().put(KeyStroke.getKeyStroke("control UP"), "moveup");
         replacementsTable.getInputMap().put(KeyStroke.getKeyStroke("control DOWN"), "movedown");
         replacementsTable.getActionMap().put("moveup", new AbstractAction() {
+            @Override
             public void actionPerformed(ActionEvent event) {
                 moveElement(replacementsTable, replacementsTableModel.getData(), -1);
             }
         });
         replacementsTable.getActionMap().put("movedown", new AbstractAction() {
+            @Override
             public void actionPerformed(ActionEvent event) {
                 moveElement(replacementsTable, replacementsTableModel.getData(), 1);
             }
@@ -151,6 +146,7 @@ public class RulesOptionsPanel extends JPanel implements Action, ItemListener {
         add(splitPane, BorderLayout.CENTER);
     }
 
+    @Override
     public void actionPerformed(ActionEvent event) {
         Object source = event.getSource();
         if (source == replacementsTable) {
@@ -161,6 +157,7 @@ public class RulesOptionsPanel extends JPanel implements Action, ItemListener {
         replacementsTable.updateUI();
     }
 
+    @Override
     public void itemStateChanged(ItemEvent event) {
         Object source = event.getSource();
         if (event.getStateChange() == ItemEvent.DESELECTED) {
@@ -236,10 +233,12 @@ public class RulesOptionsPanel extends JPanel implements Action, ItemListener {
         }
     }
 
+    @Override
     public Object getValue(String key) {
         return null;
     }
 
+    @Override
     public void putValue(String key, Object value) {
         // don't care
     }

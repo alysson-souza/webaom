@@ -1,24 +1,17 @@
-// Copyright (C) 2005-2006 epoximator
-//
-// This program is free software; you can redistribute it and/or
-// modify it under the terms of the GNU General Public License
-// as published by the Free Software Foundation; either version 2
-// of the License, or (at your option) any later version.
-//
-// This program is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-// GNU General Public License for more details.
-//
-// You should have received a copy of the GNU General Public License
-// along with this program; if not, write to the Free Software
-// Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
-
 /*
- * Created on 29.01.05
+ * WebAOM - Web Anime-O-Matic
+ * Copyright (C) 2005-2010 epoximator 2025 Alysson Souza
  *
- * @version 	1.06, 1.01
- * @author 		epoximator
+ * This program is free software; you can redistribute it and/or modify it under
+ * the terms of the GNU General Public License version 2 as published by the Free
+ * Software Foundation.
+ *
+ * This program is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+ * FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License along with
+ * this program; if not, see <https://www.gnu.org/licenses/>.
  */
 
 package epox.webaom.ui;
@@ -69,6 +62,7 @@ public class JEditorPaneLog extends JEditorPane implements Log, Action {
         }
     }
 
+    @Override
     public void println(Object message) {
         String formattedTime = HyperlinkBuilder.formatAsNumber(StringUtilities.time());
         StringBuffer logLine = new StringBuffer(256);
@@ -116,22 +110,27 @@ public class JEditorPaneLog extends JEditorPane implements Log, Action {
         }
     }
 
+    @Override
     public void status0(String msg) {
         // don't care
     }
 
+    @Override
     public void status1(String msg) {
         // don't care
     }
 
+    @Override
     public Object getValue(String key) {
         return null;
     }
 
+    @Override
     public void putValue(String key, Object value) {
         // don't care
     }
 
+    @Override
     public void actionPerformed(ActionEvent event) {
         setHeader(javax.swing.JOptionPane.showInputDialog(AppContext.frame, "Edit header", htmlHeader));
     }
@@ -155,18 +154,22 @@ public class JEditorPaneLog extends JEditorPane implements Log, Action {
             randomAccessFile.seek(randomAccessFile.length());
         }
 
+        @Override
         public void close() throws IOException {
             randomAccessFile.close();
         }
 
+        @Override
         public void write(byte[] bytes) throws IOException {
             randomAccessFile.write(bytes);
         }
 
+        @Override
         public void write(byte[] bytes, int offset, int length) throws IOException {
             randomAccessFile.write(bytes, offset, length);
         }
 
+        @Override
         public void write(int byteValue) throws IOException {
             randomAccessFile.write(byteValue);
         }

@@ -29,9 +29,9 @@ import org.xml.sax.XMLReader;
 import org.xml.sax.helpers.DefaultHandler;
 
 public class FileInfo {
-    public Vector<AttributeMap> vid;
-    public Vector<AttributeMap> aud;
-    public Vector<AttributeMap> sub;
+    public final Vector<AttributeMap> vid;
+    public final Vector<AttributeMap> aud;
+    public final Vector<AttributeMap> sub;
     public String m_xml = null;
 
     public FileInfo(String xml) throws IOException {
@@ -65,8 +65,6 @@ public class FileInfo {
             xml.setContentHandler(myh);
             xml.parse(new InputSource(new StringReader(str)));
             m_xml = str.replaceAll("[\r\n\t]", "").replaceAll(" {2}", " ");
-        } catch (SAXException e) {
-            e.printStackTrace();
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -112,6 +110,7 @@ public class FileInfo {
         String id = null;
         AttributeMap m;
 
+        @Override
         public void startElement(String namespace, String localname, String type, org.xml.sax.Attributes attributes)
                 throws org.xml.sax.SAXException {
             name = type;
@@ -136,6 +135,7 @@ public class FileInfo {
             }
         }
 
+        @Override
         public void endElement(String namespace, String localname, String type) throws org.xml.sax.SAXException {
             if (type.equals("vid") && ctyp == VID) {
                 vid.add(m);
@@ -156,6 +156,7 @@ public class FileInfo {
             }
         }
 
+        @Override
         public void characters(char[] ch, int start, int len) {
             String text = new String(ch, start, len).trim();
             if (text.isEmpty()) {

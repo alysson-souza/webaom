@@ -1,23 +1,19 @@
-// Copyright (C) 2005-2006 epoximator
-//
-// This program is free software; you can redistribute it and/or
-// modify it under the terms of the GNU General Public License
-// as published by the Free Software Foundation; either version 2
-// of the License, or (at your option) any later version.
-//
-// This program is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-// GNU General Public License for more details.
-//
-// You should have received a copy of the GNU General Public License
-// along with this program; if not, write to the Free Software
-// Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
-
 /*
- * Created on 25.des.2005 16:29:23
- * Filename: AnimeModel.java
+ * WebAOM - Web Anime-O-Matic
+ * Copyright (C) 2005-2010 epoximator 2025 Alysson Souza
+ *
+ * This program is free software; you can redistribute it and/or modify it under
+ * the terms of the GNU General Public License version 2 as published by the Free
+ * Software Foundation.
+ *
+ * This program is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+ * FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License along with
+ * this program; if not, see <https://www.gnu.org/licenses/>.
  */
+
 package epox.webaom.ui;
 
 import com.sun.swing.AbstractTreeTableModel;
@@ -42,8 +38,8 @@ public class AlternateViewTableModel extends AbstractTreeTableModel {
     public static final int YEAR = 4;
     public static final int NUMB = 5;
     public static final int SIZE = 6;
-    protected static String[] cNames = {"Name", "%", "M", "Type", "Year", "Number", "Size"};
-    protected static Class<?>[] cTypes = {
+    protected static final String[] cNames = {"Name", "%", "M", "Type", "Year", "Number", "Size"};
+    protected static final Class<?>[] cTypes = {
         TreeTableModel.class, String.class, Character.class, Integer.class, Integer.class, Integer.class, String.class
     };
 
@@ -51,10 +47,12 @@ public class AlternateViewTableModel extends AbstractTreeTableModel {
         super(AppContext.animeTreeRoot);
     }
 
+    @Override
     public int getColumnCount() {
         return cNames.length;
     }
 
+    @Override
     public String getColumnName(int c) {
         return cNames[c];
     }
@@ -64,12 +62,13 @@ public class AlternateViewTableModel extends AbstractTreeTableModel {
         return cTypes[c];
     }
 
+    @Override
     public Object getValueAt(Object node, int c) {
         if (node instanceof Anime a) {
             return getAnimeValue(a, c);
         }
         if (node instanceof Episode e) {
-            return c == NUMB ? Integer.valueOf(e.size()) : null;
+            return c == NUMB ? e.size() : null;
         }
         if (node instanceof AniDBFile f) {
             return getFileValue(f, c);
@@ -78,7 +77,7 @@ public class AlternateViewTableModel extends AbstractTreeTableModel {
             return getAnimeGroupValue(g, c);
         }
         if (node instanceof Path p) {
-            return c == NUMB ? Integer.valueOf(p.size()) : null;
+            return c == NUMB ? p.size() : null;
         }
         if (node == AppContext.animeTreeRoot) {
             return getRootValue(c);
@@ -94,10 +93,10 @@ public class AlternateViewTableModel extends AbstractTreeTableModel {
         return switch (c) {
             case NAME -> a.romajiTitle;
             case TYPE -> a.type;
-            case YEAR -> Integer.valueOf(a.year);
-            case NUMB -> Integer.valueOf(a.size());
-            case PRCT -> Integer.valueOf(a.getCompletionPercent());
-            case LAST -> Character.valueOf(a.getMissingPattern());
+            case YEAR -> a.year;
+            case NUMB -> a.size();
+            case PRCT -> a.getCompletionPercent();
+            case LAST -> a.getMissingPattern();
             default -> null;
         };
     }
@@ -105,16 +104,16 @@ public class AlternateViewTableModel extends AbstractTreeTableModel {
     private Object getFileValue(AniDBFile f, int c) {
         return switch (c) {
             case TYPE -> f.getJob() == null ? null : f.getJob().getStatusText();
-            case YEAR -> f.videoCodec;
-            case NUMB -> f.audioCodec;
+            case YEAR -> f.getVideoCodec();
+            case NUMB -> f.getAudioCodec();
             default -> null;
         };
     }
 
     private Object getAnimeGroupValue(AnimeGroup g, int c) {
         return switch (c) {
-            case NUMB -> Integer.valueOf(g.size());
-            case PRCT -> Integer.valueOf(g.getCompletionPercent());
+            case NUMB -> g.size();
+            case PRCT -> g.getCompletionPercent();
             default -> null;
         };
     }
@@ -122,11 +121,12 @@ public class AlternateViewTableModel extends AbstractTreeTableModel {
     private Object getRootValue(int c) {
         return switch (c) {
             case NAME -> AppContext.animeTreeRoot.toString();
-            case NUMB -> Integer.valueOf(AppContext.animeTreeRoot.size());
+            case NUMB -> AppContext.animeTreeRoot.size();
             default -> null;
         };
     }
 
+    @Override
     public Object getChild(Object parent, int index) {
         if (parent instanceof AniDBEntity entity) {
             return entity.get(index);
@@ -135,6 +135,7 @@ public class AlternateViewTableModel extends AbstractTreeTableModel {
         return null;
     }
 
+    @Override
     public int getChildCount(Object parent) {
         AniDBEntity p = (AniDBEntity) parent;
         p.buildSortedChildArray();

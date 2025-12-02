@@ -1,23 +1,19 @@
-// Copyright (C) 2005-2006 epoximator
-//
-// This program is free software; you can redistribute it and/or
-// modify it under the terms of the GNU General Public License
-// as published by the Free Software Foundation; either version 2
-// of the License, or (at your option) any later version.
-//
-// This program is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-// GNU General Public License for more details.
-//
-// You should have received a copy of the GNU General Public License
-// along with this program; if not, write to the Free Software
-// Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
-
 /*
- * Created on 21.nov.2005 15:56:58
- * Filename: ChiiEmulator.java
+ * WebAOM - Web Anime-O-Matic
+ * Copyright (C) 2005-2010 epoximator 2025 Alysson Souza
+ *
+ * This program is free software; you can redistribute it and/or modify it under
+ * the terms of the GNU General Public License version 2 as published by the Free
+ * Software Foundation.
+ *
+ * This program is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+ * FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License along with
+ * this program; if not, see <https://www.gnu.org/licenses/>.
  */
+
 package epox.webaom;
 
 import epox.swing.CommandModel;
@@ -42,23 +38,19 @@ public class ChiiEmu implements CommandModel {
     }
 
     protected static String getUsageMessage(int usageType) {
-        switch (usageType) {
-            case USAGE_WATCHED:
-                return "WATCHED: usage: !watched <anime> <epnumber>, !state <fid>, !state <ed2k"
-                        + " link>, epnumber may be 'all', 'upto <epno>' or 'NONE'.";
-            case USAGE_STATE:
-                return "STATE: usage: !state <anime> <epnumber> <state>, !state <fid> <state>,"
-                        + " !state <ed2k link> <state>, !state last <state>, epnumber may be"
-                        + " 'all' or 'upto <epno>'. State is: unknown/hdd/cd/deleted.";
-            case USAGE_STATE2:
-                return "!state2 anime/aid, group/gid/all, all/upto x/x, unknown/hdd/cd/deleted";
-            case USAGE_STORAGE:
-                return "!storage anime/aid, group/gid/all, all/upto x/x, text";
-            default:
-                return "NOO!";
-        }
+        return switch (usageType) {
+            case USAGE_WATCHED -> "WATCHED: usage: !watched <anime> <epnumber>, !state <fid>, !state <ed2k"
+                    + " link>, epnumber may be 'all', 'upto <epno>' or 'NONE'.";
+            case USAGE_STATE -> "STATE: usage: !state <anime> <epnumber> <state>, !state <fid> <state>,"
+                    + " !state <ed2k link> <state>, !state last <state>, epnumber may be"
+                    + " 'all' or 'upto <epno>'. State is: unknown/hdd/cd/deleted.";
+            case USAGE_STATE2 -> "!state2 anime/aid, group/gid/all, all/upto x/x, unknown/hdd/cd/deleted";
+            case USAGE_STORAGE -> "!storage anime/aid, group/gid/all, all/upto x/x, text";
+            default -> "NOO!";
+        };
     }
 
+    @Override
     public void handleCommand(String command) {
         aniDbConnection = AppContext.conn;
         if (command.startsWith("!font")) {
@@ -245,6 +237,7 @@ public class ChiiEmu implements CommandModel {
             this.commandText = commandText;
         }
 
+        @Override
         public void run() {
             String result = "Query failed.";
             try {
@@ -348,7 +341,7 @@ public class ChiiEmu implements CommandModel {
                     return getUsageMessage(usageType);
                 }
             }
-            StringBuffer requestParameters = new StringBuffer(50);
+            StringBuilder requestParameters = new StringBuilder(50);
             requestParameters.append("edit=1");
             int id;
             try {
@@ -416,14 +409,12 @@ public class ChiiEmu implements CommandModel {
         }
 
         public String randomAnime(String param) throws AniDBException {
-            int type = 0;
-            if (param.equals("watched")) {
-                type = 1;
-            } else if (param.equals("unwatched")) {
-                type = 2;
-            } else if (param.equals("all")) {
-                type = 3;
-            }
+            int type = switch (param) {
+                case "watched" -> 1;
+                case "unwatched" -> 2;
+                case "all" -> 3;
+                default -> 0;
+            };
             AniDBConnectionResponse response = aniDbConnection.send("RANDOMANIME", "type=" + type, true);
             return "RANDOM " + formatAnime(response.data);
         }

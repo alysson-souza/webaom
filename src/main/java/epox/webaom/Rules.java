@@ -1,25 +1,19 @@
-// Copyright (C) 2005-2006 epoximator
-
-// This program is free software; you can redistribute it and/or
-// modify it under the terms of the GNU General Public License
-// as published by the Free Software Foundation; either version 2
-// of the License, or (at your option) any later version.
-
-// This program is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-// GNU General Public License for more details.
-
-// You should have received a copy of the GNU General Public License
-// along with this program; if not, write to the Free Software
-// Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
-
 /*
- * Created on 03.08.05
+ * WebAOM - Web Anime-O-Matic
+ * Copyright (C) 2005-2010 epoximator 2025 Alysson Souza
  *
- * @version 	05 (1.14,1.13,1.12,1.11,1.09)
- * @author 		epoximator
+ * This program is free software; you can redistribute it and/or modify it under
+ * the terms of the GNU General Public License version 2 as published by the Free
+ * Software Foundation.
+ *
+ * This program is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+ * FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License along with
+ * this program; if not, see <https://www.gnu.org/licenses/>.
  */
+
 package epox.webaom;
 
 import epox.util.ReplacementRule;
@@ -39,7 +33,7 @@ public class Rules {
     public static final String TRUNC = "TRUNCATE<";
 
     /** Characters to replace in filenames (illegal filesystem characters) */
-    private List<ReplacementRule> illegalCharReplacements;
+    private final List<ReplacementRule> illegalCharReplacements;
 
     private String renameRulesScript;
     private String moveRulesScript;
@@ -171,7 +165,7 @@ public class Rules {
         String path = job.currentFile.getParent();
         String name = job.currentFile.getName();
 
-        if (job.anidbFile.anime != null) {
+        if (job.anidbFile.getAnime() != null) {
             tagValueMap = job.genMap();
             String renameResult = processRulesScript(job, renameRulesScript);
             String moveResult = processRulesScript(job, moveRulesScript);
@@ -213,7 +207,7 @@ public class Rules {
             }
             StringBuilder result = new StringBuilder();
             while (!sections.isEmpty()) {
-                result.append(sections.remove(0));
+                result.append(sections.removeFirst());
             }
             return result.toString();
         } catch (Exception e) {
@@ -377,49 +371,49 @@ public class Rules {
         switch (Character.toUpperCase(conditionType)) {
             case 'A': { // Anime name or ID
                 try {
-                    return job.anidbFile.animeId == Integer.parseInt(testValue.trim());
+                    return job.anidbFile.getAnimeId() == Integer.parseInt(testValue.trim());
                 } catch (NumberFormatException e) {
-                    return matchesPattern(job.anidbFile.anime.romajiTitle, testValue)
-                            || matchesPattern(job.anidbFile.anime.kanjiTitle, testValue)
-                            || matchesPattern(job.anidbFile.anime.englishTitle, testValue);
+                    return matchesPattern(job.anidbFile.getAnime().romajiTitle, testValue)
+                            || matchesPattern(job.anidbFile.getAnime().kanjiTitle, testValue)
+                            || matchesPattern(job.anidbFile.getAnime().englishTitle, testValue);
                 }
             }
             case 'E': // Episode
-                return matchesPattern(job.anidbFile.episode.num, testValue)
-                        || matchesPattern(job.anidbFile.episode.eng, testValue);
+                return matchesPattern(job.anidbFile.getEpisode().num, testValue)
+                        || matchesPattern(job.anidbFile.getEpisode().eng, testValue);
             case 'C': // Codec
-                return job.anidbFile.videoCodec.equalsIgnoreCase(testValue)
-                        || containsIgnoreCase(job.anidbFile.audioCodec, testValue);
+                return job.anidbFile.getVideoCodec().equalsIgnoreCase(testValue)
+                        || containsIgnoreCase(job.anidbFile.getAudioCodec(), testValue);
             case 'Q': // Quality
-                return job.anidbFile.quality.equalsIgnoreCase(testValue);
+                return job.anidbFile.getQuality().equalsIgnoreCase(testValue);
             case 'R': // Rip source
-                return job.anidbFile.ripSource.equalsIgnoreCase(testValue);
+                return job.anidbFile.getRipSource().equalsIgnoreCase(testValue);
             case 'T': // Type
-                return job.anidbFile.anime.type.equalsIgnoreCase(testValue);
+                return job.anidbFile.getAnime().type.equalsIgnoreCase(testValue);
             case 'G': { // Group name or ID
-                if (job.anidbFile.groupId == 0) {
+                if (job.anidbFile.getGroupId() == 0) {
                     return testValue.equalsIgnoreCase("unknown");
                 }
                 try {
-                    return job.anidbFile.groupId == Integer.parseInt(testValue.trim());
+                    return job.anidbFile.getGroupId() == Integer.parseInt(testValue.trim());
                 } catch (NumberFormatException e) {
                     /* Expected when testValue is a group name */
                 }
-                return job.anidbFile.group.name.equalsIgnoreCase(testValue)
-                        || job.anidbFile.group.shortName.equalsIgnoreCase(testValue);
+                return job.anidbFile.getGroup().name.equalsIgnoreCase(testValue)
+                        || job.anidbFile.getGroup().shortName.equalsIgnoreCase(testValue);
             }
             case 'Y': // Year
                 return job.anidbFile.inYear(testValue);
             case 'D': // Dub language
-                return containsIgnoreCase(job.anidbFile.dubLanguage, testValue);
+                return containsIgnoreCase(job.anidbFile.getDubLanguage(), testValue);
             case 'S': // Sub language
-                return containsIgnoreCase(job.anidbFile.subLanguage, testValue);
+                return containsIgnoreCase(job.anidbFile.getSubLanguage(), testValue);
             case 'X': // Episode count
-                return testValue.equals("" + job.anidbFile.anime.episodeCount);
+                return testValue.equals("" + job.anidbFile.getAnime().episodeCount);
             case 'P': // Path
                 return matchesPattern(job.currentFile.getAbsolutePath(), testValue);
             case 'N': // Genre/category
-                return containsIgnoreCase(job.anidbFile.anime.categories, testValue);
+                return containsIgnoreCase(job.anidbFile.getAnime().categories, testValue);
             case 'I': { // Is tag defined
                 String tagValue = tagValueMap.get(testValue);
                 return tagValue != null && !tagValue.isEmpty();

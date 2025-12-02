@@ -1,25 +1,19 @@
-// Copyright (C) 2005-2006 epoximator
-//
-// This program is free software; you can redistribute it and/or
-// modify it under the terms of the GNU General Public License
-// as published by the Free Software Foundation; either version 2
-// of the License, or (at your option) any later version.
-//
-// This program is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-// GNU General Public License for more details.
-//
-// You should have received a copy of the GNU General Public License
-// along with this program; if not, write to the Free Software
-// Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
-
 /*
- * Created on 02.09.05
+ * WebAOM - Web Anime-O-Matic
+ * Copyright (C) 2005-2010 epoximator 2025 Alysson Souza
  *
- * @version 	1.09
- * @author 		epoximator
+ * This program is free software; you can redistribute it and/or modify it under
+ * the terms of the GNU General Public License version 2 as published by the Free
+ * Software Foundation.
+ *
+ * This program is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+ * FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License along with
+ * this program; if not, see <https://www.gnu.org/licenses/>.
  */
+
 package epox.webaom.ui;
 
 import epox.webaom.Job;
@@ -61,19 +55,23 @@ public class TableModelJobs extends AbstractTableModel implements RowModel {
         currentJob = null;
     }
 
+    @Override
     public int getColumnCount() {
         return JobColumn.getColumnCount();
     }
 
+    @Override
     public Class<?> getColumnClass(int columnIndex) {
         JobColumn column = JobColumn.fromIndex(columnIndex);
         return column != null ? column.getType() : String.class;
     }
 
+    @Override
     public int getRowCount() {
         return jobList.size();
     }
 
+    @Override
     public Object getValueAt(int row, int columnIndex) {
         if (columnIndex < 1 || row != currentRowIndex) {
             currentRowIndex = row;
@@ -92,24 +90,20 @@ public class TableModelJobs extends AbstractTableModel implements RowModel {
         return extractValue(column, currentJob, row);
     }
 
-    public boolean isCellEditable(int row, int columnIndex) {
-        return false;
-    }
-
     /**
      * Extract column value from Job. Hybrid approach: enum defines metadata, this method handles
      * extraction. Switch statement is debuggable and clear.
      */
     private Object extractValue(JobColumn column, Job job, int rowNumber) {
         if (column == JobColumn.NUMB) {
-            return Integer.valueOf(rowNumber + 1);
+            return rowNumber + 1;
         }
 
         switch (column) {
             case LIDN:
-                return Integer.valueOf(job.mylistId);
+                return job.mylistId;
             case FSIZ:
-                return Long.valueOf(job.fileSize);
+                return job.fileSize;
             case FILE:
                 return job.getFile().getAbsolutePath();
             case PATH:
@@ -127,84 +121,100 @@ public class TableModelJobs extends AbstractTableModel implements RowModel {
         }
 
         switch (column) {
-            case FIDN:
-                return Integer.valueOf(job.anidbFile.fileId);
-            case AIDN:
-                return Integer.valueOf(job.anidbFile.animeId);
-            case EIDN:
-                return Integer.valueOf(job.anidbFile.episodeId);
-            case GIDN:
-                return Integer.valueOf(job.anidbFile.groupId);
-            case FLEN:
-                return Integer.valueOf(job.anidbFile.lengthInSeconds);
-            case FDUB:
-                return defaultString(job.anidbFile.dubLanguage);
-            case FSUB:
-                return defaultString(job.anidbFile.subLanguage);
-            case FSRC:
-                return defaultString(job.anidbFile.ripSource);
-            case FQUA:
-                return defaultString(job.anidbFile.quality);
-            case FRES:
-                return defaultString(job.anidbFile.resolution);
-            case FVID:
-                return defaultString(job.anidbFile.videoCodec);
-            case FAUD:
-                return defaultString(job.anidbFile.audioCodec);
-            case FMDS:
+            case FIDN -> {
+                return job.anidbFile.getFileId();
+            }
+            case AIDN -> {
+                return job.anidbFile.getAnimeId();
+            }
+            case EIDN -> {
+                return job.anidbFile.getEpisodeId();
+            }
+            case GIDN -> {
+                return job.anidbFile.getGroupId();
+            }
+            case FLEN -> {
+                return job.anidbFile.getLengthInSeconds();
+            }
+            case FDUB -> {
+                return defaultString(job.anidbFile.getDubLanguage());
+            }
+            case FSUB -> {
+                return defaultString(job.anidbFile.getSubLanguage());
+            }
+            case FSRC -> {
+                return defaultString(job.anidbFile.getRipSource());
+            }
+            case FQUA -> {
+                return defaultString(job.anidbFile.getQuality());
+            }
+            case FRES -> {
+                return defaultString(job.anidbFile.getResolution());
+            }
+            case FVID -> {
+                return defaultString(job.anidbFile.getVideoCodec());
+            }
+            case FAUD -> {
+                return defaultString(job.anidbFile.getAudioCodec());
+            }
+            case FMDS -> {
                 return defaultString(job.anidbFile.getMissingDataStrict());
-            case FMDA:
+            }
+            case FMDA -> {
                 return defaultString(job.anidbFile.getMissingDataAdditional());
-            default:
-                break;
+            }
+            default -> {
+            }
         }
 
-        if (job.anidbFile.anime != null) {
+        if (job.anidbFile.getAnime() != null) {
             switch (column) {
                 case AYEA:
-                    return Integer.valueOf(job.anidbFile.anime.year);
+                    return job.anidbFile.getAnime().year;
                 case AEPS:
-                    return Integer.valueOf(job.anidbFile.anime.episodeCount);
+                    return job.anidbFile.getAnime().episodeCount;
                 case ALEP:
-                    return Integer.valueOf(job.anidbFile.anime.latestEpisode);
+                    return job.anidbFile.getAnime().latestEpisode;
                 case AROM:
-                    return defaultString(job.anidbFile.anime.romajiTitle);
+                    return defaultString(job.anidbFile.getAnime().romajiTitle);
                 case AKAN:
-                    return defaultString(job.anidbFile.anime.kanjiTitle);
+                    return defaultString(job.anidbFile.getAnime().kanjiTitle);
                 case AENG:
-                    return defaultString(job.anidbFile.anime.englishTitle);
+                    return defaultString(job.anidbFile.getAnime().englishTitle);
                 case ATYP:
-                    return defaultString(job.anidbFile.anime.type);
+                    return defaultString(job.anidbFile.getAnime().type);
                 case AYEN:
-                    return Integer.valueOf(job.anidbFile.anime.endYear);
+                    return job.anidbFile.getAnime().endYear;
                 default:
                     break;
             }
         }
 
-        if (job.anidbFile.episode != null) {
+        if (job.anidbFile.getEpisode() != null) {
             switch (column) {
                 case ENUM:
-                    return defaultString(job.anidbFile.episode.num);
+                    return defaultString(job.anidbFile.getEpisode().num);
                 case EENG:
-                    return defaultString(job.anidbFile.episode.eng);
+                    return defaultString(job.anidbFile.getEpisode().eng);
                 case EKAN:
-                    return defaultString(job.anidbFile.episode.kan);
+                    return defaultString(job.anidbFile.getEpisode().kan);
                 case EROM:
-                    return defaultString(job.anidbFile.episode.rom);
+                    return defaultString(job.anidbFile.getEpisode().rom);
                 default:
                     break;
             }
         }
 
-        if (job.anidbFile.group != null) {
+        if (job.anidbFile.getGroup() != null) {
             switch (column) {
-                case GNAM:
-                    return defaultString(job.anidbFile.group.name);
-                case GSHO:
-                    return defaultString(job.anidbFile.group.shortName);
-                default:
-                    break;
+                case GNAM -> {
+                    return defaultString(job.anidbFile.getGroup().name);
+                }
+                case GSHO -> {
+                    return defaultString(job.anidbFile.getGroup().shortName);
+                }
+                default -> {
+                }
             }
         }
 
@@ -218,10 +228,10 @@ public class TableModelJobs extends AbstractTableModel implements RowModel {
     private Object getDefaultValue(JobColumn column) {
         Class<?> type = column.getType();
         if (type == Integer.class) {
-            return Integer.valueOf(0);
+            return 0;
         }
         if (type == Long.class) {
-            return Long.valueOf(0L);
+            return 0L;
         }
         return "N/A";
     }
@@ -231,6 +241,7 @@ public class TableModelJobs extends AbstractTableModel implements RowModel {
         return (value == null || value.isEmpty()) ? "" : value;
     }
 
+    @Override
     public String getColumnName(int columnIndex) {
         JobColumn column = JobColumn.fromIndex(columnIndex);
         return column != null ? column.getDescription() : "";
@@ -253,6 +264,8 @@ public class TableModelJobs extends AbstractTableModel implements RowModel {
         return new int[] {row};
     }
 
+    @Override
+    @Override
     public Job[] getJobs(int row) {
         return new Job[] {(Job) getValueAt(row, JOB)};
     }
