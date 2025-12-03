@@ -263,7 +263,6 @@ public class TableModelJobs extends AbstractTableModel implements RowModel {
     }
 
     @Override
-    @Override
     public Job[] getJobs(int row) {
         return new Job[] {(Job) getValueAt(row, JOB)};
     }

@@ -791,7 +791,6 @@ public class MainPanel extends JPanel
     }
 
     @Override
-    @Override
     public void println(Object message) {
         logEditorPane.println(message.toString());
         if (logEditorPane.isVisible()) {
@@ -801,14 +800,12 @@ public class MainPanel extends JPanel
 
     /** Sets the status message in the main status bar. Required by Log interface. */
     @Override
-    @Override
     public void status0(String str) {
         statusProgressBar.setString(str);
         lastStatusMessage = str;
     }
 
     /** Sets the status message in the job progress bar. Required by Log interface. */
-    @Override
     @Override
     public void status1(String str) {
         jobProgressBar.setString(str);
