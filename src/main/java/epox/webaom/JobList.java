@@ -23,6 +23,7 @@ import java.util.Collection;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
+import java.util.List;
 
 public class JobList {
     public static final int QUEUE_ERROR = 0;
@@ -30,7 +31,7 @@ public class JobList {
     public static final int QUEUE_NETWORK_IO = 2;
     private final ArrayList<Job> jobsList;
     private final HashSet<File> filePathSet;
-    private final LinkedHashMap<Job, Job>[] jobQueues;
+    private final List<LinkedHashMap<Job, Job>> jobQueues;
     public TableModelJobs tableModel = null;
     private Job[] filteredJobs = null;
 
@@ -38,9 +39,9 @@ public class JobList {
         jobsList = new ArrayList<>();
         filePathSet = new HashSet<>();
 
-        jobQueues = new LinkedHashMap[3];
-        for (int i = 0; i < jobQueues.length; i++) {
-            jobQueues[i] = new LinkedHashMap<>();
+        jobQueues = new ArrayList<>(3);
+        for (int i = 0; i < 3; i++) {
+            jobQueues.add(new LinkedHashMap<>());
         }
     }
 
@@ -208,21 +209,21 @@ public class JobList {
     }
 
     public Job getJobDio() {
-        LinkedHashMap<Job, Job> queue = jobQueues[QUEUE_DISK_IO];
+        LinkedHashMap<Job, Job> queue = jobQueues.get(QUEUE_DISK_IO);
         return queue.isEmpty() ? null : queue.values().iterator().next();
     }
 
     public Job getJobNio() {
-        LinkedHashMap<Job, Job> queue = jobQueues[QUEUE_NETWORK_IO];
+        LinkedHashMap<Job, Job> queue = jobQueues.get(QUEUE_NETWORK_IO);
         return queue.isEmpty() ? null : queue.values().iterator().next();
     }
 
     public boolean workForDio() {
-        return !jobQueues[QUEUE_DISK_IO].isEmpty();
+        return !jobQueues.get(QUEUE_DISK_IO).isEmpty();
     }
 
     public boolean workForNio() {
-        return !jobQueues[QUEUE_NETWORK_IO].isEmpty();
+        return !jobQueues.get(QUEUE_NETWORK_IO).isEmpty();
     }
 
     public void updateQueues(Job job, int oldStatus, int newStatus) {
@@ -251,9 +252,9 @@ public class JobList {
             return;
         }
         if (shouldAdd) {
-            jobQueues[queueType].putIfAbsent(job, job);
+            jobQueues.get(queueType).putIfAbsent(job, job);
         } else {
-            jobQueues[queueType].remove(job);
+            jobQueues.get(queueType).remove(job);
         }
     }
 }
