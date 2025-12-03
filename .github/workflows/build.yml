@@ -23,7 +23,7 @@ jobs:
           cache: gradle
 
       - name: Build with Gradle
-        run: ./gradlew clean build --no-daemon
+        run: ./gradlew clean build
 
       - name: Upload JAR artifacts
         uses: actions/upload-artifact@v4
@@ -71,7 +71,7 @@ jobs:
           cache: gradle
 
       - name: Build native package
-        run: ./gradlew jpackage --no-daemon
+        run: ./gradlew jpackage
 
       - name: Upload native package
         uses: actions/upload-artifact@v4

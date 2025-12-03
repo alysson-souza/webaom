@@ -45,12 +45,16 @@ dependencies {
 }
 
 tasks.register('generateVersionProperties') {
+	// Capture values during configuration time to avoid deprecated API usage
+	def versionString = project.version.toString()
+	def buildDate = new Date().format('yyyy-MM-dd')
+
 	doLast {
 		def propsFile = file("${layout.buildDirectory.get()}/resources/main/version.properties")
 		propsFile.parentFile.mkdirs()
 		def props = new Properties()
-		props['version'] = project.version.toString()
-		props['buildDate'] = new Date().format('yyyy-MM-dd')
+		props['version'] = versionString
+		props['buildDate'] = buildDate
 		propsFile.withWriter { props.store(it, null) }
 	}
 }
