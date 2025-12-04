@@ -1,0 +1,66 @@
+[
+  {
+    "label": "Gradle: Build",
+    "command": "./gradlew build",
+    "use_new_terminal": false,
+    "allow_concurrent_runs": false,
+    "reveal": "always",
+    "tags": ["build"]
+  },
+  {
+    "label": "Gradle: Run",
+    "command": "./gradlew run",
+    "use_new_terminal": true,
+    "allow_concurrent_runs": false,
+    "reveal": "always"
+  },
+  {
+    "label": "Gradle: Spotless Apply",
+    "command": "./gradlew spotlessApply",
+    "use_new_terminal": false,
+    "allow_concurrent_runs": false,
+    "reveal": "always"
+  },
+  {
+    "label": "Gradle: Spotless Check",
+    "command": "./gradlew spotlessCheck",
+    "use_new_terminal": false,
+    "allow_concurrent_runs": false,
+    "reveal": "always"
+  },
+  {
+    "label": "Gradle: Clean",
+    "command": "./gradlew clean",
+    "use_new_terminal": false,
+    "allow_concurrent_runs": false,
+    "reveal": "always"
+  },
+  {
+    "label": "Gradle: Clean Build",
+    "command": "./gradlew clean build",
+    "use_new_terminal": false,
+    "allow_concurrent_runs": false,
+    "reveal": "always"
+  },
+  {
+    "label": "Gradle: jpackage (Native Installer)",
+    "command": "./gradlew jpackage",
+    "use_new_terminal": false,
+    "allow_concurrent_runs": false,
+    "reveal": "always"
+  },
+  {
+    "label": "Gradle: jpackageAppImage (Portable Bundle)",
+    "command": "./gradlew jpackageAppImage",
+    "use_new_terminal": false,
+    "allow_concurrent_runs": false,
+    "reveal": "always"
+  },
+  {
+    "label": "Gradle: jlink (Minimal JRE)",
+    "command": "./gradlew jlink",
+    "use_new_terminal": false,
+    "allow_concurrent_runs": false,
+    "reveal": "always"
+  }
+]
