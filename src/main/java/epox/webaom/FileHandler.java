@@ -25,12 +25,48 @@ import java.io.InputStream;
 import java.util.StringTokenizer;
 
 public class FileHandler {
+
+    private static final String[] DEFAULT_EXTENSIONS = {
+        "3gp", "asf", "avi", "dat", "divx", "f4v", "flv", "m2ts", "m2v", "m4v", "mkv", "mov", "mp4", "mpeg", "mpg",
+        "mts", "ogm", "ogv", "qt", "ram", "rm", "rmvb", "ts", "vob", "webm", "wmv",
+    };
+
     public final UniqueStringList allowedExtensions;
-    public final ExtensionFileFilter extensionFilter;
 
     public FileHandler() {
         allowedExtensions = new UniqueStringList(Options.FIELD_SEPARATOR);
-        extensionFilter = new ExtensionFileFilter();
+    }
+
+    public void loadDefaultExtensions() {
+        for (String ext : DEFAULT_EXTENSIONS) {
+            addExtension(ext);
+        }
+    }
+
+    public javax.swing.filechooser.FileFilter createExtensionFilter() {
+        return new javax.swing.filechooser.FileFilter() {
+            @Override
+            public boolean accept(File file) {
+                if (file.isDirectory()) {
+                    return true;
+                }
+                return (allowedExtensions.includes(getExtension(file)) || allowedExtensions.getSize() == 0);
+            }
+
+            @Override
+            public String getDescription() {
+                return "Allowed video files";
+            }
+        };
+    }
+
+    public java.io.FileFilter createFileFilter() {
+        return file -> {
+            if (file.isDirectory()) {
+                return true;
+            }
+            return (allowedExtensions.includes(getExtension(file)) || allowedExtensions.getSize() == 0);
+        };
     }
 
     public synchronized void addExtension(String extension) {
@@ -89,21 +125,6 @@ public class FileHandler {
                 new StringTokenizer(options.getString(Options.STR_EXTENSIONS), Options.FIELD_SEPARATOR);
         while (tokenizer.hasMoreTokens()) {
             allowedExtensions.add(tokenizer.nextToken());
-        }
-    }
-
-    protected class ExtensionFileFilter extends javax.swing.filechooser.FileFilter implements java.io.FileFilter {
-        @Override
-        public boolean accept(File file) {
-            if (file.isDirectory()) {
-                return true;
-            }
-            return allowedExtensions.includes(getExtension(file)) || allowedExtensions.getSize() == 0;
-        }
-
-        @Override
-        public String getDescription() {
-            return "Me WANTS!";
         }
     }
 }

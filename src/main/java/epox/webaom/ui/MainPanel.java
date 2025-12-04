@@ -86,6 +86,7 @@ import javax.swing.event.HyperlinkListener;
 
 public class MainPanel extends JPanel
         implements Log, ActionListener, HyperlinkListener, ChangeListener, DropTargetListener {
+
     private static final Logger LOGGER = Logger.getLogger(MainPanel.class.getName());
     private static final int BUTTON_WIKI = 0;
     private static final int BUTTON_SELECT_FILES = 1;
@@ -149,32 +150,7 @@ public class MainPanel extends JPanel
         if (AppContext.opt.loadFromFile()) {
             loadOptions(AppContext.opt);
         } else {
-            AppContext.fileHandler.addExtension("3gp");
-            AppContext.fileHandler.addExtension("asf");
-            AppContext.fileHandler.addExtension("avi");
-            AppContext.fileHandler.addExtension("dat");
-            AppContext.fileHandler.addExtension("divx");
-            AppContext.fileHandler.addExtension("f4v");
-            AppContext.fileHandler.addExtension("flv");
-            AppContext.fileHandler.addExtension("m2ts");
-            AppContext.fileHandler.addExtension("m2v");
-            AppContext.fileHandler.addExtension("m4v");
-            AppContext.fileHandler.addExtension("mkv");
-            AppContext.fileHandler.addExtension("mov");
-            AppContext.fileHandler.addExtension("mp4");
-            AppContext.fileHandler.addExtension("mpeg");
-            AppContext.fileHandler.addExtension("mpg");
-            AppContext.fileHandler.addExtension("mts");
-            AppContext.fileHandler.addExtension("ogm");
-            AppContext.fileHandler.addExtension("ogv");
-            AppContext.fileHandler.addExtension("qt");
-            AppContext.fileHandler.addExtension("ram");
-            AppContext.fileHandler.addExtension("rm");
-            AppContext.fileHandler.addExtension("rmvb");
-            AppContext.fileHandler.addExtension("ts");
-            AppContext.fileHandler.addExtension("vob");
-            AppContext.fileHandler.addExtension("webm");
-            AppContext.fileHandler.addExtension("wmv");
+            AppContext.fileHandler.loadDefaultExtensions();
             jobsPanel.loadOptions(AppContext.opt); // default hack
         }
         try {
@@ -615,7 +591,6 @@ public class MainPanel extends JPanel
             if (tabbedPane.getSelectedComponent() == jobsPanel) {
                 jobsPanel.update();
             }
-
         } else if (source == connectionOptionsPanel.pingButton) {
             new Pinger(this);
         } else if (source == miscOptionsPanel.databaseUrlField) {
@@ -742,10 +717,12 @@ public class MainPanel extends JPanel
     private void toggleNetworkIo() {
         toolbarButtons[BUTTON_CONNECTION].setEnabled(false); // disable the button
         isNetworkIoRunning = !isNetworkIoRunning; // change the state
-        if (isNetworkIoRunning) { // we want it to run
+        if (isNetworkIoRunning) {
+            // we want it to run
             setNetworkIoOptionsEnabled(false); // freeze settings
             isNetworkIoRunning = startNetworkIoInternal(); // try to start
-            if (!isNetworkIoRunning) { // failed
+            if (!isNetworkIoRunning) {
+                // failed
                 toolbarButtons[BUTTON_CONNECTION].setEnabled(true); // enable the button
                 setNetworkIoOptionsEnabled(true); // unfreeze settings
             }
@@ -850,7 +827,9 @@ public class MainPanel extends JPanel
                 if (os.contains("mac")) {
                     Runtime.getRuntime().exec(new String[] {"open", url});
                 } else if (os.contains("win")) {
-                    Runtime.getRuntime().exec(new String[] {"rundll32", "url.dll,FileProtocolHandler", url});
+                    Runtime.getRuntime().exec(new String[] {
+                        "rundll32", "url.dll,FileProtocolHandler", url,
+                    });
                 } else {
                     Runtime.getRuntime().exec(new String[] {"xdg-open", url});
                 }
@@ -935,7 +914,7 @@ public class MainPanel extends JPanel
             return;
         }
         JFileChooser fileChooser = new JFileChooser();
-        fileChooser.setFileFilter(AppContext.fileHandler.extensionFilter);
+        fileChooser.setFileFilter(AppContext.fileHandler.createExtensionFilter());
         fileChooser.setMultiSelectionEnabled(true);
         if (AppContext.lastDirectory != null) {
             fileChooser.setCurrentDirectory(new File(AppContext.lastDirectory));
@@ -1058,6 +1037,7 @@ public class MainPanel extends JPanel
     }
 
     protected class JobScrollDown implements Runnable {
+
         @Override
         public void run() {
             if (!jobsScrollBar.getValueIsAdjusting()) {
@@ -1068,6 +1048,7 @@ public class MainPanel extends JPanel
 
     /** Thread that recursively scans directories for files to process. */
     private class RecursiveDirectoryScanner extends Thread {
+
         private final File[] directories;
         private final boolean shouldPrintStatus;
         private int directoryCount = 0;
@@ -1119,7 +1100,7 @@ public class MainPanel extends JPanel
                     setStatusMessage("Checking: " + file);
                 }
                 int fileCount = 0;
-                File[] files = file.listFiles(AppContext.fileHandler.extensionFilter);
+                File[] files = file.listFiles(AppContext.fileHandler.createFileFilter());
                 if (files == null) {
                     return 0;
                 }
@@ -1137,6 +1118,7 @@ public class MainPanel extends JPanel
 
     /** Thread that initializes the database and loads existing jobs. */
     private class DatabaseInitThread extends Thread {
+
         private final JTextField databasePathField;
 
         public DatabaseInitThread(JTextField databasePathField) {
@@ -1179,8 +1161,10 @@ public class MainPanel extends JPanel
                     }
                 }
                 int elapsedMs = (int) (System.currentTimeMillis() - startTime);
-                println("Loaded db in " + HyperlinkBuilder.formatAsNumber(elapsedMs) + " ms. "
-                        + HyperlinkBuilder.formatAsNumber(AppContext.jobs.size()) + " files found.");
+                println("Loaded db in " + HyperlinkBuilder.formatAsNumber(elapsedMs)
+                        + " ms. "
+                        + HyperlinkBuilder.formatAsNumber(AppContext.jobs.size())
+                        + " files found.");
                 altViewPanel.updateAlternativeView(true);
                 miscOptionsPanel.disconnectButton.setEnabled(true);
             } else {
@@ -1194,6 +1178,7 @@ public class MainPanel extends JPanel
 
     /** Thread that handles database export/import operations. */
     private class ExportImportThread extends Thread {
+
         private boolean isImport = true;
 
         public ExportImportThread(boolean isImport) {
