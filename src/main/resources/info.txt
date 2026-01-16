@@ -1,5 +1,8 @@
 WebAOM!
 
+2.0.1 2026.01.16
+*Added AppImage packaging for Linux.
+
 2.0.0 2025.12.01
 *First public release of the modernized WebAOM.
 *Added "Load completed" checkbox in Anime panel to reload completed jobs from the database.

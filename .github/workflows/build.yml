@@ -83,14 +83,29 @@ jobs:
           distribution: 'temurin'
           cache: gradle
 
+      - name: Install AppImage tools
+        if: matrix.os == 'ubuntu-latest'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y desktop-file-utils
+          wget -q https://github.com/AppImage/appimagetool/releases/download/continuous/appimagetool-x86_64.AppImage
+          chmod +x appimagetool-x86_64.AppImage
+          sudo mv appimagetool-x86_64.AppImage /usr/local/bin/appimagetool
+
       - name: Build native package
         run: ./gradlew jpackage
+
+      - name: Build AppImage
+        if: matrix.os == 'ubuntu-latest'
+        run: ./gradlew appimage
 
       - name: Upload native package
         uses: actions/upload-artifact@v4
         with:
           name: ${{ matrix.artifact }}
-          path: build/installer/*.${{ matrix.extension }}
+          path: |
+            build/installer/*.${{ matrix.extension }}
+            build/installer/*.AppImage
           retention-days: 7
 
   release:
@@ -149,6 +164,7 @@ jobs:
             dist/*.dmg
             dist/*.msi
             dist/*.deb
+            dist/*.AppImage
           generate_release_notes: true
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
