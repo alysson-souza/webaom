@@ -422,16 +422,13 @@ tasks.register('appimage') {
 			into appDir
 		}
 
-		// Copy icon as .DirIcon
-		copy {
-			from 'src/main/resources/webaom.png'
-			into appDir
-			rename { '.DirIcon' }
-		}
+		// Copy icon and create .DirIcon symlink
 		copy {
 			from 'src/main/resources/webaom.png'
 			into appDir
 		}
+		// Create .DirIcon symlink (required by AppImage)
+		ant.symlink(link: "${appDir}/.DirIcon", resource: 'webaom.png', overwrite: true)
 	}
 
 	doLast {
