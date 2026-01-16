@@ -22,11 +22,12 @@ WebAOM (Web Anime-O-Matic) is a Java desktop application that hashes anime files
 
 Download pre-built packages from the [Releases](https://github.com/alysson-souza/webaom/releases) page:
 
-| Platform | Package                  |
-| -------- | ------------------------ |
-| macOS    | `WebAOM-2.0.0.dmg`       |
-| Windows  | `WebAOM-2.0.0.msi`       |
-| Linux    | `webaom_2.0.0_amd64.deb` |
+| Platform | Package                            |
+| -------- | ---------------------------------- |
+| macOS    | `WebAOM-2.0.1.dmg`                 |
+| Windows  | `WebAOM-2.0.1.msi`                 |
+| Linux    | `WebAOM-2.0.1-x86_64.AppImage`     |
+| Linux    | `webaom_2.0.1_amd64.deb` (Debian)  |
 
 > **macOS users**: The app is not notarized. Right-click → Open, or run `xattr -cr /Applications/WebAOM.app`
 
@@ -36,10 +37,10 @@ Requires Java 21+:
 
 ```bash
 # Lite (SQLite only, ~4MB) - recommended for most users
-java -jar webaom-2.0.0-lite.jar
+java -jar webaom-2.0.1-lite.jar
 
 # Full (SQLite + PostgreSQL + MySQL, ~10MB)
-java -jar webaom-2.0.0-full.jar
+java -jar webaom-2.0.1-full.jar
 ```
 
 ## Quick Start

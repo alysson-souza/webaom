@@ -1,0 +1,5 @@
+#!/bin/bash
+HERE="$(dirname "$(readlink -f "$0")")"
+export JAVA_HOME="$HERE/lib/runtime"
+export PATH="$HERE/bin:$PATH"
+exec "$HERE/bin/WebAOM" "$@"

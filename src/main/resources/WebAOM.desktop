@@ -1,0 +1,8 @@
+[Desktop Entry]
+Name=WebAOM
+Comment=AniDB file identification and organization tool
+Type=Application
+Exec=AppRun
+Icon=webaom
+Categories=Utility;
+Terminal=false

@@ -7,7 +7,7 @@ plugins {
 }
 
 group = 'epox'
-version = '2.0.0'
+version = '2.0.1'
 description = 'WebAOM - Web Anime-O-Matic (AniDB file identification and organization)'
 
 java {
@@ -376,5 +376,79 @@ tasks.register('jpackageAppImage', Exec) {
 
 	doLast {
 		println "App image created in: ${outputDir.absolutePath}"
+	}
+}
+
+// AppImage packaging for Linux (universal Linux format)
+tasks.register('appimage') {
+	dependsOn jpackageAppImage
+	group = 'distribution'
+	description = 'Creates an AppImage for Linux distribution'
+	onlyIf { System.getProperty('os.name').toLowerCase().contains('linux') }
+
+	def outputDir = jpackageOutputDir.get().asFile
+	def appDir = new File(outputDir, "${appName}.AppDir")
+	def appImageName = "${appName}-${version}-x86_64.AppImage"
+
+	doFirst {
+		println "Creating AppImage..."
+
+		// Clean previous AppDir
+		if (appDir.exists()) {
+			delete(appDir)
+		}
+		appDir.mkdirs()
+
+		// Copy jpackage app-image to AppDir
+		def jpackageApp = new File(outputDir, appName)
+		if (!jpackageApp.exists()) {
+			throw new GradleException("jpackage app-image not found at ${jpackageApp}")
+		}
+		copy {
+			from jpackageApp
+			into appDir
+		}
+
+		// Copy AppRun launcher
+		copy {
+			from 'src/main/resources/AppRun'
+			into appDir
+		}
+		file("${appDir}/AppRun").setExecutable(true)
+
+		// Copy .desktop file
+		copy {
+			from 'src/main/resources/WebAOM.desktop'
+			into appDir
+		}
+
+		// Copy icon as .DirIcon
+		copy {
+			from 'src/main/resources/webaom.png'
+			into appDir
+			rename { '.DirIcon' }
+		}
+		copy {
+			from 'src/main/resources/webaom.png'
+			into appDir
+		}
+	}
+
+	doLast {
+		// Run appimagetool
+		def result = exec {
+			workingDir outputDir
+			environment 'ARCH', 'x86_64'
+			commandLine 'appimagetool', appDir.name, appImageName
+			ignoreExitValue = true
+		}
+		if (result.exitValue != 0) {
+			throw new GradleException("appimagetool failed with exit code ${result.exitValue}")
+		}
+
+		// Clean up AppDir
+		delete(appDir)
+
+		println "AppImage created: ${new File(outputDir, appImageName).absolutePath}"
 	}
 }

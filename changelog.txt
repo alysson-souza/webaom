@@ -1,6 +1,9 @@
 Please note that this version is marked "unstable", meaning it can be broken from time
 to time. Do at least check the changelog for relevant info before using it.
 
+2.0.1 16.01.2026:
+*Added AppImage packaging for Linux.
+
 2.0.0 01.12.2025:
 *First public release of the modernized WebAOM.
 *Added "Load completed" checkbox in Anime panel to reload completed jobs from the database.
