@@ -33,7 +33,7 @@ Originally developed 2005-2010, revived in 2025 for modernization.
 - `epox.webaom/` - Core application logic
 - `epox.webaom.data/` - Data models (`AniDBFile`, `Anime`, `Episode`, `Group`)
 - `epox.webaom.net/` - AniDB UDP protocol implementation
-- `epox.webaom.ui/` - Swing UI components (JPanel*, JTable*, JDialog*)
+- `epox.webaom.ui/` - Swing UI components (JPanel*, JTable*, JDialog\*)
 - `epox.util/` - Utilities and hashing
 - `epox.av/` - Audio/video file info parsing
 - `epox.swing/` - Reusable Swing components
@@ -73,9 +73,18 @@ Third-party code in `com/`, `gnu/`, `jonelo/` packages is excluded from formatti
 
 ### Configuration
 
-- User settings stored in `~/.webaom` (UTF-8 encoded)
-- HTML template override: `~/.webaom.htm`
+User settings follow XDG Base Directory specification (with automatic migration from legacy paths):
+
+| Platform | Config Directory                                          | Options File | Template File  |
+| -------- | --------------------------------------------------------- | ------------ | -------------- |
+| Linux    | `$XDG_CONFIG_HOME/webaom/` (default: `~/.config/webaom/`) | `config`     | `template.htm` |
+| macOS    | `~/Library/Application Support/webaom/`                   | `config`     | `template.htm` |
+| Windows  | `%APPDATA%\webaom\`                                       | `config`     | `template.htm` |
+
+Legacy paths (`~/.webaom`, `~/.webaom.htm`) are automatically migrated on first run.
+
 - Options managed via `Options.java` with arrays (`booleanOptions[]`, `integerOptions[]`, `stringOptions[]`)
+- Platform paths handled by `PlatformPaths.java`
 
 ### AniDB UDP Protocol
 
@@ -105,6 +114,7 @@ Native app packages are built using `jpackage` (Java 21+) with a minimal JRE cre
 ### macOS Notarization
 
 The app is **not notarized** with Apple. Users must bypass Gatekeeper:
+
 ```bash
 xattr -cr /Applications/WebAOM.app
 ```

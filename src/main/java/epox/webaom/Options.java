@@ -16,6 +16,7 @@
 
 package epox.webaom;
 
+import epox.webaom.util.PlatformPaths;
 import java.io.File;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -89,8 +90,10 @@ public class Options {
     public final boolean[] booleanOptions = new boolean[BOOLEAN_OPTIONS_COUNT];
 
     public Options() {
-        String homeDirectory = System.getProperty("user.home");
-        optionsFile = new File(homeDirectory + File.separator + ".webaom");
+        // Migrate legacy config to XDG-compliant path if needed
+        PlatformPaths.migrateIfNeeded(PlatformPaths.getLegacyConfigFilePath(), PlatformPaths.getConfigFilePath());
+
+        optionsFile = new File(PlatformPaths.getConfigFilePath());
         // Default auto-rename to true to preserve existing behavior
         booleanOptions[BOOL_AUTO_RENAME] = true;
     }

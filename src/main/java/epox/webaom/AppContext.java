@@ -24,6 +24,7 @@ import epox.webaom.db.DatabaseManagerFactory;
 import epox.webaom.net.AniDBConnectionSettings;
 import epox.webaom.net.AniDBFileClient;
 import epox.webaom.ui.MainPanel;
+import epox.webaom.util.PlatformPaths;
 import java.awt.Component;
 import java.awt.Font;
 import java.io.File;
@@ -118,8 +119,15 @@ public final class AppContext {
         nio = new NetworkIOManager();
         // A.mem1 = A.getUsed();
         gui = new MainPanel();
-        fileSchemaTemplate =
-                StringUtilities.fileToString(System.getProperty("user.home") + File.separator + ".webaom.htm");
+
+        // Migrate legacy template to XDG-compliant path if needed
+        PlatformPaths.migrateIfNeeded(PlatformPaths.getLegacyTemplateFilePath(), PlatformPaths.getTemplateFilePath());
+
+        // Load template: XDG path first, then legacy fallback, then bundled
+        fileSchemaTemplate = StringUtilities.fileToString(PlatformPaths.getTemplateFilePath());
+        if (fileSchemaTemplate == null) {
+            fileSchemaTemplate = StringUtilities.fileToString(PlatformPaths.getLegacyTemplateFilePath());
+        }
         if (fileSchemaTemplate == null) {
             fileSchemaTemplate = AppContext.getFileString("file.htm");
         }

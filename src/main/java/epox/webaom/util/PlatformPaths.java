@@ -17,6 +17,7 @@
 package epox.webaom.util;
 
 import java.io.File;
+import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -110,6 +111,101 @@ public final class PlatformPaths {
      */
     public static String getDefaultEmbeddedDatabasePath() {
         return new File(getDefaultDatabaseDirectory(), APP_NAME + ".db").getAbsolutePath();
+    }
+
+    /**
+     * Get the configuration directory for the current platform (XDG compliant on Linux).
+     *
+     * <p>
+     * macOS: ~/Library/Application Support/webaom/ Linux: $XDG_CONFIG_HOME/webaom/ (default:
+     * ~/.config/webaom/) Windows: %APPDATA%\webaom\ Other: ~/.webaom/
+     *
+     * @return the configuration directory path
+     */
+    public static String getConfigDirectory() {
+        if (IS_MAC) {
+            return new File(USER_HOME, "Library/Application Support/" + APP_NAME).getAbsolutePath();
+        } else if (IS_WINDOWS) {
+            String appData = System.getenv("APPDATA");
+            if (appData != null && !appData.isEmpty()) {
+                return new File(appData, APP_NAME).getAbsolutePath();
+            }
+        } else if (IS_LINUX) {
+            String xdgConfigHome = System.getenv("XDG_CONFIG_HOME");
+            if (xdgConfigHome != null && !xdgConfigHome.isEmpty()) {
+                return new File(xdgConfigHome, APP_NAME).getAbsolutePath();
+            } else {
+                return new File(USER_HOME, ".config/" + APP_NAME).getAbsolutePath();
+            }
+        }
+        // Fallback for unknown platforms
+        return new File(USER_HOME, "." + APP_NAME).getAbsolutePath();
+    }
+
+    /**
+     * Get the configuration file path for the current platform.
+     *
+     * @return the full path to the configuration file
+     */
+    public static String getConfigFilePath() {
+        return new File(getConfigDirectory(), "config").getAbsolutePath();
+    }
+
+    /**
+     * Get the HTML template file path for the current platform.
+     *
+     * @return the full path to the custom template file
+     */
+    public static String getTemplateFilePath() {
+        return new File(getConfigDirectory(), "template.htm").getAbsolutePath();
+    }
+
+    /**
+     * Get the legacy configuration file path (~/.webaom).
+     *
+     * @return the legacy config file path
+     */
+    public static String getLegacyConfigFilePath() {
+        return new File(USER_HOME, ".webaom").getAbsolutePath();
+    }
+
+    /**
+     * Get the legacy HTML template file path (~/.webaom.htm).
+     *
+     * @return the legacy template file path
+     */
+    public static String getLegacyTemplateFilePath() {
+        return new File(USER_HOME, ".webaom.htm").getAbsolutePath();
+    }
+
+    /**
+     * Migrate a file from legacy path to new path if needed. Migration occurs only when the new
+     * file doesn't exist but the legacy file does. The legacy file is preserved as a backup.
+     *
+     * @param legacyPath
+     *            the old file path
+     * @param newPath
+     *            the new file path
+     * @return true if migration was performed, false otherwise
+     */
+    public static boolean migrateIfNeeded(String legacyPath, String newPath) {
+        File legacyFile = new File(legacyPath);
+        File newFile = new File(newPath);
+
+        // Already migrated or fresh install
+        if (newFile.exists() || !legacyFile.exists()) {
+            return false;
+        }
+
+        try {
+            ensureParentDirectoryExists(newPath);
+            Files.copy(legacyFile.toPath(), newFile.toPath());
+            System.out.println("$ Migrated config: " + legacyPath + " -> " + newPath);
+            return true;
+        } catch (IOException e) {
+            System.err.println("! Migration failed: " + e.getMessage());
+            return false;
+        }
     }
 
     /**

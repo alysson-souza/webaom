@@ -1,5 +1,8 @@
 WebAOM!
 
+2.0.2 2026.01.17
+*Moved configuration from ~/.webaom to ~/.config/webaom/ (Linux), ~/Library/Application Support/webaom/ (macOS), %APPDATA%\webaom\ (Windows). Existing config is migrated automatically.
+
 2.0.1 2026.01.16
 *Added AppImage packaging for Linux.
 
