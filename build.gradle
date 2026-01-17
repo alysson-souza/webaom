@@ -7,7 +7,7 @@ plugins {
 }
 
 group = 'epox'
-version = '2.0.1'
+version = '2.0.2'
 description = 'WebAOM - Web Anime-O-Matic (AniDB file identification and organization)'
 
 java {
@@ -15,6 +15,13 @@ java {
 		languageVersion = JavaLanguageVersion.of(21)
 	}
 }
+
+// Get the Java toolchain's installation directory for use in Exec tasks
+def javaToolchainService = project.extensions.getByType(JavaToolchainService)
+def javaLauncher = javaToolchainService.launcherFor {
+	languageVersion = JavaLanguageVersion.of(21)
+}
+def toolchainJavaHome = javaLauncher.map { it.metadata.installationPath.asFile }
 
 application {
 	mainClass = 'epox.webaom.WebAOM'
@@ -187,8 +194,9 @@ tasks.register('jlink', Exec) {
 	description = 'Creates a minimal custom JRE using jlink'
 
 	def outputDir = jlinkOutputDir.get().asFile
+	def jlinkExe = new File(toolchainJavaHome.get(), 'bin/jlink')
 
-	commandLine 'jlink',
+	commandLine jlinkExe.absolutePath,
 			'--add-modules', requiredModules,
 			'--strip-debug',
 			'--no-man-pages',
@@ -217,9 +225,10 @@ tasks.register('jpackage', Exec) {
 			os.contains('linux') ? 'deb' : 'app-image'
 
 	def outputDir = jpackageOutputDir.get().asFile
+	def jpackageExe = new File(toolchainJavaHome.get(), 'bin/jpackage')
 
 	def args = [
-		'jpackage',
+		jpackageExe.absolutePath,
 		'--input',
 		"${layout.buildDirectory.get()}/libs",
 		'--main-jar',
@@ -315,9 +324,10 @@ tasks.register('jpackageAppImage', Exec) {
 	description = 'Creates a portable app-image (no installer) for the current platform'
 
 	def outputDir = jpackageOutputDir.get().asFile
+	def jpackageExe = new File(toolchainJavaHome.get(), 'bin/jpackage')
 
 	def args = [
-		'jpackage',
+		jpackageExe.absolutePath,
 		'--input',
 		"${layout.buildDirectory.get()}/libs",
 		'--main-jar',
