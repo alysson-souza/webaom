@@ -430,6 +430,12 @@ tasks.register('appimage') {
 		copy {
 			from 'src/main/resources/WebAOM.desktop'
 			into appDir
+			filter { line ->
+				if (line == 'Terminal=false') {
+					return "Terminal=false\nX-AppImage-Version=${version}"
+				}
+				line
+			}
 		}
 
 		// Copy icon and create .DirIcon symlink

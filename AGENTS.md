@@ -15,6 +15,7 @@ Originally developed 2005-2010, revived in 2025 for modernization.
 ./gradlew jpackage       # Create native installer (.dmg/.msi/.deb) for current platform
 ./gradlew jpackageAppImage  # Create portable app bundle for current platform
 ./gradlew jlink          # Create minimal custom JRE
+./gradlew appimage       # Create AppImage for Linux
 ```
 
 ## Architecture
@@ -110,6 +111,11 @@ Native app packages are built using `jpackage` (Java 21+) with a minimal JRE cre
 
 - `build/jlink/` - Minimal custom JRE (~51MB vs ~166MB full JRE)
 - `build/installer/` - Native packages and app bundles
+
+### AppImage (Linux)
+
+- Output: `build/installer/WebAOM-{version}-x86_64.AppImage`
+- Requires: `appimagetool` installed on system
 
 ### macOS Notarization
 
