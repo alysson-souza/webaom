@@ -18,6 +18,7 @@ package epox.webaom.ui;
 
 import epox.webaom.Options;
 import epox.webaom.data.Mylist;
+import epox.webaom.data.MylistStates;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.Insets;
@@ -30,7 +31,13 @@ import javax.swing.JTextArea;
 import javax.swing.JTextField;
 
 public class MylistOptionsPanel extends JPanel {
-    private static final String[] FILE_STATES = {"Unknown", "On HDD", "On CD", "Deleted"};
+    private static final String[] FILE_STATES = {
+        MylistStates.toLocationDisplayName(MylistStates.LOCATION_UNKNOWN),
+        MylistStates.toLocationDisplayName(MylistStates.LOCATION_HDD),
+        MylistStates.toLocationDisplayName(MylistStates.LOCATION_CD),
+        MylistStates.toLocationDisplayName(MylistStates.LOCATION_DELETED),
+        MylistStates.toLocationDisplayName(MylistStates.LOCATION_REMOTE)
+    };
     private final JTextField storageField;
     private final JTextField sourceField;
     private final JComboBox<String> stateComboBox;
@@ -102,7 +109,10 @@ public class MylistOptionsPanel extends JPanel {
 
     public Mylist getMylistData() {
         Mylist mylist = new Mylist();
-        mylist.state = stateComboBox.getSelectedIndex();
+        int selectedState = stateComboBox.getSelectedIndex();
+        if (MylistStates.isValidLocation(selectedState)) {
+            mylist.state = selectedState;
+        }
         mylist.viewed = watchedCheckBox.isSelected() ? 1 : 0;
         mylist.storage = storageField.getText();
         mylist.source = sourceField.getText();
