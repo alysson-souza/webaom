@@ -53,10 +53,8 @@ public class Rules {
         illegalCharReplacements.add(new ReplacementRule("*", "", true));
 
         renameRulesScript = """
-            #RENAME
-            #DO SET '%ann - %enr - %epn '
-            #IF G(!unknown) DO ADD '[%grp]'
-            #ELSE DO ADD '[RAW]'\
+            #Uncomment to enable:
+            #DO SET '%ann (%yea) - %enr - %epn [%src-%res][%aud][%dub][%vid]-%grp'
             """;
         moveRulesScript = "#MOVE";
     }
@@ -489,7 +487,7 @@ class Section {
         }
         int quoteStart = content.indexOf('\'');
         int quoteEnd = content.lastIndexOf('\'');
-        if (quoteStart >= 0 && quoteEnd > quoteStart) {
+        if (quoteStart >= 0 && quoteEnd > quoteStart && quoteEnd < content.length() - 1) {
             content = content.substring(quoteStart + 1, quoteEnd);
         }
         int commentIndex = content.indexOf("//");
