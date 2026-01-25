@@ -1,6 +1,9 @@
 Please note that this version is marked "unstable", meaning it can be broken from time
 to time. Do at least check the changelog for relevant info before using it.
 
+2.2.0 25.01.2026:
+*Sibling files with same base name are now moved/renamed together with main file.
+
 2.1.1 25.01.2026:
 *Fixed Rules tab Save button not persisting changes to disk.
 *Fixed quote parsing in rule names - quotes at end of strings are now properly stripped.

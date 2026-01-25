@@ -348,7 +348,7 @@ public final class JobManager {
         if (sourcePath.charAt(1) == ':' || destPath.charAt(1) == ':') { // windows (not network)
             if (sourcePath.charAt(0) == destPath.charAt(0)) {
                 if (job.currentFile.renameTo(destinationFile)) {
-                    moveSubtitleFiles(job.currentFile, destinationFile);
+                    moveSiblingFiles(job.currentFile, destinationFile);
                     AppContext.deleteFile(job.currentFile.getParentFile(), cleanupMessage);
                     JobManager.setJobFile(job, destinationFile);
                     AppContext.gui.println("Renamed " + sourceDisplayName + " to " + destDisplayName);
@@ -364,9 +364,10 @@ public final class JobManager {
         }
         // TRY TO MOVE: *NIX
         if (job.currentFile.renameTo(destinationFile)) { // linux can't rename over partitions
+            moveSiblingFiles(job.currentFile, destinationFile);
             AppContext.deleteFile(job.currentFile.getParentFile(), cleanupMessage);
             JobManager.setJobFile(job, destinationFile);
-            AppContext.gui.println("Renamed" + sourceDisplayName + " to " + destDisplayName);
+            AppContext.gui.println("Renamed " + sourceDisplayName + " to " + destDisplayName);
             return true;
         }
         job.targetFile = destinationFile;
@@ -389,27 +390,52 @@ public final class JobManager {
         AppContext.dialog2(job.currentFile.getName(), job.convert(AppContext.fileSchemaTemplate));
     }
 
-    private static void moveSubtitleFiles(File sourceFile, File destinationFile) {
-        moveSubtitleFile(sourceFile, destinationFile, "ass");
-        moveSubtitleFile(sourceFile, destinationFile, "idx");
-        moveSubtitleFile(sourceFile, destinationFile, "pdf");
-        moveSubtitleFile(sourceFile, destinationFile, "sbv");
-        moveSubtitleFile(sourceFile, destinationFile, "smi");
-        moveSubtitleFile(sourceFile, destinationFile, "srt");
-        moveSubtitleFile(sourceFile, destinationFile, "ssa");
-        moveSubtitleFile(sourceFile, destinationFile, "sub");
-        moveSubtitleFile(sourceFile, destinationFile, "vtt");
-    }
+    public static void moveSiblingFiles(File sourceFile, File destinationFile) {
+        File sourceParent = sourceFile.getParentFile();
+        File destParent = destinationFile.getParentFile();
+        String sourceFileName = sourceFile.getName();
+        int dotIndex = sourceFileName.lastIndexOf('.');
+        String sourceFileBaseName = dotIndex > 0 ? sourceFileName.substring(0, dotIndex) : sourceFileName;
 
-    private static void moveSubtitleFile(File sourceFile, File destinationFile, String extension) {
-        File subtitleFile = new File(changeExtension(sourceFile, extension));
-        if (subtitleFile.exists()) {
-            subtitleFile.renameTo(new File(changeExtension(destinationFile, extension)));
+        File[] siblings = sourceParent.listFiles(f -> {
+            String name = f.getName();
+            return name.startsWith(sourceFileBaseName) && !name.equals(sourceFileName);
+        });
+
+        if (siblings == null || siblings.length == 0) {
+            return;
+        }
+
+        for (File sibling : siblings) {
+            String siblingName = sibling.getName();
+            int extIndex = siblingName.lastIndexOf('.');
+            String destName;
+            if (extIndex > 0) {
+                destName = destinationFile
+                                .getName()
+                                .substring(0, destinationFile.getName().lastIndexOf('.'))
+                        + siblingName.substring(extIndex);
+            } else {
+                destName = siblingName;
+            }
+            File destSibling = new File(destParent, destName);
+            if (destSibling.exists()) {
+                continue;
+            }
+            if (!sibling.renameTo(destSibling)) {
+                AppContext.gui.println("Failed to rename sibling file: " + sibling.getName());
+            } else {
+                AppContext.gui.println("Renamed sibling: " + sibling.getName());
+            }
         }
     }
 
-    private static String changeExtension(File file, String extension) {
+    private static String getBaseName(File file) {
         String path = file.getAbsolutePath();
-        return path.substring(0, 1 + path.lastIndexOf('.')) + extension;
+        int dotIndex = path.lastIndexOf('.');
+        if (dotIndex > 0) {
+            return path.substring(0, dotIndex);
+        }
+        return path;
     }
 }
