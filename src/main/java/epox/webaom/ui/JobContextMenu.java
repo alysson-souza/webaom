@@ -18,6 +18,7 @@ package epox.webaom.ui;
 
 import epox.av.AVInfo;
 import epox.webaom.AppContext;
+import epox.webaom.HyperlinkBuilder;
 import epox.webaom.Job;
 import epox.webaom.JobManager;
 import java.awt.event.ActionEvent;
@@ -201,7 +202,9 @@ public class JobContextMenu extends JPopupMenu implements MouseListener, ActionL
                 JobManager.updateStatus(job, Job.REMWAIT, true);
                 break;
             case APPLY_RULES:
-                JobManager.updateStatus(job, Job.IDENTIFIED, true);
+                if (!JobManager.applyRulesForced(job)) {
+                    AppContext.gui.println(HyperlinkBuilder.formatAsError("Failed to apply rules for " + job));
+                }
                 break;
             case SET_FINISHED:
                 JobManager.updateStatus(job, Job.FINISHED, true);

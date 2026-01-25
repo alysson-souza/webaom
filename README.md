@@ -158,7 +158,7 @@ Requires Java 21+. Gradle is included via wrapper.
 
 ## Project History
 
-Created by **epoximator**, developed 2005–2010. Revived in 2025 as a maintenance fork from [AniDB's UDP clients repository](https://git.anidb.net/anidb/udp-clients/).
+Created by **epoximator** — RIP (developed 2005–2010). Revived in 2025 as a maintenance fork from [AniDB's UDP clients repository](https://git.anidb.net/anidb/udp-clients/).
 
 Goals: preserve the application, fix bugs, and maintain compatibility with modern Java.
 

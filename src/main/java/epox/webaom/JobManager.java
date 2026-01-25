@@ -279,6 +279,25 @@ public final class JobManager {
         return updatePath(job, AppContext.rules.apply(job));
     }
 
+    public static boolean applyRulesForced(Job job) {
+        if (job.incompl()) {
+            job.setError("Extensive fileinfo not available.");
+            AppContext.gui.println(job.currentFile + " cannot be renamed: Extensive fileinfo not available.");
+            return false;
+        }
+        File dest = AppContext.rules.apply(job);
+        if (dest == null) {
+            return false;
+        }
+        boolean success = updatePath(job, dest);
+        if (success && job.targetFile != null) {
+            job.setStatus(Job.MOVEWAIT, true);
+        } else if (success) {
+            job.setStatus(Job.FINISHED, true);
+        }
+        return success;
+    }
+
     public static boolean updatePath(Job job, File destinationFile) { // only want to use renameTo if same partition
         job.targetFile = null;
         if (destinationFile == null) {

@@ -1,6 +1,11 @@
 Please note that this version is marked "unstable", meaning it can be broken from time
 to time. Do at least check the changelog for relevant info before using it.
 
+2.1.0 25.01.2026:
+*Fixed Apply Rules context menu not working due to quote parsing bug.
+*Apply Rules now works regardless of auto-rename setting (manual invocation bypasses checkbox).
+*Default rename rule updated to: '%ann (%yea) - %enr - %epn [%src-%res][%aud][%dub][%vid]-%grp'
+
 2.0.2 17.01.2026:
 *Moved configuration from ~/.webaom to ~/.config/webaom/ (Linux), ~/Library/Application Support/webaom/ (macOS), %APPDATA%\webaom\ (Windows). Existing config is migrated automatically.
 

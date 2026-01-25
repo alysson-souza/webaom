@@ -71,7 +71,7 @@ public class RulesOptionsPanel extends JPanel implements Action, ItemListener {
         radioButtonGroup.add(renameRadioButton);
         radioButtonGroup.add(moveRadioButton);
 
-        applyButton = new JButton("Apply!");
+        applyButton = new JButton("Save");
         applyButton.addActionListener(this);
 
         JPanel radioButtonPanel = new JPanel();
