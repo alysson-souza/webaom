@@ -71,8 +71,12 @@ public class AniDBFileClient extends AniDBConnection {
         String escapedSource = escapeForXml(mylistEntry.source);
         String escapedStorage = escapeForXml(mylistEntry.storage);
         String escapedOther = escapeForXml(mylistEntry.other);
-        String params = "fid=" + job.anidbFile.getFileId() + "&state=" + mylistEntry.state + "&viewed="
-                + mylistEntry.viewed + "&source=" + escapedSource + "&storage=" + escapedStorage + "&other="
+        String params = "fid=" + job.anidbFile.getFileId() + "&state="
+                + mylistEntry.state + "&filestate="
+                + mylistEntry.filestate + "&viewed="
+                + mylistEntry.viewed + "&source="
+                + escapedSource + "&storage="
+                + escapedStorage + "&other="
                 + escapedOther + "&edit=0";
 
         AniDBConnectionResponse response = send("MYLISTADD", params, true);

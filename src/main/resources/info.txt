@@ -2,6 +2,10 @@ WebAOM!
 
 2.2.0 2026.01.25
 *Sibling files with same base name are now moved/renamed together with main file.
+*Added "Remote" option to MyList state dropdown (for NAS/cloud storage).
+*Added "remote" as valid state in !state and !state2 commands.
+*Fixed empty argument handling for !anime, !group, !randomanime commands.
+*Fixed !mylist output to show accurate anime information.
 
 2.1.1 2026.01.25
 *Fixed Rules tab Save button not persisting changes to disk.

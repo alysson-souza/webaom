@@ -19,6 +19,8 @@ package epox.webaom;
 import epox.swing.CommandModel;
 import epox.swing.Log;
 import epox.util.StringUtilities;
+import epox.webaom.data.MylistResponseHandler;
+import epox.webaom.data.MylistStates;
 import epox.webaom.net.AniDBConnection;
 import epox.webaom.net.AniDBConnectionResponse;
 import epox.webaom.net.AniDBException;
@@ -45,8 +47,8 @@ public class ChiiEmu implements CommandModel {
             case USAGE_STATE ->
                 "STATE: usage: !state <anime> <epnumber> <state>, !state <fid> <state>,"
                         + " !state <ed2k link> <state>, !state last <state>, epnumber may be"
-                        + " 'all' or 'upto <epno>'. State is: unknown/hdd/cd/deleted.";
-            case USAGE_STATE2 -> "!state2 anime/aid, group/gid/all, all/upto x/x, unknown/hdd/cd/deleted";
+                        + " 'all' or 'upto <epno>'. State is: unknown/hdd/cd/deleted/remote.";
+            case USAGE_STATE2 -> "!state2 anime/aid, group/gid/all, all/upto x/x, unknown/hdd/cd/deleted/remote";
             case USAGE_STORAGE -> "!storage anime/aid, group/gid/all, all/upto x/x, text";
             default -> "NOO!";
         };
@@ -166,13 +168,15 @@ public class ChiiEmu implements CommandModel {
             int stateCode = 0;
             String stateString = arguments.substring(lastSpaceIndex).trim();
             if (stateString.equalsIgnoreCase("unknown")) {
-                stateCode = 0;
+                stateCode = MylistStates.LOCATION_UNKNOWN;
             } else if (stateString.equalsIgnoreCase("hdd")) {
-                stateCode = 1;
+                stateCode = MylistStates.LOCATION_HDD;
             } else if (stateString.equalsIgnoreCase("cd")) {
-                stateCode = 2;
+                stateCode = MylistStates.LOCATION_CD;
             } else if (stateString.equalsIgnoreCase("deleted")) {
-                stateCode = 3;
+                stateCode = MylistStates.LOCATION_DELETED;
+            } else if (stateString.equalsIgnoreCase("remote")) {
+                stateCode = MylistStates.LOCATION_REMOTE;
             } else {
                 return getUsageMessage(USAGE_STATE);
             }
@@ -271,15 +275,25 @@ public class ChiiEmu implements CommandModel {
                 return formatMyList(queryByIdOrName("MYLIST", "aid=", "aname=", param));
             }
             if (commandText.startsWith("!anime")) {
-                return formatAnime(queryByIdOrName(
-                        "ANIME", "aid=", "aname=", commandText.substring(6).trim()));
+                String param = commandText.substring(6).trim();
+                if (param.isEmpty()) {
+                    return "Usage: !anime <anime name or id>";
+                }
+                return formatAnime(queryByIdOrName("ANIME", "aid=", "aname=", param));
             }
             if (commandText.startsWith("!group")) {
-                return formatGroup(queryByIdOrName(
-                        "GROUP", "gid=", "gname=", commandText.substring(6).trim()));
+                String param = commandText.substring(6).trim();
+                if (param.isEmpty()) {
+                    return "Usage: !group <group name or id>";
+                }
+                return formatGroup(queryByIdOrName("GROUP", "gid=", "gname=", param));
             }
             if (commandText.startsWith("!randomanime")) {
-                return randomAnime(commandText.substring(12).trim());
+                String param = commandText.substring(12).trim();
+                if (param.isEmpty()) {
+                    return "Usage: !randomanime [watched|unwatched|all]";
+                }
+                return randomAnime(param);
             }
             if (commandText.startsWith("!state2")) {
                 return updateStorageOrState(commandText.substring(7).trim(), USAGE_STATE2);
@@ -386,13 +400,15 @@ public class ChiiEmu implements CommandModel {
                 command = "STATE2";
                 requestParameters.append("&state=");
                 if (arguments[3].equalsIgnoreCase("unknown")) {
-                    requestParameters.append(0);
+                    requestParameters.append(MylistStates.LOCATION_UNKNOWN);
                 } else if (arguments[3].equalsIgnoreCase("hdd")) {
-                    requestParameters.append(1);
+                    requestParameters.append(MylistStates.LOCATION_HDD);
                 } else if (arguments[3].equalsIgnoreCase("cd")) {
-                    requestParameters.append(2);
+                    requestParameters.append(MylistStates.LOCATION_CD);
                 } else if (arguments[3].equalsIgnoreCase("deleted")) {
-                    requestParameters.append(3);
+                    requestParameters.append(MylistStates.LOCATION_DELETED);
+                } else if (arguments[3].equalsIgnoreCase("remote")) {
+                    requestParameters.append(MylistStates.LOCATION_REMOTE);
                 } else {
                     return command + ": no such state";
                 }
@@ -453,24 +469,7 @@ public class ChiiEmu implements CommandModel {
         }
 
         public String formatMyList(String response) {
-            String[] fields = StringUtilities.split(response, '|');
-            if (fields.length < 6) {
-                return response;
-            }
-            // Fields: name|eps|special eps|???|???|eps in mylist|watched eps|state|...
-            String animeName = fields[0];
-            String totalEps = fields[1].isEmpty() ? "?" : fields[1];
-            String epsInList = fields[5].isEmpty() ? "0" : fields[5];
-            String watchedEps = fields.length > 6 && !fields[6].isEmpty() ? fields[6] : "";
-            String state = fields.length > 7 && !fields[7].isEmpty() ? fields[7] : "";
-            String result = "MYLIST: " + animeName + " - " + epsInList + "/" + totalEps + " eps";
-            if (!watchedEps.isEmpty()) {
-                result += ", watched: " + watchedEps;
-            }
-            if (!state.isEmpty()) {
-                result += " (" + state + ")";
-            }
-            return result;
+            return "MYLIST: " + MylistResponseHandler.format(response);
         }
 
         public String formatMyStats(String response) {
