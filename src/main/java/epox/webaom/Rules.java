@@ -487,7 +487,7 @@ class Section {
         }
         int quoteStart = content.indexOf('\'');
         int quoteEnd = content.lastIndexOf('\'');
-        if (quoteStart >= 0 && quoteEnd > quoteStart && quoteEnd < content.length() - 1) {
+        if (quoteStart >= 0 && quoteEnd > quoteStart) {
             content = content.substring(quoteStart + 1, quoteEnd);
         }
         int commentIndex = content.indexOf("//");

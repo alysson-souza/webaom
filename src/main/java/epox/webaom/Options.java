@@ -21,6 +21,7 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.StringTokenizer;
 
 public class Options {
@@ -138,9 +139,14 @@ public class Options {
             return;
         }
         try {
+            Path parentDir = optionsFile.toPath().getParent();
+            if (parentDir != null && !Files.exists(parentDir)) {
+                Files.createDirectories(parentDir);
+            }
             Files.writeString(optionsFile.toPath(), encodeAllOptions(), StandardCharsets.UTF_8);
             System.out.println("$ File written:" + optionsFile);
         } catch (IOException e) {
+            System.err.println("! Failed to save options: " + e.getMessage());
             e.printStackTrace();
         }
     }

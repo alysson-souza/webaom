@@ -1,5 +1,10 @@
 WebAOM!
 
+2.1.1 2026.01.25
+*Fixed Rules tab Save button not persisting changes to disk.
+*Fixed quote parsing in rule names - quotes at end of strings are now properly stripped.
+*Fixed config directory not being created automatically on save.
+
 2.1.0 2026.01.25
 *Fixed Apply Rules context menu not working due to quote parsing bug.
 *Apply Rules now works regardless of auto-rename setting (manual invocation bypasses checkbox).

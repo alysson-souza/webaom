@@ -37,10 +37,10 @@ Requires Java 21+:
 
 ```bash
 # Lite (SQLite only, ~4MB) - recommended for most users
-java -jar webaom-2.0.2-lite.jar
+java -jar webaom-2.1.1-lite.jar
 
 # Full (SQLite + PostgreSQL + MySQL, ~10MB)
-java -jar webaom-2.0.2-full.jar
+java -jar webaom-2.1.1-full.jar
 ```
 
 ## Quick Start

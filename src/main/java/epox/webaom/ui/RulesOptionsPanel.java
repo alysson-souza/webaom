@@ -55,12 +55,13 @@ public class RulesOptionsPanel extends JPanel implements Action, ItemListener {
 
     private final transient Rules rules;
 
+    private JRadioButton lastSelectedRadioButton;
+
     protected final JTable replacementsTable;
     protected final ReplacementTableModel replacementsTableModel;
 
     public RulesOptionsPanel(Rules rules) {
         super(new BorderLayout());
-        this.rules = rules;
         // TOP
         renameRadioButton = new JRadioButton("Renaming (name)", true);
         moveRadioButton = new JRadioButton("Moving (path)", false);
@@ -73,6 +74,9 @@ public class RulesOptionsPanel extends JPanel implements Action, ItemListener {
 
         applyButton = new JButton("Save");
         applyButton.addActionListener(this);
+
+        this.rules = rules;
+        this.lastSelectedRadioButton = renameRadioButton;
 
         JPanel radioButtonPanel = new JPanel();
         radioButtonPanel.add(renameRadioButton);
@@ -161,15 +165,19 @@ public class RulesOptionsPanel extends JPanel implements Action, ItemListener {
     public void itemStateChanged(ItemEvent event) {
         Object source = event.getSource();
         if (event.getStateChange() == ItemEvent.DESELECTED) {
-            if (source == moveRadioButton) {
+            if (lastSelectedRadioButton == moveRadioButton) {
                 rules.setMoveRules(rulesTextArea.getText());
-            } else {
+            } else if (lastSelectedRadioButton == renameRadioButton) {
                 rules.setRenameRules(rulesTextArea.getText());
             }
-        } else if (source == moveRadioButton) {
-            rulesTextArea.setText(rules.getMoveRules());
-        } else {
-            rulesTextArea.setText(rules.getRenameRules());
+            lastSelectedRadioButton = null;
+        } else if (event.getStateChange() == ItemEvent.SELECTED) {
+            if (source == moveRadioButton) {
+                rulesTextArea.setText(rules.getMoveRules());
+            } else {
+                rulesTextArea.setText(rules.getRenameRules());
+            }
+            lastSelectedRadioButton = (JRadioButton) source;
         }
     }
 
@@ -181,10 +189,10 @@ public class RulesOptionsPanel extends JPanel implements Action, ItemListener {
         while (lineTokenizer.hasMoreTokens()) {
             lineNumber++;
             currentLine = lineTokenizer.nextToken().toUpperCase();
-            if (currentLine.charAt(0) == '#') {
+            if (!currentLine.isEmpty() && currentLine.charAt(0) == '#') {
                 continue;
             }
-            if (!currentLine.contains("DO ")) {
+            if (!currentLine.isEmpty() && !currentLine.contains("DO ")) {
                 AppContext.dialog("Error in script @ line" + lineNumber, "All lines must include ' DO '.");
                 return;
             }
@@ -194,6 +202,8 @@ public class RulesOptionsPanel extends JPanel implements Action, ItemListener {
         } else {
             rules.setMoveRules(rulesText);
         }
+        AppContext.rules.saveToOptions(AppContext.opt);
+        AppContext.opt.saveToFile();
     }
 
     public void updateRules() {
