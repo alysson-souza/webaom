@@ -220,6 +220,10 @@ public class DiskIOManager implements Runnable {
             return;
         }
 
+        if (needsCopy) {
+            copySiblingFiles(job.currentFile, job.targetFile);
+        }
+
         JobManager.updateStatus(job, Job.MOVECHECK);
         AppContext.gui.status0("Checking " + job.currentFile.getName());
         String checksumHex = computeFileChecksum(job.targetFile);
@@ -324,5 +328,55 @@ public class DiskIOManager implements Runnable {
             return null;
         }
         return edonkeyHash.getHexValue();
+    }
+
+    private void copySiblingFiles(File sourceFile, File destinationFile) {
+        File sourceParent = sourceFile.getParentFile();
+        File destParent = destinationFile.getParentFile();
+        String sourceFileName = sourceFile.getName();
+        int dotIndex = sourceFileName.lastIndexOf('.');
+        String sourceFileBaseName = dotIndex > 0 ? sourceFileName.substring(0, dotIndex) : sourceFileName;
+
+        File[] siblings = sourceParent.listFiles(f -> {
+            String name = f.getName();
+            return name.startsWith(sourceFileBaseName) && !name.equals(sourceFileName);
+        });
+
+        if (siblings == null || siblings.length == 0) {
+            return;
+        }
+
+        for (File sibling : siblings) {
+            String siblingName = sibling.getName();
+            int extIndex = siblingName.lastIndexOf('.');
+            String destName;
+            if (extIndex > 0) {
+                destName = destinationFile
+                                .getName()
+                                .substring(0, destinationFile.getName().lastIndexOf('.'))
+                        + siblingName.substring(extIndex);
+            } else {
+                destName = siblingName;
+            }
+            File destSibling = new File(destParent, destName);
+            if (destSibling.exists()) {
+                continue;
+            }
+            try {
+                Files.copy(sibling.toPath(), destSibling.toPath());
+                AppContext.gui.println("Renamed sibling: " + sibling.getName());
+            } catch (IOException e) {
+                AppContext.gui.println("Failed to rename sibling file: " + sibling.getName());
+            }
+        }
+    }
+
+    private String getBaseName(File file) {
+        String path = file.getAbsolutePath();
+        int dotIndex = path.lastIndexOf('.');
+        if (dotIndex > 0) {
+            return path.substring(0, dotIndex);
+        }
+        return path;
     }
 }

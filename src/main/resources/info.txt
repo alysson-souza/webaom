@@ -1,5 +1,8 @@
 WebAOM!
 
+2.2.0 2026.01.25
+*Sibling files with same base name are now moved/renamed together with main file.
+
 2.1.1 2026.01.25
 *Fixed Rules tab Save button not persisting changes to disk.
 *Fixed quote parsing in rule names - quotes at end of strings are now properly stripped.
