@@ -38,11 +38,9 @@ import epox.webaom.startup.StartupIssue;
 import epox.webaom.startup.StartupValidator;
 import java.awt.BorderLayout;
 import java.awt.Color;
-import java.awt.DefaultKeyboardFocusManager;
 import java.awt.Dimension;
 import java.awt.GridLayout;
 import java.awt.Insets;
-import java.awt.KeyboardFocusManager;
 import java.awt.datatransfer.DataFlavor;
 import java.awt.datatransfer.Transferable;
 import java.awt.dnd.DnDConstants;
@@ -53,7 +51,6 @@ import java.awt.dnd.DropTargetEvent;
 import java.awt.dnd.DropTargetListener;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.awt.event.KeyEvent;
 import java.io.File;
 import java.util.List;
 import java.util.Objects;
@@ -222,6 +219,9 @@ public class MainPanel extends JPanel
         if (!startupIssues.isEmpty() && StartupValidator.hasWarningsOrInfo(startupIssues)) {
             showStartupIssuesDialog(startupIssues);
         }
+
+        // Initialize global keyboard shortcuts (after GUI is fully visible)
+        new GlobalKeyboardShortcuts(getRootPane(), AppContext.shortcutRegistry);
     }
 
     /**
@@ -456,18 +456,6 @@ public class MainPanel extends JPanel
 
         // Enable drag-and-drop for the entire panel
         new DropTarget(this, this);
-
-        KeyboardFocusManager focusManager = KeyboardFocusManager.getCurrentKeyboardFocusManager();
-        focusManager.addKeyEventDispatcher(new DefaultKeyboardFocusManager() {
-            @Override
-            public boolean dispatchKeyEvent(KeyEvent event) {
-                if (event.getKeyCode() == KeyEvent.VK_F9 && (event.getID() == KeyEvent.KEY_PRESSED)) {
-                    reset();
-                    return true;
-                }
-                return super.dispatchKeyEvent(event);
-            }
-        });
     }
 
     /*

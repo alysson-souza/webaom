@@ -1,5 +1,10 @@
 WebAOM!
 
+2.3.0 2026.01.27
+*Added keyboard shortcuts help dialog (press '?' to view).
+*Fixed keyboard shortcuts interfering with system shortcuts (Ctrl+A, Cmd+C, etc.).
+*Keyboard shortcuts now work with all keyboard layouts.
+
 2.2.0 2026.01.25
 *Sibling files with same base name are now moved/renamed together with main file.
 *Added "Remote" option to MyList state dropdown (for NAS/cloud storage).

@@ -24,6 +24,7 @@ import epox.webaom.db.DatabaseManagerFactory;
 import epox.webaom.net.AniDBConnectionSettings;
 import epox.webaom.net.AniDBFileClient;
 import epox.webaom.ui.MainPanel;
+import epox.webaom.ui.shortcuts.ShortcutRegistry;
 import epox.webaom.util.PlatformPaths;
 import java.awt.Component;
 import java.awt.Font;
@@ -80,6 +81,8 @@ public final class AppContext {
     public static Component secondaryPopupMenu;
     /** Root node of the anime tree structure for alternate view. */
     public static final AniDBEntity animeTreeRoot = new AniDBEntity();
+
+    public static final ShortcutRegistry shortcutRegistry = new ShortcutRegistry();
 
     public static boolean autoadd = false;
     public static boolean optionsChanged = false;

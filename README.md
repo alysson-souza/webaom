@@ -24,10 +24,10 @@ Download pre-built packages from the [Releases](https://github.com/alysson-souza
 
 | Platform | Package                            |
 | -------- | ---------------------------------- |
-| macOS    | `WebAOM-2.2.0.dmg`                 |
-| Windows  | `WebAOM-2.2.0.msi`                 |
-| Linux    | `WebAOM-2.2.0-x86_64.AppImage`     |
-| Linux    | `webaom_2.2.0_amd64.deb` (Debian)  |
+| macOS    | `WebAOM-2.3.0.dmg`                 |
+| Windows  | `WebAOM-2.3.0.msi`                 |
+| Linux    | `WebAOM-2.3.0-x86_64.AppImage`     |
+| Linux    | `webaom_2.3.0_amd64.deb` (Debian)  |
 
 > **macOS users**: The app is not notarized. Right-click → Open, or run `xattr -cr /Applications/WebAOM.app`
 
@@ -37,10 +37,10 @@ Requires Java 21+:
 
 ```bash
 # Lite (SQLite only, ~4MB) - recommended for most users
-java -jar webaom-2.2.0-lite.jar
+java -jar webaom-2.3.0-lite.jar
 
 # Full (SQLite + PostgreSQL + MySQL, ~10MB)
-java -jar webaom-2.2.0-full.jar
+java -jar webaom-2.3.0-full.jar
 ```
 
 ## Quick Start
@@ -113,6 +113,7 @@ Use `;` for AND, `,` for OR, `!` for NOT.
 
 | Key         | Action                       |
 | ----------- | ---------------------------- |
+| `?`         | Show keyboard shortcuts help |
 | Enter/Space | Open file info               |
 | A           | Open anime page in browser   |
 | F           | Open file page in browser    |
