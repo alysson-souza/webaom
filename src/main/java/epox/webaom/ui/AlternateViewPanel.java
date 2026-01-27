@@ -20,19 +20,14 @@ import epox.webaom.AppContext;
 import epox.webaom.Cache;
 import java.awt.BorderLayout;
 import java.awt.Color;
-import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import javax.swing.AbstractAction;
 import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTextField;
-import javax.swing.KeyStroke;
 
 public class AlternateViewPanel extends JPanel {
-
-    private static final String ACTION_REFRESH = "refresh";
 
     private final JobTreeTable altViewTreeTable;
     private final JComboBox<String> sortModeComboBox;
@@ -52,7 +47,6 @@ public class AlternateViewPanel extends JPanel {
         loadAllJobsCheckbox = createLoadAllJobsCheckbox(actionListener);
 
         initializeLayout();
-        initializeKeyBindings();
     }
 
     public JobTreeTable getAltViewTreeTable() {
@@ -164,23 +158,6 @@ public class AlternateViewPanel extends JPanel {
         JobContextMenu popupMenu = new JobContextMenu(altViewTreeTable, altViewTreeTable);
         AppContext.secondaryPopupMenu = popupMenu;
         altViewTreeTable.addMouseListener(popupMenu);
-    }
-
-    private void initializeKeyBindings() {
-        boolean isMac = System.getProperty("os.name").toLowerCase().contains("mac");
-        String refreshKey = isMac ? "meta R" : "F5";
-
-        altViewTreeTable.getInputMap().put(KeyStroke.getKeyStroke(refreshKey), ACTION_REFRESH);
-        if (isMac) {
-            altViewTreeTable.getInputMap().put(KeyStroke.getKeyStroke("F5"), ACTION_REFRESH);
-        }
-
-        altViewTreeTable.getActionMap().put(ACTION_REFRESH, new AbstractAction() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                updateAlternativeView(false);
-            }
-        });
 
         altViewTreeTable.addKeyListener(new KeyAdapterJob(altViewTreeTable, altViewTreeTable));
     }

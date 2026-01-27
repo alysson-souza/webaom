@@ -19,6 +19,9 @@ package epox.webaom.ui;
 import epox.webaom.AppContext;
 import epox.webaom.Job;
 import epox.webaom.JobManager;
+import epox.webaom.ui.shortcuts.ShortcutCategory;
+import epox.webaom.ui.shortcuts.ShortcutHandler;
+import epox.webaom.ui.shortcuts.ShortcutInfo;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 import java.util.LinkedHashSet;
@@ -27,16 +30,28 @@ import javax.swing.JTable;
 
 public class KeyAdapterJob extends KeyAdapter {
     private final JTable table;
-    private final JobTreeTable treeTable;
     private final RowModel rowModel;
+    private final JobTreeTable treeTable;
 
     public KeyAdapterJob(JTable table, RowModel rowModel) {
         this.table = table;
         this.rowModel = rowModel;
-        if (table instanceof JobTreeTable jobTreeTable) {
-            this.treeTable = jobTreeTable;
-        } else {
-            this.treeTable = null;
+        this.treeTable = table instanceof JobTreeTable jobTreeTable ? jobTreeTable : null;
+        registerShortcuts();
+    }
+
+    private void registerShortcuts() {
+        AppContext.shortcutRegistry.register(new JobInfoShortcut());
+        AppContext.shortcutRegistry.register(new OpenAnimeShortcut());
+        AppContext.shortcutRegistry.register(new OpenMylistShortcut());
+        AppContext.shortcutRegistry.register(new OpenPlayerShortcut());
+        AppContext.shortcutRegistry.register(new OpenExplorerShortcut());
+        AppContext.shortcutRegistry.register(new PauseJobShortcut());
+        AppContext.shortcutRegistry.register(new UpdateStatusShortcut());
+        AppContext.shortcutRegistry.register(new ResetJobShortcut());
+        if (treeTable != null) {
+            AppContext.shortcutRegistry.register(new ExpandRowShortcut());
+            AppContext.shortcutRegistry.register(new CollapseRowShortcut());
         }
     }
 
@@ -44,52 +59,74 @@ public class KeyAdapterJob extends KeyAdapter {
     public void keyPressed(KeyEvent event) {
         try {
             int keyCode = event.getKeyCode();
-            if (handleGlobalShortcut(keyCode)) {
+
+            if (keyCode == KeyEvent.VK_ENTER || keyCode == KeyEvent.VK_SPACE) {
+                Job job = getSelectedJob();
+                if (job != null) {
+                    JobManager.showInfo(job);
+                    event.consume();
+                }
                 return;
             }
-            if (handleDeletionKey(keyCode, event)) {
+
+            if (keyCode == KeyEvent.VK_DELETE || keyCode == KeyEvent.VK_BACK_SPACE) {
+                handleDeletionKey(event);
                 return;
             }
-            Job selectedJob = getSelectedJob();
-            if (selectedJob == null) {
-                return;
-            }
-            if (handleJobAction(keyCode, selectedJob)) {
-                event.consume();
+
+            for (ShortcutInfo shortcut : getJobShortcuts()) {
+                if (shortcut.keyCode() != 0 && shortcut.keyCode() == keyCode) {
+                    if (handleJobShortcut(shortcut, event)) {
+                        event.consume();
+                    }
+                    return;
+                }
             }
         } catch (Exception ex) {
             ex.printStackTrace();
         }
     }
 
-    private boolean handleGlobalShortcut(int keyCode) {
-        switch (keyCode) {
-            case 'R':
-                AppContext.gui.altViewPanel.updateAlternativeView(true);
-                return true;
-            case 'D':
-                AppContext.animeTreeRoot.dump("@ ");
-                return true;
-            case 'B':
-                AppContext.dumpStats();
-                return true;
-            case 'L':
-                AppContext.animeTreeRoot.clear();
-                AppContext.gui.altViewPanel.updateAlternativeView(false);
-                return true;
-            default:
-                return false;
+    @Override
+    public void keyTyped(KeyEvent event) {
+        try {
+            char keyChar = event.getKeyChar();
+            if (!Character.isISOControl(keyChar) && !hasShortcutModifiers(event)) {
+                for (ShortcutInfo shortcut : getJobShortcuts()) {
+                    if (shortcut.keyChar() == keyChar) {
+                        if (handleJobShortcut(shortcut, event)) {
+                            event.consume();
+                        }
+                        return;
+                    }
+                }
+            }
+        } catch (Exception ex) {
+            ex.printStackTrace();
         }
     }
 
-    private boolean handleDeletionKey(int keyCode, KeyEvent event) {
-        if (keyCode == KeyEvent.VK_DELETE || keyCode == KeyEvent.VK_BACK_SPACE) {
-            if (deleteSelectedJobs()) {
-                event.consume();
+    private Set<ShortcutInfo> getJobShortcuts() {
+        Set<ShortcutInfo> result = new LinkedHashSet<>();
+        for (ShortcutInfo s : AppContext.shortcutRegistry.getAllShortcuts()) {
+            if (s.category() == ShortcutCategory.JOB || s.category() == ShortcutCategory.NAVIGATION) {
+                result.add(s);
             }
-            return true;
         }
-        return false;
+        return result;
+    }
+
+    private boolean handleJobShortcut(ShortcutInfo shortcut, KeyEvent event) {
+        if (shortcut.category() == ShortcutCategory.JOB && getSelectedJob() == null) {
+            return false;
+        }
+        return shortcut.handler().handle(event, table);
+    }
+
+    private void handleDeletionKey(KeyEvent event) {
+        if (deleteSelectedJobs()) {
+            event.consume();
+        }
     }
 
     private Job getSelectedJob() {
@@ -102,78 +139,6 @@ public class KeyAdapterJob extends KeyAdapter {
             return null;
         }
         return jobs[0];
-    }
-
-    private boolean handleJobAction(int keyCode, Job selectedJob) {
-        // Handle actions that require anidbFile to be present
-        if (selectedJob.anidbFile != null) {
-            switch (keyCode) {
-                case 'A':
-                    AppContext.gui.openHyperlink(selectedJob.anidbFile.getAnimeUrl());
-                    return true;
-                case 'M':
-                    AppContext.gui.openHyperlink(selectedJob.anidbFile.getMylistUrl());
-                    return true;
-                case 'N':
-                    AppContext.gui.openHyperlink(selectedJob.anidbFile.getMylistEditUrl(selectedJob.mylistId));
-                    return true;
-                case 'E':
-                    AppContext.gui.openHyperlink(selectedJob.anidbFile.getEpisodeUrl());
-                    return true;
-                case 'G':
-                    AppContext.gui.openHyperlink(selectedJob.anidbFile.getGroupUrl());
-                    return true;
-                case 'F':
-                    AppContext.gui.openHyperlink(selectedJob.anidbFile.getFileUrl());
-                    return true;
-                case 'K':
-                    AppContext.gui.openHyperlink(selectedJob.anidbFile.getExportUrl());
-                    return true;
-                case 'C':
-                    JobManager.runAvdump(selectedJob);
-                    AppContext.gui.openHyperlink(selectedJob.anidbFile.getFileUrl());
-                    return true;
-                default:
-                    break;
-            }
-        }
-
-        // Handle actions that don't require anidbFile
-        switch (keyCode) {
-            case 'W':
-                JobManager.openInDefaultPlayer(selectedJob);
-                return true;
-            case 'X':
-                JobManager.openInExplorer(selectedJob);
-                return true;
-            case 'P':
-                JobManager.updateStatus(selectedJob, Job.H_PAUSED, true);
-                return true;
-            case 'S':
-                JobManager.updateStatus(selectedJob, Job.IDENTIFIED, true);
-                return true;
-            case 'I':
-                selectedJob.anidbFile = null;
-                JobManager.updateStatus(selectedJob, Job.HASHED, true);
-                return true;
-            case ' ', 10: // Enter or Space
-                JobManager.showInfo(selectedJob);
-                return true;
-            case 39: // Right arrow key
-                if (treeTable != null) {
-                    treeTable.expandRow();
-                    return true;
-                }
-                return false;
-            case 37: // Left arrow key
-                if (treeTable != null) {
-                    treeTable.collapseRow();
-                    return true;
-                }
-                return false;
-            default:
-                return false;
-        }
     }
 
     private boolean deleteSelectedJobs() {
@@ -194,21 +159,14 @@ public class KeyAdapterJob extends KeyAdapter {
             return true;
         }
 
-        // Remember position for selection restoration
         int firstSelectedViewRow = selectedRows[0];
-
         int removedCount = JobManager.deleteJobs(selection.deletableJobs);
         if (removedCount > 0) {
-            // Update status bar with removal message
             String statusMessage = removedCount == 1
                     ? "Removed 1 job. " + AppContext.jobs.size() + " remaining."
                     : "Removed " + removedCount + " jobs. " + AppContext.jobs.size() + " remaining.";
             AppContext.gui.setStatusMessage(statusMessage);
-
-            // Update progress bar and title bar immediately
             AppContext.gui.updateProgressBar();
-
-            // Restore selection to a sensible position
             restoreSelectionAfterDeletion(firstSelectedViewRow);
         }
 
@@ -226,7 +184,6 @@ public class KeyAdapterJob extends KeyAdapter {
             table.clearSelection();
             return;
         }
-        // Select the row at the same position, or the last row if we deleted at the end
         int newSelection = Math.min(previousViewRow, rowCount - 1);
         table.setRowSelectionInterval(newSelection, newSelection);
     }
@@ -281,6 +238,291 @@ public class KeyAdapterJob extends KeyAdapter {
 
         boolean hasRunningJobs() {
             return runningCount > 0;
+        }
+    }
+
+    private static boolean hasShortcutModifiers(KeyEvent event) {
+        return event.isControlDown() || event.isMetaDown() || event.isAltDown();
+    }
+
+    private Job getSelectedJobForHandler() {
+        return getSelectedJob();
+    }
+
+    private abstract class JobBasedShortcut implements ShortcutInfo {
+        @Override
+        public ShortcutCategory category() {
+            return ShortcutCategory.JOB;
+        }
+
+        protected Job getJob() {
+            return getSelectedJobForHandler();
+        }
+
+        @Override
+        public char keyChar() {
+            return '\0';
+        }
+
+        @Override
+        public int keyCode() {
+            return 0;
+        }
+    }
+
+    private class JobInfoShortcut extends JobBasedShortcut {
+        @Override
+        public ShortcutHandler handler() {
+            return (event, source) -> {
+                Job job = getJob();
+                if (job != null) {
+                    JobManager.showInfo(job);
+                    return true;
+                }
+                return false;
+            };
+        }
+
+        @Override
+        public char keyChar() {
+            return '\0';
+        }
+
+        @Override
+        public int keyCode() {
+            return KeyEvent.VK_ENTER;
+        }
+
+        @Override
+        public String description() {
+            return "Show job info";
+        }
+    }
+
+    private class OpenAnimeShortcut extends JobBasedShortcut {
+        @Override
+        public ShortcutHandler handler() {
+            return (event, source) -> {
+                Job job = getJob();
+                if (job != null && job.anidbFile != null) {
+                    AppContext.gui.openHyperlink(job.anidbFile.getAnimeUrl());
+                    return true;
+                }
+                return false;
+            };
+        }
+
+        @Override
+        public char keyChar() {
+            return 'A';
+        }
+
+        @Override
+        public String description() {
+            return "Open anime URL in browser";
+        }
+    }
+
+    private class OpenMylistShortcut extends JobBasedShortcut {
+        @Override
+        public ShortcutHandler handler() {
+            return (event, source) -> {
+                Job job = getJob();
+                if (job != null && job.anidbFile != null) {
+                    AppContext.gui.openHyperlink(job.anidbFile.getMylistUrl());
+                    return true;
+                }
+                return false;
+            };
+        }
+
+        @Override
+        public char keyChar() {
+            return 'M';
+        }
+
+        @Override
+        public String description() {
+            return "Open MyList URL in browser";
+        }
+    }
+
+    private class OpenPlayerShortcut extends JobBasedShortcut {
+        @Override
+        public ShortcutHandler handler() {
+            return (event, source) -> {
+                Job job = getJob();
+                if (job != null) {
+                    JobManager.openInDefaultPlayer(job);
+                    return true;
+                }
+                return false;
+            };
+        }
+
+        @Override
+        public char keyChar() {
+            return 'W';
+        }
+
+        @Override
+        public String description() {
+            return "Open file in default player";
+        }
+    }
+
+    private class OpenExplorerShortcut extends JobBasedShortcut {
+        @Override
+        public ShortcutHandler handler() {
+            return (event, source) -> {
+                Job job = getJob();
+                if (job != null) {
+                    JobManager.openInExplorer(job);
+                    return true;
+                }
+                return false;
+            };
+        }
+
+        @Override
+        public char keyChar() {
+            return 'X';
+        }
+
+        @Override
+        public String description() {
+            return "Open containing folder";
+        }
+    }
+
+    private class PauseJobShortcut extends JobBasedShortcut {
+        @Override
+        public ShortcutHandler handler() {
+            return (event, source) -> {
+                Job job = getJob();
+                if (job != null) {
+                    JobManager.updateStatus(job, Job.H_PAUSED, true);
+                    return true;
+                }
+                return false;
+            };
+        }
+
+        @Override
+        public char keyChar() {
+            return 'P';
+        }
+
+        @Override
+        public String description() {
+            return "Pause/unpause job";
+        }
+    }
+
+    private class UpdateStatusShortcut extends JobBasedShortcut {
+        @Override
+        public ShortcutHandler handler() {
+            return (event, source) -> {
+                Job job = getJob();
+                if (job != null) {
+                    JobManager.updateStatus(job, Job.IDENTIFIED, true);
+                    return true;
+                }
+                return false;
+            };
+        }
+
+        @Override
+        public char keyChar() {
+            return 'S';
+        }
+
+        @Override
+        public String description() {
+            return "Apply rules / update status";
+        }
+    }
+
+    private class ResetJobShortcut extends JobBasedShortcut {
+        @Override
+        public ShortcutHandler handler() {
+            return (event, source) -> {
+                Job job = getJob();
+                if (job != null) {
+                    job.anidbFile = null;
+                    JobManager.updateStatus(job, Job.HASHED, true);
+                    return true;
+                }
+                return false;
+            };
+        }
+
+        @Override
+        public char keyChar() {
+            return 'I';
+        }
+
+        @Override
+        public String description() {
+            return "Re-identify file";
+        }
+    }
+
+    private abstract class NavigationShortcut implements ShortcutInfo {
+        @Override
+        public ShortcutCategory category() {
+            return ShortcutCategory.NAVIGATION;
+        }
+
+        @Override
+        public char keyChar() {
+            return '\0';
+        }
+    }
+
+    private class ExpandRowShortcut extends NavigationShortcut {
+        @Override
+        public ShortcutHandler handler() {
+            return (event, source) -> {
+                if (treeTable != null) {
+                    treeTable.expandRow();
+                    return true;
+                }
+                return false;
+            };
+        }
+
+        @Override
+        public int keyCode() {
+            return KeyEvent.VK_RIGHT;
+        }
+
+        @Override
+        public String description() {
+            return "Expand row (tree view)";
+        }
+    }
+
+    private class CollapseRowShortcut extends NavigationShortcut {
+        @Override
+        public ShortcutHandler handler() {
+            return (event, source) -> {
+                if (treeTable != null) {
+                    treeTable.collapseRow();
+                    return true;
+                }
+                return false;
+            };
+        }
+
+        @Override
+        public int keyCode() {
+            return KeyEvent.VK_LEFT;
+        }
+
+        @Override
+        public String description() {
+            return "Collapse row (tree view)";
         }
     }
 }
