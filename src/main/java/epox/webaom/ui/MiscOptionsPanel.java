@@ -212,6 +212,17 @@ public class MiscOptionsPanel extends JPanel {
     }
 
     public LinkedHashMap<String, DiskIOManager.ChecksumData> getChecksums() {
+        return createChecksums();
+    }
+
+    /**
+     * Create a new set of checksum algorithms for a single hashing task.
+     * Each call creates fresh instances since hash algorithms are NOT thread-safe.
+     * This method should be called once per HashTask worker.
+     *
+     * @return a new LinkedHashMap of checksum algorithms, or null if creation fails
+     */
+    public LinkedHashMap<String, DiskIOManager.ChecksumData> createChecksums() {
         try {
             LinkedHashMap<String, DiskIOManager.ChecksumData> checksums = new LinkedHashMap<>();
 

@@ -24,6 +24,7 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Set;
 
 public class JobList {
     public static final int QUEUE_ERROR = 0;
@@ -213,6 +214,29 @@ public class JobList {
         return queue.isEmpty() ? null : queue.values().iterator().next();
     }
 
+    /**
+     * Get up to maxCount jobs waiting for a specific disk I/O operation.
+     * Filters by the specified status (e.g., HASHWAIT, MOVEWAIT, PARSEWAIT).
+     *
+     * @param maxCount maximum number of jobs to return
+     * @param status the job status to filter by
+     * @param exclude jobs to exclude (already being processed)
+     * @return list of jobs ready for processing
+     */
+    public synchronized List<Job> getJobsDio(int maxCount, int status, Set<Job> exclude) {
+        List<Job> jobs = new ArrayList<>();
+        LinkedHashMap<Job, Job> queue = jobQueues.get(QUEUE_DISK_IO);
+        for (Job job : queue.values()) {
+            if (jobs.size() >= maxCount) {
+                break;
+            }
+            if (job.getStatus() == status && !exclude.contains(job)) {
+                jobs.add(job);
+            }
+        }
+        return jobs;
+    }
+
     public Job getJobNio() {
         LinkedHashMap<Job, Job> queue = jobQueues.get(QUEUE_NETWORK_IO);
         return queue.isEmpty() ? null : queue.values().iterator().next();
@@ -228,27 +252,47 @@ public class JobList {
 
     public void updateQueues(Job job, int oldStatus, int newStatus) {
         synchronized (jobQueues) {
-            updateJobQueue(job, oldStatus, false); // remove from set
-            updateJobQueue(job, newStatus, true); // add to set
+            int oldQueue = getQueueType(oldStatus);
+            int newQueue = getQueueType(newStatus);
+
+            // Only update if changing queues (preserve position within same queue)
+            if (oldQueue != newQueue) {
+                if (oldQueue >= 0) {
+                    jobQueues.get(oldQueue).remove(job);
+                }
+                if (newQueue >= 0) {
+                    jobQueues.get(newQueue).putIfAbsent(job, job);
+                }
+            }
         }
+    }
+
+    /**
+     * Determine which queue a job status belongs to.
+     * @return queue index, or -1 if status doesn't belong to any queue
+     */
+    private int getQueueType(int status) {
+        if (status < 0) {
+            return -1;
+        }
+        if (AppContext.bitcmp(status, Job.S_DO) || AppContext.bitcmp(status, Job.S_DOING)) {
+            if (AppContext.bitcmp(status, Job.D_DIO)) {
+                return QUEUE_DISK_IO;
+            } else if (AppContext.bitcmp(status, Job.D_NIO)) {
+                return QUEUE_NETWORK_IO;
+            }
+        } else if (AppContext.bitcmp(status, Job.FAILED) || AppContext.bitcmp(status, Job.UNKNOWN)) {
+            return QUEUE_ERROR;
+        }
+        return -1;
     }
 
     private void updateJobQueue(Job job, int status, boolean shouldAdd) {
         if (status < 0) {
             return;
         }
-        int queueType = -1;
-        if (AppContext.bitcmp(status, Job.S_DO) || AppContext.bitcmp(status, Job.S_DOING)) {
-            if (AppContext.bitcmp(status, Job.D_DIO)) {
-                queueType = QUEUE_DISK_IO;
-            } else if (AppContext.bitcmp(status, Job.D_NIO)) {
-                queueType = QUEUE_NETWORK_IO;
-            } else {
-                return;
-            }
-        } else if (AppContext.bitcmp(status, Job.FAILED) || AppContext.bitcmp(status, Job.UNKNOWN)) {
-            queueType = QUEUE_ERROR;
-        } else {
+        int queueType = getQueueType(status);
+        if (queueType < 0) {
             return;
         }
         if (shouldAdd) {

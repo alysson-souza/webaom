@@ -1,6 +1,8 @@
 WebAOM!
 
 2.3.0 2026.01.27
+*Parallel file hashing - now processes 4 files simultaneously for faster hashing on multi-core systems.
+*Hashing progress shown per-file in status column (e.g., "Hashing 45%").
 *Added keyboard shortcuts help dialog (press '?' to view).
 *Fixed keyboard shortcuts interfering with system shortcuts (Ctrl+A, Cmd+C, etc.).
 *Keyboard shortcuts now work with all keyboard layouts.
