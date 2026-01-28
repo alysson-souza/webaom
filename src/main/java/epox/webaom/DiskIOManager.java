@@ -30,6 +30,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicLong;
 import java.util.stream.Collectors;
 import javax.swing.SwingUtilities;
 import jonelo.jacksum.algorithm.AbstractChecksum;
@@ -64,6 +65,12 @@ public class DiskIOManager implements Runnable {
     /** Jobs currently being hashed (to prevent double-submission) */
     private final Set<Job> activeHashJobs = ConcurrentHashMap.newKeySet();
 
+    /** Total bytes hashed across all jobs in current session */
+    private final AtomicLong totalBytesHashed = new AtomicLong(0);
+
+    /** Session start time for speed calculation */
+    private volatile long sessionStartTime;
+
     public static class ChecksumData {
         final String name;
         final AbstractChecksum algorithm;
@@ -85,13 +92,19 @@ public class DiskIOManager implements Runnable {
             return t;
         });
 
-        AppContext.gui.status0("DiskIO thread started.");
+        totalBytesHashed.set(0);
+        sessionStartTime = System.currentTimeMillis();
+
+        AppContext.gui.status0("DiskIO started.");
+        AppContext.gui.println("DiskIO started.");
 
         try {
             mainLoop();
         } finally {
             shutdownExecutor();
-            AppContext.gui.status0("DiskIO thread terminated.");
+            String summary = getSessionSummary();
+            AppContext.gui.status0(summary);
+            AppContext.gui.println(summary);
             AppContext.gui.statusProgressBar.setValue(0);
             AppContext.gui.diskIoThread = null;
             AppContext.gui.setDiskIoOptionsEnabled(true);
@@ -103,6 +116,9 @@ public class DiskIOManager implements Runnable {
      * and submits hash jobs to the thread pool for parallel processing.
      */
     private void mainLoop() {
+        long lastStatusUpdate = System.currentTimeMillis();
+        final long STATUS_UPDATE_INTERVAL_MS = 500;
+
         while (AppContext.gui.isDiskIoOk()) {
             boolean didWork = false;
 
@@ -136,6 +152,13 @@ public class DiskIOManager implements Runnable {
                 didWork = true;
             }
 
+            // Update status bar with consolidated speed
+            long now = System.currentTimeMillis();
+            if (!activeHashJobs.isEmpty() && now - lastStatusUpdate >= STATUS_UPDATE_INTERVAL_MS) {
+                lastStatusUpdate = now;
+                updateConsolidatedStatus();
+            }
+
             // Exit if no work available and no jobs in progress
             if (!didWork && activeHashJobs.isEmpty() && !hasMoreWork()) {
                 break;
@@ -151,6 +174,55 @@ public class DiskIOManager implements Runnable {
                 }
             }
         }
+    }
+
+    private void updateConsolidatedStatus() {
+        String stats = getFinalSessionStats();
+        if (!stats.isEmpty()) {
+            AppContext.gui.status0(stats);
+        }
+    }
+
+    private String getFinalSessionStats() {
+        long bytes = totalBytesHashed.get();
+        float elapsedSeconds = (System.currentTimeMillis() - sessionStartTime) / 1000f;
+        if (elapsedSeconds > 0.001f && bytes > 0) {
+            float bytesPerSecond = bytes / elapsedSeconds;
+            if (bytesPerSecond >= 1048576) {
+                return DECIMAL_FORMATTER.format(bytesPerSecond / 1048576) + " MB/s";
+            } else {
+                return DECIMAL_FORMATTER.format(bytesPerSecond / 1024) + " KB/s";
+            }
+        }
+        return "";
+    }
+
+    private String getSessionSummary() {
+        long bytes = totalBytesHashed.get();
+        float elapsedSeconds = (System.currentTimeMillis() - sessionStartTime) / 1000f;
+        if (elapsedSeconds < 0.001f || bytes == 0) {
+            return "DiskIO stopped.";
+        }
+
+        float bytesPerSecond = bytes / elapsedSeconds;
+        String speed;
+        if (bytesPerSecond >= 1048576) {
+            speed = DECIMAL_FORMATTER.format(bytesPerSecond / 1048576) + " MB/s";
+        } else {
+            speed = DECIMAL_FORMATTER.format(bytesPerSecond / 1024) + " KB/s";
+        }
+
+        String size;
+        if (bytes >= 1073741824) {
+            size = DECIMAL_FORMATTER.format(bytes / 1073741824.0) + " GB";
+        } else if (bytes >= 1048576) {
+            size = DECIMAL_FORMATTER.format(bytes / 1048576.0) + " MB";
+        } else {
+            size = DECIMAL_FORMATTER.format(bytes / 1024.0) + " KB";
+        }
+
+        String time = DECIMAL_FORMATTER.format(elapsedSeconds) + "s";
+        return "DiskIO stopped. " + size + " in " + time + " @ " + speed;
     }
 
     /**
@@ -257,7 +329,7 @@ public class DiskIOManager implements Runnable {
                 return;
             }
 
-            long totalBytesRead = 0;
+            long fileBytesRead = 0;
             int bytesRead;
 
             try (InputStream inputStream = Files.newInputStream(file.toPath())) {
@@ -267,8 +339,9 @@ public class DiskIOManager implements Runnable {
                         data.algorithm.update(buffer, 0, bytesRead);
                     }
 
-                    totalBytesRead += bytesRead;
-                    job.hashProgress = (float) totalBytesRead / job.fileSize;
+                    fileBytesRead += bytesRead;
+                    totalBytesHashed.addAndGet(bytesRead);
+                    job.hashProgress = (float) fileBytesRead / job.fileSize;
                 }
             }
 
@@ -482,9 +555,20 @@ public class DiskIOManager implements Runnable {
         if (elapsedTimeSeconds <= 0) {
             elapsedTimeSeconds = 0.001f; // Avoid division by zero
         }
-        String speedText = DECIMAL_FORMATTER.format(fileSizeBytes / elapsedTimeSeconds / 1048576);
+        float bytesPerSecond = fileSizeBytes / elapsedTimeSeconds;
+        String speedText;
+        String speedUnit;
+        if (bytesPerSecond >= 1048576) {
+            // 1 MB/s or higher - show MB/s
+            speedText = DECIMAL_FORMATTER.format(bytesPerSecond / 1048576);
+            speedUnit = "MB/s";
+        } else {
+            // Less than 1 MB/s - show KB/s
+            speedText = DECIMAL_FORMATTER.format(bytesPerSecond / 1024);
+            speedUnit = "KB/s";
+        }
         String timeText = DECIMAL_FORMATTER.format(elapsedTimeSeconds);
-        return HyperlinkBuilder.formatAsNumber(speedText) + " MB/s ("
+        return HyperlinkBuilder.formatAsNumber(speedText) + " " + speedUnit + " ("
                 + HyperlinkBuilder.formatAsNumber(fileSizeBytes + "") + " bytes in "
                 + HyperlinkBuilder.formatAsNumber(timeText) + " seconds)";
     }
