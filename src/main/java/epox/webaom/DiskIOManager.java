@@ -24,18 +24,45 @@ import java.io.OutputStream;
 import java.nio.file.Files;
 import java.text.DecimalFormat;
 import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
+import javax.swing.SwingUtilities;
 import jonelo.jacksum.algorithm.AbstractChecksum;
 import jonelo.jacksum.algorithm.Edonkey;
 
+/**
+ * Manages disk I/O operations including parallel file hashing, file moving, and AV parsing.
+ *
+ * <p>Hashing operations run in parallel (up to 4 files simultaneously) using a thread pool,
+ * while move and parse operations remain single-threaded for simplicity.
+ */
 public class DiskIOManager implements Runnable {
     private static final String DISK_SPACE_ERROR_MESSAGE = "There is not enough space on the disk";
     private static final DecimalFormat DECIMAL_FORMATTER = new DecimalFormat("0.00");
+
+    /** Number of files to hash in parallel */
+    private static final int PARALLEL_HASH_JOBS = 4;
+
+    /** Buffer size per hash task (3MB) */
     private static final int BUFFER_SIZE = 1048576 * 3;
-    private static final byte[] READ_BUFFER = new byte[BUFFER_SIZE];
+
+    /** Shared buffer for single-threaded operations (move, parse) */
+    private static final byte[] SHARED_BUFFER = new byte[BUFFER_SIZE];
+
     private static final String FAILED_MOVE_CLEANUP_MESSAGE = "Cleanup after failed moving operation.";
     private static final String ABORTED_MOVE_CLEANUP_MESSAGE = "Cleanup after aborted moving operation.";
     private static final String SUCCESSFUL_MOVE_CLEANUP_MESSAGE = "Cleanup after successful moving operation.";
+
+    /** Thread pool for parallel hashing */
+    private ExecutorService hashExecutor;
+
+    /** Jobs currently being hashed (to prevent double-submission) */
+    private final Set<Job> activeHashJobs = ConcurrentHashMap.newKeySet();
 
     public static class ChecksumData {
         final String name;
@@ -48,51 +75,267 @@ public class DiskIOManager implements Runnable {
         }
     }
 
-    private LinkedHashMap<String, ChecksumData> checksums;
-
     @Override
     public void run() {
         AppContext.gui.setDiskIoOptionsEnabled(false);
-        Job currentJob = null;
-        try {
-            checksums = AppContext.gui.miscOptionsPanel.getChecksums();
-            AppContext.gui.status0("DiskIO thread started.");
-            while (AppContext.gui.isDiskIoOk() && (currentJob = AppContext.jobs.getJobDio()) != null) {
-                switch (currentJob.getStatus()) {
-                    case Job.HASHWAIT:
-                        fileHash(currentJob);
-                        break;
-                    case Job.MOVEWAIT:
-                        fileMove(currentJob);
-                        break;
-                    case Job.PARSEWAIT:
-                        fileParse(currentJob);
-                        break;
-                    default:
-                        AppContext.dialog("INF LOOP", "Illegal status: " + currentJob.getStatusText());
-                        AppContext.gui.kill();
-                }
-                AppContext.gui.statusProgressBar.setValue(0);
-            }
-            AppContext.gui.status0("DiskIO thread terminated.");
-        } catch (IOException e) {
-            e.printStackTrace();
-            if (currentJob.targetFile != null) {
-                AppContext.deleteFileAndFolder(currentJob.targetFile, FAILED_MOVE_CLEANUP_MESSAGE);
-            }
-            JobManager.updateStatus(currentJob, Job.FAILED);
-            currentJob.setError(e.getMessage());
+        hashExecutor = Executors.newFixedThreadPool(PARALLEL_HASH_JOBS, r -> {
+            Thread t = new Thread(r);
+            t.setName("HashWorker-" + t.threadId());
+            t.setDaemon(true);
+            return t;
+        });
 
-            String errorMessage = e.getMessage();
-            AppContext.gui.println(HyperlinkBuilder.formatAsError(errorMessage));
-            AppContext.gui.status0(errorMessage);
-            if (AppContext.gui.isDiskIoOk()) {
-                AppContext.gui.toggleDiskIo();
+        AppContext.gui.status0("DiskIO thread started.");
+
+        try {
+            mainLoop();
+        } finally {
+            shutdownExecutor();
+            AppContext.gui.status0("DiskIO thread terminated.");
+            AppContext.gui.statusProgressBar.setValue(0);
+            AppContext.gui.diskIoThread = null;
+            AppContext.gui.setDiskIoOptionsEnabled(true);
+        }
+    }
+
+    /**
+     * Main processing loop. Handles move/parse operations single-threaded,
+     * and submits hash jobs to the thread pool for parallel processing.
+     */
+    private void mainLoop() {
+        while (AppContext.gui.isDiskIoOk()) {
+            boolean didWork = false;
+
+            // Handle MOVE operations (single-threaded)
+            Job moveJob = getNextJobByStatus(Job.MOVEWAIT);
+            if (moveJob != null) {
+                try {
+                    fileMove(moveJob);
+                } catch (IOException e) {
+                    handleMoveError(moveJob, e);
+                }
+                didWork = true;
+                continue; // Check for more work immediately
+            }
+
+            // Handle PARSE operations (single-threaded)
+            Job parseJob = getNextJobByStatus(Job.PARSEWAIT);
+            if (parseJob != null) {
+                try {
+                    fileParse(parseJob);
+                } catch (IOException e) {
+                    handleParseError(parseJob, e);
+                }
+                didWork = true;
+                continue;
+            }
+
+            // Submit hash jobs to thread pool (parallel)
+            int submitted = submitHashJobs();
+            if (submitted > 0) {
+                didWork = true;
+            }
+
+            // Exit if no work available and no jobs in progress
+            if (!didWork && activeHashJobs.isEmpty() && !hasMoreWork()) {
+                break;
+            }
+
+            // Brief pause to avoid tight loop when waiting for hash completion
+            if (!didWork && !activeHashJobs.isEmpty()) {
+                try {
+                    Thread.sleep(50);
+                } catch (InterruptedException e) {
+                    Thread.currentThread().interrupt();
+                    break;
+                }
             }
         }
-        AppContext.gui.diskIoThread = null;
-        AppContext.gui.setDiskIoOptionsEnabled(true);
     }
+
+    /**
+     * Get the next job with the specified status from the disk I/O queue.
+     */
+    private Job getNextJobByStatus(int status) {
+        List<Job> jobs = AppContext.jobs.getJobsDio(1, status, Set.of());
+        return jobs.isEmpty() ? null : jobs.get(0);
+    }
+
+    /**
+     * Check if there's more work available in the disk I/O queue.
+     */
+    private boolean hasMoreWork() {
+        return AppContext.jobs.workForDio();
+    }
+
+    /**
+     * Submit hash jobs to the thread pool, up to PARALLEL_HASH_JOBS concurrent.
+     *
+     * @return number of jobs submitted
+     */
+    private int submitHashJobs() {
+        int slotsAvailable = PARALLEL_HASH_JOBS - activeHashJobs.size();
+        if (slotsAvailable <= 0) {
+            return 0;
+        }
+
+        List<Job> jobs = AppContext.jobs.getJobsDio(slotsAvailable, Job.HASHWAIT, activeHashJobs);
+        for (Job job : jobs) {
+            activeHashJobs.add(job);
+            JobManager.updateStatus(job, Job.HASHING);
+            hashExecutor.submit(new HashTask(job));
+        }
+
+        return jobs.size();
+    }
+
+    /**
+     * Gracefully shut down the hash executor, waiting for active tasks to complete.
+     */
+    private void shutdownExecutor() {
+        if (hashExecutor == null) {
+            return;
+        }
+
+        hashExecutor.shutdown();
+        try {
+            // Wait for active hash jobs to complete
+            if (!hashExecutor.awaitTermination(30, TimeUnit.SECONDS)) {
+                hashExecutor.shutdownNow();
+                if (!hashExecutor.awaitTermination(10, TimeUnit.SECONDS)) {
+                    System.err.println("Hash executor did not terminate cleanly");
+                }
+            }
+        } catch (InterruptedException e) {
+            hashExecutor.shutdownNow();
+            Thread.currentThread().interrupt();
+        }
+        activeHashJobs.clear();
+    }
+
+    /**
+     * Hash task that runs in the thread pool. Each task has its own buffer
+     * and hash algorithm instances for thread safety.
+     */
+    private class HashTask implements Runnable {
+        private final Job job;
+        private final byte[] buffer = new byte[BUFFER_SIZE];
+        private final LinkedHashMap<String, ChecksumData> checksums;
+        private final long startTime;
+
+        HashTask(Job job) {
+            this.job = job;
+            this.checksums = AppContext.gui.miscOptionsPanel.createChecksums();
+            this.startTime = System.currentTimeMillis();
+        }
+
+        @Override
+        public void run() {
+            try {
+                hashFile();
+            } catch (IOException e) {
+                handleHashError(e);
+            } finally {
+                activeHashJobs.remove(job);
+            }
+        }
+
+        private void hashFile() throws IOException {
+            File file = job.getFile();
+            job.fileSize = file.length();
+            job.hashProgress = 0f;
+
+            if (job.fileSize < 1) {
+                JobManager.updateStatus(job, Job.FAILED);
+                job.setError("File size less than 1.");
+                return;
+            }
+
+            if (!file.exists()) {
+                JobManager.updateStatus(job, Job.FAILED);
+                job.setError("File does not exist.");
+                return;
+            }
+
+            long totalBytesRead = 0;
+            int bytesRead;
+
+            try (InputStream inputStream = Files.newInputStream(file.toPath())) {
+                while (AppContext.gui.isDiskIoOk() && (bytesRead = inputStream.read(buffer)) != -1) {
+                    // Update all hash algorithms with the chunk
+                    for (ChecksumData data : checksums.values()) {
+                        data.algorithm.update(buffer, 0, bytesRead);
+                    }
+
+                    totalBytesRead += bytesRead;
+                    job.hashProgress = (float) totalBytesRead / job.fileSize;
+                }
+            }
+
+            // Check if hashing completed or was interrupted
+            if (job.hashProgress >= 0.9999f) {
+                completeHashing(file);
+            } else {
+                // Interrupted - reset progress and return to wait state
+                job.hashProgress = 0f;
+                JobManager.updateStatus(job, Job.HASHWAIT);
+            }
+        }
+
+        private void completeHashing(File file) {
+            // Extract hash values from all algorithms
+            for (ChecksumData data : checksums.values()) {
+                data.hexValue = data.algorithm.getHexValue();
+            }
+
+            // Store hash values in job
+            job.ed2kHash = checksums.get("ed2k").hexValue;
+            job.md5Hash = checksums.containsKey("md5") ? checksums.get("md5").hexValue : null;
+            job.sha1Hash = checksums.containsKey("sha1") ? checksums.get("sha1").hexValue : null;
+            job.tthHash = checksums.containsKey("tth") ? checksums.get("tth").hexValue : null;
+            job.crc32Hash = checksums.containsKey("crc32") ? checksums.get("crc32").hexValue : null;
+
+            job.hashProgress = 1f;
+
+            long endTime = System.currentTimeMillis();
+            float elapsedSeconds = (endTime - startTime) / 1000f;
+
+            // Build output strings
+            String ed2kLink = "ed2k://|file|" + file.getName() + "|" + file.length() + "|" + job.ed2kHash + "|";
+            String otherHashes = checksums.values().stream()
+                    .skip(1)
+                    .map(data -> data.name + ": " + data.hexValue)
+                    .collect(Collectors.joining("\n"));
+            String statsMessage = "Hashed " + HyperlinkBuilder.formatAsName(file) + " @ "
+                    + formatStats(file.length(), elapsedSeconds);
+
+            // Update UI on EDT for thread safety
+            SwingUtilities.invokeLater(() -> {
+                AppContext.gui.printHash(ed2kLink);
+                if (!otherHashes.isEmpty()) {
+                    AppContext.gui.printHash(otherHashes);
+                }
+                AppContext.gui.println(statsMessage);
+            });
+
+            // Transition to HASHED state (triggers next workflow step)
+            JobManager.updateStatus(job, Job.HASHED);
+        }
+
+        private void handleHashError(IOException e) {
+            e.printStackTrace();
+            job.hashProgress = 0f;
+            JobManager.updateStatus(job, Job.FAILED);
+            job.setError(e.getMessage());
+
+            String errorMessage = e.getMessage();
+            SwingUtilities.invokeLater(() -> {
+                AppContext.gui.println(HyperlinkBuilder.formatAsError(errorMessage));
+            });
+        }
+    }
+
+    // ========================= Single-threaded operations =========================
 
     private void fileParse(Job job) throws IOException {
         if (!AVInfo.ok()) {
@@ -122,62 +365,11 @@ public class DiskIOManager implements Runnable {
         JobManager.updateStatus(job, Job.FINISHED);
     }
 
-    private void fileHash(Job job) throws IOException {
-        File file = job.getFile();
-        job.fileSize = file.length();
-        if (job.fileSize < 1) {
-            JobManager.updateStatus(job, Job.FAILED);
-            job.setError("File size less than 1.");
-            return;
-        }
-        int bytesRead;
-        long totalBytesRead = 0;
-        long fileLength = file.length();
-        float progress = 0;
-
-        JobManager.updateStatus(job, Job.HASHING);
-        AppContext.gui.status0("Hashing " + file.getName());
-        AppContext.gui.statusProgressBar.setValue(0);
-
-        long startTime = System.currentTimeMillis();
-        try (InputStream inputStream = Files.newInputStream(file.toPath())) {
-            while (AppContext.gui.isDiskIoOk() && (bytesRead = inputStream.read(READ_BUFFER)) != -1) {
-                for (ChecksumData data : checksums.values()) {
-                    data.algorithm.update(READ_BUFFER, 0, bytesRead);
-                }
-                totalBytesRead += bytesRead;
-                progress = (float) totalBytesRead / fileLength;
-                AppContext.gui.statusProgressBar.setValue((int) (1000 * progress));
-            }
-        }
-        for (ChecksumData data : checksums.values()) {
-            data.hexValue = data.algorithm.getHexValue();
-            data.algorithm.reset();
-        }
-        long endTime = System.currentTimeMillis();
-        AppContext.gui.statusProgressBar.setValue(0);
-
-        if (progress == 1) {
-            job.ed2kHash = checksums.get("ed2k").hexValue;
-            job.md5Hash = checksums.containsKey("md5") ? checksums.get("md5").hexValue : null;
-            job.sha1Hash = checksums.containsKey("sha1") ? checksums.get("sha1").hexValue : null;
-            job.tthHash = checksums.containsKey("tth") ? checksums.get("tth").hexValue : null;
-            job.crc32Hash = checksums.containsKey("crc32") ? checksums.get("crc32").hexValue : null;
-
-            String ed2kLink = "ed2k://|file|" + file.getName() + "|" + file.length() + "|" + job.ed2kHash + "|";
-
-            AppContext.gui.printHash(ed2kLink);
-            AppContext.gui.printHash(checksums.values().stream()
-                    .skip(1)
-                    .map(data -> data.name + ": " + data.hexValue)
-                    .collect(Collectors.joining("\n")));
-
-            AppContext.gui.println("Hashed " + HyperlinkBuilder.formatAsName(file) + " @ "
-                    + formatStats(file.length(), (endTime - startTime) / 1000f));
-            JobManager.updateStatus(job, Job.HASHED);
-        } else {
-            JobManager.updateStatus(job, Job.HASHWAIT);
-        }
+    private void handleParseError(Job job, IOException e) {
+        e.printStackTrace();
+        JobManager.updateStatus(job, Job.FAILED);
+        job.setError(e.getMessage());
+        AppContext.gui.println(HyperlinkBuilder.formatAsError(e.getMessage()));
     }
 
     private void fileMove(Job job) throws IOException {
@@ -236,6 +428,22 @@ public class DiskIOManager implements Runnable {
         }
     }
 
+    private void handleMoveError(Job job, IOException e) {
+        e.printStackTrace();
+        if (job.targetFile != null) {
+            AppContext.deleteFileAndFolder(job.targetFile, FAILED_MOVE_CLEANUP_MESSAGE);
+        }
+        JobManager.updateStatus(job, Job.FAILED);
+        job.setError(e.getMessage());
+
+        String errorMessage = e.getMessage();
+        AppContext.gui.println(HyperlinkBuilder.formatAsError(errorMessage));
+        AppContext.gui.status0(errorMessage);
+        if (AppContext.gui.isDiskIoOk()) {
+            AppContext.gui.toggleDiskIo();
+        }
+    }
+
     private void handleCanceledChecksum(Job job, boolean needsCopy) {
         if (needsCopy) {
             AppContext.deleteFileAndFolder(job.targetFile, ABORTED_MOVE_CLEANUP_MESSAGE);
@@ -271,6 +479,9 @@ public class DiskIOManager implements Runnable {
     }
 
     private String formatStats(long fileSizeBytes, float elapsedTimeSeconds) {
+        if (elapsedTimeSeconds <= 0) {
+            elapsedTimeSeconds = 0.001f; // Avoid division by zero
+        }
         String speedText = DECIMAL_FORMATTER.format(fileSizeBytes / elapsedTimeSeconds / 1048576);
         String timeText = DECIMAL_FORMATTER.format(elapsedTimeSeconds);
         return HyperlinkBuilder.formatAsNumber(speedText) + " MB/s ("
@@ -287,8 +498,8 @@ public class DiskIOManager implements Runnable {
         AppContext.gui.statusProgressBar.setValue(0);
         try (InputStream inputStream = Files.newInputStream(sourceFile.toPath());
                 OutputStream outputStream = Files.newOutputStream(destinationFile.toPath())) {
-            while (AppContext.gui.isDiskIoOk() && (bytesRead = inputStream.read(READ_BUFFER)) != -1) {
-                outputStream.write(READ_BUFFER, 0, bytesRead);
+            while (AppContext.gui.isDiskIoOk() && (bytesRead = inputStream.read(SHARED_BUFFER)) != -1) {
+                outputStream.write(SHARED_BUFFER, 0, bytesRead);
                 totalBytesRead += bytesRead;
                 progress = (float) totalBytesRead / fileLength;
                 AppContext.gui.statusProgressBar.setValue((int) (1000 * progress));
@@ -317,8 +528,8 @@ public class DiskIOManager implements Runnable {
         float progress = 0;
         try (InputStream inputStream = Files.newInputStream(file.toPath())) {
             AppContext.gui.statusProgressBar.setValue(0);
-            while (AppContext.gui.isDiskIoOk() && (bytesRead = inputStream.read(READ_BUFFER)) != -1) {
-                edonkeyHash.update(READ_BUFFER, 0, bytesRead);
+            while (AppContext.gui.isDiskIoOk() && (bytesRead = inputStream.read(SHARED_BUFFER)) != -1) {
+                edonkeyHash.update(SHARED_BUFFER, 0, bytesRead);
                 totalBytesRead += bytesRead;
                 progress = (float) totalBytesRead / fileLength;
                 AppContext.gui.statusProgressBar.setValue((int) (1000 * progress));
@@ -369,14 +580,5 @@ public class DiskIOManager implements Runnable {
                 AppContext.gui.println("Failed to rename sibling file: " + sibling.getName());
             }
         }
-    }
-
-    private String getBaseName(File file) {
-        String path = file.getAbsolutePath();
-        int dotIndex = path.lastIndexOf('.');
-        if (dotIndex > 0) {
-            return path.substring(0, dotIndex);
-        }
-        return path;
     }
 }

@@ -90,6 +90,9 @@ public class Job {
     public String sha1Hash;
     public String tthHash;
     public String crc32Hash;
+    /** Hashing progress from 0.0 to 1.0, updated by HashTask workers */
+    public volatile float hashProgress = 0f;
+
     private int status;
 
     public Job(String[] serializedData) {
@@ -253,6 +256,9 @@ public class Job {
     }
 
     public String getStatusText() {
+        if (check(HASHING)) {
+            return "Hashing " + (int) (hashProgress * 100) + "%";
+        }
         if (check(H_NORMAL)) {
             return statusStr(getStatus());
         }
