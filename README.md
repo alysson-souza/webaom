@@ -22,12 +22,12 @@ WebAOM (Web Anime-O-Matic) is a Java desktop application that hashes anime files
 
 Download pre-built packages from the [Releases](https://github.com/alysson-souza/webaom/releases) page:
 
-| Platform | Package                            |
-| -------- | ---------------------------------- |
-| macOS    | `WebAOM-2.4.0.dmg`                 |
-| Windows  | `WebAOM-2.4.0.msi`                 |
-| Linux    | `WebAOM-2.4.0-x86_64.AppImage`     |
-| Linux    | `webaom_2.4.0_amd64.deb` (Debian)  |
+| Platform | Package                           |
+| -------- | --------------------------------- |
+| macOS    | `WebAOM-2.4.0.dmg`                |
+| Windows  | `WebAOM-2.4.0.msi`                |
+| Linux    | `WebAOM-2.4.0-x86_64.AppImage`    |
+| Linux    | `webaom_2.4.0_amd64.deb` (Debian) |
 
 > **macOS users**: The app is not notarized. Right-click → Open, or run `xattr -cr /Applications/WebAOM.app`
 
@@ -63,6 +63,7 @@ Settings are stored in `~/.webaom` (UTF-8). Key options include:
 WebAOM uses a scripting system to rename and move files based on metadata. Rules are defined in the **Rules** tab.
 
 Example rename script:
+
 ```
 IF A(Naruto) DO FAIL                     // Skip Naruto files
 DO ADD '%eng (%ann) - %enr - %epn '      // Base format
@@ -72,6 +73,7 @@ DO ADD '(%CRC)'                          // Always add CRC
 ```
 
 Example move script:
+
 ```
 IF R(DVD,HKDVD) DO ADD 'M:\dvd\'
 ELSE DO ADD 'N:\tv\'
@@ -108,6 +110,32 @@ DO ADD '%yea\%ann [%eps]\'
 | `I(tag)`    | Tag is defined                       |
 
 Use `;` for AND, `,` for OR, `!` for NOT.
+
+### Converting to TVDB Naming (FileBot)
+
+Media servers like Plex, Jellyfin, and Emby require TVDB naming (S01E01 format) rather than AniDB absolute numbering. Use [FileBot](https://www.filebot.net/) to convert WebAOM-renamed files.
+
+> **Note:** This expression is designed for files renamed with WebAOM's default template:
+> `%ann (%yea) - %enr - %epn [%src-%res][%aud][%dub][%vid]-%grp`
+
+```bash
+filebot -rename "FILES" --db AniDB --format @format.txt -non-strict
+```
+
+**format.txt** — converts AniDB matches to TVDB season/episode numbering:
+
+```groovy
+{def grp=any{group}{fn.tokenize("-")[-1].tokenize(".")[0]}; def lang=any{audioLanguages.join("+")}{""}; def src=any{vs}{source}{""}; def res=any{vf}{resolution}{""}; def aud=any{ac}{""}; def vid=any{vc}{""}; db.TheTVDB.n+" ("+any{db.TheTVDB.y}{""}+") - "+db.TheTVDB.s00e00+" - "+db.TheTVDB.t+" ["+src+"-"+res+"]["+aud+"]["+lang+"]["+vid+"]"+(grp?"-"+grp:"")}
+```
+
+This uses the `db.TheTVDB` cross-reference binding which maps AniDB episodes to TVDB using the [Anime-Lists](https://github.com/Anime-Lists/anime-lists) project.
+
+**Example conversion:**
+
+```
+From: Gintama (2006) - 083 - Rank Has Nothing to Do With Luck [DVD-760x576][FLAC][japanese][H264]-CBT.mkv
+To:   Gintama (2006) - S02E34 - Rank Has Nothing to Do with Luck [DVDRip-576p][FLAC][jpn][x264]-CBT.mkv
+```
 
 ## Keyboard Shortcuts
 
