@@ -20,6 +20,7 @@ import epox.util.ReplacementRule;
 import epox.util.StringUtilities;
 import epox.webaom.data.AttributeMap;
 import java.io.File;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.StringTokenizer;
@@ -31,6 +32,11 @@ public class Rules {
     public static final int M_ANIDB = 2;
     public static final int M_FALLB = 3;
     public static final String TRUNC = "TRUNCATE<";
+
+    /** Maximum filename length in bytes (filesystem limit). */
+    public static final int MAX_FILENAME_BYTES = 255;
+    /** Safe filename length with margin for UTF-8 multi-byte chars. */
+    public static final int SAFE_FILENAME_LENGTH = 200;
 
     /** Characters to replace in filenames (illegal filesystem characters) */
     private final List<ReplacementRule> illegalCharReplacements;
@@ -54,7 +60,7 @@ public class Rules {
 
         renameRulesScript = """
             #Uncomment to enable:
-            #DO SET '%ann (%yea) - %enr - %epn [%src-%res][%aud][%dub][%vid]-%grp'
+            #DO SET 'TRUNCATE<200,%ann (%yea) - %enr - %epn [%src-%res][%aud][%dub][%vid]-%grp>'
             """;
         moveRulesScript = "#MOVE";
     }
@@ -88,14 +94,99 @@ public class Rules {
         return text;
     }
 
+    /**
+     * Checks if a filename exceeds the filesystem byte limit.
+     *
+     * @param filename the filename to check (without path)
+     * @return true if the filename is too long for the filesystem
+     */
+    public static boolean isFilenameTooLong(String filename) {
+        return filename.getBytes(StandardCharsets.UTF_8).length > MAX_FILENAME_BYTES;
+    }
+
+    /**
+     * Gets the byte length of a filename in UTF-8 encoding.
+     *
+     * @param filename the filename to measure
+     * @return the byte length
+     */
+    public static int getFilenameByteLength(String filename) {
+        return filename.getBytes(StandardCharsets.UTF_8).length;
+    }
+
+    /**
+     * Smart-truncates a filename to fit within the specified byte limit,
+     * preserving the file extension and adding an ellipsis indicator.
+     *
+     * @param filename the filename to truncate
+     * @param maxBytes the maximum byte length (typically 255)
+     * @return the truncated filename
+     */
+    public static String smartTruncateFilename(String filename, int maxBytes) {
+        if (!isFilenameTooLong(filename)) {
+            return filename;
+        }
+
+        int dotIndex = filename.lastIndexOf('.');
+        String baseName;
+        String extension;
+        // Handle dotfiles (.hidden) and ensure there's actual content after the dot
+        if (dotIndex > 0 && dotIndex < filename.length() - 1) {
+            baseName = filename.substring(0, dotIndex);
+            extension = filename.substring(dotIndex);
+        } else {
+            baseName = filename;
+            extension = "";
+        }
+
+        String ellipsis = "...";
+        int ellipsisBytes = ellipsis.getBytes(StandardCharsets.UTF_8).length;
+        int extensionBytes = extension.getBytes(StandardCharsets.UTF_8).length;
+        int availableBytes = maxBytes - extensionBytes - ellipsisBytes;
+
+        // If extension is too long, truncate it to a reasonable size
+        if (availableBytes < 20) {
+            int maxExtBytes = Math.min(extensionBytes, 10);
+            extension = truncateToBytes(extension, maxExtBytes);
+            extensionBytes = extension.getBytes(StandardCharsets.UTF_8).length;
+            availableBytes = maxBytes - extensionBytes - ellipsisBytes;
+        }
+
+        String truncatedBase = truncateToBytes(baseName, availableBytes);
+        return truncatedBase + ellipsis + extension;
+    }
+
+    /**
+     * Truncates a string to fit within the specified byte limit in UTF-8,
+     * ensuring we don't cut in the middle of a multi-byte character.
+     */
+    private static String truncateToBytes(String str, int maxBytes) {
+        if (str.getBytes(StandardCharsets.UTF_8).length <= maxBytes) {
+            return str;
+        }
+
+        // Binary search for the right length
+        int low = 0;
+        int high = str.length();
+        while (low < high) {
+            int mid = (low + high + 1) / 2;
+            if (str.substring(0, mid).getBytes(StandardCharsets.UTF_8).length <= maxBytes) {
+                low = mid;
+            } else {
+                high = mid - 1;
+            }
+        }
+        return str.substring(0, low);
+    }
+
     private static String applyTruncation(String text) {
         try {
             String suffix;
             int truncateStart = text.indexOf(TRUNC);
             int closeIndex;
             int commaIndex;
-            int maxLength;
-            while (truncateStart > 0) {
+            int maxBytes;
+            while (truncateStart >= 0) {
                 closeIndex = text.indexOf('>', truncateStart);
                 if (closeIndex < truncateStart) {
                     break;
@@ -104,13 +195,21 @@ public class Rules {
                 if (commaIndex < truncateStart || commaIndex > closeIndex) {
                     break;
                 }
-                maxLength = StringUtilities.i(text.substring(truncateStart + TRUNC.length(), commaIndex));
-                suffix = text.substring(commaIndex + 1, closeIndex);
-                if (truncateStart > maxLength + suffix.length()) {
-                    text = text.substring(0, maxLength - suffix.length()) + suffix + text.substring(closeIndex + 1);
-                } else {
-                    text = text.substring(0, truncateStart) + text.substring(closeIndex + 1);
+                maxBytes = StringUtilities.i(text.substring(truncateStart + TRUNC.length(), commaIndex));
+                if (maxBytes <= 0 || maxBytes > 10000) {
+                    break;
                 }
+                suffix = text.substring(commaIndex + 1, closeIndex);
+                String prefix = text.substring(0, truncateStart);
+                String tail = text.substring(closeIndex + 1);
+                int prefixBytes = prefix.getBytes(StandardCharsets.UTF_8).length;
+                int availableForSuffix = maxBytes - prefixBytes;
+                if (availableForSuffix > 0) {
+                    suffix = truncateToBytes(suffix, availableForSuffix);
+                } else {
+                    suffix = "";
+                }
+                text = prefix + suffix + tail;
                 truncateStart = text.indexOf(TRUNC);
             }
         } catch (NumberFormatException e) {

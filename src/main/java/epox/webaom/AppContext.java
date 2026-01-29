@@ -236,6 +236,77 @@ public final class AppContext {
                 options[0]);
     }
 
+    /** Dialog result: truncate this filename. */
+    public static final int FILENAME_TRUNCATE = 0;
+    /** Dialog result: skip renaming this file. */
+    public static final int FILENAME_SKIP = 1;
+    /** Dialog result: truncate all long filenames in batch. */
+    public static final int FILENAME_TRUNCATE_ALL = 2;
+    /** Dialog result: skip all long filenames in batch. */
+    public static final int FILENAME_SKIP_ALL = 3;
+
+    /**
+     * Shows a dialog when a generated filename exceeds OS limits.
+     *
+     * @param filename the filename that is too long
+     * @param currentBytes current byte length of the filename
+     * @param maxBytes maximum allowed bytes (typically 255)
+     * @return one of FILENAME_TRUNCATE, FILENAME_SKIP, FILENAME_TRUNCATE_ALL, or FILENAME_SKIP_ALL
+     */
+    public static int showFilenameTooLongDialog(String filename, int currentBytes, int maxBytes) {
+        String displayName = filename;
+        if (displayName.length() > 60) {
+            displayName = displayName.substring(0, 57) + "...";
+        }
+
+        String message = String.format(
+                "<html><body style='width: 350px'>"
+                        + "<p>The generated filename exceeds the OS limit:</p>"
+                        + "<p style='font-family: monospace; word-wrap: break-word'>\"%s\"</p>"
+                        + "<p>(%d bytes, max %d)</p>"
+                        + "</body></html>",
+                displayName, currentBytes, maxBytes);
+
+        final int[] result = {-1};
+        final String msg = message;
+
+        Runnable showDialog = () -> {
+            Object[] options = {"Truncate", "Skip", "Truncate All", "Skip All"};
+            result[0] = JOptionPane.showOptionDialog(
+                    AppContext.component,
+                    msg,
+                    "Filename Too Long",
+                    JOptionPane.DEFAULT_OPTION,
+                    JOptionPane.WARNING_MESSAGE,
+                    null,
+                    options,
+                    options[0]);
+        };
+
+        if (SwingUtilities.isEventDispatchThread()) {
+            showDialog.run();
+        } else {
+            try {
+                SwingUtilities.invokeAndWait(showDialog);
+            } catch (Exception e) {
+                return FILENAME_SKIP;
+            }
+        }
+
+        switch (result[0]) {
+            case 0:
+                return FILENAME_TRUNCATE;
+            case 1:
+                return FILENAME_SKIP;
+            case 2:
+                return FILENAME_TRUNCATE_ALL;
+            case 3:
+                return FILENAME_SKIP_ALL;
+            default:
+                return FILENAME_SKIP;
+        }
+    }
+
     public static boolean bitcmp(int s, int m) {
         return (s & m) == m;
     }

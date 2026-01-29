@@ -1,5 +1,11 @@
 WebAOM!
 
+2.4.0 2026.01.29
+*Added dialog to handle filenames exceeding OS limits (255 bytes) - offers Truncate, Skip, or Apply to All.
+*Default rename rule template now includes TRUNCATE<200,...> for safety.
+*Fixed TRUNCATE not actually truncating content to the specified length.
+*TRUNCATE now uses byte count instead of character count (matters for Japanese/Chinese titles).
+
 2.3.0 2026.01.27
 *Parallel file hashing - now processes 4 files simultaneously for faster hashing on multi-core systems.
 *Hashing progress shown per-file in status column (e.g., "Hashing 45%").

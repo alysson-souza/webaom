@@ -25,6 +25,28 @@ import java.util.Collection;
 public final class JobManager {
     private JobManager() {}
 
+    private static final Object batchChoiceLock = new Object();
+    private static volatile Integer batchFilenameLengthChoice = null;
+
+    public static void resetBatchChoice() {
+        synchronized (batchChoiceLock) {
+            batchFilenameLengthChoice = null;
+        }
+    }
+
+    private static int getBatchChoiceOrAsk(String filename, int currentBytes, int maxBytes) {
+        synchronized (batchChoiceLock) {
+            if (batchFilenameLengthChoice != null) {
+                return batchFilenameLengthChoice;
+            }
+            int choice = AppContext.showFilenameTooLongDialog(filename, currentBytes, maxBytes);
+            if (choice == AppContext.FILENAME_TRUNCATE_ALL || choice == AppContext.FILENAME_SKIP_ALL) {
+                batchFilenameLengthChoice = choice;
+            }
+            return choice;
+        }
+    }
+
     public static void setPath(Job job, String path, boolean includeParent) {
         synchronized (job) {
             if (job.check(Job.S_DOING)) {
@@ -303,6 +325,25 @@ public final class JobManager {
         if (destinationFile == null) {
             return true;
         }
+
+        // CHECK FILENAME LENGTH
+        String destFilename = destinationFile.getName();
+        if (Rules.isFilenameTooLong(destFilename)) {
+            int currentBytes = Rules.getFilenameByteLength(destFilename);
+            int choice = getBatchChoiceOrAsk(destFilename, currentBytes, Rules.MAX_FILENAME_BYTES);
+
+            if (choice == AppContext.FILENAME_TRUNCATE || choice == AppContext.FILENAME_TRUNCATE_ALL) {
+                String truncatedName = Rules.smartTruncateFilename(destFilename, Rules.MAX_FILENAME_BYTES);
+                destinationFile = new File(destinationFile.getParent(), truncatedName);
+                AppContext.gui.println("Truncated filename to: " + HyperlinkBuilder.formatAsName(destinationFile));
+            } else {
+                String displayName = destFilename.length() > 50 ? destFilename.substring(0, 50) + "..." : destFilename;
+                AppContext.gui.println(
+                        "Skipped rename due to long filename: " + displayName + " (" + currentBytes + " bytes)");
+                return true;
+            }
+        }
+
         // EQUAL
         boolean isNormalMove = true;
         if (job.currentFile.equals(destinationFile)) {
