@@ -104,6 +104,7 @@ public class JobList {
     private void addJobInternal(Job job) {
         jobsList.add(job);
         tableModel.insertJob(jobsList.size() - 1);
+        JobManager.resetBatchChoice(); // Reset "apply to all" choice when new files added
     }
 
     public synchronized Job add(File file) {
