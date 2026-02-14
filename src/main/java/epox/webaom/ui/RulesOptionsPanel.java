@@ -37,7 +37,9 @@ import javax.swing.AbstractAction;
 import javax.swing.Action;
 import javax.swing.ButtonGroup;
 import javax.swing.JButton;
+import javax.swing.JMenuItem;
 import javax.swing.JPanel;
+import javax.swing.JPopupMenu;
 import javax.swing.JRadioButton;
 import javax.swing.JScrollPane;
 import javax.swing.JSplitPane;
@@ -49,6 +51,9 @@ import javax.xml.parsers.SAXParser;
 import javax.xml.parsers.SAXParserFactory;
 
 public class RulesOptionsPanel extends JPanel implements Action, ItemListener {
+    private static final String DEFAULT_RENAME_RULES = new Rules().getRenameRules();
+    private static final String DEFAULT_MOVE_RULES = new Rules().getMoveRules();
+
     protected final JTextArea rulesTextArea;
     private final JRadioButton renameRadioButton;
     private final JRadioButton moveRadioButton;
@@ -97,12 +102,18 @@ public class RulesOptionsPanel extends JPanel implements Action, ItemListener {
             SAXParser saxParser = parserFactory.newSAXParser();
             saxParser.parse(WebAOM.class.getClassLoader().getResourceAsStream("rule-helper.xml"), ruleMenuHandler);
 
+            final JPopupMenu rulesPopupMenu = ruleMenuHandler.getMenu();
+            JMenuItem resetToDefaultItem = new JMenuItem("Reset to default");
+            resetToDefaultItem.addActionListener(event -> resetCurrentRulesToDefault());
+            rulesPopupMenu.addSeparator();
+            rulesPopupMenu.add(resetToDefaultItem);
+
             rulesTextArea.addMouseListener(new MouseAdapter() {
                 @Override
                 public void mouseClicked(MouseEvent event) {
                     super.mouseClicked(event);
                     if (event.getButton() == MouseEvent.BUTTON3) {
-                        ruleMenuHandler.getMenu().show(rulesTextArea, event.getX(), event.getY());
+                        rulesPopupMenu.show(rulesTextArea, event.getX(), event.getY());
                     }
                 }
             });
@@ -214,6 +225,16 @@ public class RulesOptionsPanel extends JPanel implements Action, ItemListener {
             rulesTextArea.setText(rules.getRenameRules());
         } else {
             rulesTextArea.setText(rules.getMoveRules());
+        }
+    }
+
+    private void resetCurrentRulesToDefault() {
+        if (moveRadioButton.isSelected()) {
+            rulesTextArea.setText(DEFAULT_MOVE_RULES);
+            rules.setMoveRules(DEFAULT_MOVE_RULES);
+        } else {
+            rulesTextArea.setText(DEFAULT_RENAME_RULES);
+            rules.setRenameRules(DEFAULT_RENAME_RULES);
         }
     }
 
