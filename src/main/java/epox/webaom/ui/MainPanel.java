@@ -423,8 +423,11 @@ public class MainPanel extends JPanel
         commandPanel.setFileDropListener(this);
 
         ////////////////////////////// DEBUG PANEL///////////////////////////////
-        JPanelDebug debugPanel = new JPanelDebug(null);
-        debugPanel.setFileDropListener(this);
+        JPanelDebug debugPanel = null;
+        if (AppContext.IS_DEVELOPMENT) {
+            debugPanel = new JPanelDebug(null);
+            debugPanel.setFileDropListener(this);
+        }
 
         ////////////////////////////// TABBED PANE///////////////////////////////
         tabbedPane = new JTabbedPane();
@@ -435,7 +438,9 @@ public class MainPanel extends JPanel
         tabbedPane.addTab("Log", logScrollPane);
         tabbedPane.addTab("Hash", new JScrollPane(hashTextArea));
         tabbedPane.addTab("Info", new JScrollPane(infoTextArea));
-        tabbedPane.addTab("Debug", debugPanel);
+        if (debugPanel != null) {
+            tabbedPane.addTab("Debug", debugPanel);
+        }
         tabbedPane.addTab("Chii Emu", commandPanel);
         tabbedPane.setSelectedIndex(6);
 
@@ -795,7 +800,11 @@ public class MainPanel extends JPanel
     public void updateProgressBar() {
         jobProgressBar.setValue(AppContext.jobCounter.getProgress());
         if (AppContext.frame != null) {
-            AppContext.frame.setTitle("WebAOM " + AppContext.VERSION + " " + AppContext.jobCounter.getStatus());
+            String title = "WebAOM " + AppContext.VERSION;
+            if (AppContext.IS_DEVELOPMENT) {
+                title += " " + AppContext.jobCounter.getStatus();
+            }
+            AppContext.frame.setTitle(title);
         }
         if (((updateCount++) % 10) == 0) {
             System.gc();

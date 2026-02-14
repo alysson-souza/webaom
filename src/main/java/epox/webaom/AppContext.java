@@ -45,6 +45,8 @@ public final class AppContext {
     public static final String LINE_SEPARATOR = "\r\n";
     /** Application version string with build date. */
     public static final String VERSION = loadVersion();
+    /** True when running in development mode (e.g. via Gradle run). */
+    public static final boolean IS_DEVELOPMENT = detectDevelopmentMode();
     /** HTML template for file info dialog. */
     public static String fileSchemaTemplate;
     /** Last used directory for file/folder dialogs. */
@@ -106,6 +108,16 @@ public final class AppContext {
             // Fallback if properties file can't be loaded
         }
         return "unknown";
+    }
+
+    private static boolean detectDevelopmentMode() {
+        String devProperty = System.getProperty("webaom.dev");
+        if (devProperty != null) {
+            return Boolean.parseBoolean(devProperty);
+        }
+
+        String devEnv = System.getenv("WEBAOM_DEV");
+        return devEnv != null && Boolean.parseBoolean(devEnv);
     }
 
     public static void init() {
