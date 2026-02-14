@@ -24,6 +24,7 @@ import java.awt.Font;
 import java.awt.Image;
 import java.io.InputStream;
 import javax.imageio.ImageIO;
+import javax.swing.JDialog;
 import javax.swing.JFrame;
 import javax.swing.UIManager;
 import javax.swing.WindowConstants;
@@ -54,6 +55,11 @@ public class WebAOM {
         }
         if (isLinux && System.getProperty("sun.java2d.xrender") == null) {
             System.setProperty("sun.java2d.xrender", "true");
+        }
+
+        if (isLinux) {
+            JFrame.setDefaultLookAndFeelDecorated(true);
+            JDialog.setDefaultLookAndFeelDecorated(true);
         }
     }
 
