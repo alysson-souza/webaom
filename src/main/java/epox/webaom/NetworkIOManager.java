@@ -42,20 +42,28 @@ public class NetworkIOManager implements Runnable {
                     AppContext.gui.println(THREAD_TERMINATED_MESSAGE);
                     AppContext.gui.status1(THREAD_TERMINATED_MESSAGE);
                 } catch (AniDBException e) {
-                    e.printStackTrace();
-                    String message = e.getMessage();
-                    timedOut = message != null && message.contains("TIME OUT");
-                    AppContext.gui.status1(message);
-                    AppContext.gui.showMessage(" " + ((message == null) ? "Null pointer exception." : message));
-                    if (!e.is(AniDBException.ENCRYPTION)) {
-                        AppContext.gui.kill();
-                        AppContext.gui.handleFatalError(true);
+                    if (isExpectedShutdownException(e)) {
+                        cleanCurrentJob("Interrupted during shutdown");
+                    } else {
+                        e.printStackTrace();
+                        String message = e.getMessage();
+                        timedOut = message != null && message.contains("TIME OUT");
+                        AppContext.gui.status1(message);
+                        AppContext.gui.showMessage(" " + ((message == null) ? "Null pointer exception." : message));
+                        if (!e.is(AniDBException.ENCRYPTION)) {
+                            AppContext.gui.kill();
+                            AppContext.gui.handleFatalError(true);
+                        }
+                        cleanCurrentJob(e.getMessage());
                     }
-                    cleanCurrentJob(e.getMessage());
                 } catch (InterruptedException e) {
                     Thread.currentThread().interrupt();
-                    AppContext.gui.println(" " + HyperlinkBuilder.formatAsError("Thread interrupted"));
-                    cleanCurrentJob("Thread interrupted");
+                    if (AniDBConnection.isShutdown()) {
+                        cleanCurrentJob("Interrupted during shutdown");
+                    } else {
+                        AppContext.gui.println(" " + HyperlinkBuilder.formatAsError("Thread interrupted"));
+                        cleanCurrentJob("Thread interrupted");
+                    }
                 } catch (Exception e) {
                     e.printStackTrace();
                     AppContext.gui.println(" " + HyperlinkBuilder.formatAsError(e.getMessage()));
@@ -78,7 +86,7 @@ public class NetworkIOManager implements Runnable {
                 AppContext.gui.status1(THREAD_TERMINATED_MESSAGE);
             }
             try {
-                if (ac != null && ac.isLoggedIn() && !timedOut && ac.logout()) {
+                if (!AniDBConnection.isShutdown() && ac != null && ac.isLoggedIn() && !timedOut && ac.logout()) {
                     AppContext.gui.println("Logged out after extra check!");
                 }
             } catch (Exception e) {
@@ -95,6 +103,27 @@ public class NetworkIOManager implements Runnable {
         AppContext.gui.setNetworkIoOptionsEnabled(true);
         AppContext.gui.setNetworkIoEnabled(false);
         AppContext.gui.networkIoThread = null;
+    }
+
+    private boolean isExpectedShutdownException(AniDBException exception) {
+        if (!AniDBConnection.isShutdown()) {
+            return false;
+        }
+
+        if (exception.is(AniDBException.CLIENT_SYSTEM)) {
+            return true;
+        }
+
+        String message = exception.getMessage();
+        if (message == null) {
+            return false;
+        }
+
+        String lowercaseMessage = message.toLowerCase();
+        return lowercaseMessage.contains("interrupted")
+                || lowercaseMessage.contains("socket closed")
+                || lowercaseMessage.contains("socket")
+                || lowercaseMessage.contains("timeout");
     }
 
     private void cleanCurrentJob(String err) {

@@ -9,6 +9,7 @@ WebAOM!
 *Fixed startup issue where the embedded database could fail to open on some systems.
 *Added "Reset to default" in Rules editor right-click menu.
 *File and folder pickers now use native system dialogs and remember recent locations better.
+*Fixed app freeze when closing WebAOM while jobs are still running.
 
 2.4.1 2026.02.14
 *AppImage now supports automatic updates.
