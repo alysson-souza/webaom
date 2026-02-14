@@ -27,6 +27,10 @@ application {
 	mainClass = 'epox.webaom.WebAOM'
 }
 
+tasks.named('run', JavaExec) {
+	jvmArgs '-Dwebaom.dev=true'
+}
+
 repositories {
 	mavenCentral()
 }
