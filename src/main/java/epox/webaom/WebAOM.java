@@ -16,6 +16,7 @@
 
 package epox.webaom;
 
+import epox.swing.UiTuning;
 import java.awt.Font;
 import java.awt.Image;
 import java.io.InputStream;
@@ -29,6 +30,7 @@ public class WebAOM {
 
     public static void main(String[] args) {
         try {
+            configureRendering();
             launch();
         } catch (Exception e) {
             AppContext.dialog("Exception", e.getMessage());
@@ -37,16 +39,32 @@ public class WebAOM {
         }
     }
 
+    private static void configureRendering() {
+        String osName = System.getProperty("os.name", "").toLowerCase();
+        boolean isLinux = osName.contains("linux");
+
+        if (System.getProperty("awt.useSystemAAFontSettings") == null) {
+            System.setProperty("awt.useSystemAAFontSettings", isLinux ? "lcd" : "on");
+        }
+        if (System.getProperty("swing.aatext") == null) {
+            System.setProperty("swing.aatext", "true");
+        }
+        if (isLinux && System.getProperty("sun.java2d.xrender") == null) {
+            System.setProperty("sun.java2d.xrender", "true");
+        }
+    }
+
     private static void launch() {
-        setGlobalFont(new Font("Tahoma", Font.PLAIN, 11), new Font("Times", Font.PLAIN, 11));
+        UiTuning.applyForCurrentLookAndFeel();
 
         JFrame frame = new JFrame("WebAOM " + AppContext.VERSION + " Loading...");
         setWindowIcon(frame);
         AppContext.frame = frame;
         AppContext.component = frame;
-        frame.setSize(800, 600);
         frame.setDefaultCloseOperation(WindowConstants.DO_NOTHING_ON_CLOSE);
 
+        // Default size: large enough for GTK/Nimbus on HiDPI, but never full-screen.
+        frame.setSize(800, 760);
         frame.setLocationRelativeTo(null);
         frame.setVisible(true);
 

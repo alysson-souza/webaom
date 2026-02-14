@@ -34,10 +34,14 @@ public class JComboBoxLF extends JComboBox<String> {
         addActionListener(event -> {
             try {
                 UIManager.setLookAndFeel(LOOK_AND_FEELS[getSelectedIndex()].getClassName());
+                UiTuning.applyForCurrentLookAndFeel();
             } catch (Exception ex) {
                 ex.printStackTrace();
             }
             SwingUtilities.updateComponentTreeUI(rootComponent);
+            rootComponent.invalidate();
+            rootComponent.validate();
+            rootComponent.repaint();
         });
         String currentLookAndFeel = UIManager.getLookAndFeel().getClass().getCanonicalName();
         int selectedIndex;

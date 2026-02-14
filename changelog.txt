@@ -1,6 +1,11 @@
 Please note that this version is marked "unstable", meaning it can be broken from time
 to time. Do at least check the changelog for relevant info before using it.
 
+2.4.2 (unreleased):
+*Options screen layout looks better.
+*Switching look and feel no longer cuts off text in some fields.
+*Text rendering looks smoother on many systems.
+
 2.4.1 14.02.2026:
 *AppImage now supports automatic updates.
 

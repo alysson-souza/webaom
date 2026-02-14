@@ -1,5 +1,10 @@
 WebAOM!
 
+2.4.2 (unreleased)
+*Options screen layout looks better.
+*Switching look and feel no longer cuts off text in some fields.
+*Text rendering looks smoother on many systems.
+
 2.4.1 2026.02.14
 *AppImage now supports automatic updates.
 

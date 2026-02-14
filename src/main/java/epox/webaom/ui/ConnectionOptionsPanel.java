@@ -24,6 +24,7 @@ import java.awt.GridBagLayout;
 import java.awt.Insets;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
+import javax.swing.Box;
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
 import javax.swing.JLabel;
@@ -79,9 +80,9 @@ public class ConnectionOptionsPanel extends JPanel implements ChangeListener {
 
         GridBagConstraints constraints = new GridBagConstraints();
         constraints.insets = new Insets(2, 4, 2, 4);
-        constraints.anchor = GridBagConstraints.CENTER;
+        constraints.anchor = GridBagConstraints.WEST;
         constraints.fill = GridBagConstraints.HORIZONTAL;
-        constraints.weighty = 0.1;
+        constraints.weighty = 0.0;
 
         add("AniDB Host", hostTextField, constraints);
         add("Remote Port", remotePortTextField, constraints);
@@ -93,17 +94,27 @@ public class ConnectionOptionsPanel extends JPanel implements ChangeListener {
         add(localPortTextField, constraints);
         constraints.weightx = 0.0;
         constraints.gridwidth = GridBagConstraints.REMAINDER;
+        constraints.fill = GridBagConstraints.NONE;
         add(natKeepAliveCheckbox, constraints);
+
+        constraints.fill = GridBagConstraints.HORIZONTAL;
 
         add("Delay (sec)", delaySlider, constraints);
         add("Timeout (sec)", timeoutSlider, constraints);
 
-        constraints.weighty = 0.9;
-        add(new JLabel(""), constraints);
-
+        constraints.insets = new Insets(8, 4, 2, 4);
+        constraints.anchor = GridBagConstraints.CENTER;
         constraints.fill = GridBagConstraints.NONE;
-        constraints.weighty = 0.1;
         add(pingButton, constraints);
+
+        GridBagConstraints fillerConstraints = new GridBagConstraints();
+        fillerConstraints.gridx = 0;
+        fillerConstraints.gridy = GridBagConstraints.RELATIVE;
+        fillerConstraints.gridwidth = GridBagConstraints.REMAINDER;
+        fillerConstraints.weightx = 1.0;
+        fillerConstraints.weighty = 1.0;
+        fillerConstraints.fill = GridBagConstraints.BOTH;
+        add(Box.createVerticalGlue(), fillerConstraints);
     }
 
     private void add(String label, Component component, GridBagConstraints constraints) {
