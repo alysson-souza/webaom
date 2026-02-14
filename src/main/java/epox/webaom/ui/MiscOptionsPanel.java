@@ -16,6 +16,7 @@
 
 package epox.webaom.ui;
 
+import epox.swing.FlatLafTheme;
 import epox.swing.JComboBoxLF;
 import epox.util.TTH;
 import epox.webaom.AppContext;
@@ -54,6 +55,7 @@ public class MiscOptionsPanel extends JPanel {
     public final JTextField databaseUrlField;
     public final JButton disconnectButton;
     public final JTextField logFilePathField;
+    private final JComboBoxLF themeComboBox;
 
     public MiscOptionsPanel() {
         super(new GridBagLayout());
@@ -65,6 +67,7 @@ public class MiscOptionsPanel extends JPanel {
         disconnectButton.setToolTipText("Disconnect from database");
         disconnectButton.setEnabled(false);
         logFilePathField = new JTextField();
+        themeComboBox = new JComboBoxLF(AppContext.component);
 
         hashDirectoriesField.setToolTipText("Check these directories for new files every now and then");
         browserPathField.setToolTipText("Absolute path to preferred browser");
@@ -105,7 +108,7 @@ public class MiscOptionsPanel extends JPanel {
         addLabeledComponent("My Database", databasePanel, constraints);
 
         addLabeledComponent("Log File", logFilePathField, constraints);
-        addLabeledComponent("LookAndFeel", new JComboBoxLF(AppContext.component), constraints);
+        addLabeledComponent("Theme", themeComboBox, constraints);
 
         JPanel hashOptionsPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 12, 0));
         for (int i = 0; i < hashCheckBoxes.length; i++) {
@@ -207,6 +210,7 @@ public class MiscOptionsPanel extends JPanel {
         options.setString(Options.STR_BROWSER, browserPathField.getText());
         options.setString(Options.STR_DATABASE_URL, databaseUrlField.getText());
         options.setString(Options.STR_LOG_FILE, logFilePathField.getText());
+        options.setString(Options.STR_THEME, themeComboBox.getSelectedTheme().getOptionValue());
     }
 
     public void loadFromOptions(Options options) {
@@ -224,6 +228,7 @@ public class MiscOptionsPanel extends JPanel {
         browserPathField.setText(options.getString(Options.STR_BROWSER));
         databaseUrlField.setText(options.getString(Options.STR_DATABASE_URL));
         logFilePathField.setText(options.getString(Options.STR_LOG_FILE));
+        themeComboBox.setSelectedTheme(FlatLafTheme.fromOptionValue(options.getString(Options.STR_THEME)));
     }
 
     public LinkedHashMap<String, DiskIOManager.ChecksumData> getChecksums() {

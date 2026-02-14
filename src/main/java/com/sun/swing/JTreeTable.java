@@ -95,11 +95,10 @@ public class JTreeTable extends JTable {
         // No intercell spacing
         setIntercellSpacing(new Dimension(0, 0));
 
-        // And update the height of the trees row to match that of
-        // the table.
-        if (tree.getRowHeight() < 1)
-            // Metal looks better like this.
-            setRowHeight(18);
+        // Keep tree and table row heights aligned.
+        if (tree.getRowHeight() < 1) {
+            setRowHeight(getPreferredRowHeight());
+        }
     }
 
     /**
@@ -112,6 +111,24 @@ public class JTreeTable extends JTable {
         if (tree != null) tree.updateUI();
         // Use the tree's default foreground and background colors in the table.
         LookAndFeel.installColorsAndFont(this, "Tree.background", "Tree.foreground", "Tree.font");
+
+        int preferredRowHeight = getPreferredRowHeight();
+        if (getRowHeight() < preferredRowHeight) {
+            setRowHeight(preferredRowHeight);
+        } else if (tree != null && tree.getRowHeight() != getRowHeight()) {
+            tree.setRowHeight(getRowHeight());
+        }
+    }
+
+    private int getPreferredRowHeight() {
+        int preferredRowHeight = UIManager.getInt("Table.rowHeight");
+        if (preferredRowHeight < 1) {
+            preferredRowHeight = UIManager.getInt("Tree.rowHeight");
+        }
+        if (preferredRowHeight < 1) {
+            preferredRowHeight = 18;
+        }
+        return preferredRowHeight;
     }
 
     /*

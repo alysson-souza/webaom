@@ -29,6 +29,7 @@ import java.awt.Graphics;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.util.ArrayList;
+import javax.swing.UIManager;
 
 public class JobTreeTable extends JTreeTable implements RowModel, MouseListener {
     private boolean needsRowHeightCalculation = true;
@@ -113,7 +114,11 @@ public class JobTreeTable extends JTreeTable implements RowModel, MouseListener 
     private void calculateRowHeight(Graphics graphics) {
         Font font = getFont();
         FontMetrics fontMetrics = graphics.getFontMetrics(font);
-        setRowHeight(fontMetrics.getHeight() + 3);
+        int preferredRowHeight = Math.max(fontMetrics.getHeight() + 3, UIManager.getInt("Table.rowHeight"));
+        if (preferredRowHeight < 1) {
+            preferredRowHeight = fontMetrics.getHeight() + 3;
+        }
+        setRowHeight(preferredRowHeight);
     }
 
     @Override

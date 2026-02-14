@@ -18,6 +18,7 @@ package epox.swing;
 
 import epox.util.StringUtilities;
 import epox.webaom.AppContext;
+import java.awt.Font;
 import java.awt.dnd.DropTarget;
 import java.awt.dnd.DropTargetListener;
 import java.io.File;
@@ -47,6 +48,10 @@ public class JPanelDebug extends JPanel {
     public JPanelDebug(String file, boolean captureOut, boolean captureErr, boolean echoOut, boolean echoErr) {
         super(new java.awt.BorderLayout());
         textArea = new JTextArea();
+        Font textFont = textArea.getFont();
+        textArea.setFont(new Font(Font.MONOSPACED, Font.PLAIN, textFont.getSize()));
+        textArea.setLineWrap(true);
+        textArea.setWrapStyleWord(true);
         textArea.setMargin(new java.awt.Insets(2, 2, 2, 2));
         textArea.append("Please report bugs at https://github.com/alysson-souza/webaom - Version:" + AppContext.VERSION
                 + "\r\n");
