@@ -7,7 +7,7 @@ plugins {
 }
 
 group = 'epox'
-version = '2.4.0'
+version = '2.4.1'
 description = 'WebAOM - Web Anime-O-Matic (AniDB file identification and organization)'
 
 java {
@@ -447,12 +447,15 @@ tasks.register('appimage') {
 		ant.symlink(link: "${appDir}/.DirIcon", resource: 'webaom.png', overwrite: true)
 	}
 
-	doLast {
-		// Run appimagetool
+		doLast {
+		// Run appimagetool with update information for Gear Lever
+		// The update URL format is: gh-releases-zsync|owner|repo|tag|filename.zsync
+		// Using 'latest' for tag to always fetch the newest release
+		def updateInfo = "gh-releases-zsync|alysson-souza|webaom|latest|WebAOM-*-x86_64.AppImage.zsync"
 		def result = exec {
 			workingDir outputDir
 			environment 'ARCH', 'x86_64'
-			commandLine 'appimagetool', appDir.name, appImageName
+			commandLine 'appimagetool', '-u', updateInfo, appDir.name, appImageName
 			ignoreExitValue = true
 		}
 		if (result.exitValue != 0) {

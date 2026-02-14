@@ -1,5 +1,8 @@
 WebAOM!
 
+2.4.1 2026.02.14
+*AppImage now supports automatic updates.
+
 2.4.0 2026.01.29
 *Added dialog to handle filenames exceeding OS limits (255 bytes) - offers Truncate, Skip, or Apply to All.
 *Default rename rule template now includes TRUNCATE<200,...> for safety.
