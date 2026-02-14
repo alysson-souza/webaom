@@ -87,7 +87,7 @@ jobs:
         if: matrix.os == 'ubuntu-latest'
         run: |
           sudo apt-get update
-          sudo apt-get install -y desktop-file-utils
+          sudo apt-get install -y desktop-file-utils zsync
           wget -q https://github.com/AppImage/appimagetool/releases/download/continuous/appimagetool-x86_64.AppImage
           chmod +x appimagetool-x86_64.AppImage
           sudo mv appimagetool-x86_64.AppImage /usr/local/bin/appimagetool
@@ -106,6 +106,7 @@ jobs:
           path: |
             build/installer/*.${{ matrix.extension }}
             build/installer/*.AppImage
+            build/installer/*.zsync
           retention-days: 7
 
   release:
@@ -165,6 +166,7 @@ jobs:
             dist/*.msi
             dist/*.deb
             dist/*.AppImage
+            dist/*.zsync
           generate_release_notes: true
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

@@ -24,10 +24,10 @@ Download pre-built packages from the [Releases](https://github.com/alysson-souza
 
 | Platform | Package                           |
 | -------- | --------------------------------- |
-| macOS    | `WebAOM-2.4.0.dmg`                |
-| Windows  | `WebAOM-2.4.0.msi`                |
-| Linux    | `WebAOM-2.4.0-x86_64.AppImage`    |
-| Linux    | `webaom_2.4.0_amd64.deb` (Debian) |
+| macOS    | `WebAOM-2.4.1.dmg`                |
+| Windows  | `WebAOM-2.4.1.msi`                |
+| Linux    | `WebAOM-2.4.1-x86_64.AppImage`    |
+| Linux    | `webaom_2.4.1_amd64.deb` (Debian) |
 
 > **macOS users**: The app is not notarized. Right-click → Open, or run `xattr -cr /Applications/WebAOM.app`
 
@@ -37,10 +37,10 @@ Requires Java 21+:
 
 ```bash
 # Lite (SQLite only, ~4MB) - recommended for most users
-java -jar webaom-2.4.0-lite.jar
+java -jar webaom-2.4.1-lite.jar
 
 # Full (SQLite + PostgreSQL + MySQL, ~10MB)
-java -jar webaom-2.4.0-full.jar
+java -jar webaom-2.4.1-full.jar
 ```
 
 ## Quick Start
