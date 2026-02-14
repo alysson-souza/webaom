@@ -45,7 +45,6 @@ public class MylistOptionsPanel extends JPanel {
     private final JCheckBox watchedCheckBox;
 
     public MylistOptionsPanel() {
-
         storageField = new JTextField();
         sourceField = new JTextField();
         otherInfoArea = new JTextArea();
@@ -59,6 +58,7 @@ public class MylistOptionsPanel extends JPanel {
         gridConstraints.insets = new Insets(4, 4, 4, 4);
         setLayout(new GridBagLayout());
         gridConstraints.fill = GridBagConstraints.HORIZONTAL;
+        gridConstraints.anchor = GridBagConstraints.WEST;
 
         gridConstraints.weightx = 0.1;
         gridConstraints.gridwidth = 1;

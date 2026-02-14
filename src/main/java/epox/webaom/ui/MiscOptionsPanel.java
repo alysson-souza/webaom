@@ -22,12 +22,14 @@ import epox.webaom.AppContext;
 import epox.webaom.DiskIOManager;
 import epox.webaom.Options;
 import java.awt.Component;
+import java.awt.FlowLayout;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.Insets;
 import java.io.File;
 import java.util.LinkedHashMap;
 import java.util.StringTokenizer;
+import javax.swing.Box;
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
 import javax.swing.JLabel;
@@ -84,9 +86,9 @@ public class MiscOptionsPanel extends JPanel {
 
         GridBagConstraints constraints = new GridBagConstraints();
         constraints.insets = new Insets(2, 4, 2, 4);
-        constraints.anchor = GridBagConstraints.CENTER;
+        constraints.anchor = GridBagConstraints.WEST;
         constraints.fill = GridBagConstraints.HORIZONTAL;
-        constraints.weighty = 0.1;
+        constraints.weighty = 0.0;
 
         addLabeledComponent("Hash Dirs", hashDirectoriesField, constraints);
         addLabeledComponent("Browser Path", browserPathField, constraints);
@@ -105,27 +107,40 @@ public class MiscOptionsPanel extends JPanel {
         addLabeledComponent("Log File", logFilePathField, constraints);
         addLabeledComponent("LookAndFeel", new JComboBoxLF(AppContext.component), constraints);
 
-        constraints.gridwidth = 1;
-
-        JPanel hashOptionsPanel = new JPanel(new GridBagLayout());
+        JPanel hashOptionsPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 12, 0));
         for (int i = 0; i < hashCheckBoxes.length; i++) {
             hashCheckBoxes[i] = new JCheckBox(getHashName(i), false);
-            hashOptionsPanel.add(hashCheckBoxes[i], constraints);
+            hashOptionsPanel.add(hashCheckBoxes[i]);
         }
         hashCheckBoxes[HASH_ED2K].setSelected(true);
         hashCheckBoxes[HASH_ED2K].setEnabled(false);
 
-        JPanel booleanOptionsPanel = new JPanel(new GridBagLayout());
-        booleanOptionsPanel.add(autoLoadDatabaseCheckBox, constraints);
-        booleanOptionsPanel.add(autoLogCheckBox, constraints);
-        booleanOptionsPanel.add(autoSaveCheckBox, constraints);
-        booleanOptionsPanel.add(autoRenameCheckBox, constraints);
-        booleanOptionsPanel.add(storePasswordCheckBox, constraints);
+        JPanel booleanOptionsPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 12, 0));
+        booleanOptionsPanel.add(autoLoadDatabaseCheckBox);
+        booleanOptionsPanel.add(autoLogCheckBox);
+        booleanOptionsPanel.add(autoSaveCheckBox);
+        booleanOptionsPanel.add(autoRenameCheckBox);
+        booleanOptionsPanel.add(storePasswordCheckBox);
 
-        constraints.gridwidth = GridBagConstraints.REMAINDER;
+        GridBagConstraints rowConstraints = new GridBagConstraints();
+        rowConstraints.insets = new Insets(6, 4, 2, 4);
+        rowConstraints.anchor = GridBagConstraints.WEST;
+        rowConstraints.fill = GridBagConstraints.HORIZONTAL;
+        rowConstraints.weightx = 1.0;
+        rowConstraints.gridwidth = GridBagConstraints.REMAINDER;
+        add(booleanOptionsPanel, rowConstraints);
 
-        add(booleanOptionsPanel, constraints);
-        add(hashOptionsPanel, constraints);
+        rowConstraints.insets = new Insets(6, 4, 2, 4);
+        add(hashOptionsPanel, rowConstraints);
+
+        GridBagConstraints fillerConstraints = new GridBagConstraints();
+        fillerConstraints.gridx = 0;
+        fillerConstraints.gridy = GridBagConstraints.RELATIVE;
+        fillerConstraints.gridwidth = GridBagConstraints.REMAINDER;
+        fillerConstraints.weightx = 1.0;
+        fillerConstraints.weighty = 1.0;
+        fillerConstraints.fill = GridBagConstraints.BOTH;
+        add(Box.createVerticalGlue(), fillerConstraints);
     }
 
     private static String getHashName(int hashTypeCode) {

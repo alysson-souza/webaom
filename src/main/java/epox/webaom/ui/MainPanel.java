@@ -365,14 +365,14 @@ public class MainPanel extends JPanel
         mylistPanel.add(mylistOptionsPanel, BorderLayout.CENTER);
 
         // THE PANEL
-        JPanel optionsPanel = new JPanel(new GridLayout(2, 1, 0, 0));
+        JPanel optionsPanel = new JPanel(new BorderLayout());
         optionsPanel.setBorder(new EtchedBorder());
 
-        JPanel topOptionsRow = new JPanel(new GridLayout(1, 2, 0, 0));
+        JPanel topOptionsRow = new JPanel(new GridLayout(1, 2, 4, 0));
         JPanel bottomOptionsRow = new JPanel(new BorderLayout());
 
-        optionsPanel.add(topOptionsRow);
-        optionsPanel.add(bottomOptionsRow);
+        optionsPanel.add(topOptionsRow, BorderLayout.NORTH);
+        optionsPanel.add(bottomOptionsRow, BorderLayout.CENTER);
 
         topOptionsRow.add(connectionPanel);
         topOptionsRow.add(mylistPanel);
