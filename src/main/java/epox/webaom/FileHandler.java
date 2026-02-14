@@ -16,12 +16,14 @@
 
 package epox.webaom;
 
+import com.formdev.flatlaf.util.SystemFileChooser;
 import epox.swing.UniqueStringList;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.Arrays;
 import java.util.StringTokenizer;
 
 public class FileHandler {
@@ -58,6 +60,17 @@ public class FileHandler {
                 return "Allowed video files";
             }
         };
+    }
+
+    public SystemFileChooser.FileFilter createSystemExtensionFilter() {
+        if (allowedExtensions.getSize() == 0) {
+            return null;
+        }
+
+        String[] extensions = Arrays.stream(allowedExtensions.getStrings())
+                .map(Object::toString)
+                .toArray(String[]::new);
+        return new SystemFileChooser.FileNameExtensionFilter("Allowed video files", extensions);
     }
 
     public java.io.FileFilter createFileFilter() {

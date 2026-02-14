@@ -16,17 +16,17 @@
 
 package epox.swing;
 
+import com.formdev.flatlaf.util.SystemFileChooser;
 import java.awt.Component;
 import java.io.File;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.Optional;
-import javax.swing.JFileChooser;
-import javax.swing.filechooser.FileFilter;
+import java.util.prefs.Preferences;
 
 /**
- * Fluent builder for creating and configuring JFileChooser dialogs.
+ * Fluent builder for creating and configuring file chooser dialogs.
  *
  * <p>This builder simplifies the common pattern of setting up file choosers with consistent
  * behavior across an application. It handles:
@@ -56,12 +56,32 @@ import javax.swing.filechooser.FileFilter;
  * }</pre>
  */
 public class FileChooserBuilder {
-    private final JFileChooser fileChooser;
+    private static final Preferences FILE_CHOOSER_STATE = Preferences.userRoot().node("webaom/filechooser");
+
+    static {
+        SystemFileChooser.setStateStore(new SystemFileChooser.StateStore() {
+            @Override
+            public String get(String key, String def) {
+                return FILE_CHOOSER_STATE.get(key, def);
+            }
+
+            @Override
+            public void put(String key, String value) {
+                if (value != null) {
+                    FILE_CHOOSER_STATE.put(key, value);
+                } else {
+                    FILE_CHOOSER_STATE.remove(key);
+                }
+            }
+        });
+    }
+
+    private final SystemFileChooser fileChooser;
     private String lastDirectory;
     private boolean trackLastDirectory = true;
 
     private FileChooserBuilder() {
-        this.fileChooser = new JFileChooser();
+        this.fileChooser = new SystemFileChooser();
     }
 
     /**
@@ -90,7 +110,7 @@ public class FileChooserBuilder {
      * @return this builder for method chaining
      */
     public FileChooserBuilder forFiles() {
-        fileChooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
+        fileChooser.setFileSelectionMode(SystemFileChooser.FILES_ONLY);
         return this;
     }
 
@@ -100,7 +120,7 @@ public class FileChooserBuilder {
      * @return this builder for method chaining
      */
     public FileChooserBuilder forDirectories() {
-        fileChooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
+        fileChooser.setFileSelectionMode(SystemFileChooser.DIRECTORIES_ONLY);
         return this;
     }
 
@@ -110,7 +130,7 @@ public class FileChooserBuilder {
      * @return this builder for method chaining
      */
     public FileChooserBuilder forFilesAndDirectories() {
-        fileChooser.setFileSelectionMode(JFileChooser.FILES_AND_DIRECTORIES);
+        fileChooser.setFileSelectionMode(SystemFileChooser.FILES_ONLY);
         return this;
     }
 
@@ -131,9 +151,16 @@ public class FileChooserBuilder {
      * @param filter the filter to apply, or null for no filtering
      * @return this builder for method chaining
      */
-    public FileChooserBuilder withFilter(FileFilter filter) {
+    public FileChooserBuilder withFilter(SystemFileChooser.FileFilter filter) {
         if (filter != null) {
             fileChooser.setFileFilter(filter);
+        }
+        return this;
+    }
+
+    public FileChooserBuilder withStateStoreId(String stateStoreId) {
+        if (stateStoreId != null && !stateStoreId.isBlank()) {
+            fileChooser.setStateStoreID(stateStoreId);
         }
         return this;
     }
@@ -211,7 +238,7 @@ public class FileChooserBuilder {
     }
 
     private FileChooserResult buildResult(int option) {
-        boolean approved = (option == JFileChooser.APPROVE_OPTION);
+        boolean approved = (option == SystemFileChooser.APPROVE_OPTION);
         File selectedFile = approved ? fileChooser.getSelectedFile() : null;
         File[] selectedFiles = approved ? fileChooser.getSelectedFiles() : new File[0];
 

@@ -9,6 +9,7 @@ to time. Do at least check the changelog for relevant info before using it.
 *Window opens at a more comfortable size.
 *Fixed startup issue where the embedded database could fail to open on some systems.
 *Added "Reset to default" in Rules editor right-click menu.
+*File and folder pickers now use native system dialogs and remember recent locations better.
 
 2.4.1 14.02.2026:
 *AppImage now supports automatic updates.
