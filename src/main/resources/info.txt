@@ -6,6 +6,7 @@ WebAOM!
 *Rules, Log, and Debug tabs are easier to read with a code-style font.
 *Hash and Debug tabs now wrap long lines instead of cutting them off.
 *Window opens at a more comfortable size.
+*Fixed startup issue where the embedded database could fail to open on some systems.
 
 2.4.1 2026.02.14
 *AppImage now supports automatic updates.

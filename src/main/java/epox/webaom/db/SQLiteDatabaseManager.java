@@ -16,6 +16,9 @@
 
 package epox.webaom.db;
 
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.ResultSet;
@@ -26,6 +29,7 @@ import java.sql.Statement;
  * SQLite-specific database manager implementation.
  */
 public class SQLiteDatabaseManager extends DatabaseManager {
+    private static final String SQLITE_JDBC_PREFIX = "jdbc:sqlite:";
 
     static {
         try {
@@ -67,8 +71,45 @@ public class SQLiteDatabaseManager extends DatabaseManager {
 
     @Override
     protected Connection openConnection() throws SQLException {
+        ensureParentDirectoryExists(connectionUrl);
         // SQLite doesn't need username/password
         return DriverManager.getConnection(connectionUrl);
+    }
+
+    private void ensureParentDirectoryExists(String jdbcUrl) throws SQLException {
+        if (jdbcUrl == null || !jdbcUrl.startsWith(SQLITE_JDBC_PREFIX)) {
+            return;
+        }
+
+        String databasePath = jdbcUrl.substring(SQLITE_JDBC_PREFIX.length());
+        if (databasePath.isEmpty() || databasePath.startsWith(":memory:") || databasePath.startsWith(":resource:")) {
+            return;
+        }
+
+        int queryIndex = databasePath.indexOf('?');
+        if (queryIndex >= 0) {
+            databasePath = databasePath.substring(0, queryIndex);
+        }
+
+        if (databasePath.startsWith("file:")) {
+            if (databasePath.startsWith("file::memory:")) {
+                return;
+            }
+            databasePath = databasePath.substring("file:".length());
+        }
+
+        if (databasePath.startsWith("~/")) {
+            databasePath = System.getProperty("user.home") + databasePath.substring(1);
+        }
+
+        try {
+            Path parentPath = Paths.get(databasePath).toAbsolutePath().getParent();
+            if (parentPath != null && !Files.exists(parentPath)) {
+                Files.createDirectories(parentPath);
+            }
+        } catch (Exception ex) {
+            throw new SQLException("Failed to create SQLite database directory for: " + databasePath, ex);
+        }
     }
 
     @Override
