@@ -395,6 +395,8 @@ public class MainPanel extends JPanel
 
         //////////////////////////////// HASH PANE///////////////////////////////
         hashTextArea = new JTextArea();
+        hashTextArea.setLineWrap(true);
+        hashTextArea.setWrapStyleWord(true);
         enableFileDrop(hashTextArea);
 
         /////////////////////////////// RULES PANE///////////////////////////////

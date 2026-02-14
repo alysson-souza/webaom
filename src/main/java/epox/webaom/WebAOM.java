@@ -16,7 +16,10 @@
 
 package epox.webaom;
 
+import epox.swing.FlatLafSupport;
+import epox.swing.FlatLafTheme;
 import epox.swing.UiTuning;
+import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.Image;
 import java.io.InputStream;
@@ -55,6 +58,13 @@ public class WebAOM {
     }
 
     private static void launch() {
+        try {
+            FlatLafSupport.applyTheme(loadStartupTheme());
+        } catch (Exception ex) {
+            System.err.println("! Failed to initialize FlatLaf theme: " + ex.getMessage());
+            ex.printStackTrace();
+        }
+
         UiTuning.applyForCurrentLookAndFeel();
 
         JFrame frame = new JFrame("WebAOM " + AppContext.VERSION + " Loading...");
@@ -63,8 +73,8 @@ public class WebAOM {
         AppContext.component = frame;
         frame.setDefaultCloseOperation(WindowConstants.DO_NOTHING_ON_CLOSE);
 
-        // Default size: large enough for GTK/Nimbus on HiDPI, but never full-screen.
-        frame.setSize(800, 760);
+        frame.setSize(800, 648);
+        frame.setMinimumSize(new Dimension(800, 648));
         frame.setLocationRelativeTo(null);
         frame.setVisible(true);
 
@@ -81,6 +91,15 @@ public class WebAOM {
             }
         });
         AppContext.gui.startup();
+    }
+
+    private static FlatLafTheme loadStartupTheme() {
+        Options startupOptions = new Options();
+        if (!startupOptions.loadFromFile()) {
+            return FlatLafTheme.LIGHT;
+        }
+
+        return FlatLafTheme.fromOptionValue(startupOptions.getString(Options.STR_THEME));
     }
 
     static void setGlobalFont(Font primaryFont, Font tableFont) {

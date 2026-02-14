@@ -80,7 +80,8 @@ public class Options {
     public static final int STR_LOG_HEADER = 16;
     public static final int STR_JOB_COLUMNS = 17;
     public static final int STR_LAST_DIRECTORY = 18;
-    public static final int STRING_OPTIONS_COUNT = 19;
+    public static final int STR_THEME = 19;
+    public static final int STRING_OPTIONS_COUNT = 20;
     private static final String OPTIONS_VERSION = "001";
     /** Secondary separator character (ASCII STX) for section boundaries. */
     private static final String SECTION_SEPARATOR = "\2";

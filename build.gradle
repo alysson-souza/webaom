@@ -7,7 +7,7 @@ plugins {
 }
 
 group = 'epox'
-version = '2.4.1'
+version = '2.5.0'
 description = 'WebAOM - Web Anime-O-Matic (AniDB file identification and organization)'
 
 java {
@@ -38,6 +38,8 @@ configurations {
 }
 
 dependencies {
+	implementation 'com.formdev:flatlaf:3.7'
+
 	// SQLite is always included (embedded database)
 	runtimeOnly 'org.xerial:sqlite-jdbc:3.51.0.0'
 	sqliteOnly 'org.xerial:sqlite-jdbc:3.51.0.0'

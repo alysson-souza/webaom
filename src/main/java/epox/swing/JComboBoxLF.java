@@ -8,49 +8,71 @@ import java.awt.Component;
 import javax.swing.DefaultComboBoxModel;
 import javax.swing.JComboBox;
 import javax.swing.SwingUtilities;
-import javax.swing.UIManager;
-import javax.swing.UIManager.LookAndFeelInfo;
 
 /**
- * JComboBox for selecting the application's Look and Feel. Displays installed L&F options and applies selection
+ * JComboBox for selecting the application's FlatLaf theme. Displays supported theme options and applies selection
  * immediately.
  */
 public class JComboBoxLF extends JComboBox<String> {
-    /** Array of installed look and feel options */
-    protected static final LookAndFeelInfo[] LOOK_AND_FEELS = UIManager.getInstalledLookAndFeels();
+    private static final FlatLafTheme[] THEMES = FlatLafTheme.values();
 
     public JComboBoxLF(final Component rootComponent) {
         super(new DefaultComboBoxModel<>() {
             @Override
             public String getElementAt(int index) {
-                return LOOK_AND_FEELS[index].getName();
+                return THEMES[index].toString();
             }
 
             @Override
             public int getSize() {
-                return LOOK_AND_FEELS.length;
+                return THEMES.length;
             }
         });
         addActionListener(event -> {
             try {
-                UIManager.setLookAndFeel(LOOK_AND_FEELS[getSelectedIndex()].getClassName());
+                FlatLafSupport.applyTheme(THEMES[getSelectedIndex()]);
                 UiTuning.applyForCurrentLookAndFeel();
             } catch (Exception ex) {
                 ex.printStackTrace();
             }
-            SwingUtilities.updateComponentTreeUI(rootComponent);
-            rootComponent.invalidate();
-            rootComponent.validate();
-            rootComponent.repaint();
+
+            if (rootComponent != null) {
+                SwingUtilities.updateComponentTreeUI(rootComponent);
+                rootComponent.invalidate();
+                rootComponent.validate();
+                rootComponent.repaint();
+            }
         });
-        String currentLookAndFeel = UIManager.getLookAndFeel().getClass().getCanonicalName();
+
+        FlatLafTheme currentTheme = FlatLafSupport.getCurrentTheme();
         int selectedIndex;
-        for (selectedIndex = 0; selectedIndex < LOOK_AND_FEELS.length; selectedIndex++) {
-            if (currentLookAndFeel.equals(LOOK_AND_FEELS[selectedIndex].getClassName())) {
+        for (selectedIndex = 0; selectedIndex < THEMES.length; selectedIndex++) {
+            if (currentTheme == THEMES[selectedIndex]) {
                 break;
             }
         }
         setSelectedIndex(selectedIndex);
-        setToolTipText("Select wanted look and feel here.");
+        setToolTipText("Select application theme here.");
+    }
+
+    public FlatLafTheme getSelectedTheme() {
+        int index = getSelectedIndex();
+        if (index < 0 || index >= THEMES.length) {
+            return FlatLafTheme.LIGHT;
+        }
+
+        return THEMES[index];
+    }
+
+    public void setSelectedTheme(FlatLafTheme theme) {
+        FlatLafTheme selectedTheme = (theme == null) ? FlatLafTheme.LIGHT : theme;
+        for (int i = 0; i < THEMES.length; i++) {
+            if (THEMES[i] == selectedTheme) {
+                setSelectedIndex(i);
+                return;
+            }
+        }
+
+        setSelectedIndex(0);
     }
 }

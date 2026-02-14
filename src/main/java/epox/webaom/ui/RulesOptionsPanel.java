@@ -24,6 +24,7 @@ import epox.webaom.Rules;
 import epox.webaom.WebAOM;
 import java.awt.BorderLayout;
 import java.awt.Color;
+import java.awt.Font;
 import java.awt.event.ActionEvent;
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
@@ -85,6 +86,8 @@ public class RulesOptionsPanel extends JPanel implements Action, ItemListener {
 
         rulesTextArea = new JTextArea(rules.getRenameRules());
         rulesTextArea.setMargin(new java.awt.Insets(2, 4, 2, 4));
+        Font rulesFont = rulesTextArea.getFont();
+        rulesTextArea.setFont(new Font(Font.MONOSPACED, Font.PLAIN, rulesFont.getSize()));
 
         final RuleMenu ruleMenuHandler = new RuleMenu(rulesTextArea);
         SAXParserFactory parserFactory = SAXParserFactory.newInstance();

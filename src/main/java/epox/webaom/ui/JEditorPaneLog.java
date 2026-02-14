@@ -21,6 +21,7 @@ import epox.util.StringUtilities;
 import epox.webaom.AppContext;
 import epox.webaom.HyperlinkBuilder;
 import epox.webaom.util.PlatformPaths;
+import java.awt.Font;
 import java.awt.event.ActionEvent;
 import java.io.IOException;
 import java.io.OutputStream;
@@ -36,13 +37,19 @@ import javax.swing.text.Document;
 import javax.swing.text.EditorKit;
 
 public class JEditorPaneLog extends JEditorPane implements Log, Action {
-    public static String htmlHeader = "<style type=\"text/css\">" + "body{background-color:#FFFFFF;"
-            + "font-family:Verdana,Arial,Helvetica,sans-serif;font-size:11pt;}" + "</style>";
+    private static final String MONOSPACE_MARKER = "/*webaom-log-monospace*/";
+    private static final String MONOSPACE_STYLE = "<style type=\"text/css\">" + MONOSPACE_MARKER
+            + "body{font-family:Monospaced,Consolas,Menlo,Monaco,'Liberation Mono',monospace;font-size:11pt;}"
+            + "</style>";
+
+    public static String htmlHeader = MONOSPACE_STYLE;
     private PrintStream logOutputStream;
 
     public JEditorPaneLog() {
         super("text/html", htmlHeader);
         setEditable(false);
+        Font currentFont = getFont();
+        setFont(new Font(Font.MONOSPACED, Font.PLAIN, currentFont.getSize()));
         getInputMap().put(KeyStroke.getKeyStroke("DELETE"), "remove");
         getActionMap().put("remove", this);
     }
@@ -140,10 +147,24 @@ public class JEditorPaneLog extends JEditorPane implements Log, Action {
             return;
         }
         synchronized (this) {
-            htmlHeader = newHeader;
+            htmlHeader = ensureMonospaceHeader(newHeader);
             setText(htmlHeader);
             Runtime.getRuntime().gc();
         }
+    }
+
+    private String ensureMonospaceHeader(String header) {
+        if (header.contains(MONOSPACE_MARKER)) {
+            return header;
+        }
+
+        String lowerHeader = header.toLowerCase();
+        int headCloseIndex = lowerHeader.indexOf("</head>");
+        if (headCloseIndex >= 0) {
+            return header.substring(0, headCloseIndex) + MONOSPACE_STYLE + header.substring(headCloseIndex);
+        }
+
+        return MONOSPACE_STYLE + header;
     }
 
     private class AppendFileStream extends OutputStream {
