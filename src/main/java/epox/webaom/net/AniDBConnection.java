@@ -302,14 +302,20 @@ public class AniDBConnection implements ActionListener {
     }
 
     public void disconnect() {
-        if (connected) {
-            keepAliveTimer.stop();
-            socket.disconnect();
-            socket.close();
-            socket = null;
-            serverAddress = null;
-            connected = false;
-            authenticated = false;
+        keepAliveTimer.stop();
+        DatagramSocket activeSocket = socket;
+        socket = null;
+        serverAddress = null;
+        connected = false;
+        authenticated = false;
+
+        if (activeSocket != null) {
+            try {
+                activeSocket.disconnect();
+            } catch (Exception ignored) {
+                // ignore
+            }
+            activeSocket.close();
         }
     }
 
@@ -346,13 +352,22 @@ public class AniDBConnection implements ActionListener {
                 }
                 return response;
             } catch (SocketTimeoutException ex) {
+                if (shutdown) {
+                    throw new AniDBException(AniDBException.CLIENT_SYSTEM, ex.getMessage());
+                }
                 generateTag();
                 error("Operation Failed: TIMEOUT or SERVER BUSY. Try #" + timeoutCount);
                 settings.packetDelay += 100;
             } catch (IOException ex) {
+                if (shutdown) {
+                    throw new AniDBException(AniDBException.CLIENT_SYSTEM, ex.getMessage());
+                }
                 LOGGER.warning("IO Exception: " + ex.getMessage());
                 error("Operation Failed: IOEXCEPT: " + ex.getMessage());
             }
+        }
+        if (shutdown) {
+            throw new AniDBException(AniDBException.CLIENT_SYSTEM, "Connection shutdown");
         }
         throw new AniDBException(AniDBException.ANIDB_UNREACHABLE, getLastError());
     }
@@ -376,6 +391,10 @@ public class AniDBConnection implements ActionListener {
     }
 
     private AniDBConnectionResponse sendRaw(String command, boolean wait) throws IOException, AniDBException {
+        if (shutdown) {
+            return null;
+        }
+
         keepAliveTimer.stop();
         if (wait) {
             try {
@@ -390,6 +409,11 @@ public class AniDBConnection implements ActionListener {
                 throw new AniDBException(AniDBException.CLIENT_SYSTEM, "Java: " + ex.getMessage());
             }
         }
+
+        if (shutdown) {
+            return null;
+        }
+
         String censoredCommand = command;
         int passwordIndex = censoredCommand.indexOf("pass=");
         if (passwordIndex > 0) {
@@ -413,10 +437,16 @@ public class AniDBConnection implements ActionListener {
             }
         }
 
-        DatagramPacket outPacket = new DatagramPacket(outData, length, serverAddress, settings.remotePort);
+        DatagramSocket activeSocket = socket;
+        InetAddress activeServerAddress = serverAddress;
+        if (activeSocket == null || activeSocket.isClosed() || activeServerAddress == null) {
+            throw new IOException("Socket closed");
+        }
+
+        DatagramPacket outPacket = new DatagramPacket(outData, length, activeServerAddress, settings.remotePort);
         timestamp = System.currentTimeMillis();
 
-        socket.send(outPacket);
+        activeSocket.send(outPacket);
 
         int encIndex = command.indexOf("&enc=");
         if (encIndex > 0) {
@@ -429,22 +459,26 @@ public class AniDBConnection implements ActionListener {
         }
 
         if (!shutdown) { // wait
-            AniDBConnectionResponse response = receive();
+            AniDBConnectionResponse response = receive(activeSocket);
             keepAliveTimer.start();
             return response;
         }
         return null;
     }
 
-    private AniDBConnectionResponse receive() throws IOException, AniDBException {
+    private AniDBConnectionResponse receive(DatagramSocket activeSocket) throws IOException, AniDBException {
         if (shutdown) {
             return null;
         }
+        if (activeSocket == null || activeSocket.isClosed()) {
+            throw new IOException("Socket closed");
+        }
+
         int bufferSize = 2048 * 2;
         byte[] buffer = new byte[bufferSize];
         DatagramPacket inPacket = new DatagramPacket(buffer, bufferSize);
 
-        socket.receive(inPacket);
+        activeSocket.receive(inPacket);
         timeUsed = System.currentTimeMillis() - timestamp;
         timestamp += timeUsed / 2; // test, share used time
 
@@ -483,7 +517,7 @@ public class AniDBConnection implements ActionListener {
             return new AniDBConnectionResponse(currentTag, TAG_LENGTH, responseString);
         } catch (TagMismatchException ex) {
             debug("! Wrong tag! Should be: " + currentTag);
-            return receive();
+            return receive(activeSocket);
         }
     }
 }

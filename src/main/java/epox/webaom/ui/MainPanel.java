@@ -98,6 +98,8 @@ public class MainPanel extends JPanel
     private static final String LABEL_NETWORK_IO_DISABLE = "Log out";
     private static final String LABEL_DISK_IO_ENABLE = "Start";
     private static final String LABEL_DISK_IO_DISABLE = "Stop";
+    private static final long SHUTDOWN_JOIN_TIMEOUT_MS = 2000;
+    private static final long SHUTDOWN_INTERRUPT_JOIN_TIMEOUT_MS = 500;
     private final Runnable jobScrollDownRunnable;
     public JProgressBar statusProgressBar;
     public JProgressBar jobProgressBar;
@@ -252,30 +254,34 @@ public class MainPanel extends JPanel
 
     public void shutdown() {
         logEditorPane.closeLogFile();
-        if (networkIoThread != null && AppContext.conn != null && AppContext.conn.isLoggedIn()) {
-            AniDBConnection.setShutdown(true);
-            toolbarButtons[BUTTON_CONNECTION].setEnabled(false); // disable the button
-            isNetworkIoRunning = false;
-            try {
-                networkIoThread.join();
-            } catch (InterruptedException ex) {
-                Thread.currentThread().interrupt();
-                LOGGER.warning("Interrupted during shutdown: " + ex.getMessage());
-            }
+        Thread activeNetworkThread = networkIoThread;
+        if (activeNetworkThread == null) {
+            return;
         }
+
+        AniDBConnection.setShutdown(true);
+        toolbarButtons[BUTTON_CONNECTION].setEnabled(false);
+        isNetworkIoRunning = false;
+
+        if (AppContext.conn != null) {
+            AppContext.conn.disconnect();
+        }
+
+        waitForThreadToStop(activeNetworkThread, "NetIO");
     }
 
     public void reset() {
+        if (isDiskIoRunning) {
+            toggleDiskIo();
+        }
+        setNetworkIoEnabled(false);
+
+        Thread activeDiskIoThread = diskIoThread;
+        if (activeDiskIoThread != null) {
+            waitForThreadToStop(activeDiskIoThread, "DiskIO");
+        }
+
         synchronized (AppContext.animeTreeRoot) {
-            if (isDiskIoRunning) {
-                toggleDiskIo();
-            }
-            setNetworkIoEnabled(false);
-            try {
-                diskIoThread.join(1000);
-            } catch (Exception ex) {
-                // Ignore timeout exception
-            }
             AppContext.databaseManager.shutdown();
             miscOptionsPanel.databaseUrlField.setEnabled(true);
             AppContext.animeTreeRoot.clear();
@@ -286,6 +292,31 @@ public class MainPanel extends JPanel
             jobsTable.updateUI();
             altViewPanel.getAltViewTreeTable().updateUI();
             System.gc();
+        }
+    }
+
+    private void waitForThreadToStop(Thread thread, String threadName) {
+        try {
+            thread.join(SHUTDOWN_JOIN_TIMEOUT_MS);
+        } catch (InterruptedException ex) {
+            Thread.currentThread().interrupt();
+            LOGGER.warning("Interrupted while waiting for " + threadName + " to stop: " + ex.getMessage());
+            return;
+        }
+
+        if (thread.isAlive()) {
+            thread.interrupt();
+            try {
+                thread.join(SHUTDOWN_INTERRUPT_JOIN_TIMEOUT_MS);
+            } catch (InterruptedException ex) {
+                Thread.currentThread().interrupt();
+                LOGGER.warning("Interrupted while interrupting " + threadName + ": " + ex.getMessage());
+                return;
+            }
+        }
+
+        if (thread.isAlive()) {
+            LOGGER.warning(threadName + " did not stop in time; continuing shutdown.");
         }
     }
 
