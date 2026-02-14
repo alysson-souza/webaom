@@ -118,7 +118,11 @@ tasks.register('jarLite', Jar) {
 	from("${layout.buildDirectory.get()}/resources/main")
 
 	from {
-		configurations.sqliteOnly.collect { it.isDirectory() ? it : zipTree(it) }
+		sourceSets.main.runtimeClasspath
+				.findAll { dep ->
+					!dep.name.contains('postgresql') && !dep.name.contains('mysql-connector-j')
+				}
+				.collect { it.isDirectory() ? it : zipTree(it) }
 	}
 
 	duplicatesStrategy = DuplicatesStrategy.EXCLUDE
@@ -148,7 +152,7 @@ tasks.register('jarFull', Jar) {
 	from("${layout.buildDirectory.get()}/resources/main")
 
 	from {
-		configurations.allDrivers.collect { it.isDirectory() ? it : zipTree(it) }
+		sourceSets.main.runtimeClasspath.collect { it.isDirectory() ? it : zipTree(it) }
 	}
 
 	duplicatesStrategy = DuplicatesStrategy.EXCLUDE
