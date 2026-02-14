@@ -7,6 +7,7 @@ to time. Do at least check the changelog for relevant info before using it.
 *Rules, Log, and Debug tabs are easier to read with a code-style font.
 *Hash and Debug tabs now wrap long lines instead of cutting them off.
 *Window opens at a more comfortable size.
+*Fixed startup issue where the embedded database could fail to open on some systems.
 
 2.4.1 14.02.2026:
 *AppImage now supports automatic updates.
