@@ -17,6 +17,7 @@
 package epox.webaom.ui;
 
 import epox.av.AVInfo;
+import epox.swing.FileChooserBuilder;
 import epox.webaom.AppContext;
 import epox.webaom.HyperlinkBuilder;
 import epox.webaom.Job;
@@ -25,7 +26,6 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
-import javax.swing.JFileChooser;
 import javax.swing.JMenuItem;
 import javax.swing.JPopupMenu;
 import javax.swing.JTable;
@@ -269,17 +269,23 @@ public class JobContextMenu extends JPopupMenu implements MouseListener, ActionL
     }
 
     String getFolder() {
-        JFileChooser fileChooser = new JFileChooser();
-        fileChooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
-        fileChooser.setMultiSelectionEnabled(false);
-        if (AppContext.lastDirectory != null) {
-            fileChooser.setCurrentDirectory(new java.io.File(AppContext.lastDirectory));
+        FileChooserBuilder.FileChooserResult chooserResult = FileChooserBuilder.createWithLastDirectory(
+                        AppContext.lastDirectory)
+                .forDirectories()
+                .multiSelection(false)
+                .withStateStoreId("job-folder")
+                .showDialog(AppContext.component, "Select Directory");
+
+        String currentDirectory = chooserResult.getCurrentDirectory();
+        if (currentDirectory != null && !currentDirectory.isEmpty()) {
+            AppContext.lastDirectory = currentDirectory;
         }
-        int option = fileChooser.showDialog(AppContext.component, "Select Directory");
-        if (option == JFileChooser.APPROVE_OPTION) {
-            AppContext.lastDirectory = fileChooser.getSelectedFile().getAbsolutePath();
-            return AppContext.lastDirectory;
+
+        if (chooserResult.isApproved() && chooserResult.getSelectedFile() != null) {
+            AppContext.lastDirectory = chooserResult.getSelectedFile().getAbsolutePath();
+            return chooserResult.getSelectedFile().getAbsolutePath();
         }
+
         return null;
     }
 

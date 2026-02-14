@@ -16,6 +16,7 @@
 
 package epox.webaom.ui;
 
+import epox.swing.FileChooserBuilder;
 import epox.swing.JPanelCommand;
 import epox.swing.JPanelDebug;
 import epox.swing.Log;
@@ -58,7 +59,6 @@ import java.util.logging.Logger;
 import javax.swing.AbstractAction;
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
-import javax.swing.JFileChooser;
 import javax.swing.JList;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
@@ -912,17 +912,21 @@ public class MainPanel extends JPanel
         if (workerThread != null) {
             return;
         }
-        JFileChooser fileChooser = new JFileChooser();
-        fileChooser.setFileFilter(AppContext.fileHandler.createExtensionFilter());
-        fileChooser.setMultiSelectionEnabled(true);
-        if (AppContext.lastDirectory != null) {
-            fileChooser.setCurrentDirectory(new File(AppContext.lastDirectory));
+        FileChooserBuilder.FileChooserResult chooserResult = FileChooserBuilder.createWithLastDirectory(
+                        AppContext.lastDirectory)
+                .forFiles()
+                .multiSelection(true)
+                .withFilter(AppContext.fileHandler.createSystemExtensionFilter())
+                .withStateStoreId("select-files")
+                .showDialog(AppContext.component, "Select File(s)");
+
+        String currentDirectory = chooserResult.getCurrentDirectory();
+        if (currentDirectory != null && !currentDirectory.isEmpty()) {
+            AppContext.lastDirectory = currentDirectory;
         }
-        int option = fileChooser.showDialog(AppContext.component, "Select File(s)");
-        if (option == JFileChooser.APPROVE_OPTION) {
-            selectFilesForProcessing(fileChooser.getSelectedFiles());
-        } else {
-            AppContext.lastDirectory = fileChooser.getCurrentDirectory().getAbsolutePath();
+
+        if (chooserResult.isApproved()) {
+            selectFilesForProcessing(chooserResult.getSelectedFiles());
         }
     }
 
@@ -931,17 +935,20 @@ public class MainPanel extends JPanel
         if (workerThread != null) {
             return;
         }
-        JFileChooser fileChooser = new JFileChooser();
-        fileChooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
-        fileChooser.setMultiSelectionEnabled(true);
-        if (AppContext.lastDirectory != null) {
-            fileChooser.setCurrentDirectory(new File(AppContext.lastDirectory));
+        FileChooserBuilder.FileChooserResult chooserResult = FileChooserBuilder.createWithLastDirectory(
+                        AppContext.lastDirectory)
+                .forDirectories()
+                .multiSelection(true)
+                .withStateStoreId("select-directories")
+                .showDialog(AppContext.component, "Select Directory(ies) (recursive)");
+
+        String currentDirectory = chooserResult.getCurrentDirectory();
+        if (currentDirectory != null && !currentDirectory.isEmpty()) {
+            AppContext.lastDirectory = currentDirectory;
         }
-        int option = fileChooser.showDialog(AppContext.component, "Select Directory(ies) (recursive)");
-        if (option == JFileChooser.APPROVE_OPTION) {
-            selectFilesForProcessing(fileChooser.getSelectedFiles());
-        } else {
-            AppContext.lastDirectory = fileChooser.getCurrentDirectory().getAbsolutePath();
+
+        if (chooserResult.isApproved()) {
+            selectFilesForProcessing(chooserResult.getSelectedFiles());
         }
     }
 

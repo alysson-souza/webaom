@@ -16,6 +16,7 @@
 
 package epox.webaom;
 
+import epox.swing.FileChooserBuilder;
 import epox.util.StringUtilities;
 import epox.webaom.data.AniDBEntity;
 import epox.webaom.data.AniDBFile;
@@ -32,7 +33,6 @@ import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.io.Writer;
 import java.nio.charset.StandardCharsets;
-import javax.swing.JFileChooser;
 
 public final class Parser {
     /** Zero padding prefixes for episode number formatting (0-4 zeros). */
@@ -137,13 +137,20 @@ public final class Parser {
         if (AppContext.animeTreeRoot != null) {
             try {
                 synchronized (AppContext.animeTreeRoot) {
-                    JFileChooser fileChooser = new JFileChooser();
-                    if (AppContext.lastDirectory != null) {
-                        fileChooser.setCurrentDirectory(new File(AppContext.lastDirectory));
+                    FileChooserBuilder.FileChooserResult chooserResult = FileChooserBuilder.createWithLastDirectory(
+                                    AppContext.lastDirectory)
+                            .forFiles()
+                            .multiSelection(false)
+                            .withStateStoreId("export-db")
+                            .showSaveDialog(AppContext.component);
+
+                    String currentDirectory = chooserResult.getCurrentDirectory();
+                    if (currentDirectory != null && !currentDirectory.isEmpty()) {
+                        AppContext.lastDirectory = currentDirectory;
                     }
-                    if (fileChooser.showDialog(AppContext.component, "Select File") == JFileChooser.APPROVE_OPTION) {
-                        File file = fileChooser.getSelectedFile();
-                        AppContext.lastDirectory = file.getParentFile().getAbsolutePath();
+
+                    if (chooserResult.isApproved() && chooserResult.getSelectedFile() != null) {
+                        File file = chooserResult.getSelectedFile();
                         FileOutputStream outputStream = new FileOutputStream(file);
                         Writer writer = new OutputStreamWriter(outputStream, StandardCharsets.UTF_8);
                         writer.write("a0\r\n");
@@ -180,13 +187,20 @@ public final class Parser {
         if (AppContext.animeTreeRoot != null) {
             try {
                 synchronized (AppContext.animeTreeRoot) {
-                    JFileChooser fileChooser = new JFileChooser();
-                    if (AppContext.lastDirectory != null) {
-                        fileChooser.setCurrentDirectory(new File(AppContext.lastDirectory));
+                    FileChooserBuilder.FileChooserResult chooserResult = FileChooserBuilder.createWithLastDirectory(
+                                    AppContext.lastDirectory)
+                            .forFiles()
+                            .multiSelection(false)
+                            .withStateStoreId("import-db")
+                            .showOpenDialog(AppContext.component);
+
+                    String currentDirectory = chooserResult.getCurrentDirectory();
+                    if (currentDirectory != null && !currentDirectory.isEmpty()) {
+                        AppContext.lastDirectory = currentDirectory;
                     }
-                    if (fileChooser.showDialog(AppContext.component, "Select File") == JFileChooser.APPROVE_OPTION) {
-                        File file = fileChooser.getSelectedFile();
-                        AppContext.lastDirectory = file.getParentFile().getAbsolutePath();
+
+                    if (chooserResult.isApproved() && chooserResult.getSelectedFile() != null) {
+                        File file = chooserResult.getSelectedFile();
                         try (FileInputStream inputStream = new FileInputStream(file);
                                 BufferedReader reader = new BufferedReader(
                                         new InputStreamReader(inputStream, StandardCharsets.UTF_8))) {
