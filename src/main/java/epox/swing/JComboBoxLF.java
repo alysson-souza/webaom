@@ -14,7 +14,7 @@ import javax.swing.SwingUtilities;
  * immediately.
  */
 public class JComboBoxLF extends JComboBox<String> {
-    private static final FlatLafTheme[] THEMES = FlatLafTheme.values();
+    private static final FlatLafTheme[] THEMES = FlatLafTheme.availableThemes();
 
     public JComboBoxLF(final Component rootComponent) {
         super(new DefaultComboBoxModel<>() {
@@ -58,14 +58,14 @@ public class JComboBoxLF extends JComboBox<String> {
     public FlatLafTheme getSelectedTheme() {
         int index = getSelectedIndex();
         if (index < 0 || index >= THEMES.length) {
-            return FlatLafTheme.LIGHT;
+            return FlatLafTheme.getDefaultTheme();
         }
 
         return THEMES[index];
     }
 
     public void setSelectedTheme(FlatLafTheme theme) {
-        FlatLafTheme selectedTheme = (theme == null) ? FlatLafTheme.LIGHT : theme;
+        FlatLafTheme selectedTheme = (theme == null) ? FlatLafTheme.getDefaultTheme() : theme;
         for (int i = 0; i < THEMES.length; i++) {
             if (THEMES[i] == selectedTheme) {
                 setSelectedIndex(i);

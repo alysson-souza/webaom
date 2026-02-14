@@ -96,7 +96,7 @@ public class WebAOM {
     private static FlatLafTheme loadStartupTheme() {
         Options startupOptions = new Options();
         if (!startupOptions.loadFromFile()) {
-            return FlatLafTheme.LIGHT;
+            return FlatLafTheme.getDefaultTheme();
         }
 
         return FlatLafTheme.fromOptionValue(startupOptions.getString(Options.STR_THEME));

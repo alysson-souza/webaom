@@ -37,14 +37,17 @@ public final class FlatLafSupport {
     }
 
     public static void applyTheme(FlatLafTheme theme) throws Exception {
-        FlatLafTheme targetTheme = (theme == null) ? FlatLafTheme.LIGHT : theme;
+        FlatLafTheme targetTheme = (theme == null) ? FlatLafTheme.getDefaultTheme() : theme;
+        if (!targetTheme.isSupportedOnCurrentPlatform()) {
+            targetTheme = FlatLafTheme.getDefaultTheme();
+        }
         registerCustomDefaultsSource();
         UIManager.setLookAndFeel(targetTheme.getLookAndFeelClassName());
     }
 
     public static FlatLafTheme getCurrentTheme() {
         if (UIManager.getLookAndFeel() == null) {
-            return FlatLafTheme.LIGHT;
+            return FlatLafTheme.getDefaultTheme();
         }
 
         return FlatLafTheme.fromLookAndFeelClassName(
