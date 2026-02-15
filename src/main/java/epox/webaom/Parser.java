@@ -123,8 +123,7 @@ public final class Parser {
                 + ZERO_PADDING_PREFIXES[log10(totalEpisodes) - log10(episodeNumber > 0 ? episodeNumber : 1)]
                 + episodeNumber;
         if (dashIndex >= 0) {
-            // return paddedNumber+separator+pad(input.substring(dashIndex+1), totalEpisodes);
-            return paddedNumber + separator + input.substring(dashIndex + 1);
+            return paddedNumber + separator + pad(input.substring(dashIndex + 1), totalEpisodes);
         }
         return paddedNumber;
     }

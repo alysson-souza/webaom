@@ -150,7 +150,7 @@ public class Anime extends AniDBEntity {
             } catch (NumberFormatException ex) {
                 String[] commaParts = episode.num.split(",");
                 for (int i = 0; i < commaParts.length; i++) {
-                    String[] rangeParts = commaParts[0].split("-");
+                    String[] rangeParts = commaParts[i].split("-");
                     switch (rangeParts.length) {
                         case 2:
                             for (int j = Integer.parseInt(rangeParts[0]); j <= Integer.parseInt(rangeParts[1]); j++) {

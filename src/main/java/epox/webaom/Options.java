@@ -128,9 +128,12 @@ public class Options {
     }
 
     private boolean areStringsEqual(String first, String second) {
-        return first == null && second == null
-                || first != null && first.equals(second)
-                || first.isEmpty() && second == null;
+        boolean firstBlank = first == null || first.isEmpty();
+        boolean secondBlank = second == null || second.isEmpty();
+        if (firstBlank || secondBlank) {
+            return firstBlank == secondBlank;
+        }
+        return first.equals(second);
     }
 
     public void saveToFile() {

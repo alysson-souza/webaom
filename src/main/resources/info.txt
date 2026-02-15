@@ -10,6 +10,10 @@ WebAOM!
 *Added "Reset to default" in Rules editor right-click menu.
 *File and folder pickers now use native system dialogs and remember recent locations better.
 *Fixed app freeze when closing WebAOM while jobs are still running.
+*Fixed episode range numbering during rename (for example, 1-2 now becomes 01-02).
+*Fixed episode progress tracking so watched status is counted correctly.
+*Improved stability when adding files early during app startup.
+*Fixed a settings check that could fail when comparing saved options.
 
 2.4.1 2026.02.14
 *AppImage now supports automatic updates.
