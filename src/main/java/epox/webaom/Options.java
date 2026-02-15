@@ -39,7 +39,7 @@ public class Options {
     public static final int BOOL_NAT_KEEP_ALIVE = 8;
     public static final int BOOL_STORE_PASSWORD = 9;
     public static final int BOOL_AUTO_LOAD_DATABASE = 10;
-    public static final int BOOL_AUTO_LOGIN = 11;
+    public static final int BOOL_AUTO_LOG = 11;
     public static final int BOOL_AUTO_SAVE = 12;
     /** When disabled, files won't be automatically renamed/moved after identification. */
     public static final int BOOL_AUTO_RENAME = 13;

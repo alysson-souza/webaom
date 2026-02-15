@@ -202,7 +202,7 @@ public class MiscOptionsPanel extends JPanel {
         options.setBoolean(Options.BOOL_HASH_TTH, hashCheckBoxes[HASH_TTH].isSelected());
         options.setBoolean(Options.BOOL_STORE_PASSWORD, storePasswordCheckBox.isSelected());
         options.setBoolean(Options.BOOL_AUTO_LOAD_DATABASE, autoLoadDatabaseCheckBox.isSelected());
-        options.setBoolean(Options.BOOL_AUTO_LOGIN, autoLogCheckBox.isSelected());
+        options.setBoolean(Options.BOOL_AUTO_LOG, autoLogCheckBox.isSelected());
         options.setBoolean(Options.BOOL_AUTO_SAVE, autoSaveCheckBox.isSelected());
         options.setBoolean(Options.BOOL_AUTO_RENAME, autoRenameCheckBox.isSelected());
 
@@ -220,7 +220,7 @@ public class MiscOptionsPanel extends JPanel {
         hashCheckBoxes[HASH_TTH].setSelected(options.getBoolean(Options.BOOL_HASH_TTH));
         storePasswordCheckBox.setSelected(options.getBoolean(Options.BOOL_STORE_PASSWORD));
         autoLoadDatabaseCheckBox.setSelected(options.getBoolean(Options.BOOL_AUTO_LOAD_DATABASE));
-        autoLogCheckBox.setSelected(options.getBoolean(Options.BOOL_AUTO_LOGIN));
+        autoLogCheckBox.setSelected(options.getBoolean(Options.BOOL_AUTO_LOG));
         autoSaveCheckBox.setSelected(options.getBoolean(Options.BOOL_AUTO_SAVE));
         autoRenameCheckBox.setSelected(options.getBoolean(Options.BOOL_AUTO_RENAME));
 
