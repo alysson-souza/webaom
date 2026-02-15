@@ -77,6 +77,11 @@ tasks.register('generateVersionProperties') {
 tasks.register('installGitHooks', Exec) {
 	group = 'help'
 	description = 'Installs local Git hook shims that run repository hooks'
+	onlyIf {
+		def isCi = System.getenv('CI')?.toBoolean() ?: false
+		def isWindows = System.getProperty('os.name').toLowerCase().contains('win')
+		!isCi && !isWindows
+	}
 	commandLine 'bash', 'scripts/install-hooks.sh'
 }
 
