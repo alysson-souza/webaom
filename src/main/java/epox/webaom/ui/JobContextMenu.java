@@ -19,9 +19,9 @@ package epox.webaom.ui;
 import epox.av.AVInfo;
 import epox.swing.FileChooserBuilder;
 import epox.webaom.AppContext;
-import epox.webaom.HyperlinkBuilder;
 import epox.webaom.Job;
-import epox.webaom.JobManager;
+import epox.webaom.ui.actions.jobs.JobActionCommand;
+import epox.webaom.ui.actions.jobs.JobActionController;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseEvent;
@@ -32,44 +32,28 @@ import javax.swing.JTable;
 import javax.swing.SwingUtilities;
 
 public class JobContextMenu extends JPopupMenu implements MouseListener, ActionListener {
-    private static final int PAUSE = 0;
-    private static final int SEPARATOR_0 = 1;
-    private static final int SHOW_INFO = 2;
-    private static final int WATCH_NOW = 3;
-    private static final int EXPLORER = 4;
-    private static final int SEPARATOR_1 = 5;
-    private static final int REHASH = 6;
-    private static final int REID = 7;
-    private static final int READD = 8;
-    private static final int REMOVE = 9;
-    private static final int APPLY_RULES = 10;
-    private static final int SEPARATOR_2 = 11;
-    private static final int SET_FINISHED = 12;
-    private static final int RESTORE_NAME = 13;
-    private static final int SET_FOLDER = 14;
-    private static final int SET_PAR_FLD = 15;
-    private static final int EDIT_PATH = 16;
-    private static final int EDIT_NAME = 17;
-    private static final int SEPARATOR_3 = 18;
-    private static final int PARSE = 19;
-    private static final int SET_FID = 20;
-    private static final int REMOVE_DB = 21;
-    private static final int MENU_ITEM_COUNT = 22;
     protected final JTable table;
     protected final RowModel rowModel;
+    private final JobActionController controller;
     private final JMenuItem[] menuItems;
     protected MenuWorker worker = null;
 
     public JobContextMenu(final JTable table, final RowModel rowModel) {
+        this(table, rowModel, JobActionController.createDefault());
+    }
+
+    JobContextMenu(final JTable table, final RowModel rowModel, JobActionController controller) {
         this.table = table;
         this.rowModel = rowModel;
+        this.controller = controller;
 
-        menuItems = new JMenuItem[MENU_ITEM_COUNT];
-        for (int index = 0; index < MENU_ITEM_COUNT; index++) {
-            if (separator(index)) {
+        menuItems = new JMenuItem[JobActionCommand.values().length];
+        for (int index = 0; index < menuItems.length; index++) {
+            JobActionCommand command = JobActionCommand.fromId(index);
+            if (command == null || command.separator()) {
                 this.addSeparator();
             } else {
-                menuItems[index] = new JMenuItem(commandText(index));
+                menuItems[index] = new JMenuItem(command.label());
                 menuItems[index].addActionListener(this);
                 menuItems[index].setActionCommand("" + index);
                 this.add(menuItems[index]);
@@ -78,42 +62,22 @@ public class JobContextMenu extends JPopupMenu implements MouseListener, ActionL
     }
 
     public static String commandText(int commandId) {
-        return switch (commandId) {
-            case APPLY_RULES -> "Apply Rules";
-            case SHOW_INFO -> "Show Info";
-            case EXPLORER -> "Explore Folder";
-            case WATCH_NOW -> "Watch Now";
-            case SET_FINISHED -> "Set Finished";
-            case SET_FOLDER -> "Set Folder";
-            case SET_PAR_FLD -> "Set Parent Folder";
-            case REMOVE_DB -> "Remove from DB";
-            case RESTORE_NAME -> "Restore Name";
-            case PAUSE -> "Pause";
-            case REHASH -> "Rehash";
-            case REID -> "Identify";
-            case READD -> "Add to mylist";
-            case EDIT_PATH -> "Edit Folder Path";
-            case EDIT_NAME -> "Edit File Name";
-            case SET_FID -> "Set fid (force)";
-            case REMOVE -> "Remove from mylist";
-            case PARSE -> "Parse with avinfo";
-            default -> "fook";
-        };
+        JobActionCommand command = JobActionCommand.fromId(commandId);
+        if (command == null || command.label() == null) {
+            return "fook";
+        }
+        return command.label();
     }
 
     public static boolean separator(int commandId) {
-        return switch (commandId) {
-            case SEPARATOR_0, SEPARATOR_1, SEPARATOR_2, SEPARATOR_3 -> true;
-            default -> false;
-        };
+        JobActionCommand command = JobActionCommand.fromId(commandId);
+        return command != null && command.separator();
     }
 
     /** Returns true if the command only applies to a single selected job. */
     public static boolean single(int commandId) {
-        return switch (commandId) {
-            case SHOW_INFO, WATCH_NOW, EXPLORER, SET_FID, EDIT_NAME -> true;
-            default -> false;
-        };
+        JobActionCommand command = JobActionCommand.fromId(commandId);
+        return command != null && command.single();
     }
 
     public void stop() {
@@ -151,8 +115,8 @@ public class JobContextMenu extends JPopupMenu implements MouseListener, ActionL
     @Override
     public void mouseClicked(MouseEvent event) {
         if (worker == null && SwingUtilities.isRightMouseButton(event)) {
-            menuItems[REMOVE_DB].setEnabled(AppContext.databaseManager.isConnected());
-            menuItems[PARSE].setEnabled(AVInfo.ok());
+            menuItems[JobActionCommand.REMOVE_DB.id()].setEnabled(AppContext.databaseManager.isConnected());
+            menuItems[JobActionCommand.PARSE.id()].setEnabled(AVInfo.ok());
             this.updateUI();
             show(table, event.getX(), event.getY());
         }
@@ -161,15 +125,18 @@ public class JobContextMenu extends JPopupMenu implements MouseListener, ActionL
     @Override
     public void actionPerformed(ActionEvent event) {
         if (table.getSelectedRowCount() > 0) {
-            worker = new MenuWorker(Integer.parseInt(event.getActionCommand()));
+            JobActionCommand command = JobActionCommand.fromId(Integer.parseInt(event.getActionCommand()));
+            if (command != null) {
+                worker = new MenuWorker(command);
+            }
         }
     }
 
-    void command(int commandId, Job[] jobs, String folderPath) {
+    void command(JobActionCommand command, Job[] jobs, String folderPath) {
         if (jobs.length < 1) {
             return;
         }
-        if (commandId == EDIT_PATH) {
+        if (command == JobActionCommand.EDIT_PATH) {
             folderPath = javax.swing.JOptionPane.showInputDialog(
                     AppContext.frame, "Edit path", jobs[0].getFile().getParent());
             if (folderPath == null || folderPath.length() < 2) {
@@ -178,92 +145,24 @@ public class JobContextMenu extends JPopupMenu implements MouseListener, ActionL
         }
         for (Job job : jobs) {
             if (job != null) {
-                executeCommand(commandId, job, folderPath);
+                controller.executeCommand(command, job, folderPath);
             }
         }
     }
 
-    void executeCommand(int commandId, Job job, String folderPath) {
-        switch (commandId) {
-            case PAUSE:
-                JobManager.updateStatus(job, Job.H_PAUSED, true);
-                break;
-            case REHASH:
-                JobManager.updateStatus(job, Job.HASHWAIT, true);
-                break;
-            case REID:
-                job.anidbFile = null;
-                JobManager.updateStatus(job, Job.HASHED, true);
-                break;
-            case READD:
-                JobManager.updateStatus(job, Job.ADDWAIT, true);
-                break;
-            case REMOVE:
-                JobManager.updateStatus(job, Job.REMWAIT, true);
-                break;
-            case APPLY_RULES:
-                if (!JobManager.applyRulesForced(job)) {
-                    AppContext.gui.println(HyperlinkBuilder.formatAsError("Failed to apply rules for " + job));
-                }
-                break;
-            case SET_FINISHED:
-                JobManager.updateStatus(job, Job.FINISHED, true);
-                break;
-            case SET_FOLDER, EDIT_PATH:
-                if (folderPath != null) {
-                    JobManager.setPath(job, folderPath, false);
-                }
-                break;
-            case SET_PAR_FLD:
-                if (folderPath != null) {
-                    JobManager.setPath(job, folderPath, true);
-                }
-                break;
-            case REMOVE_DB:
-                JobManager.updateStatus(job, Job.H_DELETED, true);
-                break;
-            case RESTORE_NAME:
-                JobManager.restoreName(job);
-                break;
-            case PARSE:
-                JobManager.updateStatus(job, Job.PARSEWAIT, true);
-                break;
-            default:
-                // Unknown command - no action needed
-                break;
-        }
-    }
-
-    void commandSingle(int commandId, Job job) {
-        switch (commandId) {
-            case SHOW_INFO:
-                JobManager.showInfo(job);
-                break;
-            case WATCH_NOW:
-                JobManager.openInDefaultPlayer(job);
-                break;
-            case EXPLORER:
-                JobManager.openInExplorer(job);
-                break;
+    void commandSingle(JobActionCommand command, Job job) {
+        switch (command) {
             case EDIT_NAME:
                 String currentName = job.getFile().getName();
-                JobManager.setName(
-                        job, javax.swing.JOptionPane.showInputDialog(AppContext.frame, "Edit name", currentName));
+                String editedName = javax.swing.JOptionPane.showInputDialog(AppContext.frame, "Edit name", currentName);
+                controller.executeSingleCommand(command, job, editedName, null);
                 break;
             case SET_FID:
                 String fidInput = javax.swing.JOptionPane.showInputDialog(AppContext.frame, "Insert fid", "");
-                try {
-                    job.fileIdOverride = fidInput != null ? Integer.parseInt(fidInput.trim()) : -1;
-                } catch (NumberFormatException ignored) {
-                    job.fileIdOverride = -1;
-                }
-                if (job.fileIdOverride > 0) {
-                    job.anidbFile = null;
-                    JobManager.updateStatus(job, Job.HASHED);
-                }
+                controller.executeSingleCommand(command, job, null, fidInput);
                 break;
             default:
-                // Unknown command - no action needed
+                controller.executeSingleCommand(command, job, null, null);
                 break;
         }
     }
@@ -290,12 +189,12 @@ public class JobContextMenu extends JPopupMenu implements MouseListener, ActionL
     }
 
     private class MenuWorker extends Thread {
-        final int commandId;
+        final JobActionCommand command;
         boolean run = true;
 
-        MenuWorker(int command) {
+        MenuWorker(JobActionCommand command) {
             super("pMenu");
-            commandId = command;
+            this.command = command;
             start();
         }
 
@@ -303,15 +202,15 @@ public class JobContextMenu extends JPopupMenu implements MouseListener, ActionL
         @SuppressWarnings("checkstyle:NoWhitespaceBefore")
         public void run() {
             ie:
-            if (single(commandId)) {
+            if (command.single()) {
                 try {
-                    commandSingle(commandId, rowModel.getJobs(table.getSelectedRow())[0]);
+                    commandSingle(command, rowModel.getJobs(table.getSelectedRow())[0]);
                 } catch (ArrayIndexOutOfBoundsException ignored) {
                     // Selection may be empty
                 }
             } else {
                 String folderPath = null;
-                if (commandId == SET_FOLDER || commandId == SET_PAR_FLD) {
+                if (command.requiresFolderSelection()) {
                     folderPath = getFolder();
                     if (folderPath == null) {
                         break ie;
@@ -321,7 +220,7 @@ public class JobContextMenu extends JPopupMenu implements MouseListener, ActionL
 
                 table.clearSelection();
                 for (int index = 0; index < selectedRows.length && run; index++) {
-                    command(commandId, rowModel.getJobs(selectedRows[index]), folderPath);
+                    command(command, rowModel.getJobs(selectedRows[index]), folderPath);
                 }
             }
             worker = null;

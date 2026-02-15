@@ -11,7 +11,8 @@ WebAOM (Web Anime-o-Matic) is a Java Swing desktop application for identifying a
 ./gradlew run                # Run application
 ./gradlew jarLite            # Create lite JAR (SQLite only)
 ./gradlew jarFull            # Create full JAR (all DB drivers)
-./gradlew test               # Run all tests (none currently exist)
+./gradlew test               # Run non-UI tests (excludes @Tag("ui"))
+./gradlew testUi             # Run UI-tagged tests (@Tag("ui"), headless)
 ./gradlew test --tests "ClassName"   # Run single test class
 ./gradlew test --tests "ClassName.methodName"  # Run single test method
 ./gradlew spotlessApply      # Format code (Palantir Java Format)
@@ -37,6 +38,7 @@ WebAOM (Web Anime-o-Matic) is a Java Swing desktop application for identifying a
 - `epox.webaom.data/` - Data models (`AniDBFile`, `Anime`, `Episode`, `Group`)
 - `epox.webaom.net/` - AniDB UDP protocol implementation (see `@docs/udp-api-definition.md` for protocol spec)
 - `epox.webaom.ui/` - Swing UI components (JPanel*, JTable*, JDialog*)
+- `epox.webaom.ui.actions.jobs/` - UI-decoupled job action orchestration (commands, gateway, controller)
 - `epox.webaom.db/` - Database management
 - `epox.webaom.job/` - Job processing system
 - `epox.util/` - Utilities and hashing
@@ -109,7 +111,10 @@ Status flags use hexadecimal bitmasks:
 
 ### Testing
 
-No automated tests exist. Test manually by running `./gradlew run`.
+- Automated tests exist under `src/test/java`.
+- `./gradlew test` runs non-UI tests (default CI-safe path).
+- `./gradlew testUi` runs UI-tagged tests in headless mode.
+- For focused runs, use `./gradlew test --tests "ClassName"` or `./gradlew test --tests "ClassName.methodName"`.
 
 ## Native Packaging
 
@@ -130,8 +135,8 @@ xattr -cr /Applications/WebAOM.app
 Update these files when bumping version:
 1. `build.gradle` - Update `version = 'X.Y.Z'`
 2. `README.md` - Update JAR filename references
-3. `changelog.txt` - Add entry at top: `X.Y.Z DD.MM.YYYY:`
-4. `src/main/resources/info.txt` - Add entry at top: `X.Y.Z YYYY.MM.DD`
+3. `changelog.txt` - Add entry at top: `X.Y.Z DD.MM.YYYY:` (user-facing, non-technical wording)
+4. `src/main/resources/info.txt` - Add entry at top: `X.Y.Z YYYY.MM.DD` (user-facing, non-technical wording)
 
 ## Git Conventions
 
