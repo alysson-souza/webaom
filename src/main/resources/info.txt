@@ -7,6 +7,7 @@ WebAOM!
 *Hash and Debug tabs now wrap long lines instead of cutting them off.
 *Window opens at a more comfortable size.
 *Fixed startup issue where the embedded database could fail to open on some systems.
+*Fixed settings not being saved on first run.
 *Added "Reset to default" in Rules editor right-click menu.
 *File and folder pickers now use native system dialogs and remember recent locations better.
 *Fixed app freeze when closing WebAOM while jobs are still running.

@@ -171,26 +171,24 @@ public final class AppContext {
     public static boolean shutdown(boolean opx) {
         if (opx) {
             Options o = new Options();
-            if (o.existsOnDisk()) {
-                gui.saveOptions(o);
-                if (!AppContext.opt.equals(o)) {
-                    if (o.getBoolean(Options.BOOL_AUTO_SAVE)) {
-                        o.saveToFile();
-                    } else {
-                        String dialogTitle = "The options has changed";
-                        String dialogMessage = "Do you want to save them?";
-                        int response = showYesNoCancelDialog(dialogTitle, dialogMessage);
-                        switch (response) {
-                            case 0:
-                                o.saveToFile();
-                                break;
-                            case -1:
-                            case 2:
-                                return false;
-                            default:
-                                // No (case 1) - continue without saving
-                                break;
-                        }
+            gui.saveOptions(o);
+            if (!AppContext.opt.equals(o)) {
+                if (o.getBoolean(Options.BOOL_AUTO_SAVE)) {
+                    o.saveToFile();
+                } else {
+                    String dialogTitle = "The options has changed";
+                    String dialogMessage = "Do you want to save them?";
+                    int response = showYesNoCancelDialog(dialogTitle, dialogMessage);
+                    switch (response) {
+                        case 0:
+                            o.saveToFile();
+                            break;
+                        case -1:
+                        case 2:
+                            return false;
+                        default:
+                            // No (case 1) - continue without saving
+                            break;
                     }
                 }
             }
