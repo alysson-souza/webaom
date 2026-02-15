@@ -19,6 +19,7 @@ package epox.webaom.ui;
 import epox.webaom.AppContext;
 import epox.webaom.Job;
 import epox.webaom.JobManager;
+import epox.webaom.ui.actions.jobs.JobActionController;
 import epox.webaom.ui.shortcuts.ShortcutCategory;
 import epox.webaom.ui.shortcuts.ShortcutHandler;
 import epox.webaom.ui.shortcuts.ShortcutInfo;
@@ -32,11 +33,17 @@ public class KeyAdapterJob extends KeyAdapter {
     private final JTable table;
     private final RowModel rowModel;
     private final JobTreeTable treeTable;
+    private final JobActionController controller;
 
     public KeyAdapterJob(JTable table, RowModel rowModel) {
+        this(table, rowModel, JobActionController.createDefault());
+    }
+
+    KeyAdapterJob(JTable table, RowModel rowModel, JobActionController controller) {
         this.table = table;
         this.rowModel = rowModel;
         this.treeTable = table instanceof JobTreeTable jobTreeTable ? jobTreeTable : null;
+        this.controller = controller;
         registerShortcuts();
     }
 
@@ -147,33 +154,15 @@ public class KeyAdapterJob extends KeyAdapter {
             return false;
         }
 
-        DeletionSelection selection = collectSelection(selectedRows);
-        if (selection.isEmpty()) {
-            if (selection.hasRunningJobs()) {
-                AppContext.gui.println("Cannot delete running job(s); stop them first.");
-            }
-            return selection.hasRunningJobs();
-        }
-
-        if (!confirmDeletion(selection.deletableJobs)) {
-            return true;
-        }
-
         int firstSelectedViewRow = selectedRows[0];
-        int removedCount = JobManager.deleteJobs(selection.deletableJobs);
-        if (removedCount > 0) {
-            String statusMessage = removedCount == 1
-                    ? "Removed 1 job. " + AppContext.jobs.size() + " remaining."
-                    : "Removed " + removedCount + " jobs. " + AppContext.jobs.size() + " remaining.";
-            AppContext.gui.setStatusMessage(statusMessage);
-            AppContext.gui.updateProgressBar();
+        Set<Job> selectedJobs = collectSelectedJobs(selectedRows);
+        JobActionController.DeletionResult deletionResult = controller.deleteSelectedJobs(selectedJobs);
+        if (!deletionResult.handled()) {
+            return false;
+        }
+        if (deletionResult.removedCount() > 0) {
             restoreSelectionAfterDeletion(firstSelectedViewRow);
         }
-
-        if (selection.hasRunningJobs()) {
-            AppContext.gui.println("Skipped " + selection.runningCount + " running job(s) during deletion.");
-        }
-
         table.requestFocusInWindow();
         return true;
     }
@@ -188,17 +177,6 @@ public class KeyAdapterJob extends KeyAdapter {
         table.setRowSelectionInterval(newSelection, newSelection);
     }
 
-    private boolean confirmDeletion(Set<Job> jobsToDelete) {
-        String message;
-        if (jobsToDelete.size() == 1) {
-            Job job = jobsToDelete.iterator().next();
-            message = "Remove \"" + job.getFile().getName() + "\" from the job list?";
-        } else {
-            message = "Remove " + jobsToDelete.size() + " selected jobs from the job list?";
-        }
-        return AppContext.confirm("Remove jobs", message, "Remove", "Cancel");
-    }
-
     private int toModelRow(int viewRow) {
         if (viewRow < 0) {
             return viewRow;
@@ -210,9 +188,8 @@ public class KeyAdapterJob extends KeyAdapter {
         }
     }
 
-    private DeletionSelection collectSelection(int[] selectedRows) {
-        Set<Job> deletableJobs = new LinkedHashSet<>();
-        int runningCount = 0;
+    private Set<Job> collectSelectedJobs(int[] selectedRows) {
+        Set<Job> selectedJobs = new LinkedHashSet<>();
         for (int viewRow : selectedRows) {
             Job[] jobs = rowModel.getJobs(toModelRow(viewRow));
             if (jobs != null) {
@@ -220,25 +197,11 @@ public class KeyAdapterJob extends KeyAdapter {
                     if (job == null) {
                         continue;
                     }
-                    if (job.check(Job.S_DOING)) {
-                        runningCount++;
-                    } else {
-                        deletableJobs.add(job);
-                    }
+                    selectedJobs.add(job);
                 }
             }
         }
-        return new DeletionSelection(deletableJobs, runningCount);
-    }
-
-    private record DeletionSelection(Set<Job> deletableJobs, int runningCount) {
-        boolean isEmpty() {
-            return deletableJobs.isEmpty();
-        }
-
-        boolean hasRunningJobs() {
-            return runningCount > 0;
-        }
+        return selectedJobs;
     }
 
     private static boolean hasShortcutModifiers(KeyEvent event) {
