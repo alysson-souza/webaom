@@ -120,6 +120,7 @@ public class MainPanel extends JPanel
     protected final Timer progressTimer;
     protected final Timer unfreezeTimer;
     protected final Timer guiUpdateTimer;
+    private final MainPanelRuntime runtime;
     private JTextField newExtensionTextField;
     private JEditorPaneLog logEditorPane;
     private JTextArea hashTextArea;
@@ -134,16 +135,21 @@ public class MainPanel extends JPanel
     private Border originalJobsBorder;
 
     public MainPanel() {
+        this(new DefaultMainPanelRuntime());
+    }
+
+    MainPanel(MainPanelRuntime runtime) {
+        this.runtime = Objects.requireNonNull(runtime);
         isKilled = false;
         isDiskIoRunning = false;
         isNetworkIoRunning = false;
         initializeComponents();
 
         jobScrollDownRunnable = new JobScrollDown();
-        diskIoTimer = new Timer(4000, this);
-        progressTimer = new Timer(1000, this);
-        unfreezeTimer = new Timer(1000 * 60 * 30, this);
-        guiUpdateTimer = new Timer(500, this);
+        diskIoTimer = runtime.createTimer(4000, this);
+        progressTimer = runtime.createTimer(1000, this);
+        unfreezeTimer = runtime.createTimer(1000 * 60 * 30, this);
+        guiUpdateTimer = runtime.createTimer(500, this);
 
         progressTimer.start();
         if (AppContext.opt.loadFromFile()) {
@@ -567,14 +573,13 @@ public class MainPanel extends JPanel
     ///////////////////////////// IMPLEMENTATIONS////////////////////////////////
     @Override
     public void hyperlinkUpdate(HyperlinkEvent event) {
-        if (event.getEventType() == HyperlinkEvent.EventType.ACTIVATED) {
-            openHyperlink(event.getDescription());
-        } else if (event.getEventType() == HyperlinkEvent.EventType.ENTERED) {
-            lastStatusMessage = statusProgressBar.getString();
-            statusProgressBar.setString(event.getDescription());
-        } else if (event.getEventType() == HyperlinkEvent.EventType.EXITED) {
-            statusProgressBar.setString(lastStatusMessage);
+        MainPanelController.HyperlinkAction action = MainPanelController.handleHyperlink(
+                event.getEventType(), event.getDescription(), statusProgressBar.getString(), lastStatusMessage);
+        if (action.urlToOpen() != null) {
+            openHyperlink(action.urlToOpen());
         }
+        statusProgressBar.setString(action.statusText());
+        lastStatusMessage = action.lastStatusMessage();
     }
 
     @Override
@@ -709,13 +714,14 @@ public class MainPanel extends JPanel
 
     ///////////////////////////////// DIV METH///////////////////////////////////
     public void toggleDiskIo() {
-        isDiskIoRunning = !isDiskIoRunning;
+        MainPanelController.DiskToggleAction action =
+                MainPanelController.toggleDiskIo(isDiskIoRunning, LABEL_DISK_IO_ENABLE, LABEL_DISK_IO_DISABLE);
+        isDiskIoRunning = action.running();
+        toolbarButtons[BUTTON_HASH].setText(action.buttonLabel());
         if (isDiskIoRunning) {
-            toolbarButtons[BUTTON_HASH].setText(LABEL_DISK_IO_DISABLE);
             startDiskIo();
             diskIoTimer.start();
         } else {
-            toolbarButtons[BUTTON_HASH].setText(LABEL_DISK_IO_ENABLE);
             diskIoTimer.stop();
         }
     }
@@ -730,8 +736,7 @@ public class MainPanel extends JPanel
                     return;
                 }
             }
-            diskIoThread = new Thread(AppContext.dio, "DiskIO");
-            diskIoThread.start();
+            diskIoThread = runtime.startBackgroundTask("DiskIO", AppContext.dio);
         }
     }
 
@@ -757,13 +762,10 @@ public class MainPanel extends JPanel
 
     private boolean startNetworkIoInternal() {
         if (!isKilled() && networkIoThread == null) {
-            // if(A.userPass.username==null||A.userPass.password==null||A.userPass.apiKey==null)
-            if (new JDialogLogin().getPass() == null) {
+            if (!runtime.requestCredentials()) {
                 return false;
             }
-            // A.conn = getConnection();
-            networkIoThread = new Thread(AppContext.nio, "NetIO");
-            networkIoThread.start();
+            networkIoThread = runtime.startBackgroundTask("NetIO", AppContext.nio);
             return true;
         }
         return false;
@@ -845,25 +847,7 @@ public class MainPanel extends JPanel
     public void openHyperlink(String url) {
         try {
             StringUtilities.out(url);
-            String path = miscOptionsPanel.browserPathField.getText();
-            if (!path.isEmpty()) {
-                Runtime.getRuntime().exec(new String[] {path, url});
-            } else if (java.awt.Desktop.isDesktopSupported()
-                    && java.awt.Desktop.getDesktop().isSupported(java.awt.Desktop.Action.BROWSE)) {
-                java.awt.Desktop.getDesktop().browse(new java.net.URI(url));
-            } else {
-                // Fallback for systems without Desktop support
-                String os = System.getProperty("os.name").toLowerCase();
-                if (os.contains("mac")) {
-                    Runtime.getRuntime().exec(new String[] {"open", url});
-                } else if (os.contains("win")) {
-                    Runtime.getRuntime().exec(new String[] {
-                        "rundll32", "url.dll,FileProtocolHandler", url,
-                    });
-                } else {
-                    Runtime.getRuntime().exec(new String[] {"xdg-open", url});
-                }
-            }
+            runtime.openHyperlink(miscOptionsPanel.browserPathField.getText(), url);
         } catch (Exception ex) {
             ex.printStackTrace();
         }

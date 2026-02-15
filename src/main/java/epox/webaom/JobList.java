@@ -103,7 +103,9 @@ public class JobList {
 
     private void addJobInternal(Job job) {
         jobsList.add(job);
-        tableModel.insertJob(jobsList.size() - 1);
+        if (tableModel != null) {
+            tableModel.insertJob(jobsList.size() - 1);
+        }
         JobManager.resetBatchChoice(); // Reset "apply to all" choice when new files added
     }
 
