@@ -1,0 +1,12 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+changed_files="$(git diff --cached --name-only --diff-filter=ACMR)"
+
+# Skip formatter check when no Java/Gradle files are staged.
+if ! printf '%s\n' "$changed_files" | grep -Eq '^(src/.*\.java|build\.gradle|settings\.gradle|gradle\.properties)$'; then
+    exit 0
+fi
+
+echo "Running Spotless check..."
+./gradlew --quiet spotlessCheck

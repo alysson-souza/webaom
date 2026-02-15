@@ -74,6 +74,18 @@ tasks.register('generateVersionProperties') {
 	}
 }
 
+tasks.register('installGitHooks', Exec) {
+	group = 'help'
+	description = 'Installs local Git hook shims that run repository hooks'
+	commandLine 'bash', 'scripts/install-hooks.sh'
+}
+
+tasks.configureEach {
+	if (name != 'installGitHooks') {
+		dependsOn(tasks.named('installGitHooks'))
+	}
+}
+
 sourceSets {
 	main {
 		resources.srcDir(layout.buildDirectory.dir('generated/resources/version'))
