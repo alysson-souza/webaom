@@ -138,6 +138,27 @@ Update these files when bumping version:
 3. `changelog.txt` - Add entry at top: `X.Y.Z DD.MM.YYYY:` (user-facing, non-technical wording)
 4. `src/main/resources/info.txt` - Add entry at top: `X.Y.Z YYYY.MM.DD` (user-facing, non-technical wording)
 
+## Release Candidates
+
+RC (release candidate) builds follow different rules than final releases:
+
+- **Version format**: Use GitHub release tags like `v2.5.0-rc.1`, `v2.5.0-rc.2` (not `v2.5.0-rc2`)
+- **DO NOT edit version files** for RC releases: `build.gradle`, `changelog.txt`, and `info.txt` should stay as the main version (`2.5.0`) and "unreleased". These are only updated for final releases.
+- **Changelog source**: Compare `changelog.txt` at previous RC tag vs HEAD to find new entries (e.g., `git show v2.5.0-rc.1:changelog.txt` vs current `changelog.txt`).
+- **Cumulative changelogs**: When creating RC2, RC3, etc., include ALL previous RC changelog entries, not just new ones. Look at the previous release's changelog and carry it forward.
+- **Release creation only**: When asked to "create a release" or "release an RC", create the GitHub release with `gh release create`. Do NOT manually create git tags - the release creation handles the tag automatically.
+
+Example RC2 release:
+```bash
+gh release create v2.5.0-rc.2 --title "v2.5.0-rc.2" --notes "## Changelog
+
+**2.5.0-rc2 (pre-release):**
+* [ALL previous RC1 entries here]
+* [New RC2 entries here]
+
+**Full Changelog**: https://github.com/alysson-souza/webaom/compare/v2.5.0-rc.1...v2.5.0-rc.2" --prerelease
+```
+
 ## Git Conventions
 
 Use **conventional commits**:
