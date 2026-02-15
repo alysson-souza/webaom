@@ -118,7 +118,7 @@ public final class StartupValidator {
         }
 
         // Validate logging
-        boolean autoLogEnabled = options.getBoolean(Options.BOOL_AUTO_LOGIN);
+        boolean autoLogEnabled = options.getBoolean(Options.BOOL_AUTO_LOG);
         String logFilePath = options.getString(Options.STR_LOG_FILE);
         String validatedLogPath = validateLogging(autoLogEnabled, logFilePath);
 
