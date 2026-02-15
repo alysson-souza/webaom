@@ -95,19 +95,34 @@ public final class AppContext {
     }
 
     private static String loadVersion() {
-        try {
-            Properties props = new Properties();
-            InputStream is = AppContext.class.getClassLoader().getResourceAsStream("version.properties");
-            if (is != null) {
-                props.load(is);
-                String version = props.getProperty("version");
-                String buildDate = props.getProperty("buildDate");
-                return version + " (" + buildDate + ")";
+        try (InputStream inputStream =
+                AppContext.class.getClassLoader().getResourceAsStream("webaom-version.properties")) {
+            if (inputStream != null) {
+                Properties props = new Properties();
+                props.load(inputStream);
+
+                String version = props.getProperty("webaom.version");
+                String buildDate = props.getProperty("webaom.buildDate");
+                if (version != null && !version.isBlank()) {
+                    if (buildDate != null && !buildDate.isBlank()) {
+                        return version + " (" + buildDate + ")";
+                    }
+                    return version;
+                }
             }
         } catch (Exception e) {
             // Fallback if properties file can't be loaded
         }
-        return "unknown";
+
+        Package appPackage = AppContext.class.getPackage();
+        if (appPackage != null) {
+            String implementationVersion = appPackage.getImplementationVersion();
+            if (implementationVersion != null && !implementationVersion.isBlank()) {
+                return implementationVersion;
+            }
+        }
+
+        return "Unknown";
     }
 
     private static boolean detectDevelopmentMode() {

@@ -61,14 +61,22 @@ tasks.register('generateVersionProperties') {
 	// Capture values during configuration time to avoid deprecated API usage
 	def versionString = project.version.toString()
 	def buildDate = new Date().format('yyyy-MM-dd')
+	def generatedVersionResourcesDir = layout.buildDirectory.dir('generated/resources/version')
+	outputs.file(generatedVersionResourcesDir.map { it.file('webaom-version.properties') })
 
 	doLast {
-		def propsFile = file("${layout.buildDirectory.get()}/resources/main/version.properties")
+		def propsFile = generatedVersionResourcesDir.get().file('webaom-version.properties').asFile
 		propsFile.parentFile.mkdirs()
 		def props = new Properties()
-		props['version'] = versionString
-		props['buildDate'] = buildDate
+		props['webaom.version'] = versionString
+		props['webaom.buildDate'] = buildDate
 		propsFile.withWriter { props.store(it, null) }
+	}
+}
+
+sourceSets {
+	main {
+		resources.srcDir(layout.buildDirectory.dir('generated/resources/version'))
 	}
 }
 
