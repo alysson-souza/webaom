@@ -185,6 +185,11 @@ Requires Java 21+. Gradle is included via wrapper.
 | `./gradlew spotlessApply` | Format code                                  |
 | `./gradlew jpackage`      | Create native installer for current platform |
 
+Git hooks are installed automatically by Gradle. Any `./gradlew ...` invocation refreshes
+`.git/hooks/pre-commit` and `.git/hooks/pre-push` shims that run repository hooks.
+
+These hooks run `spotlessCheck` on commit (for staged Java/Gradle changes) and on push.
+
 ## Project History
 
 Created by **epoximator** — RIP (developed 2005–2010). Revived in 2025 as a maintenance fork from [AniDB's UDP clients repository](https://git.anidb.net/anidb/udp-clients/).
