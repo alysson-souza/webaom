@@ -134,7 +134,7 @@ xattr -cr /Applications/WebAOM.app
 
 Update these files when bumping version:
 1. `build.gradle` - Update `version = 'X.Y.Z'`
-2. `README.md` - Update JAR filename references
+2. `README.md` - Update release artifact filename references (native packages and JARs)
 3. `changelog.txt` - Add entry at top: `X.Y.Z DD.MM.YYYY:` (user-facing, non-technical wording)
 4. `src/main/resources/info.txt` - Add entry at top: `X.Y.Z YYYY.MM.DD` (user-facing, non-technical wording)
 
@@ -143,7 +143,7 @@ Update these files when bumping version:
 RC (release candidate) builds follow different rules than final releases:
 
 - **Version format**: Use GitHub release tags like `v2.5.0-rc.1`, `v2.5.0-rc.2` (not `v2.5.0-rc2`)
-- **DO NOT edit version files** for RC releases: `build.gradle`, `changelog.txt`, and `info.txt` should stay as the main version (`2.5.0`) and "unreleased". These are only updated for final releases.
+- **DO NOT edit version files** for RC releases: `build.gradle`, `changelog.txt`, and `info.txt` should stay on the main target version (`X.Y.Z`) and use the unreleased top entry until the final release. These are only finalized for the stable release.
 - **Changelog source**: Compare `changelog.txt` at previous RC tag vs HEAD to find new entries (e.g., `git show v2.5.0-rc.1:changelog.txt` vs current `changelog.txt`).
 - **Cumulative changelogs**: When creating RC2, RC3, etc., include ALL previous RC changelog entries, not just new ones. Look at the previous release's changelog and carry it forward.
 - **Release creation only**: When asked to "create a release" or "release an RC", create the GitHub release with `gh release create`. Do NOT manually create git tags - the release creation handles the tag automatically.
