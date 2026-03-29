@@ -24,10 +24,10 @@ Download pre-built packages from the [Releases](https://github.com/alysson-souza
 
 | Platform | Package                           |
 | -------- | --------------------------------- |
-| macOS    | `WebAOM-2.4.1.dmg`                |
-| Windows  | `WebAOM-2.4.1.msi`                |
-| Linux    | `WebAOM-2.4.1-x86_64.AppImage`    |
-| Linux    | `webaom_2.4.1_amd64.deb` (Debian) |
+| macOS    | `WebAOM-2.5.0.dmg`                |
+| Windows  | `WebAOM-2.5.0.msi`                |
+| Linux    | `WebAOM-2.5.0-x86_64.AppImage`    |
+| Linux    | `webaom_2.5.0_amd64.deb` (Debian) |
 
 > **macOS users**: The app is not notarized. Right-click → Open, or run `xattr -cr /Applications/WebAOM.app`
 
@@ -37,10 +37,10 @@ Requires Java 21+:
 
 ```bash
 # Lite (SQLite only, ~4MB) - recommended for most users
-java -jar webaom-2.4.1-lite.jar
+java -jar webaom-2.5.0-lite.jar
 
 # Full (SQLite + PostgreSQL + MySQL, ~10MB)
-java -jar webaom-2.4.1-full.jar
+java -jar webaom-2.5.0-full.jar
 ```
 
 ## Quick Start
@@ -51,7 +51,13 @@ java -jar webaom-2.4.1-full.jar
 
 ## Configuration
 
-Settings are stored in `~/.webaom` (UTF-8). Key options include:
+Settings are stored in the platform app-data directory (UTF-8):
+
+- Linux: `~/.config/webaom`
+- macOS: `~/Library/Application Support/webaom`
+- Windows: `%APPDATA%\\webaom`
+
+Key options include:
 
 - **Connection**: AniDB host, ports, keep-alive, delay between requests (minimum 2 sec, 3 recommended)
 - **File Options**: MyList state, source, storage, watched status
@@ -142,25 +148,24 @@ To:   Gintama (2006) - S02E34 - Rank Has Nothing to Do with Luck [DVDRip-576p][F
 | Key         | Action                       |
 | ----------- | ---------------------------- |
 | `?`         | Show keyboard shortcuts help |
-| Enter/Space | Open file info               |
+| Enter/Space | Show job info                |
 | A           | Open anime page in browser   |
-| F           | Open file page in browser    |
-| E           | Open episode page in browser |
-| G           | Open group page in browser   |
 | M           | Open MyList page in browser  |
 | W           | Watch file (Windows/macOS)   |
 | X           | Open containing folder       |
 | P           | Pause/unpause job            |
-| S           | Apply rules                  |
+| S           | Apply rules / update status  |
 | I           | Re-identify file             |
-| F5/⌘R       | Refresh view                 |
+| Left        | Collapse row (tree view)     |
+| Right       | Expand row (tree view)       |
+| F5/⌘R       | Refresh alternate view       |
 | F9          | Reset application            |
-| DEL         | Clear log                    |
+| Delete/BackSpace | Delete selected jobs     |
 | ESC         | Stop worker thread           |
 
 ## External Database
 
-WebAOM uses an embedded H2 database by default. For PostgreSQL or MySQL:
+WebAOM uses an embedded SQLite database by default. For PostgreSQL or MySQL:
 
 1. Create the database with Unicode support
 2. Enter the JDBC URL in Options → "My Database":

@@ -1,6 +1,6 @@
 WebAOM!
 
-2.5.0 (unreleased)
+2.5.0 2026.03.29
 *New built-in themes: Light, Dark, IntelliJ, and Darcula (plus macOS Light/Dark on macOS).
 *Added Theme selector in Options, and your choice is remembered.
 *Rules, Log, and Debug tabs are easier to read with a code-style font.
