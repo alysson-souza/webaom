@@ -48,7 +48,6 @@ public class KeyAdapterJob extends KeyAdapter {
     }
 
     private void registerShortcuts() {
-        AppContext.shortcutRegistry.register(new JobInfoShortcut());
         AppContext.shortcutRegistry.register(new OpenAnimeShortcut());
         AppContext.shortcutRegistry.register(new OpenMylistShortcut());
         AppContext.shortcutRegistry.register(new OpenPlayerShortcut());

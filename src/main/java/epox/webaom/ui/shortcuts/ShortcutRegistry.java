@@ -19,8 +19,10 @@ package epox.webaom.ui.shortcuts;
 import java.awt.event.KeyEvent;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 public class ShortcutRegistry {
     private static final String GLOBAL_CATEGORY_DISPLAY = "Global Shortcuts";
@@ -68,48 +70,47 @@ public class ShortcutRegistry {
         sb.append("WebAOM Keyboard Shortcuts\n\n");
 
         sb.append(GLOBAL_CATEGORY_DISPLAY).append(":\n");
-        for (ShortcutInfo s : shortcutsByCategory.getOrDefault(ShortcutCategory.GLOBAL, List.of())) {
-            sb.append("  ")
-                    .append(formatKey(s))
-                    .append("  - ")
-                    .append(s.description())
-                    .append('\n');
-        }
+        appendShortcutLines(sb, shortcutsByCategory.getOrDefault(ShortcutCategory.GLOBAL, List.of()));
         sb.append('\n');
 
         sb.append(JOB_CATEGORY_DISPLAY).append(":\n");
-        for (ShortcutInfo s : shortcutsByCategory.getOrDefault(ShortcutCategory.JOB, List.of())) {
-            sb.append("  ")
-                    .append(formatKey(s))
-                    .append("  - ")
-                    .append(s.description())
-                    .append('\n');
-        }
+        appendShortcutLines(sb, shortcutsByCategory.getOrDefault(ShortcutCategory.JOB, List.of()));
         sb.append('\n');
 
         sb.append(NAVIGATION_CATEGORY_DISPLAY).append(":\n");
-        for (ShortcutInfo s : shortcutsByCategory.getOrDefault(ShortcutCategory.NAVIGATION, List.of())) {
-            sb.append("  ")
-                    .append(formatKey(s))
-                    .append("  - ")
-                    .append(s.description())
-                    .append('\n');
-        }
+        appendShortcutLines(sb, shortcutsByCategory.getOrDefault(ShortcutCategory.NAVIGATION, List.of()));
         sb.append('\n');
 
         sb.append(OTHER_DISPLAY).append(":\n");
         sb.append("  Enter/Space - Show job info\n");
-        sb.append("  Delete/BackSpace - Delete selected jobs");
+        sb.append("  Delete/BackSpace - Delete selected jobs\n");
+        sb.append("  ESC - Stop worker thread");
 
         return sb.toString();
     }
 
+    private static void appendShortcutLines(StringBuilder sb, List<ShortcutInfo> shortcuts) {
+        Set<String> seenEntries = new LinkedHashSet<>();
+        for (ShortcutInfo shortcut : shortcuts) {
+            String entry = formatKey(shortcut) + "\u0000" + shortcut.description();
+            if (!seenEntries.add(entry)) {
+                continue;
+            }
+            sb.append("  ")
+                    .append(formatKey(shortcut))
+                    .append("  - ")
+                    .append(shortcut.description())
+                    .append('\n');
+        }
+    }
+
     private static String formatKey(ShortcutInfo info) {
+        boolean isMac = System.getProperty("os.name").toLowerCase().contains("mac");
         if (info.keyChar() != '\0') {
             return String.valueOf(info.keyChar());
         } else if (info.keyCode() != 0) {
             return switch (info.keyCode()) {
-                case java.awt.event.KeyEvent.VK_F5 -> "F5";
+                case java.awt.event.KeyEvent.VK_F5 -> isMac ? "F5/Cmd+R" : "F5";
                 case java.awt.event.KeyEvent.VK_F9 -> "F9";
                 case java.awt.event.KeyEvent.VK_LEFT -> "Left";
                 case java.awt.event.KeyEvent.VK_RIGHT -> "Right";
