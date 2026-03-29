@@ -18,6 +18,7 @@ package epox.webaom.ui;
 
 import java.util.HashMap;
 import java.util.Map;
+import javax.swing.SwingConstants;
 
 /**
  * Enum defining all columns in the Jobs table. Centralizes column metadata (index, tag,
@@ -132,5 +133,13 @@ public enum JobColumn {
 
     public Class<?> getType() {
         return type;
+    }
+
+    public int getHorizontalAlignment() {
+        return switch (this) {
+            case NUMB, LIDN, FIDN, AIDN, EIDN, GIDN, AYEA, AEPS, ALEP, FSIZ, FLEN, AYEN -> SwingConstants.RIGHT;
+            case STAT, ATYP, ENUM, GSHO, FDUB, FSUB, FSRC, FQUA, FRES, FVID, FAUD, FMDS, FMDA -> SwingConstants.CENTER;
+            default -> SwingConstants.LEFT;
+        };
     }
 }

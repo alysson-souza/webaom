@@ -19,8 +19,11 @@ package epox.swing;
 import java.awt.Font;
 import java.awt.FontMetrics;
 import java.awt.Graphics;
+import java.util.ArrayList;
+import java.util.List;
 import javax.swing.JTable;
 import javax.swing.table.AbstractTableModel;
+import javax.swing.table.TableColumn;
 import javax.swing.table.TableRowSorter;
 
 /**
@@ -28,21 +31,33 @@ import javax.swing.table.TableRowSorter;
  */
 public class JTableSortable extends JTable {
     /** Header click listener for column visibility menu */
-    private final transient HeaderListener headerListener;
+    private transient HeaderListener headerListener;
 
     /** Flag to trigger row height recalculation on next paint */
     private boolean needsRowHeightCalculation = true;
 
     public JTableSortable(AbstractTableModel model) {
         super(model);
+        setAutoCreateColumnsFromModel(false);
 
         // Use built-in TableRowSorter for sorting
         TableRowSorter<AbstractTableModel> sorter = new TableRowSorter<>(model);
         setRowSorter(sorter);
 
-        // Keep HeaderListener for column visibility popup (right-click)
-        headerListener = new HeaderListener(getTableHeader(), getColumnModel());
-        getTableHeader().addMouseListener(headerListener);
+        installHeaderListener();
+    }
+
+    @Override
+    public void updateUI() {
+        ColumnStateSnapshot snapshot = captureColumnState();
+        if (headerListener != null && headerListener.tableHeader != null) {
+            headerListener.tableHeader.removeMouseListener(headerListener);
+        }
+
+        super.updateUI();
+        setAutoCreateColumnsFromModel(false);
+        installHeaderListener();
+        restoreColumnState(snapshot);
     }
 
     private void calculateRowHeight(Graphics graphics) {
@@ -69,4 +84,50 @@ public class JTableSortable extends JTable {
     public HeaderListener getHeaderListener() {
         return headerListener;
     }
+
+    private void installHeaderListener() {
+        if (headerListener == null) {
+            headerListener = new HeaderListener(getTableHeader(), getColumnModel());
+        } else {
+            headerListener.rebind(getTableHeader(), getColumnModel());
+        }
+        if (getTableHeader() != null) {
+            getTableHeader().addMouseListener(headerListener);
+        }
+    }
+
+    private ColumnStateSnapshot captureColumnState() {
+        if (headerListener == null) {
+            return null;
+        }
+
+        List<Integer> visibleModelIndices = new ArrayList<>();
+        for (int index = 0; index < getColumnModel().getColumnCount(); index++) {
+            visibleModelIndices.add(getColumnModel().getColumn(index).getModelIndex());
+        }
+
+        List<ColumnWidthState> columnWidths = new ArrayList<>();
+        for (TableColumn column : headerListener.getAllColumns()) {
+            columnWidths.add(new ColumnWidthState(column.getModelIndex(), column.getPreferredWidth()));
+        }
+        return new ColumnStateSnapshot(visibleModelIndices, columnWidths);
+    }
+
+    private void restoreColumnState(ColumnStateSnapshot snapshot) {
+        if (snapshot == null || headerListener == null) {
+            return;
+        }
+
+        for (ColumnWidthState columnWidth : snapshot.columnWidths()) {
+            TableColumn column = headerListener.getColumnByModelIndex(columnWidth.modelIndex());
+            if (column != null) {
+                column.setPreferredWidth(columnWidth.preferredWidth());
+            }
+        }
+        headerListener.setVisibleColumns(snapshot.visibleModelIndices());
+    }
+
+    private record ColumnStateSnapshot(List<Integer> visibleModelIndices, List<ColumnWidthState> columnWidths) {}
+
+    private record ColumnWidthState(int modelIndex, int preferredWidth) {}
 }

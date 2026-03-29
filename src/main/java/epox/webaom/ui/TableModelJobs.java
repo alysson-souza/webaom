@@ -19,7 +19,6 @@ package epox.webaom.ui;
 import epox.webaom.Job;
 import epox.webaom.JobList;
 import javax.swing.JTable;
-import javax.swing.SwingConstants;
 import javax.swing.table.AbstractTableModel;
 import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.TableColumnModel;
@@ -41,13 +40,18 @@ public class TableModelJobs extends AbstractTableModel implements RowModel {
     public static void formatTable(JTable table) {
         table.setShowGrid(false);
         TableColumnModel columnModel = table.getColumnModel();
-        DefaultTableCellRenderer centeredRenderer = new DefaultTableCellRenderer();
-        centeredRenderer.setHorizontalAlignment(SwingConstants.CENTER);
         for (int i = 0; i < JobColumn.getColumnCount(); i++) {
-            if (i != JobColumn.FILE.getIndex()) {
-                columnModel.getColumn(i).setCellRenderer(centeredRenderer);
+            JobColumn column = JobColumn.fromIndex(i);
+            if (column != null) {
+                columnModel.getColumn(i).setCellRenderer(createRenderer(column.getHorizontalAlignment()));
             }
         }
+    }
+
+    private static DefaultTableCellRenderer createRenderer(int alignment) {
+        DefaultTableCellRenderer renderer = new DefaultTableCellRenderer();
+        renderer.setHorizontalAlignment(alignment);
+        return renderer;
     }
 
     public void reset() {
