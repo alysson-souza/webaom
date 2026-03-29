@@ -26,14 +26,18 @@ import java.awt.BorderLayout;
 import java.awt.GridLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.util.ArrayList;
 import java.util.Enumeration;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 import java.util.StringTokenizer;
 import javax.swing.JCheckBox;
 import javax.swing.JPanel;
 import javax.swing.table.TableColumn;
-import javax.swing.table.TableColumnModel;
 
 public class JobsPanel extends JPanel implements ActionListener {
+    private static final String DEFAULT_COLUMN_CONFIG = "0,55;11,973;14,132";
     private static final int INDEX_NORMAL = 0;
     private static final int INDEX_PAUSED = 1;
     private static final int INDEX_WAITING = 2;
@@ -146,11 +150,7 @@ public class JobsPanel extends JPanel implements ActionListener {
         Enumeration<TableColumn> columnEnumeration = jobsTable.getColumnModel().getColumns();
         while (columnEnumeration.hasMoreElements()) {
             TableColumn column = columnEnumeration.nextElement();
-            columnConfig
-                    .append(column.getModelIndex())
-                    .append(",")
-                    .append(column.getPreferredWidth())
-                    .append(";");
+            appendColumnConfig(columnConfig, column);
         }
         options.setString(Options.STR_JOB_COLUMNS, columnConfig.toString());
     }
@@ -158,36 +158,60 @@ public class JobsPanel extends JPanel implements ActionListener {
     public void loadOptions(Options options) {
         String columnConfig = options.getString(Options.STR_JOB_COLUMNS);
         if (columnConfig == null || columnConfig.isEmpty()) {
-            // default column configuration
-            columnConfig = "0,55;11,973;14,132";
+            columnConfig = DEFAULT_COLUMN_CONFIG;
         }
-        TableColumnModel columnModel = jobsTable.getColumnModel();
-        long visibilityMask = 0;
-        int columnIndex;
-        int columnWidth;
-        int position = 0;
+        List<ColumnConfig> parsedColumns = parseColumnConfig(columnConfig);
+        if (parsedColumns.isEmpty()) {
+            parsedColumns = parseColumnConfig(DEFAULT_COLUMN_CONFIG);
+        }
+        applyColumnConfig(parsedColumns);
+    }
+
+    private void appendColumnConfig(StringBuilder builder, TableColumn column) {
+        builder.append(column.getModelIndex())
+                .append(",")
+                .append(column.getPreferredWidth())
+                .append(";");
+    }
+
+    private List<ColumnConfig> parseColumnConfig(String columnConfig) {
+        List<ColumnConfig> parsedColumns = new ArrayList<>();
         StringTokenizer tokenizer = new StringTokenizer(columnConfig, ";");
-        int[] columnIndices = new int[tokenizer.countTokens()];
         while (tokenizer.hasMoreTokens()) {
-            String[] columnParts = tokenizer.nextToken().split(",", 2);
-            columnIndex = StringUtilities.i(columnParts[0]);
-            columnWidth = StringUtilities.i(columnParts[1]);
-            visibilityMask |= 1L << position;
-            columnIndices[position++] = columnIndex;
-            columnModel.getColumn(columnIndex).setPreferredWidth(columnWidth);
+            String token = tokenizer.nextToken();
+            String[] columnParts = token.split(",", 3);
+            if (columnParts.length < 2) {
+                continue;
+            }
+            int modelIndex = StringUtilities.i(columnParts[0]);
+            int columnWidth = StringUtilities.i(columnParts[1]);
+            boolean visible = columnParts.length < 3 || StringUtilities.i(columnParts[2]) != 0;
+            parsedColumns.add(new ColumnConfig(modelIndex, columnWidth, visible));
         }
-        for (position = 0; position < columnIndices.length; position++) {
-            columnModel.moveColumn(columnIndices[position], position);
-            for (int j = position + 1; j < columnIndices.length; j++) {
-                if (columnIndices[j] < columnIndices[position]) {
-                    columnIndices[j]++;
-                }
+        return parsedColumns;
+    }
+
+    private void applyColumnConfig(List<ColumnConfig> parsedColumns) {
+        Set<Integer> configuredModelIndices = new HashSet<>();
+        List<Integer> visibleModelIndices = new ArrayList<>();
+        for (ColumnConfig columnConfig : parsedColumns) {
+            if (!columnConfig.isValid() || !configuredModelIndices.add(columnConfig.modelIndex())) {
+                continue;
+            }
+            TableColumn column = jobsTable.getHeaderListener().getColumnByModelIndex(columnConfig.modelIndex());
+            if (column == null) {
+                continue;
+            }
+            column.setPreferredWidth(columnConfig.width());
+            if (columnConfig.visible()) {
+                visibleModelIndices.add(columnConfig.modelIndex());
             }
         }
-        if (visibilityMask == 0) {
-            visibilityMask = TableModelJobs.MASK;
+        if (visibleModelIndices.isEmpty()) {
+            jobsTable.getHeaderListener().setMask(TableModelJobs.MASK);
+            return;
         }
-        jobsTable.getHeaderListener().setMask(visibilityMask);
+        jobsTable.getHeaderListener().setVisibleColumns(visibleModelIndices);
     }
 
     public void update() {
@@ -208,5 +232,15 @@ public class JobsPanel extends JPanel implements ActionListener {
         AppContext.jobs.filter(statusFilterMask, fileStateFilterMask, showUnknownFiles);
         tableModel.fireTableDataChanged();
         jobsTable.updateUI();
+    }
+
+    JTableJobs getJobsTable() {
+        return jobsTable;
+    }
+
+    private record ColumnConfig(int modelIndex, int width, boolean visible) {
+        boolean isValid() {
+            return modelIndex >= 0 && modelIndex < JobColumn.getColumnCount();
+        }
     }
 }
