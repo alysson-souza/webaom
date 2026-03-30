@@ -8,6 +8,7 @@ to time. Do at least check the changelog for relevant info before using it.
 *Removed an old hidden log appearance customization that was no longer useful.
 *Keyboard shortcuts help no longer shows duplicate entries.
 *Pressing Esc now closes dialogs and file info windows more consistently.
+*Alt view keyboard navigation now keeps the current item selected when expanding or collapsing nodes.
 
 2.5.0 29.03.2026:
 *New built-in themes: Light, Dark, IntelliJ, and Darcula (plus macOS Light/Dark on macOS).

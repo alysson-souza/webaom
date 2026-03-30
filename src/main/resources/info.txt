@@ -7,6 +7,7 @@ WebAOM!
 *Removed an old hidden log appearance customization that was no longer useful.
 *Keyboard shortcuts help no longer shows duplicate entries.
 *Pressing Esc now closes dialogs and file info windows more consistently.
+*Alt view keyboard navigation now keeps the current item selected when expanding or collapsing nodes.
 
 2.5.0 2026.03.29
 *New built-in themes: Light, Dark, IntelliJ, and Darcula (plus macOS Light/Dark on macOS).

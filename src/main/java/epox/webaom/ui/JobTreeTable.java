@@ -30,6 +30,7 @@ import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.util.ArrayList;
 import javax.swing.UIManager;
+import javax.swing.tree.TreePath;
 
 public class JobTreeTable extends JTreeTable implements RowModel, MouseListener {
     private boolean needsRowHeightCalculation = true;
@@ -134,5 +135,44 @@ public class JobTreeTable extends JTreeTable implements RowModel, MouseListener 
     public void setFont(Font font) {
         needsRowHeightCalculation = true;
         super.setFont(font);
+    }
+
+    @Override
+    public void expandRow() {
+        preserveSelectionDuringTreeChange(() -> tree.expandRow(getSelectedRow()));
+    }
+
+    @Override
+    public void collapseRow() {
+        preserveSelectionDuringTreeChange(() -> tree.collapseRow(getSelectedRow()));
+    }
+
+    private void preserveSelectionDuringTreeChange(Runnable treeChange) {
+        int selectedRow = getSelectedRow();
+        if (selectedRow < 0) {
+            treeChange.run();
+            return;
+        }
+
+        TreePath selectedPath = tree.getPathForRow(selectedRow);
+        treeChange.run();
+        restoreSelection(selectedRow, selectedPath);
+    }
+
+    private void restoreSelection(int previousSelectedRow, TreePath selectedPath) {
+        if (selectedPath != null) {
+            int restoredRow = tree.getRowForPath(selectedPath);
+            if (restoredRow >= 0) {
+                setRowSelectionInterval(restoredRow, restoredRow);
+                return;
+            }
+        }
+
+        if (previousSelectedRow >= 0 && previousSelectedRow < getRowCount()) {
+            setRowSelectionInterval(previousSelectedRow, previousSelectedRow);
+            return;
+        }
+
+        clearSelection();
     }
 }
