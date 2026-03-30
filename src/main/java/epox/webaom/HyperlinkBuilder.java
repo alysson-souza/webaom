@@ -22,16 +22,18 @@
  */
 package epox.webaom;
 
-import java.util.StringTokenizer;
+import epox.swing.ThemeColorSupport;
+import java.awt.Color;
 
 public final class HyperlinkBuilder {
+    public static final String CSS_CLASS_WARNING = "log-warning";
+    public static final String CSS_CLASS_NAME = "log-name";
+    public static final String CSS_CLASS_NUMBER = "log-number";
 
-    /** Hex color code for warning/error text (red) */
-    public static String warningColor = "F00000";
-    /** Hex color code for name text (teal) */
-    public static String nameColor = "006699";
-    /** Hex color code for number text (navy) */
-    public static String numberColor = "000080";
+    private static final Color BASE_WARNING_COLOR = new Color(240, 0, 0);
+    private static final Color BASE_NAME_COLOR = new Color(0, 102, 153);
+    private static final Color BASE_NUMBER_COLOR = new Color(0, 0, 128);
+    private static final double MINIMUM_LOG_CONTRAST = 4.5;
 
     private HyperlinkBuilder() {
         // static only
@@ -41,56 +43,60 @@ public final class HyperlinkBuilder {
         return "<a href=\"" + url + "\">" + linkText + "</a>";
     }
 
-    public static String wrapInColor(String hexColor, String text) {
-        return "<font color=#" + hexColor + ">" + text + "</font>";
+    public static String wrapInCssClass(String cssClass, String text) {
+        return "<span class=\"" + cssClass + "\">" + text + "</span>";
     }
 
     public static String formatAsError(String text) {
-        return wrapInColor(warningColor, text);
+        return wrapInCssClass(CSS_CLASS_WARNING, text);
     }
 
     public static String formatAsName(String text) {
-        return wrapInColor(nameColor, text);
+        return wrapInCssClass(CSS_CLASS_NAME, text);
     }
 
     public static String formatAsName(Object obj) {
         if (obj != null) {
-            return wrapInColor(nameColor, obj.toString());
+            return wrapInCssClass(CSS_CLASS_NAME, obj.toString());
         }
         return "null";
     }
 
     public static String formatAsNumber(int value) {
-        return wrapInColor(numberColor, "" + value);
+        return wrapInCssClass(CSS_CLASS_NUMBER, "" + value);
     }
 
     public static String formatAsNumber(String text) {
-        return wrapInColor(numberColor, text);
+        return wrapInCssClass(CSS_CLASS_NUMBER, text);
     }
 
-    public static String encodeColors() {
-        return warningColor + Options.FIELD_SEPARATOR + nameColor + Options.FIELD_SEPARATOR + numberColor;
+    public static Color resolveWarningColor() {
+        return resolveSemanticColor(BASE_WARNING_COLOR);
     }
 
-    public static void decodeColors(String encodedColors) {
-        if (encodedColors == null) {
-            return;
-        }
-        StringTokenizer tokenizer = new StringTokenizer(encodedColors, Options.FIELD_SEPARATOR);
-        if (tokenizer.countTokens() != 3) {
-            return;
-        }
-        String colorToken = tokenizer.nextToken();
-        if (colorToken.length() == 6) {
-            warningColor = colorToken;
-        }
-        colorToken = tokenizer.nextToken();
-        if (colorToken.length() == 6) {
-            nameColor = colorToken;
-        }
-        colorToken = tokenizer.nextToken();
-        if (colorToken.length() == 6) {
-            numberColor = colorToken;
-        }
+    public static Color resolveNameColor() {
+        return resolveSemanticColor(BASE_NAME_COLOR);
+    }
+
+    public static Color resolveNumberColor() {
+        return resolveSemanticColor(BASE_NUMBER_COLOR);
+    }
+
+    private static Color resolveSemanticColor(Color baseColor) {
+        Color background = ThemeColorSupport.colorOrDefault(
+                null,
+                Color.white,
+                "EditorPane.background",
+                "TextPane.background",
+                "TextArea.background",
+                "Panel.background");
+        Color foreground = ThemeColorSupport.colorOrDefault(
+                null,
+                Color.black,
+                "EditorPane.foreground",
+                "TextPane.foreground",
+                "TextArea.foreground",
+                "Label.foreground");
+        return ThemeColorSupport.ensureContrast(baseColor, background, foreground, MINIMUM_LOG_CONTRAST);
     }
 }

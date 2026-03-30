@@ -873,7 +873,6 @@ public class MainPanel extends JPanel
         options.setBoolean(
                 Options.BOOL_LOAD_ALL_JOBS,
                 altViewPanel.getLoadAllJobsCheckbox().isSelected());
-        options.setString(Options.STR_HTML_COLORS, HyperlinkBuilder.encodeColors());
         options.setString(Options.STR_USERNAME, AppContext.userPass.get(miscOptionsPanel.isStorePasswordEnabled()));
 
         mylistOptionsPanel.saveToOptions(options);
@@ -885,7 +884,6 @@ public class MainPanel extends JPanel
 
         options.setString(Options.STR_PATH_REGEX, AppContext.pathRegex);
         options.setString(Options.STR_FONT, AppContext.font);
-        options.setString(Options.STR_LOG_HEADER, JEditorPaneLog.htmlHeader);
         options.setString(Options.STR_LAST_DIRECTORY, AppContext.lastDirectory);
     }
 
@@ -893,7 +891,6 @@ public class MainPanel extends JPanel
         try {
             autoAddToMylistCheckbox.setSelected(options.getBoolean(Options.BOOL_ADD_FILE));
             altViewPanel.getLoadAllJobsCheckbox().setSelected(options.getBoolean(Options.BOOL_LOAD_ALL_JOBS));
-            HyperlinkBuilder.decodeColors(options.getString(Options.STR_HTML_COLORS));
             AppContext.userPass.set(options.getString(Options.STR_USERNAME));
             mylistOptionsPanel.loadFromOptions(options);
             AppContext.fileHandler.loadOptions(options);
@@ -909,7 +906,6 @@ public class MainPanel extends JPanel
                 altViewPanel.getPathRegexField().setText(pathRegex);
             }
             AppContext.font = options.getString(Options.STR_FONT);
-            logEditorPane.setHeader(options.getString(Options.STR_LOG_HEADER));
             String lastDir = options.getString(Options.STR_LAST_DIRECTORY);
             if (lastDir != null && !lastDir.isEmpty()) {
                 AppContext.lastDirectory = lastDir;
