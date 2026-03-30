@@ -17,56 +17,41 @@
 package epox.webaom.ui;
 
 import epox.swing.Log;
+import epox.swing.ThemeColorSupport;
 import epox.util.StringUtilities;
 import epox.webaom.AppContext;
 import epox.webaom.HyperlinkBuilder;
 import epox.webaom.util.PlatformPaths;
+import java.awt.Color;
 import java.awt.Font;
-import java.awt.event.ActionEvent;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.io.PrintStream;
 import java.io.RandomAccessFile;
-import java.io.Reader;
-import java.io.StringReader;
 import java.nio.charset.StandardCharsets;
-import javax.swing.Action;
 import javax.swing.JEditorPane;
-import javax.swing.KeyStroke;
-import javax.swing.text.Document;
-import javax.swing.text.EditorKit;
 
-public class JEditorPaneLog extends JEditorPane implements Log, Action {
-    private static final String MONOSPACE_MARKER = "/*webaom-log-monospace*/";
-    private static final String MONOSPACE_STYLE = "<style type=\"text/css\">" + MONOSPACE_MARKER
-            + "body{font-family:Monospaced,Consolas,Menlo,Monaco,'Liberation Mono',monospace;font-size:11pt;}"
-            + "</style>";
-
-    public static String htmlHeader = MONOSPACE_STYLE;
+public class JEditorPaneLog extends JEditorPane implements Log {
+    private static final String MONOSPACE_FONT_FAMILY = "Monospaced,Consolas,Menlo,Monaco,'Liberation Mono',monospace";
+    private static final String BODY_MARGIN = "2px";
+    private final StringBuilder logBodyHtml = new StringBuilder();
     private PrintStream logOutputStream;
+    private String renderedHtml = "";
 
     public JEditorPaneLog() {
-        super("text/html", htmlHeader);
+        setContentType("text/html");
         setEditable(false);
-        Font currentFont = getFont();
-        setFont(new Font(Font.MONOSPACED, Font.PLAIN, currentFont.getSize()));
-        getInputMap().put(KeyStroke.getKeyStroke("DELETE"), "remove");
-        getActionMap().put("remove", this);
+        putClientProperty(JEditorPane.HONOR_DISPLAY_PROPERTIES, Boolean.TRUE);
+        applyMonospaceFont();
+        refreshDocument();
     }
 
     public synchronized void append(String htmlText) {
-        try {
-            Document document = getDocument();
-            int documentLength = document.getLength();
-            if (htmlText == null || htmlText.equals("")) {
-                return;
-            }
-            Reader htmlReader = new StringReader(htmlText);
-            EditorKit editorKit = getEditorKit();
-            editorKit.read(htmlReader, document, documentLength);
-        } catch (Exception exception) {
-            exception.printStackTrace();
+        if (htmlText == null || htmlText.isEmpty()) {
+            return;
         }
+        logBodyHtml.append(htmlText);
+        refreshDocument();
     }
 
     @Override
@@ -128,43 +113,84 @@ public class JEditorPaneLog extends JEditorPane implements Log, Action {
     }
 
     @Override
-    public Object getValue(String key) {
-        return null;
+    public void updateUI() {
+        super.updateUI();
+        applyMonospaceFont();
+        refreshDocument();
     }
 
-    @Override
-    public void putValue(String key, Object value) {
-        // don't care
+    synchronized String getRenderedHtml() {
+        return renderedHtml;
     }
 
-    @Override
-    public void actionPerformed(ActionEvent event) {
-        setHeader(javax.swing.JOptionPane.showInputDialog(AppContext.frame, "Edit header", htmlHeader));
+    private void applyMonospaceFont() {
+        Font currentFont = getFont();
+        int fontSize = currentFont == null ? 12 : currentFont.getSize();
+        setFont(new Font(Font.MONOSPACED, Font.PLAIN, fontSize));
     }
 
-    public void setHeader(String newHeader) {
-        if (newHeader == null || newHeader.isEmpty()) {
+    private synchronized void refreshDocument() {
+        if (!"text/html".equalsIgnoreCase(getContentType())) {
             return;
         }
-        synchronized (this) {
-            htmlHeader = ensureMonospaceHeader(newHeader);
-            setText(htmlHeader);
-            Runtime.getRuntime().gc();
-        }
+
+        renderedHtml = buildHtmlDocument(logBodyHtml.toString());
+        setText(renderedHtml);
+        setCaretPosition(getDocument().getLength());
     }
 
-    private String ensureMonospaceHeader(String header) {
-        if (header.contains(MONOSPACE_MARKER)) {
-            return header;
-        }
+    private String buildHtmlDocument(String bodyContent) {
+        Color foreground = ThemeColorSupport.colorOrDefault(
+                getForeground(),
+                Color.black,
+                "EditorPane.foreground",
+                "TextPane.foreground",
+                "TextArea.foreground",
+                "Label.foreground");
+        Color background = ThemeColorSupport.colorOrDefault(
+                getBackground(),
+                Color.white,
+                "EditorPane.background",
+                "TextPane.background",
+                "TextArea.background",
+                "Panel.background");
+        Color linkColor = HyperlinkBuilder.resolveNameColor();
 
-        String lowerHeader = header.toLowerCase();
-        int headCloseIndex = lowerHeader.indexOf("</head>");
-        if (headCloseIndex >= 0) {
-            return header.substring(0, headCloseIndex) + MONOSPACE_STYLE + header.substring(headCloseIndex);
-        }
-
-        return MONOSPACE_STYLE + header;
+        StringBuilder html = new StringBuilder(bodyContent.length() + 256);
+        html.append("<html><head><style type=\"text/css\">");
+        html.append("body{margin:");
+        html.append(BODY_MARGIN);
+        html.append(";font-family:");
+        html.append(MONOSPACE_FONT_FAMILY);
+        html.append(";font-size:");
+        html.append(getFont().getSize());
+        html.append("pt;color:#");
+        html.append(ThemeColorSupport.toHex(foreground));
+        html.append(";background-color:#");
+        html.append(ThemeColorSupport.toHex(background));
+        html.append(";}");
+        html.append(".");
+        html.append(HyperlinkBuilder.CSS_CLASS_WARNING);
+        html.append("{color:#");
+        html.append(ThemeColorSupport.toHex(HyperlinkBuilder.resolveWarningColor()));
+        html.append(";}");
+        html.append(".");
+        html.append(HyperlinkBuilder.CSS_CLASS_NAME);
+        html.append("{color:#");
+        html.append(ThemeColorSupport.toHex(HyperlinkBuilder.resolveNameColor()));
+        html.append(";}");
+        html.append(".");
+        html.append(HyperlinkBuilder.CSS_CLASS_NUMBER);
+        html.append("{color:#");
+        html.append(ThemeColorSupport.toHex(HyperlinkBuilder.resolveNumberColor()));
+        html.append(";}");
+        html.append("a{color:#");
+        html.append(ThemeColorSupport.toHex(linkColor));
+        html.append(";}");
+        html.append("</style></head><body>");
+        html.append(bodyContent);
+        html.append("</body></html>");
+        return html.toString();
     }
 
     private class AppendFileStream extends OutputStream {

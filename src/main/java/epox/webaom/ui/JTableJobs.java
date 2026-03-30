@@ -17,12 +17,12 @@
 package epox.webaom.ui;
 
 import epox.swing.JTableSortable;
+import epox.swing.ThemeColorSupport;
 import epox.webaom.AppContext;
 import epox.webaom.Job;
 import java.awt.Color;
 import java.awt.Component;
 import java.awt.event.ActionEvent;
-import java.util.Arrays;
 import javax.swing.AbstractAction;
 import javax.swing.KeyStroke;
 import javax.swing.table.TableCellRenderer;
@@ -36,6 +36,11 @@ public class JTableJobs extends JTableSortable {
     private static final Color COLOR_MISSING = new Color(100, 100, 100);
     /** Background color for invalid/corrupt jobs (light red) */
     private static final Color COLOR_INVALID = new Color(255, 180, 180);
+
+    private static final double MINIMUM_NORMAL_CONTRAST = 4.5;
+    private static final double MINIMUM_STATE_CONTRAST = 3.0;
+    private static final double INVALID_BACKGROUND_BLEND_RATIO = 0.35;
+    private static final double MISSING_FOREGROUND_BLEND_RATIO = 0.30;
 
     private final TableModelJobs jobsTableModel;
     /** Controls whether UI updates should be processed */
@@ -63,35 +68,66 @@ public class JTableJobs extends JTableSortable {
     public Component prepareRenderer(TableCellRenderer renderer, int row, int column) {
         Component component = super.prepareRenderer(renderer, row, column);
 
-        if (isSelected(row)) {
+        if (isRowSelected(row)) {
             return component;
         }
 
-        Job job = (Job) jobsTableModel.getValueAt(row, TableModelJobs.JOB);
-
-        if (job.isCorrupt()) {
-            component.setBackground(COLOR_INVALID);
-            component.setForeground(Color.black);
-        } else {
-            component.setBackground(this.getBackground());
-
-            if (job.check(Job.D_DIO | Job.S_DOING)) {
-                component.setForeground(COLOR_DISK_IO);
-            } else if (job.check(Job.D_NIO | Job.S_DOING)) {
-                component.setForeground(COLOR_NETWORK_IO);
-            } else if (job.check(Job.H_MISSING)) {
-                component.setForeground(COLOR_MISSING);
-            } else {
-                component.setForeground(Color.black);
-            }
-        }
-
+        applyUnselectedRowColors(component, getJobAtViewRow(row));
         return component;
     }
 
-    private boolean isSelected(int row) {
-        int[] selectedRows = getSelectedRows();
-        Arrays.sort(selectedRows);
-        return Arrays.binarySearch(selectedRows, row) >= 0;
+    private void applyUnselectedRowColors(Component component, Job job) {
+        Color tableBackground = getThemeTableBackground();
+        Color background = resolveBackground(job, tableBackground);
+        Color foreground = resolveForeground(job, getThemeTableForeground(), background);
+
+        component.setBackground(background);
+        component.setForeground(foreground);
+    }
+
+    private Job getJobAtViewRow(int row) {
+        int modelRow = convertRowIndexToModel(row);
+        return (Job) jobsTableModel.getValueAt(modelRow, TableModelJobs.JOB);
+    }
+
+    private Color resolveBackground(Job job, Color tableBackground) {
+        if (job.isCorrupt()) {
+            return ThemeColorSupport.blend(tableBackground, COLOR_INVALID, INVALID_BACKGROUND_BLEND_RATIO);
+        }
+        return tableBackground;
+    }
+
+    private Color resolveForeground(Job job, Color tableForeground, Color background) {
+        if (job.isCorrupt()) {
+            return pickReadableForeground(background, tableForeground);
+        }
+        if (job.check(Job.D_DIO | Job.S_DOING)) {
+            return ThemeColorSupport.ensureContrast(COLOR_DISK_IO, background, tableForeground, MINIMUM_STATE_CONTRAST);
+        }
+        if (job.check(Job.D_NIO | Job.S_DOING)) {
+            return ThemeColorSupport.ensureContrast(
+                    COLOR_NETWORK_IO, background, tableForeground, MINIMUM_STATE_CONTRAST);
+        }
+        if (job.check(Job.H_MISSING)) {
+            Color mutedForeground =
+                    ThemeColorSupport.blend(tableForeground, background, MISSING_FOREGROUND_BLEND_RATIO);
+            return ThemeColorSupport.ensureContrast(
+                    mutedForeground, background, tableForeground, MINIMUM_STATE_CONTRAST);
+        }
+        return ThemeColorSupport.ensureContrast(tableForeground, background, tableForeground, MINIMUM_NORMAL_CONTRAST);
+    }
+
+    private Color pickReadableForeground(Color background, Color preferred) {
+        Color best = ThemeColorSupport.pickHighestContrast(
+                background, preferred, getThemeTableForeground(), Color.black, Color.white);
+        return ThemeColorSupport.ensureContrast(best, background, best, MINIMUM_NORMAL_CONTRAST);
+    }
+
+    private Color getThemeTableForeground() {
+        return ThemeColorSupport.colorOrDefault(getForeground(), Color.black, "Table.foreground", "Label.foreground");
+    }
+
+    private Color getThemeTableBackground() {
+        return ThemeColorSupport.colorOrDefault(getBackground(), Color.white, "Table.background", "Panel.background");
     }
 }

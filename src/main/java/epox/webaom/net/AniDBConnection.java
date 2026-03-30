@@ -19,6 +19,7 @@ package epox.webaom.net;
 import epox.swing.Log;
 import epox.util.UserPass;
 import epox.webaom.AppContext;
+import epox.webaom.HyperlinkBuilder;
 import epox.webaom.ui.JDialogLogin;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -125,7 +126,7 @@ public class AniDBConnection implements ActionListener {
         if (log == null) {
             return;
         }
-        log.println("<font color=#FF0000>" + message + "</font>");
+        log.println(HyperlinkBuilder.formatAsError(message));
         log.status1(message);
     }
 

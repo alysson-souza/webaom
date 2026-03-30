@@ -4,6 +4,8 @@ to time. Do at least check the changelog for relevant info before using it.
 2.5.1 unreleased:
 *Jobs list now remembers which columns you show, together with their order and widths.
 *Jobs list columns are now aligned more clearly, making numbers and text easier to scan.
+*Jobs and Log tabs are now easier to read in dark themes.
+*Removed an old hidden log appearance customization that was no longer useful.
 
 2.5.0 29.03.2026:
 *New built-in themes: Light, Dark, IntelliJ, and Darcula (plus macOS Light/Dark on macOS).
