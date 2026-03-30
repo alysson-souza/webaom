@@ -5,6 +5,8 @@ WebAOM!
 *Jobs list columns are now aligned more clearly, making numbers and text easier to scan.
 *Jobs and Log tabs are now easier to read in dark themes.
 *Removed an old hidden log appearance customization that was no longer useful.
+*Keyboard shortcuts help no longer shows duplicate entries.
+*Pressing Esc now closes dialogs and file info windows more consistently.
 
 2.5.0 2026.03.29
 *New built-in themes: Light, Dark, IntelliJ, and Darcula (plus macOS Light/Dark on macOS).

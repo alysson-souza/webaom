@@ -23,6 +23,7 @@ import epox.webaom.db.DatabaseManager;
 import epox.webaom.db.DatabaseManagerFactory;
 import epox.webaom.net.AniDBConnectionSettings;
 import epox.webaom.net.AniDBFileClient;
+import epox.webaom.ui.DialogHelper;
 import epox.webaom.ui.MainPanel;
 import epox.webaom.ui.shortcuts.ShortcutRegistry;
 import epox.webaom.util.PlatformPaths;
@@ -218,7 +219,7 @@ public final class AppContext {
     }
 
     public static void dialog(String title, String msg) {
-        JOptionPane.showMessageDialog(component, msg, title, JOptionPane.PLAIN_MESSAGE);
+        DialogHelper.showMessageDialog(component, msg, title, JOptionPane.PLAIN_MESSAGE);
     }
 
     public static void dialog2(String title, String msg) {
@@ -227,7 +228,7 @@ public final class AppContext {
 
     public static boolean confirm(String title, String msg, String pos, String neg) {
         Object[] o = {pos, neg};
-        return JOptionPane.showOptionDialog(
+        return DialogHelper.showOptionDialog(
                         AppContext.component,
                         msg,
                         title,
@@ -250,7 +251,7 @@ public final class AppContext {
      */
     public static int showYesNoCancelDialog(String title, String msg) {
         Object[] options = {"Yes", "No", "Cancel"};
-        return JOptionPane.showOptionDialog(
+        return DialogHelper.showOptionDialog(
                 AppContext.component,
                 msg,
                 title,
@@ -292,33 +293,23 @@ public final class AppContext {
                         + "</body></html>",
                 displayName, currentBytes, maxBytes);
 
-        final int[] result = {-1};
-        final String msg = message;
-
-        Runnable showDialog = () -> {
+        int result;
+        try {
             Object[] options = {"Truncate", "Skip", "Truncate All", "Skip All"};
-            result[0] = JOptionPane.showOptionDialog(
+            result = DialogHelper.showOptionDialog(
                     AppContext.component,
-                    msg,
+                    message,
                     "Filename Too Long",
                     JOptionPane.DEFAULT_OPTION,
                     JOptionPane.WARNING_MESSAGE,
                     null,
                     options,
                     options[0]);
-        };
-
-        if (SwingUtilities.isEventDispatchThread()) {
-            showDialog.run();
-        } else {
-            try {
-                SwingUtilities.invokeAndWait(showDialog);
-            } catch (Exception e) {
-                return FILENAME_SKIP;
-            }
+        } catch (IllegalStateException exception) {
+            return FILENAME_SKIP;
         }
 
-        switch (result[0]) {
+        switch (result) {
             case 0:
                 return FILENAME_TRUNCATE;
             case 1:

@@ -137,7 +137,7 @@ public class JobContextMenu extends JPopupMenu implements MouseListener, ActionL
             return;
         }
         if (command == JobActionCommand.EDIT_PATH) {
-            folderPath = javax.swing.JOptionPane.showInputDialog(
+            folderPath = DialogHelper.showInputDialog(
                     AppContext.frame, "Edit path", jobs[0].getFile().getParent());
             if (folderPath == null || folderPath.length() < 2) {
                 return;
@@ -154,11 +154,11 @@ public class JobContextMenu extends JPopupMenu implements MouseListener, ActionL
         switch (command) {
             case EDIT_NAME:
                 String currentName = job.getFile().getName();
-                String editedName = javax.swing.JOptionPane.showInputDialog(AppContext.frame, "Edit name", currentName);
+                String editedName = DialogHelper.showInputDialog(AppContext.frame, "Edit name", currentName);
                 controller.executeSingleCommand(command, job, editedName, null);
                 break;
             case SET_FID:
-                String fidInput = javax.swing.JOptionPane.showInputDialog(AppContext.frame, "Insert fid", "");
+                String fidInput = DialogHelper.showInputDialog(AppContext.frame, "Insert fid", "");
                 controller.executeSingleCommand(command, job, null, fidInput);
                 break;
             default:

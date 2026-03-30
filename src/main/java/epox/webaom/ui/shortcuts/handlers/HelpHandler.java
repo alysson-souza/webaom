@@ -17,20 +17,21 @@
 package epox.webaom.ui.shortcuts.handlers;
 
 import epox.webaom.AppContext;
+import epox.webaom.ui.DialogHelper;
 import epox.webaom.ui.shortcuts.ShortcutCategory;
 import epox.webaom.ui.shortcuts.ShortcutHandler;
 import epox.webaom.ui.shortcuts.ShortcutInfo;
 import java.awt.Window;
 import java.awt.event.KeyEvent;
 import javax.swing.JComponent;
-import javax.swing.JOptionPane;
 
 public class HelpHandler implements ShortcutHandler, ShortcutInfo {
     @Override
     public boolean handle(KeyEvent event, JComponent source) {
         String helpText = AppContext.shortcutRegistry.generateHelpText();
         Window parentWindow = javax.swing.SwingUtilities.getWindowAncestor(source);
-        JOptionPane.showMessageDialog(parentWindow, helpText, "Keyboard Shortcuts", JOptionPane.INFORMATION_MESSAGE);
+        DialogHelper.showMessageDialog(
+                parentWindow, helpText, "Keyboard Shortcuts", javax.swing.JOptionPane.INFORMATION_MESSAGE);
         return true;
     }
 

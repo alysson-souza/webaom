@@ -22,16 +22,18 @@ import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.Rectangle;
 import java.awt.RenderingHints;
-import java.awt.event.KeyEvent;
-import java.awt.event.KeyListener;
+import java.awt.event.ActionEvent;
+import javax.swing.AbstractAction;
+import javax.swing.JComponent;
 import javax.swing.JEditorPane;
 import javax.swing.JFrame;
 import javax.swing.JScrollPane;
+import javax.swing.KeyStroke;
 import javax.swing.WindowConstants;
 import javax.swing.event.HyperlinkEvent;
 import javax.swing.event.HyperlinkListener;
 
-public class JFrameHtml extends JFrame implements HyperlinkListener, KeyListener {
+public class JFrameHtml extends JFrame implements HyperlinkListener {
     public JFrameHtml(String title, String text) {
         super(title);
 
@@ -49,6 +51,14 @@ public class JFrameHtml extends JFrame implements HyperlinkListener, KeyListener
 
         getContentPane().add(new JScrollPane(htmlEditorPane));
         setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
+        DialogHelper.bindEscapeToClose(getRootPane(), this::dispose);
+        getRootPane().getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke('q'), "closeHtmlFrame");
+        getRootPane().getActionMap().put("closeHtmlFrame", new AbstractAction() {
+            @Override
+            public void actionPerformed(ActionEvent event) {
+                dispose();
+            }
+        });
         pack();
         Dimension screenSize = java.awt.Toolkit.getDefaultToolkit().getScreenSize();
         Rectangle frameBounds = getBounds();
@@ -66,7 +76,6 @@ public class JFrameHtml extends JFrame implements HyperlinkListener, KeyListener
                 frameBounds.width,
                 frameBounds.height);
         setVisible(true);
-        htmlEditorPane.addKeyListener(this);
     }
 
     @Override
@@ -74,22 +83,5 @@ public class JFrameHtml extends JFrame implements HyperlinkListener, KeyListener
         if (event.getEventType() == HyperlinkEvent.EventType.ACTIVATED) {
             AppContext.gui.openHyperlink(event.getDescription());
         }
-    }
-
-    @Override
-    public void keyTyped(KeyEvent event) {
-        if (event.getKeyChar() == 'q') {
-            dispose();
-        }
-    }
-
-    @Override
-    public void keyPressed(KeyEvent event) {
-        // No action needed on key press
-    }
-
-    @Override
-    public void keyReleased(KeyEvent event) {
-        // No action needed on key release
     }
 }
