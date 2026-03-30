@@ -60,6 +60,8 @@ public class JDialogLogin extends JDialog implements ActionListener {
         usernameField = new JTextField(AppContext.userPass.username, 20);
         passwordField = new JPasswordField(AppContext.userPass.password, 20);
         apiPassField = new JTextField(AppContext.userPass.apiKey, 20);
+        setDefaultCloseOperation(DISPOSE_ON_CLOSE);
+        DialogHelper.bindEscapeToClose(getRootPane(), this::dispose);
         apiPassField.setToolTipText("Use blank if you don't care about encryption");
         okButton = new JButton("OK");
         okButton.setToolTipText("<html>Login is required to access the <i>AniDB UDP Service</i> which"

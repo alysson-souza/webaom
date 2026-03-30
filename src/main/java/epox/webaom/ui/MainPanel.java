@@ -255,7 +255,8 @@ public class MainPanel extends JPanel
         }
 
         // Show as informational dialog (not blocking)
-        JOptionPane.showMessageDialog(this, message.toString(), "Startup Information", JOptionPane.INFORMATION_MESSAGE);
+        DialogHelper.showMessageDialog(
+                this, message.toString(), "Startup Information", JOptionPane.INFORMATION_MESSAGE);
     }
 
     public void shutdown() {
@@ -792,7 +793,7 @@ public class MainPanel extends JPanel
     }
 
     public void showMessage(String title, String msg) {
-        JOptionPane.showMessageDialog(AppContext.component, msg, title, JOptionPane.WARNING_MESSAGE);
+        DialogHelper.showMessageDialog(AppContext.component, msg, title, JOptionPane.WARNING_MESSAGE);
     }
 
     @Override
