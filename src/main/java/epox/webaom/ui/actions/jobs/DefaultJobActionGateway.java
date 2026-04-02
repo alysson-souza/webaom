@@ -68,8 +68,8 @@ public final class DefaultJobActionGateway implements JobActionGateway {
     }
 
     @Override
-    public int deleteJobs(Set<Job> jobs) {
-        return JobManager.deleteJobs(jobs);
+    public int deleteJobs(Set<Job> jobs, JobDeleteScope scope) {
+        return JobManager.deleteJobs(jobs, scope);
     }
 
     @Override

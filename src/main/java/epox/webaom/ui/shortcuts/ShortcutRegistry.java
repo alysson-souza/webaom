@@ -83,7 +83,7 @@ public class ShortcutRegistry {
 
         sb.append(OTHER_DISPLAY).append(":\n");
         sb.append("  Enter/Space - Show job info\n");
-        sb.append("  Delete/BackSpace - Delete selected jobs\n");
+        sb.append("  Delete/BackSpace - Remove selected entries from the current tab\n");
         sb.append("  ESC - Stop worker thread");
 
         return sb.toString();

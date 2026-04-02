@@ -53,11 +53,13 @@ public abstract class DatabaseManager {
     public static final int INDEX_COUNT = 5;
 
     /** SQL query for loading jobs with file, episode, and directory data. */
-    protected static final String SQL_JOB_QUERY = "select d.name,j.name,j.status,j.orig,j.ed2k,j.md5,j.sha1,j.tth,"
-            + "j.crc32,j.size,j.did,j.uid,j.lid,j.avxml,f.fid,f.aid,f.eid,f.gid,f.def_name,f.state,f.size,"
-            + "f.ed2k,f.md5,f.sha1,f.crc32,f.dublang,f.sublang,f.quality,f.ripsource,f.audio,f.video,"
-            + "f.resolution,f.ext,f.len,e.eid,e.number,e.english,e.romaji,e.kanji "
-            + "from dtb d,jtb j,ftb f,etb e where d.did=j.did and j.fid=f.fid and f.eid=e.eid";
+    protected static final String SQL_JOB_QUERY =
+            "select d.name,j.name,j.status,j.jobs_visible,j.alt_visible,j.orig,j.ed2k,j.md5,j.sha1,j.tth,"
+                    + "j.crc32,j.size,j.did,j.uid,j.lid,j.avxml,f.fid,f.aid,f.eid,f.gid,f.def_name,f.state,f.size,"
+                    + "f.ed2k,f.md5,f.sha1,f.crc32,f.dublang,f.sublang,f.quality,f.ripsource,f.audio,f.video,"
+                    + "f.resolution,f.ext,f.len,e.eid,e.number,e.english,e.romaji,e.kanji "
+                    + "from dtb d,jtb j,ftb f,etb e where d.did=j.did and j.fid=f.fid and f.eid=e.eid"
+                    + " and (j.jobs_visible<>0 or j.alt_visible<>0)";
 
     protected final Map<String, Integer> directoryIdCache = new HashMap<>();
 
@@ -210,8 +212,8 @@ public abstract class DatabaseManager {
                 + " where fid=?");
             updateStatements[INDEX_GROUP] = connection.prepareStatement("update gtb set name=?,short=? where gid=?");
             updateStatements[INDEX_JOB] = connection.prepareStatement(
-                    "update jtb set name=?,did=?,status=?,md5=?,sha1=?,tth=?,crc32=?,fid=?,lid=?,avxml=? where size=?"
-                            + " and ed2k=?");
+                    "update jtb set name=?,did=?,status=?,jobs_visible=?,alt_visible=?,md5=?,sha1=?,tth=?,crc32=?,"
+                            + "fid=?,lid=?,avxml=? where size=? and ed2k=?");
 
             insertStatements = new PreparedStatement[INDEX_COUNT];
             insertStatements[INDEX_ANIME] = connection.prepareStatement(
@@ -225,8 +227,8 @@ public abstract class DatabaseManager {
             insertStatements[INDEX_GROUP] =
                     connection.prepareStatement("insert into gtb (name,short,gid) values (?,?,?)");
             insertStatements[INDEX_JOB] = connection.prepareStatement(
-                    "insert into jtb (name,did,status,md5,sha1,tth,crc32,fid,lid,avxml,size,ed2k,orig,uid) values"
-                            + " (?,?,?,?,?,?,?,?,?,?,?,?,?,1)");
+                    "insert into jtb (name,did,status,jobs_visible,alt_visible,md5,sha1,tth,crc32,fid,lid,avxml,"
+                            + "size,ed2k,orig,uid) values (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,1)");
 
             isInitialized = true;
             log("SQL statements prepared successfully");
@@ -458,6 +460,8 @@ public abstract class DatabaseManager {
                     job.targetFile = null;
                 }
                 int status = rs.getInt(colIndex++);
+                job.setJobsVisible(rs.getInt(colIndex++) != 0);
+                job.setAltVisible(rs.getInt(colIndex++) != 0);
                 populateJobFromResultSet(rs, colIndex, job);
                 rs.close();
                 job.isFresh = false;
@@ -482,7 +486,9 @@ public abstract class DatabaseManager {
             if (loadAllJobs) {
                 rs = query(SQL_JOB_QUERY + " ORDER BY j.time", false);
             } else {
-                rs = query(SQL_JOB_QUERY + " and j.status!=" + Job.FINISHED + " ORDER BY j.time", false);
+                rs = query(
+                        SQL_JOB_QUERY + " and (j.status!=" + Job.FINISHED + " or j.alt_visible<>0) ORDER BY j.time",
+                        false);
             }
 
             if (rs == null) {
@@ -495,6 +501,8 @@ public abstract class DatabaseManager {
                 int colIndex = 1;
                 File file = new File(rs.getString(colIndex++) + File.separatorChar + rs.getString(colIndex++));
                 Job job = new Job(file, rs.getInt(colIndex++));
+                job.setJobsVisible(rs.getInt(colIndex++) != 0);
+                job.setAltVisible(rs.getInt(colIndex++) != 0);
                 populateJobFromResultSet(rs, colIndex, job);
                 if (!AppContext.jobs.add(job)) {
                     StringUtilities.err("DB: Dupe: " + job);
@@ -553,11 +561,49 @@ public abstract class DatabaseManager {
         }
     }
 
-    public synchronized void removeJob(Job job) {
-        exec(
-                "delete from jtb where ed2k=" + quoteString(job.ed2kHash) + " and name="
-                        + quoteString(job.currentFile.getName()),
-                false);
+    public synchronized boolean removeJob(Job job) {
+        if (!hasPersistentJobIdentity(job)) {
+            return false;
+        }
+        try (PreparedStatement ps = connection.prepareStatement("delete from jtb where size=? and ed2k=?")) {
+            ps.setLong(1, getPersistentJobSize(job));
+            ps.setString(2, job.ed2kHash);
+            return ps.executeUpdate() > 0;
+        } catch (SQLException ex) {
+            ex.printStackTrace();
+            return false;
+        }
+    }
+
+    public synchronized boolean updateJobVisibility(Job job) {
+        if (!hasPersistentJobIdentity(job)) {
+            return false;
+        }
+        if (!job.isJobsVisible() && !job.isAltVisible()) {
+            return removeJob(job);
+        }
+        try (PreparedStatement ps =
+                connection.prepareStatement("update jtb set jobs_visible=?, alt_visible=? where size=? and ed2k=?")) {
+            ps.setInt(1, job.isJobsVisible() ? 1 : 0);
+            ps.setInt(2, job.isAltVisible() ? 1 : 0);
+            ps.setLong(3, getPersistentJobSize(job));
+            ps.setString(4, job.ed2kHash);
+            return ps.executeUpdate() > 0;
+        } catch (SQLException ex) {
+            ex.printStackTrace();
+            return false;
+        }
+    }
+
+    private long getPersistentJobSize(Job job) {
+        if (job.fileSize > 0) {
+            return job.fileSize;
+        }
+        return job.currentFile != null ? job.currentFile.length() : 0;
+    }
+
+    public boolean hasPersistentJobIdentity(Job job) {
+        return isInitialized && job != null && job.ed2kHash != null && !job.ed2kHash.isBlank();
     }
 
     public synchronized boolean update(int entityId, Object dataObject, int entityType) {
@@ -632,6 +678,8 @@ public abstract class DatabaseManager {
             ps.setString(paramIndex++, job.currentFile.getName());
             ps.setInt(paramIndex++, job.directoryId);
             ps.setInt(paramIndex++, job.getStatus());
+            ps.setInt(paramIndex++, job.isJobsVisible() ? 1 : 0);
+            ps.setInt(paramIndex++, job.isAltVisible() ? 1 : 0);
             ps.setString(paramIndex++, job.md5Hash);
             ps.setString(paramIndex++, job.sha1Hash);
             ps.setString(paramIndex++, job.tthHash);
@@ -639,7 +687,7 @@ public abstract class DatabaseManager {
             ps.setInt(paramIndex++, job.anidbFile != null ? job.anidbFile.getFileId() : 0);
             ps.setInt(paramIndex++, job.mylistId);
             ps.setString(paramIndex++, job.avFileInfo == null ? null : job.avFileInfo.m_xml);
-            ps.setLong(paramIndex++, job.currentFile.exists() ? job.currentFile.length() : job.fileSize);
+            ps.setLong(paramIndex++, getPersistentJobSize(job));
             ps.setString(paramIndex++, job.ed2kHash);
             if (isInsert) {
                 ps.setString(paramIndex, job.originalName);

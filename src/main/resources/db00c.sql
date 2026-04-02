@@ -90,6 +90,8 @@ CREATE TABLE jtb
     did    INTEGER NOT NULL,
     fid    INTEGER NOT NULL,
     status INTEGER NOT NULL,
+    jobs_visible INTEGER NOT NULL DEFAULT 1,
+    alt_visible  INTEGER NOT NULL DEFAULT 1,
     ed2k   TEXT    NOT NULL,
     md5    TEXT             DEFAULT NULL,
     sha1   TEXT             DEFAULT NULL,
@@ -116,4 +118,4 @@ VALUES (0, '', '');
 INSERT INTO utb (name)
 VALUES ('default');
 INSERT INTO vtb
-VALUES (6);
+VALUES (7);

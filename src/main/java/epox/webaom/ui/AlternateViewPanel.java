@@ -18,6 +18,7 @@ package epox.webaom.ui;
 
 import epox.webaom.AppContext;
 import epox.webaom.Cache;
+import epox.webaom.ui.actions.jobs.JobDeleteScope;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.event.ActionListener;
@@ -155,10 +156,10 @@ public class AlternateViewPanel extends JPanel {
         add(scrollPane, BorderLayout.CENTER);
         add(southPanel, BorderLayout.SOUTH);
 
-        JobContextMenu popupMenu = new JobContextMenu(altViewTreeTable, altViewTreeTable);
+        JobContextMenu popupMenu = new JobContextMenu(altViewTreeTable, altViewTreeTable, JobDeleteScope.ALT);
         AppContext.secondaryPopupMenu = popupMenu;
         altViewTreeTable.addMouseListener(popupMenu);
 
-        altViewTreeTable.addKeyListener(new KeyAdapterJob(altViewTreeTable, altViewTreeTable));
+        altViewTreeTable.addKeyListener(new KeyAdapterJob(altViewTreeTable, altViewTreeTable, JobDeleteScope.ALT));
     }
 }

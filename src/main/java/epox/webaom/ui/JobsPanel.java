@@ -46,13 +46,12 @@ public class JobsPanel extends JPanel implements ActionListener {
     private static final int INDEX_CRC_ERROR = 5;
     private static final int INDEX_AUTO_UPDATE = 6;
     private static final int INDEX_MISSING = 7;
-    private static final int INDEX_DELETED = 8;
-    private static final int INDEX_DONE = 9;
-    private static final int INDEX_FAILED = 10;
-    private static final int INDEX_NET_IO = 11;
-    private static final int INDEX_CENSORED = 12;
-    private static final int INDEX_UNKNOWN = 13;
-    private static final int FILTER_CHECKBOX_COUNT = 14;
+    private static final int INDEX_DONE = 8;
+    private static final int INDEX_FAILED = 9;
+    private static final int INDEX_NET_IO = 10;
+    private static final int INDEX_CENSORED = 11;
+    private static final int INDEX_UNKNOWN = 12;
+    private static final int FILTER_CHECKBOX_COUNT = 13;
     private final JTableJobs jobsTable;
     private final JScrollTable scrollTable;
     private final TableModelJobs tableModel;
@@ -82,7 +81,6 @@ public class JobsPanel extends JPanel implements ActionListener {
 
     private static String getCheckboxLabel(int checkboxIndex) {
         return switch (checkboxIndex) {
-            case INDEX_DELETED -> "Deleted";
             case INDEX_DISK_IO -> "DiskIO";
             case INDEX_DOING -> "Doing";
             case INDEX_DONE -> "Done";
@@ -109,9 +107,6 @@ public class JobsPanel extends JPanel implements ActionListener {
         }
         if (filterCheckboxes[INDEX_PAUSED].isSelected()) {
             statusFilterMask |= Job.H_PAUSED;
-        }
-        if (filterCheckboxes[INDEX_DELETED].isSelected()) {
-            statusFilterMask |= Job.H_DELETED;
         }
         if (filterCheckboxes[INDEX_MISSING].isSelected()) {
             statusFilterMask |= Job.H_MISSING;

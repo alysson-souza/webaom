@@ -82,6 +82,34 @@ class JobActionControllerTest {
     }
 
     @Test
+    void executeCommand_removeFromAniDbMyList_usesRemoveWaitStatus() throws IOException {
+        FakeGateway gateway = new FakeGateway();
+        JobActionController controller = new JobActionController(gateway);
+        Job job = createJob("episode.mkv", Job.HASHWAIT);
+
+        controller.executeCommand(JobActionCommand.REMOVE_FROM_MYLIST, job, null);
+
+        assertEquals(1, gateway.statusCalls.size());
+        StatusCall statusCall = gateway.statusCalls.getFirst();
+        assertEquals(Job.REMWAIT, statusCall.status());
+        assertTrue(statusCall.checkIfBusy());
+    }
+
+    @Test
+    void localRemoveActionLabel_usesJobsScopeLabel() {
+        JobActionController controller = new JobActionController(new FakeGateway(), JobDeleteScope.JOBS);
+
+        assertEquals("Remove from Jobs", controller.localRemoveActionLabel());
+    }
+
+    @Test
+    void localRemoveActionLabel_usesAltScopeLabel() {
+        JobActionController controller = new JobActionController(new FakeGateway(), JobDeleteScope.ALT);
+
+        assertEquals("Remove from Alt", controller.localRemoveActionLabel());
+    }
+
+    @Test
     void executeSingleCommand_setFid_validInput_setsOverrideAndRequeues() throws IOException {
         FakeGateway gateway = new FakeGateway();
         JobActionController controller = new JobActionController(gateway);
@@ -172,6 +200,19 @@ class JobActionControllerTest {
         assertEquals(0, gateway.deleteCalls);
     }
 
+    @Test
+    void deleteSelectedJobs_altScope_delegatesAltDeletion() throws IOException {
+        FakeGateway gateway = new FakeGateway();
+        JobActionController controller = new JobActionController(gateway, JobDeleteScope.ALT);
+        Job job = createJob("alt-only.mkv", Job.HASHWAIT);
+
+        JobActionController.DeletionResult result = controller.deleteSelectedJobs(List.of(job));
+
+        assertTrue(result.handled());
+        assertEquals(1, result.removedCount());
+        assertEquals(JobDeleteScope.ALT, gateway.lastDeleteScope);
+    }
+
     private Job createJob(String fileName, int initialStatus) throws IOException {
         Path file = Files.writeString(tempDir.resolve(fileName), "data");
         return new Job(file.toFile(), initialStatus);
@@ -225,10 +266,13 @@ class JobActionControllerTest {
         @Override
         public void setName(Job job, String newName) {}
 
+        JobDeleteScope lastDeleteScope;
+
         @Override
-        public int deleteJobs(Set<Job> jobs) {
+        public int deleteJobs(Set<Job> jobs, JobDeleteScope scope) {
             deleteCalls++;
             deletedJobs = new LinkedHashSet<>(jobs);
+            lastDeleteScope = scope;
             return jobs.size();
         }
 

@@ -25,13 +25,27 @@ import java.util.Set;
 
 public class JobActionController {
     private final JobActionGateway gateway;
+    private final JobDeleteScope deleteScope;
 
     public JobActionController(JobActionGateway gateway) {
+        this(gateway, JobDeleteScope.JOBS);
+    }
+
+    public JobActionController(JobActionGateway gateway, JobDeleteScope deleteScope) {
         this.gateway = Objects.requireNonNull(gateway);
+        this.deleteScope = Objects.requireNonNull(deleteScope);
     }
 
     public static JobActionController createDefault() {
-        return new JobActionController(new DefaultJobActionGateway());
+        return createDefault(JobDeleteScope.JOBS);
+    }
+
+    public static JobActionController createDefault(JobDeleteScope deleteScope) {
+        return new JobActionController(new DefaultJobActionGateway(), deleteScope);
+    }
+
+    public String localRemoveActionLabel() {
+        return deleteScope == JobDeleteScope.ALT ? "Remove from Alt" : "Remove from Jobs";
     }
 
     public void executeCommand(JobActionCommand command, Job job, String folderPath) {
@@ -52,7 +66,7 @@ public class JobActionController {
             case READD:
                 gateway.updateStatus(job, Job.ADDWAIT, true);
                 break;
-            case REMOVE:
+            case REMOVE_FROM_MYLIST:
                 gateway.updateStatus(job, Job.REMWAIT, true);
                 break;
             case APPLY_RULES:
@@ -73,9 +87,6 @@ public class JobActionController {
                 if (folderPath != null) {
                     gateway.setPath(job, folderPath, true);
                 }
-                break;
-            case REMOVE_DB:
-                gateway.updateStatus(job, Job.H_DELETED, true);
                 break;
             case RESTORE_NAME:
                 gateway.restoreName(job);
@@ -141,14 +152,14 @@ public class JobActionController {
             return DeletionResult.notHandled();
         }
 
-        String deletionMessage = createDeletionConfirmation(deletableJobs);
-        if (!gateway.confirm("Remove jobs", deletionMessage, "Remove", "Cancel")) {
+        String deletionMessage = createDeletionConfirmation(deletableJobs, deleteScope);
+        if (!gateway.confirm(createDeletionTitle(deleteScope), deletionMessage, "Remove", "Cancel")) {
             return DeletionResult.handled(0);
         }
 
-        int removedCount = gateway.deleteJobs(deletableJobs);
+        int removedCount = gateway.deleteJobs(deletableJobs, deleteScope);
         if (removedCount > 0) {
-            gateway.setStatusMessage(createRemovalStatus(removedCount, gateway.jobCount()));
+            gateway.setStatusMessage(createRemovalStatus(removedCount, gateway.jobCount(), deleteScope));
             gateway.updateProgressBar();
         }
         if (!runningJobs.isEmpty()) {
@@ -157,15 +168,26 @@ public class JobActionController {
         return DeletionResult.handled(removedCount);
     }
 
-    private static String createDeletionConfirmation(Set<Job> deletableJobs) {
+    private static String createDeletionConfirmation(Set<Job> deletableJobs, JobDeleteScope deleteScope) {
+        String target = deleteScope == JobDeleteScope.ALT ? "Alt" : "Jobs";
         if (deletableJobs.size() == 1) {
             Job job = deletableJobs.iterator().next();
-            return "Remove \"" + job.getFile().getName() + "\" from the job list?";
+            return "Remove \"" + job.getFile().getName() + "\" from " + target + "?";
         }
-        return "Remove " + deletableJobs.size() + " selected jobs from the job list?";
+        return "Remove " + deletableJobs.size() + " selected entries from " + target + "?";
     }
 
-    private static String createRemovalStatus(int removedCount, int remainingCount) {
+    private static String createDeletionTitle(JobDeleteScope deleteScope) {
+        return deleteScope == JobDeleteScope.ALT ? "Remove from Alt" : "Remove from Jobs";
+    }
+
+    private static String createRemovalStatus(int removedCount, int remainingCount, JobDeleteScope deleteScope) {
+        if (deleteScope == JobDeleteScope.ALT) {
+            if (removedCount == 1) {
+                return "Removed 1 entry from Alt.";
+            }
+            return "Removed " + removedCount + " entries from Alt.";
+        }
         if (removedCount == 1) {
             return "Removed 1 job. " + remainingCount + " remaining.";
         }

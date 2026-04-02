@@ -41,16 +41,17 @@ public class SQLiteDatabaseManager extends DatabaseManager {
 
     /**
      * SQL files for SQLite.
-     * Index 0 = schema, Index 1-6 = migrations from version (index-1) to version index.
+     * Index 0 = schema, Index 1-7 = migrations from version (index-1) to version index.
      */
     private static final String[] SQL_FILES = {
-        "db00c.sql", // schema (creates at v6)
+        "db00c.sql", // schema (creates at v7)
         "db03.sql", // v0 -> v1
         "db04.sql", // v1 -> v2
         "db05.sql", // v2 -> v3
         "db06.sql", // v3 -> v4
         "db07c.sql", // v4 -> v5
         "db08c.sql", // v5 -> v6
+        "db09c.sql", // v6 -> v7
     };
 
     public SQLiteDatabaseManager() {

@@ -38,7 +38,7 @@ public interface JobActionGateway {
 
     void setName(Job job, String newName);
 
-    int deleteJobs(Set<Job> jobs);
+    int deleteJobs(Set<Job> jobs, JobDeleteScope scope);
 
     int jobCount();
 
