@@ -96,7 +96,9 @@ public class FileHandler {
                 && !isFileLocked(file)) {
             Job job = AppContext.jobs.add(file);
             if (job != null) {
-                job.updateHealth(Job.H_PAUSED);
+                if (job.getHealth() == Job.H_PAUSED) {
+                    job.updateHealth(Job.H_PAUSED);
+                }
                 return true;
             }
         }

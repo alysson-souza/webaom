@@ -20,7 +20,6 @@ import epox.av.FileInfo;
 import epox.util.StringUtilities;
 import epox.webaom.data.AniDBFile;
 import epox.webaom.data.AttributeMap;
-import epox.webaom.db.DatabaseManager;
 import java.io.File;
 import java.util.logging.Logger;
 
@@ -36,7 +35,6 @@ public class Job {
     public static final int H_NORMAL = 0x00000100; // health
     public static final int H_PAUSED = 0x00000200;
     public static final int H_MISSING = 0x00000400;
-    public static final int H_DELETED = 0x00000800;
     public static final int D_DIO = 0x00010000; // mode
     public static final int D_NIO = 0x00020000;
     public static final int // 	M_USR		= 0x00040000,
@@ -90,6 +88,8 @@ public class Job {
     public String sha1Hash;
     public String tthHash;
     public String crc32Hash;
+    public boolean jobsVisible = true;
+    public boolean altVisible = true;
     /** Hashing progress from 0.0 to 1.0, updated by HashTask workers */
     public volatile float hashProgress = 0f;
 
@@ -105,6 +105,12 @@ public class Job {
         tthHash = StringUtilities.n(serializedData[index++]);
         crc32Hash = StringUtilities.n(serializedData[index++]);
         originalName = serializedData[index++];
+        if (index < serializedData.length) {
+            jobsVisible = StringUtilities.i(serializedData[index++]) != 0;
+        }
+        if (index < serializedData.length) {
+            altVisible = StringUtilities.i(serializedData[index]) != 0;
+        }
     }
 
     public Job(File file, int initialStatus) {
@@ -144,7 +150,6 @@ public class Job {
             case UNKNOWN -> "Unknown";
             case FAILED -> "Failed";
             case H_PAUSED -> "P";
-            case H_DELETED -> "D";
             case H_MISSING -> "M";
             case REMWAIT -> "Wait/Rem";
             case REMING -> "Removing";
@@ -157,7 +162,8 @@ public class Job {
     public String serialize() {
         return "" + getStatus() + FIELD_SEPARATOR + currentFile + FIELD_SEPARATOR + fileSize + FIELD_SEPARATOR
                 + ed2kHash + FIELD_SEPARATOR + md5Hash + FIELD_SEPARATOR + sha1Hash + FIELD_SEPARATOR + tthHash
-                + FIELD_SEPARATOR + crc32Hash + FIELD_SEPARATOR + originalName;
+                + FIELD_SEPARATOR + crc32Hash + FIELD_SEPARATOR + originalName + FIELD_SEPARATOR
+                + (jobsVisible ? 1 : 0) + FIELD_SEPARATOR + (altVisible ? 1 : 0);
     }
 
     public String toString() {
@@ -255,6 +261,22 @@ public class Job {
         return anidbFile == null || anidbFile.getAnime() == null || anidbFile.getEpisode() == null;
     }
 
+    public boolean isJobsVisible() {
+        return jobsVisible;
+    }
+
+    public void setJobsVisible(boolean jobsVisible) {
+        this.jobsVisible = jobsVisible;
+    }
+
+    public boolean isAltVisible() {
+        return altVisible;
+    }
+
+    public void setAltVisible(boolean altVisible) {
+        this.altVisible = altVisible;
+    }
+
     public String getStatusText() {
         if (check(HASHING)) {
             return "Hashing " + (int) (hashProgress * 100) + "%";
@@ -301,7 +323,7 @@ public class Job {
     }
 
     public void updateHealth(int healthUpdate) {
-        if (healthUpdate != H_DELETED && checkOr(H_MISSING | H_DELETED)) {
+        if (healthUpdate != H_MISSING && check(H_MISSING)) {
             return;
         }
         int health = getHealth();
@@ -311,15 +333,6 @@ public class Job {
                     health = H_PAUSED; // turn pause on
                 } else if (health == H_PAUSED) {
                     health = H_NORMAL; // turn pause off
-                }
-            }
-            case H_DELETED -> {
-                if (health == H_DELETED) {
-                    health = (currentFile.exists() ? H_NORMAL : H_MISSING);
-                    AppContext.databaseManager.update(0, this, DatabaseManager.INDEX_JOB);
-                } else {
-                    health = H_DELETED; // delete
-                    AppContext.databaseManager.removeJob(this);
                 }
             }
             case H_MISSING -> health = H_MISSING;

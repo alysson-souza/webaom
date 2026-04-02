@@ -22,10 +22,13 @@ import epox.webaom.AppContext;
 import epox.webaom.Job;
 import epox.webaom.ui.actions.jobs.JobActionCommand;
 import epox.webaom.ui.actions.jobs.JobActionController;
+import epox.webaom.ui.actions.jobs.JobDeleteScope;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
+import java.util.LinkedHashSet;
+import java.util.Set;
 import javax.swing.JMenuItem;
 import javax.swing.JPopupMenu;
 import javax.swing.JTable;
@@ -42,6 +45,10 @@ public class JobContextMenu extends JPopupMenu implements MouseListener, ActionL
         this(table, rowModel, JobActionController.createDefault());
     }
 
+    public JobContextMenu(final JTable table, final RowModel rowModel, JobDeleteScope deleteScope) {
+        this(table, rowModel, JobActionController.createDefault(deleteScope));
+    }
+
     JobContextMenu(final JTable table, final RowModel rowModel, JobActionController controller) {
         this.table = table;
         this.rowModel = rowModel;
@@ -53,7 +60,10 @@ public class JobContextMenu extends JPopupMenu implements MouseListener, ActionL
             if (command == null || command.separator()) {
                 this.addSeparator();
             } else {
-                menuItems[index] = new JMenuItem(command.label());
+                String label = command == JobActionCommand.REMOVE_LOCAL
+                        ? controller.localRemoveActionLabel()
+                        : command.label();
+                menuItems[index] = new JMenuItem(label);
                 menuItems[index].addActionListener(this);
                 menuItems[index].setActionCommand("" + index);
                 this.add(menuItems[index]);
@@ -115,7 +125,6 @@ public class JobContextMenu extends JPopupMenu implements MouseListener, ActionL
     @Override
     public void mouseClicked(MouseEvent event) {
         if (worker == null && SwingUtilities.isRightMouseButton(event)) {
-            menuItems[JobActionCommand.REMOVE_DB.id()].setEnabled(AppContext.databaseManager.isConnected());
             menuItems[JobActionCommand.PARSE.id()].setEnabled(AVInfo.ok());
             this.updateUI();
             show(table, event.getX(), event.getY());
@@ -150,6 +159,23 @@ public class JobContextMenu extends JPopupMenu implements MouseListener, ActionL
         }
     }
 
+    void executeSelectedRowsCommand(JobActionCommand command, int[] selectedRows, String folderPath) {
+        if (command == null || selectedRows.length == 0) {
+            return;
+        }
+        if (command == JobActionCommand.REMOVE_LOCAL) {
+            Set<Job> selectedJobs = collectSelectedJobs(selectedRows);
+            controller.deleteSelectedJobs(selectedJobs);
+            return;
+        }
+        for (int selectedRow : selectedRows) {
+            Job[] jobs = rowModel.getJobs(toModelRow(selectedRow));
+            if (jobs != null) {
+                command(command, jobs, folderPath);
+            }
+        }
+    }
+
     void commandSingle(JobActionCommand command, Job job) {
         switch (command) {
             case EDIT_NAME:
@@ -165,6 +191,18 @@ public class JobContextMenu extends JPopupMenu implements MouseListener, ActionL
                 controller.executeSingleCommand(command, job, null, null);
                 break;
         }
+    }
+
+    private Job getSingleSelectedJob() {
+        int selectedRow = toModelRow(table.getSelectedRow());
+        if (selectedRow < 0) {
+            return null;
+        }
+        Job[] jobs = rowModel.getJobs(selectedRow);
+        if (jobs == null || jobs.length == 0) {
+            return null;
+        }
+        return jobs[0];
     }
 
     String getFolder() {
@@ -188,6 +226,33 @@ public class JobContextMenu extends JPopupMenu implements MouseListener, ActionL
         return null;
     }
 
+    private int toModelRow(int viewRow) {
+        if (viewRow < 0) {
+            return viewRow;
+        }
+        try {
+            return table.convertRowIndexToModel(viewRow);
+        } catch (Exception ex) {
+            return viewRow;
+        }
+    }
+
+    private Set<Job> collectSelectedJobs(int[] selectedRows) {
+        Set<Job> selectedJobs = new LinkedHashSet<>();
+        for (int selectedRow : selectedRows) {
+            Job[] jobs = rowModel.getJobs(toModelRow(selectedRow));
+            if (jobs == null) {
+                continue;
+            }
+            for (Job job : jobs) {
+                if (job != null) {
+                    selectedJobs.add(job);
+                }
+            }
+        }
+        return selectedJobs;
+    }
+
     private class MenuWorker extends Thread {
         final JobActionCommand command;
         boolean run = true;
@@ -204,7 +269,10 @@ public class JobContextMenu extends JPopupMenu implements MouseListener, ActionL
             ie:
             if (command.single()) {
                 try {
-                    commandSingle(command, rowModel.getJobs(table.getSelectedRow())[0]);
+                    Job selectedJob = getSingleSelectedJob();
+                    if (selectedJob != null) {
+                        commandSingle(command, selectedJob);
+                    }
                 } catch (ArrayIndexOutOfBoundsException ignored) {
                     // Selection may be empty
                 }
@@ -219,8 +287,8 @@ public class JobContextMenu extends JPopupMenu implements MouseListener, ActionL
                 int[] selectedRows = table.getSelectedRows();
 
                 table.clearSelection();
-                for (int index = 0; index < selectedRows.length && run; index++) {
-                    command(command, rowModel.getJobs(selectedRows[index]), folderPath);
+                if (run) {
+                    executeSelectedRowsCommand(command, selectedRows, folderPath);
                 }
             }
             worker = null;

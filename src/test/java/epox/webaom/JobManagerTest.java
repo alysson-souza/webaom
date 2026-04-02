@@ -18,11 +18,13 @@ package epox.webaom;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.mock;
 
 import epox.webaom.ui.MainPanel;
+import epox.webaom.ui.actions.jobs.JobDeleteScope;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
@@ -108,5 +110,29 @@ class JobManagerTest {
         assertTrue(destination.exists());
         assertFalse(source.exists());
         assertTrue(destinationDir.resolve("renamed.srt").toFile().exists());
+    }
+
+    @Test
+    void deleteJobs_jobsScope_removesHiddenJobsFromQueuesAndDuplicateTracking() throws IOException {
+        File source =
+                Files.writeString(tempDir.resolve("queue-job.mkv"), "video").toFile();
+        Job job = new Job(source, Job.HASHWAIT);
+        assertTrue(AppContext.jobs.add(job));
+        job.updateHealth(Job.H_PAUSED);
+        assertTrue(job.check(Job.H_NORMAL));
+        assertTrue(AppContext.jobs.has(source));
+        assertTrue(AppContext.jobs.workForDio());
+        assertNotNull(AppContext.jobs.getJobDio());
+
+        int removed = JobManager.deleteJobs(java.util.List.of(job), JobDeleteScope.JOBS);
+
+        assertEquals(1, removed);
+        assertFalse(AppContext.jobs.has(source));
+        assertFalse(AppContext.jobs.workForDio());
+        assertNull(AppContext.jobs.getJobDio());
+        assertEquals(
+                0,
+                AppContext.jobs.getJobsDio(10, Job.HASHWAIT, java.util.Set.of()).size());
+        assertNotNull(AppContext.jobs.add(source));
     }
 }

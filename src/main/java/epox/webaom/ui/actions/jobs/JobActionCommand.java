@@ -26,7 +26,7 @@ public enum JobActionCommand {
     REHASH(6, "Rehash", false, false),
     REID(7, "Identify", false, false),
     READD(8, "Add to mylist", false, false),
-    REMOVE(9, "Remove from mylist", false, false),
+    REMOVE_FROM_MYLIST(9, "Remove from AniDB MyList", false, false),
     APPLY_RULES(10, "Apply Rules", false, false),
     SEPARATOR_2(11, null, false, true),
     SET_FINISHED(12, "Set Finished", false, false),
@@ -38,7 +38,7 @@ public enum JobActionCommand {
     SEPARATOR_3(18, null, false, true),
     PARSE(19, "Parse with avinfo", false, false),
     SET_FID(20, "Set fid (force)", true, false),
-    REMOVE_DB(21, "Remove from DB", false, false);
+    REMOVE_LOCAL(21, "Remove from Jobs", false, false);
 
     private final int id;
     private final String label;

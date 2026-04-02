@@ -35,6 +35,10 @@ public class JobList {
     private final List<LinkedHashMap<Job, Job>> jobQueues;
     public TableModelJobs tableModel = null;
     private Job[] filteredJobs = null;
+    private Job[] visibleJobs = null;
+    private int filterStatus = 0;
+    private int filterState = 0;
+    private boolean filterIncludeUnknown = false;
 
     public JobList() {
         jobsList = new ArrayList<>();
@@ -70,6 +74,7 @@ public class JobList {
 
     public synchronized void clear() {
         filteredJobs = null;
+        visibleJobs = null;
         jobsList.clear();
         filePathSet.clear();
         for (LinkedHashMap<Job, Job> jobQueue : jobQueues) {
@@ -78,7 +83,12 @@ public class JobList {
     }
 
     public synchronized boolean has(File file) {
-        return filePathSet.contains(file);
+        for (Job job : jobsList) {
+            if (job.isJobsVisible() && job.getFile().equals(file)) {
+                return true;
+            }
+        }
+        return false;
     }
 
     public synchronized void addPath(File file) {
@@ -86,14 +96,31 @@ public class JobList {
     }
 
     public synchronized void filter(int status, int state, boolean includeUnknown) {
-        if (status == 0) {
+        filterStatus = status;
+        filterState = state;
+        filterIncludeUnknown = includeUnknown;
+        rebuildViewCache();
+    }
+
+    private boolean isDisplayedInJobs(Job job) {
+        if (!job.isJobsVisible()) {
+            return false;
+        }
+        return AppContext.databaseManager == null
+                || AppContext.databaseManager.isLoadAllJobs()
+                || job.getStatus() != Job.FINISHED;
+    }
+
+    private void rebuildViewCache() {
+        visibleJobs = null;
+        if (filterStatus == 0) {
             filteredJobs = null;
             return;
         }
         long startTime = System.currentTimeMillis();
         ArrayList<Job> matchingJobs = new ArrayList<>(jobsList.size());
         for (Job job : jobsList) {
-            if (job.checkSep(status, state, includeUnknown)) {
+            if (isDisplayedInJobs(job) && job.checkSep(filterStatus, filterState, filterIncludeUnknown)) {
                 matchingJobs.add(job);
             }
         }
@@ -101,15 +128,67 @@ public class JobList {
         System.out.println("! Filter: " + (System.currentTimeMillis() - startTime));
     }
 
+    private Job[] getVisibleJobs() {
+        if (filteredJobs != null) {
+            return filteredJobs;
+        }
+        if (visibleJobs == null) {
+            ArrayList<Job> visible = new ArrayList<>(jobsList.size());
+            for (Job job : jobsList) {
+                if (isDisplayedInJobs(job)) {
+                    visible.add(job);
+                }
+            }
+            visibleJobs = visible.toArray(new Job[0]);
+        }
+        return visibleJobs;
+    }
+
+    public synchronized void refreshView() {
+        rebuildViewCache();
+        if (tableModel != null) {
+            tableModel.fireTableDataChanged();
+        }
+    }
+
     private void addJobInternal(Job job) {
         jobsList.add(job);
         if (tableModel != null) {
-            tableModel.insertJob(jobsList.size() - 1);
+            refreshView();
+        } else {
+            rebuildViewCache();
         }
         JobManager.resetBatchChoice(); // Reset "apply to all" choice when new files added
     }
 
     public synchronized Job add(File file) {
+        Job existingJob = findJob(file);
+        if (existingJob != null) {
+            if (!existingJob.isJobsVisible()) {
+                boolean wasMissing = existingJob.check(Job.H_MISSING);
+                existingJob.setJobsVisible(true);
+                if (AppContext.databaseManager != null
+                        && AppContext.databaseManager.hasPersistentJobIdentity(existingJob)
+                        && !AppContext.databaseManager.updateJobVisibility(existingJob)) {
+                    existingJob.setJobsVisible(false);
+                    return null;
+                }
+                if (wasMissing && file.exists()) {
+                    existingJob.find(file);
+                    if (AppContext.databaseManager != null
+                            && AppContext.databaseManager.hasPersistentJobIdentity(existingJob)) {
+                        AppContext.databaseManager.update(0, existingJob, epox.webaom.db.DatabaseManager.INDEX_JOB);
+                    }
+                }
+                if (existingJob.check(Job.H_NORMAL)) {
+                    updateQueues(existingJob, 0, existingJob.getStatus());
+                }
+                AppContext.jobCounter.register(-1, -1, existingJob.getStatus(), existingJob.getHealth());
+                refreshView();
+                return existingJob;
+            }
+            return null;
+        }
         if (filePathSet.add(file)) { // TODO if update then check against existing files
             Job job = new Job(file, Job.HASHWAIT);
             int status = AppContext.databaseManager.getJob(job, false);
@@ -123,9 +202,21 @@ public class JobList {
         return null;
     }
 
+    private Job findJob(File file) {
+        for (Job job : jobsList) {
+            if (job.getFile().equals(file)) {
+                return job;
+            }
+        }
+        return null;
+    }
+
     public synchronized boolean add(Job job) {
         if (filePathSet.add(job.currentFile)) {
             addJobInternal(job);
+            if (!job.isJobsVisible()) {
+                AppContext.jobCounter.unregister(job.getStatus(), job.getHealth());
+            }
             return true;
         }
         return false;
@@ -133,10 +224,7 @@ public class JobList {
 
     public synchronized Job get(int index) {
         try {
-            if (filteredJobs != null) {
-                return filteredJobs[index];
-            }
-            return jobsList.get(index);
+            return getVisibleJobs()[index];
         } catch (ArrayIndexOutOfBoundsException ex) {
             System.err.println("[ ArrayIndexOutOfBoundsException " + index);
         } catch (IndexOutOfBoundsException ex) {
@@ -177,25 +265,15 @@ public class JobList {
         if (removedJobs.isEmpty()) {
             return 0;
         }
-        HashSet<Job> removedSet = new HashSet<>(removedJobs);
-        if (filteredJobs != null) {
-            ArrayList<Job> filtered = new ArrayList<>(filteredJobs.length);
-            for (Job job : filteredJobs) {
-                if (!removedSet.contains(job)) {
-                    filtered.add(job);
-                }
-            }
-            filteredJobs = filtered.toArray(new Job[0]);
-        }
         for (LinkedHashMap<Job, Job> queue : jobQueues) {
-            queue.keySet().removeAll(removedSet);
+            queue.keySet().removeAll(new HashSet<>(removedJobs));
         }
         for (Job job : removedJobs) {
-            AppContext.jobCounter.unregister(job.getStatus(), job.getHealth());
+            if (job.isJobsVisible()) {
+                AppContext.jobCounter.unregister(job.getStatus(), job.getHealth());
+            }
         }
-        if (tableModel != null) {
-            tableModel.fireTableDataChanged();
-        }
+        refreshView();
         return removedJobs.size();
     }
 
@@ -206,15 +284,17 @@ public class JobList {
     }
 
     public synchronized int size() {
-        if (filteredJobs != null) {
-            return filteredJobs.length;
-        }
-        return jobsList.size();
+        return getVisibleJobs().length;
     }
 
     public Job getJobDio() {
         LinkedHashMap<Job, Job> queue = jobQueues.get(QUEUE_DISK_IO);
-        return queue.isEmpty() ? null : queue.values().iterator().next();
+        for (Job job : queue.values()) {
+            if (job.isJobsVisible()) {
+                return job;
+            }
+        }
+        return null;
     }
 
     /**
@@ -233,7 +313,7 @@ public class JobList {
             if (jobs.size() >= maxCount) {
                 break;
             }
-            if (job.getStatus() == status && !exclude.contains(job)) {
+            if (job.isJobsVisible() && job.getStatus() == status && !exclude.contains(job)) {
                 jobs.add(job);
             }
         }
@@ -242,15 +322,20 @@ public class JobList {
 
     public Job getJobNio() {
         LinkedHashMap<Job, Job> queue = jobQueues.get(QUEUE_NETWORK_IO);
-        return queue.isEmpty() ? null : queue.values().iterator().next();
+        for (Job job : queue.values()) {
+            if (job.isJobsVisible()) {
+                return job;
+            }
+        }
+        return null;
     }
 
     public boolean workForDio() {
-        return !jobQueues.get(QUEUE_DISK_IO).isEmpty();
+        return getJobDio() != null;
     }
 
     public boolean workForNio() {
-        return !jobQueues.get(QUEUE_NETWORK_IO).isEmpty();
+        return getJobNio() != null;
     }
 
     public void updateQueues(Job job, int oldStatus, int newStatus) {

@@ -20,6 +20,7 @@ import epox.webaom.AppContext;
 import epox.webaom.Job;
 import epox.webaom.JobManager;
 import epox.webaom.ui.actions.jobs.JobActionController;
+import epox.webaom.ui.actions.jobs.JobDeleteScope;
 import epox.webaom.ui.shortcuts.ShortcutCategory;
 import epox.webaom.ui.shortcuts.ShortcutHandler;
 import epox.webaom.ui.shortcuts.ShortcutInfo;
@@ -36,7 +37,11 @@ public class KeyAdapterJob extends KeyAdapter {
     private final JobActionController controller;
 
     public KeyAdapterJob(JTable table, RowModel rowModel) {
-        this(table, rowModel, JobActionController.createDefault());
+        this(table, rowModel, JobDeleteScope.JOBS);
+    }
+
+    public KeyAdapterJob(JTable table, RowModel rowModel, JobDeleteScope deleteScope) {
+        this(table, rowModel, JobActionController.createDefault(deleteScope));
     }
 
     KeyAdapterJob(JTable table, RowModel rowModel, JobActionController controller) {

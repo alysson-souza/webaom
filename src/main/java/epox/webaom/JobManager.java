@@ -17,10 +17,14 @@
 package epox.webaom;
 
 import epox.webaom.db.DatabaseManager;
+import epox.webaom.ui.actions.jobs.JobDeleteScope;
 import java.awt.Desktop;
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.LinkedHashSet;
+import java.util.Set;
 
 public final class JobManager {
     private JobManager() {}
@@ -81,7 +85,7 @@ public final class JobManager {
             if (job.check(Job.S_DOING)) {
                 return;
             }
-            if (job.getHealth() < Job.H_DELETED
+            if (job.getHealth() != Job.H_MISSING
                     && job.getStatus() == Job.FINISHED
                     && newName != null
                     && !newName.isEmpty()) {
@@ -158,23 +162,81 @@ public final class JobManager {
      * @param jobs jobs to delete (should not contain running jobs)
      * @return number of jobs removed
      */
-    public static int deleteJobs(Collection<Job> jobs) {
-        if (jobs == null || jobs.isEmpty()) {
+    public static int deleteJobs(Collection<Job> jobs, JobDeleteScope scope) {
+        if (jobs == null || jobs.isEmpty() || scope == null) {
+            return 0;
+        }
+        Set<Job> uniqueJobs = new LinkedHashSet<>();
+        for (Job job : jobs) {
+            if (job != null) {
+                uniqueJobs.add(job);
+            }
+        }
+        if (uniqueJobs.isEmpty()) {
             return 0;
         }
 
-        int removedCount = AppContext.jobs.removeJobs(jobs);
-        if (removedCount > 0) {
-            // Remove from cache tree - jobs are already removed from jobList
-            for (Job job : jobs) {
-                AppContext.cache.treeRemove(job);
+        ArrayList<Job> physicallyRemovedJobs = new ArrayList<>();
+        int removedCount = 0;
+        boolean altViewChanged = false;
+        for (Job job : uniqueJobs) {
+            boolean originalJobsVisible = job.isJobsVisible();
+            boolean originalAltVisible = job.isAltVisible();
+
+            if (scope == JobDeleteScope.JOBS) {
+                if (!originalJobsVisible) {
+                    continue;
+                }
+                job.setJobsVisible(false);
+            } else {
+                if (!originalAltVisible) {
+                    continue;
+                }
+                job.setAltVisible(false);
+                altViewChanged = true;
             }
-            // Update alternate view if visible
-            if (AppContext.gui != null && AppContext.gui.altViewPanel != null) {
-                AppContext.gui.altViewPanel.updateAlternativeView(false);
+
+            boolean persisted = true;
+            if (AppContext.databaseManager != null && AppContext.databaseManager.hasPersistentJobIdentity(job)) {
+                persisted = AppContext.databaseManager.updateJobVisibility(job);
+            }
+            if (!persisted) {
+                job.setJobsVisible(originalJobsVisible);
+                job.setAltVisible(originalAltVisible);
+                continue;
+            }
+
+            if (scope == JobDeleteScope.JOBS && originalJobsVisible) {
+                if (job.check(Job.H_NORMAL)) {
+                    AppContext.jobs.updateQueues(job, job.getStatus(), -1);
+                }
+                AppContext.jobCounter.unregister(job.getStatus(), job.getHealth());
+            }
+            removedCount++;
+            if (!job.isJobsVisible() && !job.isAltVisible()) {
+                physicallyRemovedJobs.add(job);
             }
         }
+
+        if (!physicallyRemovedJobs.isEmpty()) {
+            AppContext.jobs.removeJobs(physicallyRemovedJobs);
+        } else if (scope == JobDeleteScope.JOBS) {
+            AppContext.jobs.refreshView();
+        }
+        if (scope == JobDeleteScope.ALT && removedCount > 0) {
+            refreshAltView();
+        } else if (altViewChanged && removedCount > 0) {
+            refreshAltView();
+        }
         return removedCount;
+    }
+
+    private static void refreshAltView() {
+        if (AppContext.gui != null && AppContext.gui.altViewPanel != null) {
+            AppContext.gui.altViewPanel.updateAlternativeView(true);
+        } else if (AppContext.cache != null) {
+            AppContext.cache.rebuildTree();
+        }
     }
 
     public static void updateStatus(Job job, int status) {

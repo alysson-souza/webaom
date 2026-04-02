@@ -239,10 +239,11 @@ public class Cache {
     }
 
     public void treeAdd(Job job) {
-        boolean isMissingOrDeleted = job.checkOr(Job.H_MISSING | Job.H_DELETED);
-        if (job.incompl()
-                || (hideExisting && !isMissingOrDeleted)
-                || (hideNew && isMissingOrDeleted)
+        boolean isMissing = job.check(Job.H_MISSING);
+        if (!job.isAltVisible()
+                || job.incompl()
+                || (hideExisting && !isMissing)
+                || (hideNew && isMissing)
                 || (job.hide(AppContext.pathRegex))) {
             return;
         }

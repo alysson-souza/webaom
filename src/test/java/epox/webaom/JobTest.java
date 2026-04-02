@@ -34,6 +34,7 @@ class JobTest {
     @BeforeEach
     void setUp() {
         AppContext.jobCounter = new JobCounter();
+        AppContext.jobs = new JobList();
     }
 
     @Test
