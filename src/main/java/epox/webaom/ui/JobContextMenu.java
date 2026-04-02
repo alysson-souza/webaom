@@ -124,6 +124,9 @@ public class JobContextMenu extends JPopupMenu implements MouseListener, ActionL
 
     @Override
     public void mouseClicked(MouseEvent event) {
+        if (AppContext.isInteractionBlocked()) {
+            return;
+        }
         if (worker == null && SwingUtilities.isRightMouseButton(event)) {
             menuItems[JobActionCommand.PARSE.id()].setEnabled(AVInfo.ok());
             this.updateUI();
@@ -133,6 +136,9 @@ public class JobContextMenu extends JPopupMenu implements MouseListener, ActionL
 
     @Override
     public void actionPerformed(ActionEvent event) {
+        if (AppContext.isInteractionBlocked()) {
+            return;
+        }
         if (table.getSelectedRowCount() > 0) {
             JobActionCommand command = JobActionCommand.fromId(Integer.parseInt(event.getActionCommand()));
             if (command != null) {

@@ -40,6 +40,7 @@ import epox.webaom.startup.StartupValidator;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Dimension;
+import java.awt.GraphicsEnvironment;
 import java.awt.GridLayout;
 import java.awt.Insets;
 import java.awt.datatransfer.DataFlavor;
@@ -158,6 +159,7 @@ public class MainPanel extends JPanel
             AppContext.fileHandler.loadDefaultExtensions();
             jobsPanel.loadOptions(AppContext.opt); // default hack
         }
+        applyAppMode(AppContext.getAppMode());
         try {
             Thread[] threads = new Thread[Thread.activeCount()];
             Thread.enumerate(threads);
@@ -458,13 +460,17 @@ public class MainPanel extends JPanel
             Raw API: Start with '?' (e.g. ?PING) - session is added automatically.
             """);
         chiiEmulator.setLog(commandPanel);
-        commandPanel.setFileDropListener(this);
+        if (!GraphicsEnvironment.isHeadless()) {
+            commandPanel.setFileDropListener(this);
+        }
 
         ////////////////////////////// DEBUG PANEL///////////////////////////////
         JPanelDebug debugPanel = null;
         if (AppContext.IS_DEVELOPMENT) {
             debugPanel = new JPanelDebug(null);
-            debugPanel.setFileDropListener(this);
+            if (!GraphicsEnvironment.isHeadless()) {
+                debugPanel.setFileDropListener(this);
+            }
         }
 
         ////////////////////////////// TABBED PANE///////////////////////////////
@@ -500,7 +506,9 @@ public class MainPanel extends JPanel
         ////////////////////////////////// END///////////////////////////////////
 
         // Enable drag-and-drop for the entire panel
-        new DropTarget(this, this);
+        if (!GraphicsEnvironment.isHeadless()) {
+            new DropTarget(this, this);
+        }
     }
 
     /*
@@ -533,6 +541,9 @@ public class MainPanel extends JPanel
     }
 
     public void handleFatalError(boolean isFatal) {
+        if (AppContext.isInteractionBlocked() && !isFatal) {
+            return;
+        }
         if (isFatal) {
             if (isDiskIoRunning) {
                 toggleDiskIo();
@@ -586,6 +597,9 @@ public class MainPanel extends JPanel
     @Override
     public void actionPerformed(ActionEvent event) {
         Object source = event.getSource();
+        if (AppContext.isInteractionBlocked() && source != miscOptionsPanel.databaseUrlField) {
+            return;
+        }
         if (source == toolbarButtons[BUTTON_SELECT_FILES]) {
             selectFiles();
         } else if (source == toolbarButtons[BUTTON_SELECT_DIRS]) {
@@ -965,6 +979,9 @@ public class MainPanel extends JPanel
     }
 
     public void selectFilesForProcessing(File[] files) {
+        if (AppContext.isInteractionBlocked()) {
+            return;
+        }
         if (workerThread != null) {
             AppContext.dialog("Message", "There is already a thread like this running.");
             return;
@@ -994,11 +1011,17 @@ public class MainPanel extends JPanel
      * This is needed for text components like JTextArea which have their own TransferHandler that blocks file drops.
      */
     private void enableFileDrop(java.awt.Component component) {
-        new DropTarget(component, this);
+        if (!GraphicsEnvironment.isHeadless()) {
+            new DropTarget(component, this);
+        }
     }
 
     @Override
     public void dragEnter(DropTargetDragEvent dragEvent) {
+        if (AppContext.isInteractionBlocked()) {
+            dragEvent.rejectDrag();
+            return;
+        }
         if (dragEvent.getTransferable().isDataFlavorSupported(DataFlavor.javaFileListFlavor)) {
             dragEvent.acceptDrag(DnDConstants.ACTION_COPY);
 
@@ -1030,6 +1053,11 @@ public class MainPanel extends JPanel
 
     @Override
     public void drop(DropTargetDropEvent dropEvent) {
+        if (AppContext.isInteractionBlocked()) {
+            dropEvent.rejectDrop();
+            clearHighlight();
+            return;
+        }
         try {
             Transferable transferable = dropEvent.getTransferable();
             if (transferable.isDataFlavorSupported(DataFlavor.javaFileListFlavor)) {
@@ -1062,6 +1090,38 @@ public class MainPanel extends JPanel
                 jobsScrollBar.setValue(jobsScrollBar.getMaximum());
             }
         }
+    }
+
+    void applyAppMode(AppContext.AppMode mode) {
+        AppContext.setAppMode(mode);
+        boolean interactionBlocked = AppContext.isInteractionBlocked();
+        for (JButton button : toolbarButtons) {
+            button.setEnabled(!interactionBlocked);
+        }
+        miscOptionsPanel.disconnectButton.setEnabled(
+                !interactionBlocked && AppContext.databaseManager != null && AppContext.databaseManager.isConnected());
+        miscOptionsPanel.databaseUrlField.setEnabled(true);
+        newExtensionTextField.setEnabled(!interactionBlocked);
+        jobsTable.setEnabled(!interactionBlocked);
+        altViewPanel.getAltViewTreeTable().setEnabled(!interactionBlocked);
+        altViewPanel.getLoadAllJobsCheckbox().setEnabled(!interactionBlocked);
+        altViewPanel.getSortModeComboBox().setEnabled(!interactionBlocked);
+        altViewPanel.getFileVisibilityComboBox().setEnabled(!interactionBlocked);
+        altViewPanel.getAnimeTitleComboBox().setEnabled(!interactionBlocked);
+        altViewPanel.getEpisodeTitleComboBox().setEnabled(!interactionBlocked);
+        altViewPanel.getPathRegexField().setEnabled(!interactionBlocked);
+        setDiskIoOptionsEnabled(!interactionBlocked);
+        setNetworkIoOptionsEnabled(!interactionBlocked);
+        if (interactionBlocked) {
+            statusProgressBar.setString("Blocked: please update WebAOM.");
+        }
+    }
+
+    void handleDatabaseInitializationFailure(JTextField databasePathField) {
+        if (AppContext.databaseManager.hasUnsupportedFutureSchema()) {
+            applyAppMode(AppContext.AppMode.INCOMPATIBLE_DATABASE);
+        }
+        databasePathField.setEnabled(true);
     }
 
     /** Thread that recursively scans directories for files to process. */
@@ -1161,6 +1221,7 @@ public class MainPanel extends JPanel
             AppContext.databaseManager.setLoadAllJobs(loadCompleted);
 
             if (AppContext.databaseManager.initialize(connectionString)) {
+                applyAppMode(AppContext.AppMode.NORMAL);
                 long startTime = System.currentTimeMillis();
                 // A.mem3 = A.getUsed();
                 AppContext.databaseManager.getJobs();
@@ -1186,7 +1247,7 @@ public class MainPanel extends JPanel
                 altViewPanel.updateAlternativeView(true);
                 miscOptionsPanel.disconnectButton.setEnabled(true);
             } else {
-                databasePathField.setEnabled(true);
+                handleDatabaseInitializationFailure(databasePathField);
             }
             workerThread = null;
 

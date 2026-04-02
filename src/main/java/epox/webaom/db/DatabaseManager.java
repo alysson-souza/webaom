@@ -77,6 +77,7 @@ public abstract class DatabaseManager {
     protected boolean loadAllJobs = false;
     protected final boolean shouldCleanDatabase = false;
     protected boolean debug = false;
+    private boolean unsupportedFutureSchemaDetected = false;
 
     // ========== Debug control ==========
 
@@ -127,6 +128,7 @@ public abstract class DatabaseManager {
         if (isInitialized) {
             return false;
         }
+        unsupportedFutureSchemaDetected = false;
         try {
             parseConnectionString(databaseString);
 
@@ -263,11 +265,7 @@ public abstract class DatabaseManager {
                 rs.close();
                 log("Detected existing database with schema version " + version);
 
-                if (version < 4 && !AppContext.confirm("Warning", """
-                    The database definition has to be upgraded.
-                    This will make it incompatible with previous versions of WebAOM.
-                    Do you want to continue? (Backup now, if needed.)\
-                    """, "Yes", "No")) {
+                if (!validateExistingSchemaVersion(version)) {
                     return false;
                 }
 
@@ -291,6 +289,45 @@ public abstract class DatabaseManager {
         }
         log("Database schema is up to date");
         return true;
+    }
+
+    protected int getSupportedSchemaVersion() {
+        return getSqlFiles().length - 1;
+    }
+
+    protected boolean validateExistingSchemaVersion(int version) {
+        int supportedVersion = getSupportedSchemaVersion();
+        if (version > supportedVersion) {
+            unsupportedFutureSchemaDetected = true;
+            log("Detected newer database schema version " + version
+                    + " but this build only supports up to schema version " + supportedVersion);
+            showFutureSchemaWarning(version, supportedVersion);
+            return false;
+        }
+        if (version < 4 && !confirmLegacySchemaUpgrade()) {
+            return false;
+        }
+        return true;
+    }
+
+    protected boolean confirmLegacySchemaUpgrade() {
+        return AppContext.confirm("Warning", """
+            The database definition has to be upgraded.
+            This will make it incompatible with previous versions of WebAOM.
+            Do you want to continue? (Backup now, if needed.)\
+            """, "Yes", "No");
+    }
+
+    protected void showFutureSchemaWarning(int detectedVersion, int supportedVersion) {
+        AppContext.dialog("Warning", buildFutureSchemaWarningMessage(detectedVersion, supportedVersion));
+    }
+
+    static String buildFutureSchemaWarningMessage(int detectedVersion, int supportedVersion) {
+        return """
+            This data is from a newer version of WebAOM.
+
+            Please update WebAOM.\
+            """;
     }
 
     protected void executeStatements(String sqlBatch) {
@@ -699,6 +736,10 @@ public abstract class DatabaseManager {
 
     public boolean isConnected() {
         return isInitialized;
+    }
+
+    public boolean hasUnsupportedFutureSchema() {
+        return unsupportedFutureSchemaDetected;
     }
 
     public void shutdown() {

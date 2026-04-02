@@ -17,6 +17,7 @@
 package epox.webaom;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.io.File;
@@ -40,12 +41,24 @@ class FileHandlerTest {
         originalJobCounter = AppContext.jobCounter;
         AppContext.jobs = new JobList();
         AppContext.jobCounter = new JobCounter();
+        AppContext.setAppMode(AppContext.AppMode.NORMAL);
     }
 
     @AfterEach
     void tearDown() {
         AppContext.jobs = originalJobs;
         AppContext.jobCounter = originalJobCounter;
+        AppContext.setAppMode(AppContext.AppMode.NORMAL);
+    }
+
+    @Test
+    void addFile_returnsFalseWhenIncompatibleDatabaseIsLocked() throws Exception {
+        File file = Files.writeString(tempDir.resolve("blocked.mkv"), "video").toFile();
+        FileHandler fileHandler = new FileHandler();
+        AppContext.setAppMode(AppContext.AppMode.INCOMPATIBLE_DATABASE);
+
+        assertFalse(fileHandler.addFile(file));
+        assertEquals(0, AppContext.jobs.size());
     }
 
     @Test

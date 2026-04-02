@@ -91,6 +91,9 @@ public class FileHandler {
     }
 
     public synchronized boolean addFile(File file) {
+        if (AppContext.isInteractionBlocked()) {
+            return false;
+        }
         if ((allowedExtensions.includes(getExtension(file)) || allowedExtensions.getSize() == 0)
                 && !AppContext.jobs.has(file)
                 && !isFileLocked(file)) {

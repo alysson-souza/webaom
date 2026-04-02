@@ -40,6 +40,11 @@ import javax.swing.SwingUtilities;
  * This is a legacy pattern from the original codebase.
  */
 public final class AppContext {
+    public enum AppMode {
+        NORMAL,
+        INCOMPATIBLE_DATABASE
+    }
+
     /** AniDB hostname for API and web URLs. */
     public static final String ANIDB_HOST = "anidb.net";
     /** Line separator for file export (Windows-style CRLF). */
@@ -89,6 +94,7 @@ public final class AppContext {
 
     public static boolean autoadd = false;
     public static boolean optionsChanged = false;
+    private static volatile AppMode appMode = AppMode.NORMAL;
     public static final UserPass userPass = new UserPass(null, null, null);
 
     private AppContext() {
@@ -167,6 +173,18 @@ public final class AppContext {
             setFont(font);
         }
         // A.mem2 = A.getUsed();
+    }
+
+    public static AppMode getAppMode() {
+        return appMode;
+    }
+
+    public static void setAppMode(AppMode mode) {
+        appMode = mode == null ? AppMode.NORMAL : mode;
+    }
+
+    public static boolean isInteractionBlocked() {
+        return appMode == AppMode.INCOMPATIBLE_DATABASE;
     }
 
     public static boolean shutdown(boolean opx) {

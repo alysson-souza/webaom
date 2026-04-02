@@ -5,6 +5,7 @@ to time. Do at least check the changelog for relevant info before using it.
 *Jobs and Alt entries are now managed separately, so removing one no longer unexpectedly removes the other.
 *Entries removed from Jobs or Alt now stay removed correctly after restarting the app.
 *Right-click menu wording is clearer: you now see "Remove from Jobs", "Remove from Alt", and "Remove from AniDB MyList".
+*If your data was created by a newer WebAOM version, the app now warns you and locks file/job actions until you update.
 *Jobs list now remembers which columns you show, together with their order and widths.
 *Jobs list columns are now aligned more clearly, making numbers and text easier to scan.
 *Jobs and Log tabs are now easier to read in dark themes.
