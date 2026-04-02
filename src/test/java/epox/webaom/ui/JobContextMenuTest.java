@@ -17,6 +17,7 @@
 package epox.webaom.ui;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -29,6 +30,7 @@ import epox.webaom.ui.actions.jobs.JobActionController;
 import epox.webaom.ui.actions.jobs.JobDeleteScope;
 import java.awt.Component;
 import java.awt.event.ActionEvent;
+import java.awt.event.MouseEvent;
 import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.LinkedHashSet;
@@ -55,6 +57,7 @@ class JobContextMenuTest {
         AppContext.cache = new Cache();
         AppContext.jobCounter = new epox.webaom.JobCounter();
         AppContext.jobs = new epox.webaom.JobList();
+        AppContext.setAppMode(AppContext.AppMode.NORMAL);
     }
 
     @AfterEach
@@ -63,6 +66,7 @@ class JobContextMenuTest {
         AppContext.jobCounter = originalJobCounter;
         AppContext.jobs = originalJobs;
         AppContext.secondaryPopupMenu = null;
+        AppContext.setAppMode(AppContext.AppMode.NORMAL);
     }
 
     @Test
@@ -133,6 +137,37 @@ class JobContextMenuTest {
         assertEquals(0, controller.deleteCalls);
         assertEquals(1, controller.executeCommandCalls);
         assertEquals(JobActionCommand.REMOVE_FROM_MYLIST, controller.lastCommand);
+    }
+
+    @Test
+    void actionPerformed_isIgnoredWhenIncompatibleDatabaseIsLocked() {
+        TrackingController controller = new TrackingController(JobDeleteScope.JOBS);
+        JTable table = new JTable(new DefaultTableModel(new Object[][] {{"row"}}, new Object[] {"col"}));
+        table.setRowSelectionInterval(0, 0);
+        Job job = controller.jobs.getFirst();
+        JobContextMenu menu = new JobContextMenu(table, row -> new Job[] {job}, controller);
+        AppContext.setAppMode(AppContext.AppMode.INCOMPATIBLE_DATABASE);
+
+        menu.actionPerformed(new ActionEvent(
+                menu, ActionEvent.ACTION_PERFORMED, String.valueOf(JobActionCommand.REMOVE_LOCAL.id())));
+
+        assertEquals(0, controller.deleteCalls);
+        assertEquals(0, controller.executeCommandCalls);
+    }
+
+    @Test
+    void mouseClicked_doesNotShowPopupWhenIncompatibleDatabaseIsLocked() {
+        TrackingController controller = new TrackingController(JobDeleteScope.JOBS);
+        JTable table = new JTable(new DefaultTableModel(new Object[][] {{"row"}}, new Object[] {"col"}));
+        TrackingJobContextMenu menu =
+                new TrackingJobContextMenu(table, row -> new Job[] {controller.jobs.getFirst()}, controller);
+        MouseEvent rightClick = new MouseEvent(
+                table, MouseEvent.MOUSE_CLICKED, System.currentTimeMillis(), 0, 5, 5, 1, false, MouseEvent.BUTTON3);
+        AppContext.setAppMode(AppContext.AppMode.INCOMPATIBLE_DATABASE);
+
+        menu.mouseClicked(rightClick);
+
+        assertFalse(menu.popupShown);
     }
 
     @Test
@@ -212,6 +247,19 @@ class JobContextMenuTest {
             executeSingleCommandCalls++;
             lastSingleCommand = command;
             lastSingleJob = job;
+        }
+    }
+
+    private static final class TrackingJobContextMenu extends JobContextMenu {
+        private boolean popupShown;
+
+        TrackingJobContextMenu(JTable table, RowModel rowModel, JobActionController controller) {
+            super(table, rowModel, controller);
+        }
+
+        @Override
+        public void show(Component invoker, int x, int y) {
+            popupShown = true;
         }
     }
 

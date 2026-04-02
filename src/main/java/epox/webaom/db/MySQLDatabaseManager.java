@@ -106,11 +106,7 @@ public class MySQLDatabaseManager extends DatabaseManager {
                 rs.close();
                 log("Detected existing database with schema version " + version);
 
-                if (version < 4 && !AppContext.confirm("Warning", """
-                    The database definition has to be upgraded.
-                    This will make it incompatible with previous versions of WebAOM.
-                    Do you want to continue? (Backup now, if needed.)\
-                    """, "Yes", "No")) {
+                if (!validateExistingSchemaVersion(version)) {
                     return false;
                 }
 

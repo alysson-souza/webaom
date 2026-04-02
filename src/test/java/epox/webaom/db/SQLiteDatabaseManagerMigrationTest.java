@@ -17,6 +17,7 @@
 package epox.webaom.db;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.nio.file.Path;
@@ -77,6 +78,24 @@ class SQLiteDatabaseManagerMigrationTest {
         }
     }
 
+    @Test
+    void initialize_existingFutureVersionDatabase_rejectsInitializationAndWarns() throws Exception {
+        Path dbPath = tempDir.resolve("future-version.sqlite");
+        createFutureVersionDatabase(dbPath, 8);
+
+        CapturingSQLiteDatabaseManager manager = new CapturingSQLiteDatabaseManager();
+        assertFalse(manager.initialize("jdbc:sqlite:" + dbPath));
+        assertEquals(8, manager.warnedDetectedVersion);
+        assertEquals(7, manager.warnedSupportedVersion);
+
+        try (Connection connection = DriverManager.getConnection("jdbc:sqlite:" + dbPath);
+                Statement statement = connection.createStatement();
+                ResultSet rs = statement.executeQuery("select ver from vtb")) {
+            assertTrue(rs.next());
+            assertEquals(8, rs.getInt(1));
+        }
+    }
+
     private void createLegacyV6Database(Path dbPath) throws Exception {
         try (Connection connection = DriverManager.getConnection("jdbc:sqlite:" + dbPath);
                 Statement statement = connection.createStatement()) {
@@ -114,6 +133,25 @@ class SQLiteDatabaseManagerMigrationTest {
             statement.executeUpdate("INSERT INTO jtb (orig, name, did, fid, status, ed2k, size, uid, lid) VALUES "
                     + "('legacy.mkv', 'legacy.mkv', 1, 1, 16777217, 'hash-v6', 123, 1, 0)");
             statement.executeUpdate("INSERT INTO vtb (ver) VALUES (6)");
+        }
+    }
+
+    private void createFutureVersionDatabase(Path dbPath, int version) throws Exception {
+        try (Connection connection = DriverManager.getConnection("jdbc:sqlite:" + dbPath);
+                Statement statement = connection.createStatement()) {
+            statement.executeUpdate("CREATE TABLE vtb (ver INTEGER NOT NULL)");
+            statement.executeUpdate("INSERT INTO vtb (ver) VALUES (" + version + ")");
+        }
+    }
+
+    private static final class CapturingSQLiteDatabaseManager extends SQLiteDatabaseManager {
+        private int warnedDetectedVersion = -1;
+        private int warnedSupportedVersion = -1;
+
+        @Override
+        protected void showFutureSchemaWarning(int detectedVersion, int supportedVersion) {
+            warnedDetectedVersion = detectedVersion;
+            warnedSupportedVersion = supportedVersion;
         }
     }
 }

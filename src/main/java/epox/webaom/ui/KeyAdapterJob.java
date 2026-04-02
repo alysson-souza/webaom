@@ -68,6 +68,9 @@ public class KeyAdapterJob extends KeyAdapter {
 
     @Override
     public void keyPressed(KeyEvent event) {
+        if (AppContext.isInteractionBlocked()) {
+            return;
+        }
         try {
             int keyCode = event.getKeyCode();
 
@@ -100,6 +103,9 @@ public class KeyAdapterJob extends KeyAdapter {
 
     @Override
     public void keyTyped(KeyEvent event) {
+        if (AppContext.isInteractionBlocked()) {
+            return;
+        }
         try {
             char keyChar = event.getKeyChar();
             if (!Character.isISOControl(keyChar) && !hasShortcutModifiers(event)) {
