@@ -228,6 +228,7 @@ def appName = 'WebAOM'
 def appDescription = 'AniDB file identification and organization tool'
 def appVendor = 'epoximator'
 def appCopyright = 'Copyright 2005-2010 epoximator'
+def jpackageAppVersion = version.toString().replaceFirst(/-.*/, '')
 
 // Modules required by the application (Swing + networking + database drivers)
 def requiredModules = [
@@ -292,7 +293,7 @@ tasks.register('jpackage', Exec) {
 		'--name',
 		appName,
 		'--app-version',
-		version,
+		jpackageAppVersion,
 		'--description',
 		appDescription,
 		'--vendor',
@@ -391,7 +392,7 @@ tasks.register('jpackageAppImage', Exec) {
 		'--name',
 		appName,
 		'--app-version',
-		version,
+		jpackageAppVersion,
 		'--description',
 		appDescription,
 		'--vendor',
