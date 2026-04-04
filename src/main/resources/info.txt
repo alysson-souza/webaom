@@ -1,6 +1,6 @@
 WebAOM!
 
-2.5.1 unreleased
+2.6.0 unreleased
 *New Catppuccin Latte and Catppuccin Mocha themes.
 *Jobs and Alt entries are now managed separately, so removing one no longer unexpectedly removes the other.
 *Entries removed from Jobs or Alt now stay removed correctly after restarting the app.
