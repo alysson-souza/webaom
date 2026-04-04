@@ -59,14 +59,42 @@ public final class WindowLayoutSupport {
             WindowLayoutPolicy windowLayoutPolicy,
             Dimension minimumFloor,
             boolean applyMinimumSize) {
+        return placeCenteredAt(
+                window,
+                resolvePreferredSize(window),
+                referenceWindow,
+                displayEnvironment,
+                windowLayoutPolicy,
+                minimumFloor,
+                applyMinimumSize);
+    }
+
+    public static WindowPlacement placeCenteredAt(
+            Window window,
+            Dimension initialSize,
+            DisplayEnvironment displayEnvironment,
+            WindowLayoutPolicy windowLayoutPolicy,
+            Dimension minimumFloor) {
+        return placeCenteredAt(window, initialSize, window, displayEnvironment, windowLayoutPolicy, minimumFloor, true);
+    }
+
+    public static WindowPlacement placeCenteredAt(
+            Window window,
+            Dimension initialSize,
+            Window referenceWindow,
+            DisplayEnvironment displayEnvironment,
+            WindowLayoutPolicy windowLayoutPolicy,
+            Dimension minimumFloor,
+            boolean applyMinimumSize) {
         Objects.requireNonNull(window);
+        Objects.requireNonNull(initialSize);
         Objects.requireNonNull(displayEnvironment);
         Objects.requireNonNull(windowLayoutPolicy);
         Objects.requireNonNull(minimumFloor);
 
         Window placementReference = referenceWindow != null ? referenceWindow : window;
         WindowPlacement placement = windowLayoutPolicy.layoutWindow(
-                resolvePreferredSize(window),
+                initialSize,
                 minimumFloor,
                 displayEnvironment.getUsableScreenBounds(placementReference).usableBounds());
         if (applyMinimumSize) {

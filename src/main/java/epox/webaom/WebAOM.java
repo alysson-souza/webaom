@@ -90,9 +90,10 @@ public class WebAOM {
 
         AppContext.init();
 
+        Dimension scaledMinimumSize = DISPLAY_ENVIRONMENT.scaleDimension(MAIN_WINDOW_MINIMUM_SIZE, frame);
         frame.getContentPane().add(AppContext.gui, java.awt.BorderLayout.CENTER);
-        frame.pack();
-        WindowLayoutSupport.placeCentered(frame, DISPLAY_ENVIRONMENT, WINDOW_LAYOUT_POLICY, MAIN_WINDOW_MINIMUM_SIZE);
+        WindowLayoutSupport.placeCenteredAt(
+                frame, scaledMinimumSize, DISPLAY_ENVIRONMENT, WINDOW_LAYOUT_POLICY, scaledMinimumSize);
         frame.setVisible(true);
         frame.addWindowListener(new java.awt.event.WindowAdapter() {
             @Override
@@ -161,9 +162,10 @@ public class WebAOM {
         AppContext.frame.invalidate();
         AppContext.frame.validate();
 
+        Dimension scaledMinimumSize = DISPLAY_ENVIRONMENT.scaleDimension(MAIN_WINDOW_MINIMUM_SIZE, AppContext.frame);
         UsableScreenBounds screenBounds = DISPLAY_ENVIRONMENT.getUsableScreenBounds(AppContext.frame);
         WindowPlacement placement = WINDOW_LAYOUT_POLICY.layoutWindow(
-                AppContext.frame.getPreferredSize(), MAIN_WINDOW_MINIMUM_SIZE, screenBounds.usableBounds());
+                AppContext.frame.getPreferredSize(), scaledMinimumSize, screenBounds.usableBounds());
         Rectangle adjustedBounds = WINDOW_LAYOUT_POLICY.expandCurrentBounds(
                 currentBounds, placement.bounds().getSize(), screenBounds.usableBounds());
 

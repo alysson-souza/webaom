@@ -16,6 +16,7 @@
 
 package epox.swing.layout;
 
+import java.awt.Dimension;
 import java.awt.Window;
 
 /** Adapter for monitor and usable screen information needed by window layout policy. */
@@ -25,4 +26,17 @@ public interface DisplayEnvironment {
     }
 
     UsableScreenBounds getUsableScreenBounds(Window window);
+
+    /** Returns the UI component scale factor for the display (1.0 at standard DPI). */
+    double getUiScaleFactor(Window window);
+
+    /** Scales a base dimension by the UI scale factor for the given window's display. */
+    default Dimension scaleDimension(Dimension base, Window window) {
+        double factor = getUiScaleFactor(window);
+        if (factor <= 0.0 || Math.abs(factor - 1.0) < 0.01) {
+            return new Dimension(base);
+        }
+        return new Dimension(Math.max(1, (int) Math.round(base.width * factor)), Math.max(1, (int)
+                Math.round(base.height * factor)));
+    }
 }

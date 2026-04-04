@@ -16,6 +16,7 @@
 
 package epox.swing.layout;
 
+import com.formdev.flatlaf.util.UIScale;
 import java.awt.GraphicsConfiguration;
 import java.awt.GraphicsDevice;
 import java.awt.GraphicsEnvironment;
@@ -46,6 +47,14 @@ final class AwtDisplayEnvironment implements DisplayEnvironment {
         Rectangle screenBounds = graphicsConfiguration.getBounds();
         Insets screenInsets = Toolkit.getDefaultToolkit().getScreenInsets(graphicsConfiguration);
         return UsableScreenBounds.fromScreenBounds(screenBounds, screenInsets);
+    }
+
+    @Override
+    public double getUiScaleFactor(Window window) {
+        if (GraphicsEnvironment.isHeadless()) {
+            return 1.0;
+        }
+        return UIScale.getUserScaleFactor();
     }
 
     static GraphicsConfiguration resolveGraphicsConfiguration(
