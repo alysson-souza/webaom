@@ -16,14 +16,17 @@
 
 package epox.webaom.ui;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import epox.swing.layout.TableColumnSizing;
 import epox.util.ReplacementRule;
 import java.awt.Component;
 import java.awt.Font;
 import java.util.ArrayList;
 import javax.swing.JTable;
 import javax.swing.table.TableCellRenderer;
+import javax.swing.table.TableColumn;
 import org.junit.jupiter.api.Test;
 
 class ReplacementTableModelTest {
@@ -55,6 +58,28 @@ class ReplacementTableModelTest {
 
         assertTrue(enabledWidth >= checkboxComponent.getPreferredSize().width);
         assertTrue(sourceWidth > enabledWidth);
+    }
+
+    @Test
+    void scaleEnabledColumn_growsPreferredAndMaxWidthAfterFormatTable() {
+        ReplacementTableModel model =
+                new ReplacementTableModel(new ArrayList<ReplacementRule>(), "Source", "Destination");
+        JTable table = new JTable(model);
+        ReplacementTableModel.formatTable(table);
+
+        TableColumn enabledColumn = table.getColumnModel().getColumn(ReplacementTableModel.COLUMN_SELECTED);
+        int originalWidth = enabledColumn.getPreferredWidth();
+        int originalMaxWidth = enabledColumn.getMaxWidth();
+        assertEquals(originalWidth, originalMaxWidth, "formatTable should lock maxWidth to preferredWidth");
+
+        // Simulate scaleCurrentColumnWidths: clear maxWidth, scale, re-lock
+        enabledColumn.setMaxWidth(Integer.MAX_VALUE);
+        TableColumnSizing.scalePreferredWidths(table.getColumnModel(), 2.0);
+        int scaledWidth = enabledColumn.getPreferredWidth();
+        enabledColumn.setMaxWidth(scaledWidth);
+
+        assertTrue(scaledWidth > originalWidth, "preferred width should grow after 2x scale");
+        assertEquals(scaledWidth, enabledColumn.getMaxWidth(), "maxWidth should be re-locked to scaled width");
     }
 
     private int formatSourceColumnWidth(int fontSize) {
