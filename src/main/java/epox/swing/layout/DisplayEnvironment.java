@@ -27,7 +27,12 @@ public interface DisplayEnvironment {
 
     UsableScreenBounds getUsableScreenBounds(Window window);
 
-    /** Returns the UI component scale factor for the display (1.0 at standard DPI). */
+    /**
+     * Returns the UI component scale factor applied by the look-and-feel (1.0 at standard DPI).
+     *
+     * <p>This is currently a global factor (FlatLaf's user scale) rather than per-monitor. The
+     * {@code window} parameter is accepted for future per-display support but is not used yet.
+     */
     double getUiScaleFactor(Window window);
 
     /** Scales a base dimension by the UI scale factor for the given window's display. */
