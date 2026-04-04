@@ -259,4 +259,53 @@ class HashAlgorithmTest {
         hash.update(data, 0, data.length);
         assertEquals(first, hash.hexValue(), "Reset should produce identical results");
     }
+
+    // --- hexValue() idempotency across all implementations ---
+
+    @Test
+    void crc32_hexValueIsIdempotent() {
+        Crc32Hash hash = new Crc32Hash();
+        hash.update("abc".getBytes(StandardCharsets.US_ASCII), 0, 3);
+        String first = hash.hexValue();
+        assertEquals(first, hash.hexValue());
+        assertEquals(first, hash.hexValue());
+    }
+
+    @Test
+    void ed2k_hexValueIsIdempotent_smallFile() {
+        Ed2kHash hash = new Ed2kHash();
+        hash.update("abc".getBytes(StandardCharsets.US_ASCII), 0, 3);
+        String first = hash.hexValue();
+        assertEquals(first, hash.hexValue());
+        assertEquals(first, hash.hexValue());
+    }
+
+    @Test
+    void ed2k_hexValueIsIdempotent_multiBlock() {
+        byte[] data = new byte[ED2K_BLOCK_SIZE + 100];
+        new Random(88).nextBytes(data);
+        Ed2kHash hash = new Ed2kHash();
+        hash.update(data, 0, data.length);
+        String first = hash.hexValue();
+        assertEquals(first, hash.hexValue());
+        assertEquals(first, hash.hexValue());
+    }
+
+    @Test
+    void sha1_hexValueIsIdempotent() {
+        Sha1Hash hash = new Sha1Hash();
+        hash.update("abc".getBytes(StandardCharsets.US_ASCII), 0, 3);
+        String first = hash.hexValue();
+        assertEquals(first, hash.hexValue());
+        assertEquals(first, hash.hexValue());
+    }
+
+    @Test
+    void tth_hexValueIsIdempotent() {
+        TthHash hash = new TthHash();
+        hash.update("abc".getBytes(StandardCharsets.US_ASCII), 0, 3);
+        String first = hash.hexValue();
+        assertEquals(first, hash.hexValue());
+        assertEquals(first, hash.hexValue());
+    }
 }

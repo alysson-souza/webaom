@@ -18,6 +18,7 @@ package epox.webaom.hash;
 
 import com.bitzi.util.Base32;
 import com.bitzi.util.TigerTree;
+import java.util.Locale;
 
 /**
  * Tiger Tree Hash (TTH) used by various P2P networks.
@@ -48,6 +49,6 @@ public class TthHash implements HashAlgorithm {
         if (cachedDigest == null) {
             cachedDigest = tigerTree.digest();
         }
-        return Base32.encode(cachedDigest).toLowerCase();
+        return Base32.encode(cachedDigest).toLowerCase(Locale.ROOT);
     }
 }

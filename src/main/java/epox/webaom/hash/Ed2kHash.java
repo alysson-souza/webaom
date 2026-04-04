@@ -76,10 +76,12 @@ public class Ed2kHash implements HashAlgorithm {
     public String hexValue() {
         byte[] result;
         if (length < BLOCK_SIZE) {
-            result = md4.digest();
+            IMessageDigest md4copy = (IMessageDigest) md4.clone();
+            result = md4copy.digest();
         } else {
             IMessageDigest md4temp = (IMessageDigest) md4final.clone();
-            md4temp.update(md4.digest(), 0, 16);
+            IMessageDigest md4copy = (IMessageDigest) md4.clone();
+            md4temp.update(md4copy.digest(), 0, 16);
             result = md4temp.digest();
         }
         return HexFormat.of().formatHex(result);
