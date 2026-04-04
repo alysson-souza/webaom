@@ -18,10 +18,14 @@ package epox.webaom.ui;
 
 import epox.swing.FlatLafTheme;
 import epox.swing.JComboBoxLF;
-import epox.util.TTH;
 import epox.webaom.AppContext;
 import epox.webaom.DiskIOManager;
 import epox.webaom.Options;
+import epox.webaom.hash.Crc32Hash;
+import epox.webaom.hash.Ed2kHash;
+import epox.webaom.hash.Md5Hash;
+import epox.webaom.hash.Sha1Hash;
+import epox.webaom.hash.TthHash;
 import java.awt.Component;
 import java.awt.FlowLayout;
 import java.awt.GridBagConstraints;
@@ -243,28 +247,23 @@ public class MiscOptionsPanel extends JPanel {
      * @return a new LinkedHashMap of checksum algorithms, or null if creation fails
      */
     public LinkedHashMap<String, DiskIOManager.ChecksumData> createChecksums() {
-        try {
-            LinkedHashMap<String, DiskIOManager.ChecksumData> checksums = new LinkedHashMap<>();
+        LinkedHashMap<String, DiskIOManager.ChecksumData> checksums = new LinkedHashMap<>();
 
-            if (hashCheckBoxes[HASH_ED2K].isSelected()) {
-                checksums.put("ed2k", new DiskIOManager.ChecksumData("ed2k", new jonelo.jacksum.algorithm.Edonkey()));
-            }
-            if (hashCheckBoxes[HASH_CRC32].isSelected()) {
-                checksums.put("crc32", new DiskIOManager.ChecksumData("crc32", new jonelo.jacksum.algorithm.Crc32()));
-            }
-            if (hashCheckBoxes[HASH_MD5].isSelected()) {
-                checksums.put("md5", new DiskIOManager.ChecksumData("md5", new com.twmacinta.util.MD5()));
-            }
-            if (hashCheckBoxes[HASH_SHA1].isSelected()) {
-                checksums.put("sha1", new DiskIOManager.ChecksumData("sha1", new jonelo.jacksum.algorithm.MD("SHA-1")));
-            }
-            if (hashCheckBoxes[HASH_TTH].isSelected()) {
-                checksums.put("tth", new DiskIOManager.ChecksumData("tth", new TTH()));
-            }
-            return checksums;
-        } catch (java.security.NoSuchAlgorithmException e) {
-            e.printStackTrace();
+        if (hashCheckBoxes[HASH_ED2K].isSelected()) {
+            checksums.put("ed2k", new DiskIOManager.ChecksumData("ed2k", new Ed2kHash()));
         }
-        return null;
+        if (hashCheckBoxes[HASH_CRC32].isSelected()) {
+            checksums.put("crc32", new DiskIOManager.ChecksumData("crc32", new Crc32Hash()));
+        }
+        if (hashCheckBoxes[HASH_MD5].isSelected()) {
+            checksums.put("md5", new DiskIOManager.ChecksumData("md5", new Md5Hash()));
+        }
+        if (hashCheckBoxes[HASH_SHA1].isSelected()) {
+            checksums.put("sha1", new DiskIOManager.ChecksumData("sha1", new Sha1Hash()));
+        }
+        if (hashCheckBoxes[HASH_TTH].isSelected()) {
+            checksums.put("tth", new DiskIOManager.ChecksumData("tth", new TthHash()));
+        }
+        return checksums;
     }
 }
