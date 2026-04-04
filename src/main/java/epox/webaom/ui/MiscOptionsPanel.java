@@ -244,7 +244,7 @@ public class MiscOptionsPanel extends JPanel {
      * Each call creates fresh instances since hash algorithms are NOT thread-safe.
      * This method should be called once per HashTask worker.
      *
-     * @return a new LinkedHashMap of checksum algorithms; may be empty if no algorithms are selected
+     * @return a new LinkedHashMap of checksum algorithms; always contains at least "ed2k"
      */
     public LinkedHashMap<String, DiskIOManager.ChecksumData> createChecksums() {
         LinkedHashMap<String, DiskIOManager.ChecksumData> checksums = new LinkedHashMap<>();

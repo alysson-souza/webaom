@@ -25,6 +25,7 @@ import com.bitzi.util.TigerTree;
 public class TthHash implements HashAlgorithm {
 
     private final TigerTree tigerTree;
+    private byte[] cachedDigest;
 
     public TthHash() {
         tigerTree = new TigerTree();
@@ -33,15 +34,20 @@ public class TthHash implements HashAlgorithm {
     @Override
     public void update(byte[] buffer, int offset, int length) {
         tigerTree.update(buffer, offset, length);
+        cachedDigest = null;
     }
 
     @Override
     public void reset() {
         tigerTree.reset();
+        cachedDigest = null;
     }
 
     @Override
     public String hexValue() {
-        return Base32.encode(tigerTree.digest()).toLowerCase();
+        if (cachedDigest == null) {
+            cachedDigest = tigerTree.digest();
+        }
+        return Base32.encode(cachedDigest).toLowerCase();
     }
 }
