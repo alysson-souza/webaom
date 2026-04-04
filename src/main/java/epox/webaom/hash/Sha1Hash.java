@@ -26,6 +26,7 @@ import java.util.HexFormat;
 public class Sha1Hash implements HashAlgorithm {
 
     private final MessageDigest sha1;
+    private byte[] cachedDigest;
 
     public Sha1Hash() {
         try {
@@ -38,20 +39,24 @@ public class Sha1Hash implements HashAlgorithm {
     @Override
     public void update(byte[] buffer, int offset, int length) {
         sha1.update(buffer, offset, length);
+        cachedDigest = null;
     }
 
     @Override
     public void reset() {
         sha1.reset();
+        cachedDigest = null;
     }
 
     @Override
     public String hexValue() {
-        try {
-            MessageDigest clone = (MessageDigest) sha1.clone();
-            return HexFormat.of().formatHex(clone.digest());
-        } catch (CloneNotSupportedException e) {
-            return HexFormat.of().formatHex(sha1.digest());
+        if (cachedDigest == null) {
+            try {
+                cachedDigest = ((MessageDigest) sha1.clone()).digest();
+            } catch (CloneNotSupportedException e) {
+                cachedDigest = sha1.digest();
+            }
         }
+        return HexFormat.of().formatHex(cachedDigest);
     }
 }

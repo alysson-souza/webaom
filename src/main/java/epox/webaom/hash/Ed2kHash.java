@@ -45,26 +45,23 @@ public class Ed2kHash implements HashAlgorithm {
     @Override
     public void update(byte[] buffer, int offset, int length) {
         int remaining = length;
-        int passed = (int) (this.length % BLOCK_SIZE);
-        int space = BLOCK_SIZE - passed;
+        int currentOffset = offset;
 
-        if (space > remaining) {
-            md4.update(buffer, offset, length);
-            this.length += length;
-        } else if (space == remaining) {
-            md4.update(buffer, offset, length);
-            this.length += length;
-            System.arraycopy(md4.digest(), 0, blockHash, 0, 16);
-            md4final.update(blockHash, 0, 16);
-            md4.reset();
-        } else {
-            md4.update(buffer, offset, space);
-            this.length += space;
-            System.arraycopy(md4.digest(), 0, blockHash, 0, 16);
-            md4final.update(blockHash, 0, 16);
-            md4.reset();
-            md4.update(buffer, offset + space, remaining - space);
-            this.length += remaining - space;
+        while (remaining > 0) {
+            int passed = (int) (this.length % BLOCK_SIZE);
+            int space = BLOCK_SIZE - passed;
+            int chunk = Math.min(space, remaining);
+
+            md4.update(buffer, currentOffset, chunk);
+            this.length += chunk;
+            currentOffset += chunk;
+            remaining -= chunk;
+
+            if (this.length % BLOCK_SIZE == 0) {
+                System.arraycopy(md4.digest(), 0, blockHash, 0, 16);
+                md4final.update(blockHash, 0, 16);
+                md4.reset();
+            }
         }
     }
 

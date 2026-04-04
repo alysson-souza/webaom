@@ -30,6 +30,6 @@ public interface HashAlgorithm {
     /** Reset the algorithm state so it can be reused for a new computation. */
     void reset();
 
-    /** Return the computed hash as a lowercase hex string. */
+    /** Return the computed hash as a lowercase string (hex for most algorithms, Base32 for TTH). */
     String hexValue();
 }

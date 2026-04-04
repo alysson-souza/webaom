@@ -207,6 +207,18 @@ class HashAlgorithmTest {
         assertEquals(referenceEd2k(data), hash.hexValue());
     }
 
+    @Test
+    void ed2k_singleUpdateSpanningMultipleBlocks() {
+        // Single update() call with data spanning >2 blocks
+        byte[] data = new byte[ED2K_BLOCK_SIZE * 3 + 1234];
+        new Random(123).nextBytes(data);
+
+        Ed2kHash hash = new Ed2kHash();
+        hash.update(data, 0, data.length);
+
+        assertEquals(referenceEd2k(data), hash.hexValue());
+    }
+
     // --- TTH tests ---
 
     @Test

@@ -28,6 +28,7 @@ import java.util.HexFormat;
 public class Md5Hash implements HashAlgorithm {
 
     private final MessageDigest md5;
+    private byte[] cachedDigest;
 
     public Md5Hash() {
         try {
@@ -40,20 +41,24 @@ public class Md5Hash implements HashAlgorithm {
     @Override
     public void update(byte[] buffer, int offset, int length) {
         md5.update(buffer, offset, length);
+        cachedDigest = null;
     }
 
     @Override
     public void reset() {
         md5.reset();
+        cachedDigest = null;
     }
 
     @Override
     public String hexValue() {
-        try {
-            MessageDigest clone = (MessageDigest) md5.clone();
-            return HexFormat.of().formatHex(clone.digest());
-        } catch (CloneNotSupportedException e) {
-            return HexFormat.of().formatHex(md5.digest());
+        if (cachedDigest == null) {
+            try {
+                cachedDigest = ((MessageDigest) md5.clone()).digest();
+            } catch (CloneNotSupportedException e) {
+                cachedDigest = md5.digest();
+            }
         }
+        return HexFormat.of().formatHex(cachedDigest);
     }
 }

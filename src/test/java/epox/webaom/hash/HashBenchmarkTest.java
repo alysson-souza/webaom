@@ -55,7 +55,7 @@ class HashBenchmarkTest {
         algorithms.put("SHA-1", new Sha1Hash());
         algorithms.put("TTH", new TthHash());
 
-        System.out.printf("%n%-15s %12s %12s %12s %12s%n", "Algorithm", "Avg MB/s", "Min MB/s", "Max MB/s", "Hex");
+        System.out.printf("%n%-15s %12s %12s %12s %12s%n", "Algorithm", "Avg MB/s", "Min MB/s", "Max MB/s", "Digest");
         System.out.println("-".repeat(67));
 
         for (Map.Entry<String, HashAlgorithm> entry : algorithms.entrySet()) {
