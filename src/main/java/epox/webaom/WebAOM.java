@@ -19,9 +19,15 @@ package epox.webaom;
 import epox.swing.FlatLafSupport;
 import epox.swing.FlatLafTheme;
 import epox.swing.UiTuning;
+import epox.swing.layout.DisplayEnvironment;
+import epox.swing.layout.UsableScreenBounds;
+import epox.swing.layout.WindowLayoutPolicy;
+import epox.swing.layout.WindowLayoutSupport;
+import epox.swing.layout.WindowPlacement;
 import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.Image;
+import java.awt.Rectangle;
 import java.io.InputStream;
 import javax.imageio.ImageIO;
 import javax.swing.JDialog;
@@ -31,6 +37,9 @@ import javax.swing.WindowConstants;
 import javax.swing.plaf.FontUIResource;
 
 public class WebAOM {
+    private static final Dimension MAIN_WINDOW_MINIMUM_SIZE = new Dimension(800, 648);
+    private static final DisplayEnvironment DISPLAY_ENVIRONMENT = DisplayEnvironment.current();
+    private static final WindowLayoutPolicy WINDOW_LAYOUT_POLICY = new WindowLayoutPolicy();
 
     public static void main(String[] args) {
         try {
@@ -79,14 +88,11 @@ public class WebAOM {
         AppContext.component = frame;
         frame.setDefaultCloseOperation(WindowConstants.DO_NOTHING_ON_CLOSE);
 
-        frame.setSize(800, 648);
-        frame.setMinimumSize(new Dimension(800, 648));
-        frame.setLocationRelativeTo(null);
-        frame.setVisible(true);
-
         AppContext.init();
 
         frame.getContentPane().add(AppContext.gui, java.awt.BorderLayout.CENTER);
+        frame.pack();
+        WindowLayoutSupport.placeCentered(frame, DISPLAY_ENVIRONMENT, WINDOW_LAYOUT_POLICY, MAIN_WINDOW_MINIMUM_SIZE);
         frame.setVisible(true);
         frame.addWindowListener(new java.awt.event.WindowAdapter() {
             @Override
@@ -145,6 +151,24 @@ public class WebAOM {
         UIManager.put("ToolTip.font", primaryFontResource);
         UIManager.put("Tree.font", primaryFontResource);
         UIManager.put("Viewport.font", primaryFontResource);
+    }
+
+    static void refreshMainWindowLayout() {
+        if (AppContext.frame == null || AppContext.gui == null) {
+            return;
+        }
+        Rectangle currentBounds = AppContext.frame.getBounds();
+        AppContext.frame.invalidate();
+        AppContext.frame.validate();
+
+        UsableScreenBounds screenBounds = DISPLAY_ENVIRONMENT.getUsableScreenBounds(AppContext.frame);
+        WindowPlacement placement = WINDOW_LAYOUT_POLICY.layoutWindow(
+                AppContext.frame.getPreferredSize(), MAIN_WINDOW_MINIMUM_SIZE, screenBounds.usableBounds());
+        Rectangle adjustedBounds = WINDOW_LAYOUT_POLICY.expandCurrentBounds(
+                currentBounds, placement.bounds().getSize(), screenBounds.usableBounds());
+
+        AppContext.frame.setMinimumSize(placement.minimumSize());
+        AppContext.frame.setBounds(adjustedBounds);
     }
 
     private static void setWindowIcon(JFrame frame) {

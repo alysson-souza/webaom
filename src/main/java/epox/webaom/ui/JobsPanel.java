@@ -17,6 +17,7 @@
 package epox.webaom.ui;
 
 import epox.swing.JScrollTable;
+import epox.swing.layout.TableColumnSizing;
 import epox.util.StringUtilities;
 import epox.webaom.AppContext;
 import epox.webaom.Job;
@@ -37,7 +38,12 @@ import javax.swing.JPanel;
 import javax.swing.table.TableColumn;
 
 public class JobsPanel extends JPanel implements ActionListener {
-    private static final String DEFAULT_COLUMN_CONFIG = "0,55;11,973;14,132";
+    private static final List<JobColumn> DEFAULT_VISIBLE_COLUMNS =
+            List.of(JobColumn.NUMB, JobColumn.FILE, JobColumn.STAT);
+    private static final String DEFAULT_FILE_PATH_SAMPLE =
+            "/Volumes/Anime Library/Series Name/Series Name - 01 [BluRay 1080p][AAC].mkv";
+    private static final String DEFAULT_STATUS_SAMPLE = "Waiting for network I/O";
+    private static final String DEFAULT_ROW_NUMBER_SAMPLE = "00000";
     private static final int INDEX_NORMAL = 0;
     private static final int INDEX_PAUSED = 1;
     private static final int INDEX_WAITING = 2;
@@ -60,6 +66,7 @@ public class JobsPanel extends JPanel implements ActionListener {
     private int fileStateFilterMask = 0;
     private boolean showUnknownFiles = false;
     private int updateCounter = 0;
+    private boolean usesScaleAwareDefaultColumns;
 
     public JobsPanel(JTableJobs jobsTable, TableModelJobs tableModel) {
         super(new BorderLayout());
@@ -153,13 +160,28 @@ public class JobsPanel extends JPanel implements ActionListener {
     public void loadOptions(Options options) {
         String columnConfig = options.getString(Options.STR_JOB_COLUMNS);
         if (columnConfig == null || columnConfig.isEmpty()) {
-            columnConfig = DEFAULT_COLUMN_CONFIG;
+            applyDefaultColumnConfig();
+            usesScaleAwareDefaultColumns = true;
+            return;
         }
         List<ColumnConfig> parsedColumns = parseColumnConfig(columnConfig);
         if (parsedColumns.isEmpty()) {
-            parsedColumns = parseColumnConfig(DEFAULT_COLUMN_CONFIG);
+            applyDefaultColumnConfig();
+            usesScaleAwareDefaultColumns = true;
+            return;
         }
+        usesScaleAwareDefaultColumns = false;
         applyColumnConfig(parsedColumns);
+    }
+
+    public void reapplyScaleAwareSizing() {
+        if (usesScaleAwareDefaultColumns) {
+            applyDefaultColumnConfig();
+        }
+    }
+
+    public void scaleCurrentColumnWidths(double scaleFactor) {
+        TableColumnSizing.scalePreferredWidths(jobsTable.getHeaderListener().getAllColumns(), scaleFactor);
     }
 
     private void appendColumnConfig(StringBuilder builder, TableColumn column) {
@@ -207,6 +229,24 @@ public class JobsPanel extends JPanel implements ActionListener {
             return;
         }
         jobsTable.getHeaderListener().setVisibleColumns(visibleModelIndices);
+    }
+
+    private void applyDefaultColumnConfig() {
+        jobsTable
+                .getHeaderListener()
+                .setVisibleColumns(DEFAULT_VISIBLE_COLUMNS.stream()
+                        .map(JobColumn::getIndex)
+                        .toList());
+        applyDefaultColumnWidth(JobColumn.NUMB, 48, DEFAULT_ROW_NUMBER_SAMPLE);
+        applyDefaultColumnWidth(JobColumn.FILE, 360, DEFAULT_FILE_PATH_SAMPLE);
+        applyDefaultColumnWidth(JobColumn.STAT, 140, DEFAULT_STATUS_SAMPLE);
+    }
+
+    private void applyDefaultColumnWidth(JobColumn jobColumn, int minimumWidth, String... sampleValues) {
+        TableColumn column = jobsTable.getHeaderListener().getColumnByModelIndex(jobColumn.getIndex());
+        if (column != null) {
+            TableColumnSizing.applyPreferredWidth(jobsTable, column, minimumWidth, sampleValues);
+        }
     }
 
     public void update() {
