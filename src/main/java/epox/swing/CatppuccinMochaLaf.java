@@ -19,7 +19,7 @@ package epox.swing;
 import com.formdev.flatlaf.FlatDarkLaf;
 
 /**
- * Catppuccin Mocha — a rich, dark theme from the Catppuccin palette.
+ * Catppuccin Mocha — a soothing pastel dark theme from the Catppuccin palette.
  *
  * @see <a href="https://github.com/catppuccin/catppuccin">Catppuccin</a>
  */

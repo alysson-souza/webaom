@@ -19,7 +19,7 @@ package epox.swing;
 import com.formdev.flatlaf.FlatLightLaf;
 
 /**
- * Catppuccin Latte — a warm, light theme from the Catppuccin palette.
+ * Catppuccin Latte — a soothing pastel light theme from the Catppuccin palette.
  *
  * @see <a href="https://github.com/catppuccin/catppuccin">Catppuccin</a>
  */
