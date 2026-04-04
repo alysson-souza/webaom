@@ -2,6 +2,7 @@ Please note that this version is marked "unstable", meaning it can be broken fro
 to time. Do at least check the changelog for relevant info before using it.
 
 2.5.1 unreleased:
+*Replaced an outdated third-party hashing library with a cleaner, modern implementation.
 *Jobs and Alt entries are now managed separately, so removing one no longer unexpectedly removes the other.
 *Entries removed from Jobs or Alt now stay removed correctly after restarting the app.
 *Right-click menu wording is clearer: you now see "Remove from Jobs", "Remove from Alt", and "Remove from AniDB MyList".
