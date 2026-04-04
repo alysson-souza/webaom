@@ -308,4 +308,21 @@ class HashAlgorithmTest {
         assertEquals(first, hash.hexValue());
         assertEquals(first, hash.hexValue());
     }
+
+    @Test
+    void tth_outputIsAsciiRegardlessOfLocale() {
+        java.util.Locale original = java.util.Locale.getDefault();
+        try {
+            java.util.Locale.setDefault(java.util.Locale.of("tr"));
+            TthHash hash = new TthHash();
+            byte[] data = new byte[1024];
+            new Random(42).nextBytes(data);
+            hash.update(data, 0, data.length);
+            String result = hash.hexValue();
+            // Base32 uses A-Z and 2-7; lowercased must be a-z and 2-7, never Turkish ı
+            assertEquals(result, result.toLowerCase(java.util.Locale.ROOT), "TTH must use ASCII lowercasing");
+        } finally {
+            java.util.Locale.setDefault(original);
+        }
+    }
 }
