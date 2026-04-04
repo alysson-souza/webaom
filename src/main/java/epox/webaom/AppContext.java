@@ -237,8 +237,8 @@ public final class AppContext {
                 gui.applyScaleAwareSizing();
             } else {
                 gui.scaleCurrentUi(resolveScaleFactor(currentUiFont, configuredFont));
-                WebAOM.refreshMainWindowLayout();
             }
+            WebAOM.refreshMainWindowLayout();
         }
     }
 

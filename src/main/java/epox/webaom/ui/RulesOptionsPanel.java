@@ -236,6 +236,11 @@ public class RulesOptionsPanel extends JPanel implements Action, ItemListener {
 
     public void scaleCurrentColumnWidths(double scaleFactor) {
         applyMonospaceRulesFont();
+        // Clear maxWidth before scaling so Swing doesn't clamp the new preferred width
+        replacementsTable
+                .getColumnModel()
+                .getColumn(ReplacementTableModel.COLUMN_SELECTED)
+                .setMaxWidth(Integer.MAX_VALUE);
         TableColumnSizing.scalePreferredWidths(replacementsTable.getColumnModel(), scaleFactor);
         int enabledColumnWidth = replacementsTable
                 .getColumnModel()
