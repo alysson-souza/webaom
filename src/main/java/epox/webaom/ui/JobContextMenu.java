@@ -29,6 +29,7 @@ import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.util.LinkedHashSet;
 import java.util.Set;
+import java.util.concurrent.atomic.AtomicBoolean;
 import javax.swing.JMenuItem;
 import javax.swing.JPopupMenu;
 import javax.swing.JTable;
@@ -39,7 +40,7 @@ public class JobContextMenu extends JPopupMenu implements MouseListener, ActionL
     protected final RowModel rowModel;
     private final JobActionController controller;
     private final JMenuItem[] menuItems;
-    protected MenuWorker worker = null;
+    protected transient MenuWorker worker = null;
 
     public JobContextMenu(final JTable table, final RowModel rowModel) {
         this(table, rowModel, JobActionController.createDefault());
@@ -90,9 +91,24 @@ public class JobContextMenu extends JPopupMenu implements MouseListener, ActionL
         return command != null && command.single();
     }
 
+    final synchronized Thread currentWorkerThread() {
+        return worker;
+    }
+
+    private synchronized boolean hasWorker() {
+        return worker != null;
+    }
+
+    private synchronized void setWorker(MenuWorker menuWorker) {
+        worker = menuWorker;
+    }
+
     public void stop() {
         try {
-            worker.run = false;
+            MenuWorker currentWorker = worker;
+            if (currentWorker != null) {
+                currentWorker.requestStop();
+            }
         } catch (Exception ignored) {
             // don't care
         }
@@ -127,7 +143,7 @@ public class JobContextMenu extends JPopupMenu implements MouseListener, ActionL
         if (AppContext.isInteractionBlocked()) {
             return;
         }
-        if (worker == null && SwingUtilities.isRightMouseButton(event)) {
+        if (!hasWorker() && SwingUtilities.isRightMouseButton(event)) {
             menuItems[JobActionCommand.PARSE.id()].setEnabled(AVInfo.ok());
             this.updateUI();
             show(table, event.getX(), event.getY());
@@ -142,7 +158,9 @@ public class JobContextMenu extends JPopupMenu implements MouseListener, ActionL
         if (table.getSelectedRowCount() > 0) {
             JobActionCommand command = JobActionCommand.fromId(Integer.parseInt(event.getActionCommand()));
             if (command != null) {
-                worker = new MenuWorker(command);
+                MenuWorker menuWorker = new MenuWorker(command);
+                setWorker(menuWorker);
+                menuWorker.start();
             }
         }
     }
@@ -261,43 +279,52 @@ public class JobContextMenu extends JPopupMenu implements MouseListener, ActionL
 
     private class MenuWorker extends Thread {
         final JobActionCommand command;
-        boolean run = true;
+        private final AtomicBoolean run = new AtomicBoolean(true);
 
         MenuWorker(JobActionCommand command) {
             super("pMenu");
             this.command = command;
-            start();
+        }
+
+        void requestStop() {
+            run.set(false);
         }
 
         @Override
-        @SuppressWarnings("checkstyle:NoWhitespaceBefore")
         public void run() {
-            ie:
-            if (command.single()) {
-                try {
-                    Job selectedJob = getSingleSelectedJob();
-                    if (selectedJob != null) {
-                        commandSingle(command, selectedJob);
+            try {
+                if (command.single()) {
+                    try {
+                        Job selectedJob = getSingleSelectedJob();
+                        if (selectedJob != null) {
+                            commandSingle(command, selectedJob);
+                        }
+                    } catch (ArrayIndexOutOfBoundsException ignored) {
+                        // Selection may be empty
                     }
-                } catch (ArrayIndexOutOfBoundsException ignored) {
-                    // Selection may be empty
+                    return;
                 }
-            } else {
+
                 String folderPath = null;
                 if (command.requiresFolderSelection()) {
                     folderPath = getFolder();
                     if (folderPath == null) {
-                        break ie;
+                        return;
                     }
                 }
                 int[] selectedRows = table.getSelectedRows();
 
                 table.clearSelection();
-                if (run) {
+                if (run.get()) {
                     executeSelectedRowsCommand(command, selectedRows, folderPath);
                 }
+            } finally {
+                synchronized (JobContextMenu.this) {
+                    if (worker == this) {
+                        worker = null;
+                    }
+                }
             }
-            worker = null;
         }
     }
 }

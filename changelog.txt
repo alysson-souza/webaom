@@ -1,7 +1,8 @@
 Please note that this version is marked "unstable", meaning it can be broken from time
 to time. Do at least check the changelog for relevant info before using it.
 
-2.5.1 unreleased:
+2.6.0 unreleased:
+*New Catppuccin Latte and Catppuccin Mocha themes.
 *Replaced an outdated third-party hashing library with a cleaner, modern implementation.
 *Jobs and Alt entries are now managed separately, so removing one no longer unexpectedly removes the other.
 *Entries removed from Jobs or Alt now stay removed correctly after restarting the app.
