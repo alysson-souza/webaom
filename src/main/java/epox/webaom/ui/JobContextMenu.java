@@ -39,7 +39,7 @@ public class JobContextMenu extends JPopupMenu implements MouseListener, ActionL
     protected final RowModel rowModel;
     private final JobActionController controller;
     private final JMenuItem[] menuItems;
-    protected MenuWorker worker = null;
+    protected volatile MenuWorker worker = null;
 
     public JobContextMenu(final JTable table, final RowModel rowModel) {
         this(table, rowModel, JobActionController.createDefault());
@@ -261,7 +261,7 @@ public class JobContextMenu extends JPopupMenu implements MouseListener, ActionL
 
     private class MenuWorker extends Thread {
         final JobActionCommand command;
-        boolean run = true;
+        volatile boolean run = true;
 
         MenuWorker(JobActionCommand command) {
             super("pMenu");
