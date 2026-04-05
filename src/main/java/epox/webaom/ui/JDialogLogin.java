@@ -22,6 +22,9 @@
  */
 package epox.webaom.ui;
 
+import epox.swing.layout.DisplayEnvironment;
+import epox.swing.layout.WindowLayoutPolicy;
+import epox.swing.layout.WindowLayoutSupport;
 import epox.util.StringUtilities;
 import epox.util.UserPass;
 import epox.webaom.AppContext;
@@ -29,8 +32,6 @@ import java.awt.Dimension;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.Insets;
-import java.awt.Rectangle;
-import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import javax.swing.JButton;
@@ -42,6 +43,8 @@ import javax.swing.JTextField;
 import javax.swing.border.EmptyBorder;
 
 public class JDialogLogin extends JDialog implements ActionListener {
+    private static final DisplayEnvironment DISPLAY_ENVIRONMENT = DisplayEnvironment.current();
+    private static final WindowLayoutPolicy WINDOW_LAYOUT_POLICY = new WindowLayoutPolicy();
     private boolean success = false;
     private JTextField usernameField;
     private JTextField apiPassField;
@@ -111,11 +114,8 @@ public class JDialogLogin extends JDialog implements ActionListener {
 
         setContentPane(contentPanel);
         pack();
-        Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
-        Rectangle dialogBounds = this.getBounds();
-        int centeredX = screenSize.width / 2 - dialogBounds.width / 2;
-        int centeredY = screenSize.height / 2 - dialogBounds.height / 2;
-        setBounds(centeredX, centeredY, dialogBounds.width, dialogBounds.height);
+        WindowLayoutSupport.placeCentered(
+                this, DISPLAY_ENVIRONMENT, WINDOW_LAYOUT_POLICY, new Dimension(getPreferredSize()), false);
 
         if (!usernameField.getText().isEmpty()) {
             passwordField.requestFocus();

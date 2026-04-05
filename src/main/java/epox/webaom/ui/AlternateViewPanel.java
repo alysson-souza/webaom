@@ -30,6 +30,7 @@ import javax.swing.JTextField;
 
 public class AlternateViewPanel extends JPanel {
 
+    private final AlternateViewTableModel tableModel;
     private final JobTreeTable altViewTreeTable;
     private final JComboBox<String> sortModeComboBox;
     private final JComboBox<String> fileVisibilityComboBox;
@@ -39,6 +40,7 @@ public class AlternateViewPanel extends JPanel {
     private final JCheckBox loadAllJobsCheckbox;
 
     public AlternateViewPanel(ActionListener actionListener) {
+        tableModel = new AlternateViewTableModel();
         altViewTreeTable = createTreeTable();
         sortModeComboBox = createSortModeComboBox(actionListener);
         animeTitleComboBox = createAnimeTitleComboBox(actionListener);
@@ -87,10 +89,17 @@ public class AlternateViewPanel extends JPanel {
         }
     }
 
+    public void applyScaleAwareSizing() {
+        tableModel.formatTable(altViewTreeTable);
+    }
+
+    public void scaleCurrentColumnWidths(double scaleFactor) {
+        epox.swing.layout.TableColumnSizing.scalePreferredWidths(altViewTreeTable.getColumnModel(), scaleFactor);
+    }
+
     private JobTreeTable createTreeTable() {
-        AlternateViewTableModel tableModel = new AlternateViewTableModel();
         JobTreeTable treeTable = new JobTreeTable(tableModel);
-        tableModel.formatTable(treeTable.getColumnModel());
+        tableModel.formatTable(treeTable);
         new AlternateViewHeaderListener(treeTable);
         return treeTable;
     }

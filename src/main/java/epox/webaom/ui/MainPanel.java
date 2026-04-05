@@ -39,7 +39,6 @@ import epox.webaom.startup.StartupIssue;
 import epox.webaom.startup.StartupValidator;
 import java.awt.BorderLayout;
 import java.awt.Color;
-import java.awt.Dimension;
 import java.awt.GraphicsEnvironment;
 import java.awt.GridLayout;
 import java.awt.Insets;
@@ -417,7 +416,6 @@ public class MainPanel extends JPanel
         topOptionsRow.add(connectionPanel);
         topOptionsRow.add(mylistPanel);
         bottomOptionsRow.add(otherPanel, BorderLayout.CENTER);
-        extensionsPanel.setPreferredSize(new Dimension(100, 100));
         bottomOptionsRow.add(extensionsPanel, BorderLayout.EAST);
 
         ////////////////////////////// HTML LOG PANE/////////////////////////////
@@ -930,6 +928,22 @@ public class MainPanel extends JPanel
             System.out.println("! Options file is outdated. Could not load.");
             println("Options file is outdated. Could not load.");
         }
+    }
+
+    public void applyScaleAwareSizing() {
+        jobsPanel.reapplyScaleAwareSizing();
+        altViewPanel.applyScaleAwareSizing();
+        rulesOptionsPanel.applyScaleAwareSizing();
+        revalidate();
+        repaint();
+    }
+
+    public void scaleCurrentUi(double scaleFactor) {
+        jobsPanel.scaleCurrentColumnWidths(scaleFactor);
+        altViewPanel.scaleCurrentColumnWidths(scaleFactor);
+        rulesOptionsPanel.scaleCurrentColumnWidths(scaleFactor);
+        revalidate();
+        repaint();
     }
 
     ///////////////////////////////// ADD FILES//////////////////////////////////

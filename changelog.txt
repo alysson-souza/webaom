@@ -3,6 +3,7 @@ to time. Do at least check the changelog for relevant info before using it.
 
 2.6.0 unreleased:
 *New Catppuccin Latte and Catppuccin Mocha themes.
+*Replaced an outdated third-party hashing library with a cleaner, modern implementation.
 *Jobs and Alt entries are now managed separately, so removing one no longer unexpectedly removes the other.
 *Entries removed from Jobs or Alt now stay removed correctly after restarting the app.
 *Right-click menu wording is clearer: you now see "Remove from Jobs", "Remove from Alt", and "Remove from AniDB MyList".

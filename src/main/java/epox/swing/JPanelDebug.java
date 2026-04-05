@@ -30,6 +30,7 @@ import javax.swing.JPanel;
 import javax.swing.JScrollBar;
 import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
+import javax.swing.UIManager;
 
 /**
  * Debug panel that captures System.out and System.err, displaying output in a scrollable text area. Optionally logs
@@ -48,8 +49,7 @@ public class JPanelDebug extends JPanel {
     public JPanelDebug(String file, boolean captureOut, boolean captureErr, boolean echoOut, boolean echoErr) {
         super(new java.awt.BorderLayout());
         textArea = new JTextArea();
-        Font textFont = textArea.getFont();
-        textArea.setFont(new Font(Font.MONOSPACED, Font.PLAIN, textFont.getSize()));
+        applyMonospaceFont();
         textArea.setLineWrap(true);
         textArea.setWrapStyleWord(true);
         textArea.setMargin(new java.awt.Insets(2, 2, 2, 2));
@@ -94,6 +94,20 @@ public class JPanelDebug extends JPanel {
      */
     public void setFileDropListener(DropTargetListener dropListener) {
         new DropTarget(textArea, dropListener);
+    }
+
+    @Override
+    public void updateUI() {
+        super.updateUI();
+        if (textArea != null) {
+            applyMonospaceFont();
+        }
+    }
+
+    private void applyMonospaceFont() {
+        Font defaultTextAreaFont = UIManager.getFont("TextArea.font");
+        int fontSize = defaultTextAreaFont == null ? textArea.getFont().getSize() : defaultTextAreaFont.getSize();
+        textArea.setFont(new Font(Font.MONOSPACED, Font.PLAIN, fontSize));
     }
 
     protected class Updater implements Runnable {

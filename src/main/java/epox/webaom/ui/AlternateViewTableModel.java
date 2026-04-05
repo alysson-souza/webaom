@@ -18,6 +18,7 @@ package epox.webaom.ui;
 
 import com.sun.swing.AbstractTreeTableModel;
 import com.sun.swing.TreeTableModel;
+import epox.swing.layout.TableColumnSizing;
 import epox.util.StringUtilities;
 import epox.webaom.AppContext;
 import epox.webaom.data.AniDBEntity;
@@ -26,11 +27,20 @@ import epox.webaom.data.Anime;
 import epox.webaom.data.AnimeGroup;
 import epox.webaom.data.Episode;
 import epox.webaom.data.Path;
+import javax.swing.JTable;
 import javax.swing.SwingConstants;
 import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.TableColumnModel;
 
 public class AlternateViewTableModel extends AbstractTreeTableModel {
+    private static final int TREE_NAME_COLUMN_PADDING = 96;
+    private static final String NAME_SAMPLE = "Very Long Series Name - Episode 01 [BluRay 1080p][Dual Audio]";
+    private static final String TYPE_SAMPLE = "Collection";
+    private static final String YEAR_SAMPLE = "2026";
+    private static final String NUMBER_SAMPLE = "9999";
+    private static final String SIZE_SAMPLE = "999.9 GiB";
+    private static final String PERCENT_SAMPLE = "100%";
+    private static final String MISSING_SAMPLE = "12";
     public static final int NAME = 0;
     public static final int PRCT = 1;
     public static final int LAST = 2;
@@ -148,14 +158,17 @@ public class AlternateViewTableModel extends AbstractTreeTableModel {
         return node instanceof AniDBFile;
     }
 
-    public void formatTable(TableColumnModel m) {
-        m.getColumn(AlternateViewTableModel.NAME).setPreferredWidth(1200);
-        m.getColumn(AlternateViewTableModel.TYPE).setPreferredWidth(200);
-        m.getColumn(AlternateViewTableModel.YEAR).setPreferredWidth(100);
-        m.getColumn(AlternateViewTableModel.NUMB).setPreferredWidth(100);
-        m.getColumn(AlternateViewTableModel.SIZE).setPreferredWidth(140);
-        m.getColumn(AlternateViewTableModel.PRCT).setPreferredWidth(60);
-        m.getColumn(AlternateViewTableModel.LAST).setPreferredWidth(30);
+    public void formatTable(JTable table) {
+        TableColumnModel m = table.getColumnModel();
+        // Tree-table indentation and disclosure controls need more room than plain text measurement.
+        TableColumnSizing.applyPreferredWidth(
+                table, m.getColumn(AlternateViewTableModel.NAME), 320, TREE_NAME_COLUMN_PADDING, NAME_SAMPLE);
+        TableColumnSizing.applyPreferredWidth(table, m.getColumn(AlternateViewTableModel.TYPE), 120, TYPE_SAMPLE);
+        TableColumnSizing.applyPreferredWidth(table, m.getColumn(AlternateViewTableModel.YEAR), 80, YEAR_SAMPLE);
+        TableColumnSizing.applyPreferredWidth(table, m.getColumn(AlternateViewTableModel.NUMB), 80, NUMBER_SAMPLE);
+        TableColumnSizing.applyPreferredWidth(table, m.getColumn(AlternateViewTableModel.SIZE), 96, SIZE_SAMPLE);
+        TableColumnSizing.applyPreferredWidth(table, m.getColumn(AlternateViewTableModel.PRCT), 64, PERCENT_SAMPLE);
+        TableColumnSizing.applyPreferredWidth(table, m.getColumn(AlternateViewTableModel.LAST), 52, MISSING_SAMPLE);
         DefaultTableCellRenderer r0 = new DefaultTableCellRenderer();
         r0.setHorizontalAlignment(SwingConstants.CENTER);
         m.getColumn(AlternateViewTableModel.TYPE).setCellRenderer(r0);

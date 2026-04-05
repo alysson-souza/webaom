@@ -16,6 +16,7 @@
 
 package epox.webaom;
 
+import epox.swing.layout.TableColumnSizing;
 import epox.util.StringUtilities;
 import epox.util.UserPass;
 import epox.webaom.data.AniDBEntity;
@@ -34,6 +35,7 @@ import java.io.InputStream;
 import java.util.Properties;
 import javax.swing.JOptionPane;
 import javax.swing.SwingUtilities;
+import javax.swing.UIManager;
 
 /**
  * Global state singleton holding all subsystems and configuration.
@@ -170,7 +172,7 @@ public final class AppContext {
         }
 
         if (!font.isEmpty()) {
-            setFont(font);
+            setFont(font, true);
         }
         // A.mem2 = A.getUsed();
     }
@@ -218,22 +220,58 @@ public final class AppContext {
     }
 
     public static void setFont(String f) {
-        int i = f.lastIndexOf(',');
-        int size = 11;
-        if (i > 0) {
+        setFont(f, false);
+    }
+
+    public static void setFont(String f, boolean reapplyScaleAwareSizing) {
+        Font currentUiFont = UIManager.getFont("Label.font");
+        Font configuredFont = parseConfiguredFont(f);
+
+        WebAOM.setGlobalFont(configuredFont, configuredFont);
+        updateComponentTreeUi(gui);
+        updateComponentTreeUi(primaryPopupMenu);
+        updateComponentTreeUi(secondaryPopupMenu);
+
+        if (gui != null) {
+            if (reapplyScaleAwareSizing) {
+                gui.applyScaleAwareSizing();
+            } else {
+                gui.scaleCurrentUi(resolveScaleFactor(currentUiFont, configuredFont));
+            }
+            WebAOM.refreshMainWindowLayout();
+        }
+    }
+
+    private static Font parseConfiguredFont(String fontSpec) {
+        if (fontSpec == null || fontSpec.isBlank()) {
+            return new Font(Font.SANS_SERIF, Font.PLAIN, 11);
+        }
+        String fontFamily = fontSpec;
+        int fontSize = 11;
+        int separatorIndex = fontSpec.lastIndexOf(',');
+        if (separatorIndex > 0) {
             try {
-                String s = f.substring(i + 1);
-                f = f.substring(0, i).trim();
-                size = Integer.parseInt(s);
+                String sizeText = fontSpec.substring(separatorIndex + 1);
+                fontFamily = fontSpec.substring(0, separatorIndex).trim();
+                fontSize = Integer.parseInt(sizeText);
             } catch (NumberFormatException e) {
                 //
             }
         }
-        Font fo = new Font(f, Font.PLAIN, size);
-        WebAOM.setGlobalFont(fo, fo);
-        SwingUtilities.updateComponentTreeUI(gui);
-        SwingUtilities.updateComponentTreeUI(primaryPopupMenu);
-        SwingUtilities.updateComponentTreeUI(secondaryPopupMenu);
+        return new Font(fontFamily, Font.PLAIN, fontSize);
+    }
+
+    private static void updateComponentTreeUi(Component component) {
+        if (component != null) {
+            SwingUtilities.updateComponentTreeUI(component);
+        }
+    }
+
+    private static double resolveScaleFactor(Font currentUiFont, Font configuredFont) {
+        if (currentUiFont == null || configuredFont == null) {
+            return 1.0;
+        }
+        return TableColumnSizing.calculateFontScaleFactor(currentUiFont, configuredFont);
     }
 
     public static void dialog(String title, String msg) {

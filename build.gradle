@@ -62,7 +62,7 @@ dependencies {
 
 tasks.named('test', Test) {
 	useJUnitPlatform {
-		excludeTags 'ui'
+		excludeTags 'ui', 'benchmark'
 	}
 	systemProperty 'java.awt.headless', 'true'
 }
@@ -76,6 +76,17 @@ tasks.register('testUi', Test) {
 		includeTags 'ui'
 	}
 	systemProperty 'java.awt.headless', 'true'
+}
+
+tasks.register('benchmark', Test) {
+	group = 'verification'
+	description = 'Runs hash algorithm benchmarks.'
+	testClassesDirs = sourceSets.test.output.classesDirs
+	classpath = sourceSets.test.runtimeClasspath
+	useJUnitPlatform {
+		includeTags 'benchmark'
+	}
+	maxHeapSize = '512m'
 }
 
 tasks.register('generateVersionProperties') {
@@ -229,6 +240,43 @@ def appDescription = 'AniDB file identification and organization tool'
 def appVendor = 'epoximator'
 def appCopyright = 'Copyright 2005-2010 epoximator'
 def jpackageAppVersion = version.toString().replaceFirst(/-.*/, '')
+def packagingResourceRootDir = file('packaging/jpackage')
+
+def packagingOsKey = { String osName ->
+	def os = osName.toLowerCase()
+	if (os.contains('mac')) {
+		return 'macos'
+	}
+	if (os.contains('win')) {
+		return 'windows'
+	}
+	if (os.contains('linux')) {
+		return 'linux'
+	}
+	return 'common'
+}
+
+def packagingResourceDir = { String osName ->
+	def dir = new File(packagingResourceRootDir, packagingOsKey(osName))
+	return dir.exists() ? dir : null
+}
+
+def packagedAppImageDir = { File outputDir, String osName ->
+	osName.toLowerCase().contains('mac') ? new File(outputDir, "${appName}.app") : new File(outputDir, appName)
+}
+
+def copyWindowsLauncherManifest = { File outputDir ->
+	def manifestFile = file('packaging/jpackage/windows/WebAOM.exe.manifest')
+	def appImageDir = new File(outputDir, appName)
+	if (!manifestFile.exists() || !appImageDir.exists()) {
+		return
+	}
+
+	copy {
+		from manifestFile
+		into appImageDir
+	}
+}
 
 // Modules required by the application (Swing + networking + database drivers)
 def requiredModules = [
@@ -272,7 +320,7 @@ tasks.register('jlink', Exec) {
 }
 
 tasks.register('jpackage', Exec) {
-	dependsOn jarLite, jlink
+	dependsOn jpackageAppImage
 	group = 'distribution'
 	description = 'Creates native application package for the current platform'
 
@@ -283,13 +331,12 @@ tasks.register('jpackage', Exec) {
 
 	def outputDir = jpackageOutputDir.get().asFile
 	def jpackageExe = new File(toolchainJavaHome.get(), 'bin/jpackage')
+	def appImageDir = packagedAppImageDir(outputDir, os)
 
 	def args = [
 		jpackageExe.absolutePath,
-		'--input',
-		"${layout.buildDirectory.get()}/libs",
-		'--main-jar',
-		"webaom-${version}-lite.jar",
+		'--app-image',
+		appImageDir.absolutePath,
 		'--name',
 		appName,
 		'--app-version',
@@ -302,11 +349,17 @@ tasks.register('jpackage', Exec) {
 		appCopyright,
 		'--type',
 		packageType,
-		'--runtime-image',
-		jlinkOutputDir.get().asFile.absolutePath,
 		'--dest',
 		outputDir.absolutePath
 	]
+
+	def resourceDir = packagingResourceDir(os)
+	if (resourceDir != null) {
+		args.addAll([
+			'--resource-dir',
+			resourceDir.absolutePath
+		])
+	}
 
 	// Platform-specific options
 	if (os.contains('mac')) {
@@ -366,6 +419,9 @@ tasks.register('jpackage', Exec) {
 				].execute().waitFor()
 			} catch (Exception ignored) {}
 		}
+		if (!appImageDir.exists()) {
+			throw new GradleException("jpackage app-image not found at ${appImageDir}")
+		}
 		outputDir.mkdirs()
 		println "Creating ${packageType} package with minimal runtime..."
 	}
@@ -382,6 +438,8 @@ tasks.register('jpackageAppImage', Exec) {
 
 	def outputDir = jpackageOutputDir.get().asFile
 	def jpackageExe = new File(toolchainJavaHome.get(), 'bin/jpackage')
+	def os = System.getProperty('os.name').toLowerCase()
+	def appImageDir = packagedAppImageDir(outputDir, os)
 
 	def args = [
 		jpackageExe.absolutePath,
@@ -407,7 +465,13 @@ tasks.register('jpackageAppImage', Exec) {
 		outputDir.absolutePath
 	]
 
-	def os = System.getProperty('os.name').toLowerCase()
+	def resourceDir = packagingResourceDir(os)
+	if (resourceDir != null) {
+		args.addAll([
+			'--resource-dir',
+			resourceDir.absolutePath
+		])
+	}
 	if (os.contains('mac')) {
 		def macIcon = file('src/main/resources/webaom.icns')
 		if (macIcon.exists()) {
@@ -437,11 +501,15 @@ tasks.register('jpackageAppImage', Exec) {
 	commandLine args
 
 	doFirst {
+		delete appImageDir
 		outputDir.mkdirs()
 		println "Creating app-image with minimal runtime..."
 	}
 
 	doLast {
+		if (os.contains('win')) {
+			copyWindowsLauncherManifest(outputDir)
+		}
 		println "App image created in: ${outputDir.absolutePath}"
 	}
 }

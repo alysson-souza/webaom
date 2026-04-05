@@ -17,6 +17,7 @@
 package epox.webaom.ui;
 
 import epox.swing.JTableSortable;
+import epox.swing.layout.TableColumnSizing;
 import epox.util.ReplacementRule;
 import epox.webaom.AppContext;
 import epox.webaom.RuleMenu;
@@ -46,6 +47,7 @@ import javax.swing.JSplitPane;
 import javax.swing.JTable;
 import javax.swing.JTextArea;
 import javax.swing.KeyStroke;
+import javax.swing.UIManager;
 import javax.swing.border.EtchedBorder;
 import javax.xml.parsers.SAXParser;
 import javax.xml.parsers.SAXParserFactory;
@@ -91,8 +93,7 @@ public class RulesOptionsPanel extends JPanel implements Action, ItemListener {
 
         rulesTextArea = new JTextArea(rules.getRenameRules());
         rulesTextArea.setMargin(new java.awt.Insets(2, 4, 2, 4));
-        Font rulesFont = rulesTextArea.getFont();
-        rulesTextArea.setFont(new Font(Font.MONOSPACED, Font.PLAIN, rulesFont.getSize()));
+        applyMonospaceRulesFont();
 
         final RuleMenu ruleMenuHandler = new RuleMenu(rulesTextArea);
         SAXParserFactory parserFactory = SAXParserFactory.newInstance();
@@ -226,6 +227,35 @@ public class RulesOptionsPanel extends JPanel implements Action, ItemListener {
         } else {
             rulesTextArea.setText(rules.getMoveRules());
         }
+    }
+
+    public void applyScaleAwareSizing() {
+        applyMonospaceRulesFont();
+        ReplacementTableModel.formatTable(replacementsTable);
+    }
+
+    public void scaleCurrentColumnWidths(double scaleFactor) {
+        applyMonospaceRulesFont();
+        // Clear maxWidth before scaling so Swing doesn't clamp the new preferred width
+        replacementsTable
+                .getColumnModel()
+                .getColumn(ReplacementTableModel.COLUMN_SELECTED)
+                .setMaxWidth(Integer.MAX_VALUE);
+        TableColumnSizing.scalePreferredWidths(replacementsTable.getColumnModel(), scaleFactor);
+        int enabledColumnWidth = replacementsTable
+                .getColumnModel()
+                .getColumn(ReplacementTableModel.COLUMN_SELECTED)
+                .getPreferredWidth();
+        replacementsTable
+                .getColumnModel()
+                .getColumn(ReplacementTableModel.COLUMN_SELECTED)
+                .setMaxWidth(enabledColumnWidth);
+    }
+
+    private void applyMonospaceRulesFont() {
+        Font defaultTextAreaFont = UIManager.getFont("TextArea.font");
+        int fontSize = defaultTextAreaFont == null ? rulesTextArea.getFont().getSize() : defaultTextAreaFont.getSize();
+        rulesTextArea.setFont(new Font(Font.MONOSPACED, Font.PLAIN, fontSize));
     }
 
     private void resetCurrentRulesToDefault() {

@@ -16,11 +16,13 @@
 
 package epox.webaom.ui;
 
+import epox.swing.layout.DisplayEnvironment;
+import epox.swing.layout.WindowLayoutPolicy;
+import epox.swing.layout.WindowLayoutSupport;
 import epox.webaom.AppContext;
 import java.awt.Dimension;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
-import java.awt.Rectangle;
 import java.awt.RenderingHints;
 import java.awt.event.ActionEvent;
 import javax.swing.AbstractAction;
@@ -34,6 +36,9 @@ import javax.swing.event.HyperlinkEvent;
 import javax.swing.event.HyperlinkListener;
 
 public class JFrameHtml extends JFrame implements HyperlinkListener {
+    private static final DisplayEnvironment DISPLAY_ENVIRONMENT = DisplayEnvironment.current();
+    private static final WindowLayoutPolicy WINDOW_LAYOUT_POLICY = new WindowLayoutPolicy();
+
     public JFrameHtml(String title, String text) {
         super(title);
 
@@ -60,21 +65,13 @@ public class JFrameHtml extends JFrame implements HyperlinkListener {
             }
         });
         pack();
-        Dimension screenSize = java.awt.Toolkit.getDefaultToolkit().getScreenSize();
-        Rectangle frameBounds = getBounds();
-        int maxWidth = (int) (0.95 * screenSize.width);
-        int maxHeight = (int) (0.95 * screenSize.height);
-        if (frameBounds.width > maxWidth) {
-            frameBounds.width = maxWidth;
-        }
-        if (frameBounds.height > maxHeight) {
-            frameBounds.height = maxHeight;
-        }
-        setBounds(
-                screenSize.width / 2 - frameBounds.width / 2,
-                screenSize.height / 2 - frameBounds.height / 2,
-                frameBounds.width,
-                frameBounds.height);
+        WindowLayoutSupport.placeCentered(
+                this,
+                AppContext.frame,
+                DISPLAY_ENVIRONMENT,
+                WINDOW_LAYOUT_POLICY,
+                new Dimension(getPreferredSize()),
+                false);
         setVisible(true);
     }
 
