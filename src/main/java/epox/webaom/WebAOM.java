@@ -28,7 +28,9 @@ import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.Image;
 import java.awt.Rectangle;
+import java.io.BufferedReader;
 import java.io.InputStream;
+import java.io.InputStreamReader;
 import javax.imageio.ImageIO;
 import javax.swing.JDialog;
 import javax.swing.JFrame;
@@ -56,6 +58,10 @@ public class WebAOM {
         String osName = System.getProperty("os.name", "").toLowerCase();
         boolean isLinux = osName.contains("linux");
 
+        if (isLinux) {
+            configureLinuxScaling();
+        }
+
         if (System.getProperty("awt.useSystemAAFontSettings") == null) {
             System.setProperty("awt.useSystemAAFontSettings", isLinux ? "lcd" : "on");
         }
@@ -70,6 +76,49 @@ public class WebAOM {
             JFrame.setDefaultLookAndFeelDecorated(true);
             JDialog.setDefaultLookAndFeelDecorated(true);
         }
+    }
+
+    // On Linux Wayland, Java Swing runs under XWayland which reports 96 DPI
+    // regardless of display scaling. GDK_SCALE is not set on KDE (5.27+ dropped
+    // it) and sun.java2d.uiScale is ignored on XWayland. Read Xft.dpi from X
+    // resources and set flatlaf.uiScale so FlatLaf can scale the UI.
+    // See: https://wiki.archlinux.org/title/HiDPI#AWT/Swing
+    private static void configureLinuxScaling() {
+        if (System.getProperty("flatlaf.uiScale") != null || System.getProperty("sun.java2d.uiScale") != null) {
+            return;
+        }
+        String gdkScale = System.getenv("GDK_SCALE");
+        if (gdkScale != null && !gdkScale.isEmpty()) {
+            return;
+        }
+        try {
+            Process process = new ProcessBuilder("xrdb", "-query").start();
+            try {
+                try (BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()))) {
+                    double scale = parseXftDpiScale(reader);
+                    if (scale > 1.0) {
+                        System.setProperty("flatlaf.uiScale", scale + "x");
+                    }
+                }
+            } finally {
+                process.destroyForcibly();
+            }
+        } catch (Exception e) {
+            // xrdb not available or parsing failed — proceed without scaling
+        }
+    }
+
+    /** Parses xrdb output for Xft.dpi and returns the scale factor (dpi/96), or -1 if not found. */
+    static double parseXftDpiScale(BufferedReader reader) throws java.io.IOException {
+        String line;
+        while ((line = reader.readLine()) != null) {
+            if (line.startsWith("Xft.dpi:")) {
+                double dpi =
+                        Double.parseDouble(line.substring(line.indexOf(':') + 1).trim());
+                return dpi / 96.0;
+            }
+        }
+        return -1;
     }
 
     private static void launch() {
