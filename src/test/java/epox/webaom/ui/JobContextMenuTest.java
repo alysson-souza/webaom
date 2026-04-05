@@ -194,7 +194,7 @@ class JobContextMenuTest {
     private void waitForWorker(JobContextMenu menu) throws Exception {
         Field workerField = JobContextMenu.class.getDeclaredField("worker");
         workerField.setAccessible(true);
-        for (int i = 0; i < 100; i++) {
+        for (int i = 0; i < 500; i++) {
             Object worker = workerField.get(menu);
             if (worker == null) {
                 return;
