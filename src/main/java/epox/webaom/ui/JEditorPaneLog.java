@@ -30,6 +30,7 @@ import java.io.PrintStream;
 import java.io.RandomAccessFile;
 import java.nio.charset.StandardCharsets;
 import javax.swing.JEditorPane;
+import javax.swing.UIManager;
 
 public class JEditorPaneLog extends JEditorPane implements Log {
     private static final String MONOSPACE_FONT_FAMILY = "Monospaced,Consolas,Menlo,Monaco,'Liberation Mono',monospace";
@@ -124,8 +125,10 @@ public class JEditorPaneLog extends JEditorPane implements Log {
     }
 
     private void applyMonospaceFont() {
+        Font defaultEditorFont = UIManager.getFont("EditorPane.font");
         Font currentFont = getFont();
-        int fontSize = currentFont == null ? 12 : currentFont.getSize();
+        int fallbackSize = currentFont == null ? 12 : currentFont.getSize();
+        int fontSize = defaultEditorFont == null ? fallbackSize : defaultEditorFont.getSize();
         setFont(new Font(Font.MONOSPACED, Font.PLAIN, fontSize));
     }
 
