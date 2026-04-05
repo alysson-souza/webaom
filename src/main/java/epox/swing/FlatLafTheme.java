@@ -28,6 +28,8 @@ public enum FlatLafTheme {
     DARK("Dark", "dark", FlatDarkLaf.class.getName()),
     INTELLIJ("IntelliJ", "intellij", FlatIntelliJLaf.class.getName()),
     DARCULA("Darcula", "darcula", FlatDarculaLaf.class.getName()),
+    CATPPUCCIN_LATTE("Catppuccin Latte", "catppuccin_latte", CatppuccinLatteLaf.class.getName()),
+    CATPPUCCIN_MOCHA("Catppuccin Mocha", "catppuccin_mocha", CatppuccinMochaLaf.class.getName()),
     MAC_LIGHT("macOS Light", "mac_light", FlatMacLightLaf.class.getName(), true),
     MAC_DARK("macOS Dark", "mac_dark", FlatMacDarkLaf.class.getName(), true);
 
