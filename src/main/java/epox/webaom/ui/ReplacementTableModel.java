@@ -16,12 +16,15 @@
 
 package epox.webaom.ui;
 
+import epox.swing.layout.TableColumnSizing;
 import epox.util.ReplacementRule;
+import java.awt.Component;
 import java.util.List;
 import javax.swing.JTable;
 import javax.swing.SwingConstants;
 import javax.swing.table.AbstractTableModel;
 import javax.swing.table.DefaultTableCellRenderer;
+import javax.swing.table.TableCellRenderer;
 import javax.swing.table.TableColumnModel;
 
 public class ReplacementTableModel extends AbstractTableModel {
@@ -44,9 +47,20 @@ public class ReplacementTableModel extends AbstractTableModel {
 
     public static void formatTable(JTable table) {
         TableColumnModel columnModel = table.getColumnModel();
-        columnModel.getColumn(COLUMN_SELECTED).setMaxWidth(50);
-        columnModel.getColumn(COLUMN_SOURCE).setPreferredWidth(100);
-        columnModel.getColumn(COLUMN_DESTINATION).setPreferredWidth(100);
+        TableCellRenderer checkboxRenderer = table.getDefaultRenderer(Boolean.class);
+        Component checkboxComponent =
+                checkboxRenderer.getTableCellRendererComponent(table, Boolean.TRUE, false, false, 0, COLUMN_SELECTED);
+        int checkboxWidth = checkboxComponent.getPreferredSize().width + 12;
+        int enabledColumnWidth = Math.max(
+                TableColumnSizing.calculatePreferredWidth(
+                        table, columnModel.getColumn(COLUMN_SELECTED).getHeaderValue(), 48),
+                checkboxWidth);
+        columnModel.getColumn(COLUMN_SELECTED).setPreferredWidth(enabledColumnWidth);
+        columnModel.getColumn(COLUMN_SELECTED).setMaxWidth(enabledColumnWidth);
+        TableColumnSizing.applyPreferredWidth(
+                table, columnModel.getColumn(COLUMN_SOURCE), 120, "source-pattern-example");
+        TableColumnSizing.applyPreferredWidth(
+                table, columnModel.getColumn(COLUMN_DESTINATION), 120, "destination-pattern-example");
         DefaultTableCellRenderer centeredRenderer = new DefaultTableCellRenderer();
         centeredRenderer.setHorizontalAlignment(SwingConstants.CENTER);
         columnModel.getColumn(COLUMN_SOURCE).setCellRenderer(centeredRenderer);

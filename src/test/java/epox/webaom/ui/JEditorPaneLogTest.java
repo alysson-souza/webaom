@@ -16,6 +16,7 @@
 
 package epox.webaom.ui;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -23,20 +24,26 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import epox.swing.FlatLafSupport;
 import epox.swing.FlatLafTheme;
 import java.awt.Color;
+import java.awt.Font;
 import javax.swing.KeyStroke;
 import javax.swing.UIManager;
+import javax.swing.plaf.FontUIResource;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 
+@Tag("ui")
 class JEditorPaneLogTest {
     private String originalLookAndFeelClassName;
+    private Font originalEditorPaneFont;
 
     @BeforeEach
     void setUp() {
         originalLookAndFeelClassName = UIManager.getLookAndFeel() == null
                 ? null
                 : UIManager.getLookAndFeel().getClass().getName();
+        originalEditorPaneFont = UIManager.getFont("EditorPane.font");
     }
 
     @AfterEach
@@ -44,6 +51,7 @@ class JEditorPaneLogTest {
         if (originalLookAndFeelClassName != null) {
             UIManager.setLookAndFeel(originalLookAndFeelClassName);
         }
+        UIManager.put("EditorPane.font", originalEditorPaneFont);
     }
 
     @Test
@@ -102,6 +110,16 @@ class JEditorPaneLogTest {
         assertTrue(contrastRatio(numberColor, background) >= 4.5);
         assertTrue(contrastRatio(nameColor, background) >= 4.5);
         assertTrue(contrastRatio(warningColor, background) >= 4.5);
+    }
+
+    @Test
+    void updateUi_usesCurrentEditorPaneFontSizeForMonospaceRendering() {
+        UIManager.put("EditorPane.font", new FontUIResource(Font.SANS_SERIF, Font.PLAIN, 23));
+
+        JEditorPaneLog logPane = new JEditorPaneLog();
+        logPane.updateUI();
+
+        assertEquals(23, logPane.getFont().getSize());
     }
 
     private String toHex(Color color) {

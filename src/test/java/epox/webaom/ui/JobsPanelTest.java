@@ -30,6 +30,7 @@ import epox.webaom.JobList;
 import epox.webaom.Options;
 import epox.webaom.data.AniDBFile;
 import java.awt.Color;
+import java.awt.Font;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
@@ -125,6 +126,63 @@ class JobsPanelTest {
     }
 
     @Test
+    void loadOptions_withoutSavedColumnConfig_appliesScaleFriendlyDefaults() {
+        JobsPanel panel = createJobsPanel();
+        panel.loadOptions(new Options());
+
+        assertEquals(3, panel.getJobsTable().getColumnModel().getColumnCount());
+        assertEquals(
+                JobColumn.NUMB.getIndex(),
+                panel.getJobsTable().getColumnModel().getColumn(0).getModelIndex());
+        assertEquals(
+                JobColumn.FILE.getIndex(),
+                panel.getJobsTable().getColumnModel().getColumn(1).getModelIndex());
+        assertEquals(
+                JobColumn.STAT.getIndex(),
+                panel.getJobsTable().getColumnModel().getColumn(2).getModelIndex());
+
+        int rowWidth = panel.getJobsTable()
+                .getHeaderListener()
+                .getColumnByModelIndex(JobColumn.NUMB.getIndex())
+                .getPreferredWidth();
+        int fileWidth = panel.getJobsTable()
+                .getHeaderListener()
+                .getColumnByModelIndex(JobColumn.FILE.getIndex())
+                .getPreferredWidth();
+        int statusWidth = panel.getJobsTable()
+                .getHeaderListener()
+                .getColumnByModelIndex(JobColumn.STAT.getIndex())
+                .getPreferredWidth();
+
+        assertTrue(rowWidth >= 48);
+        assertTrue(statusWidth >= 140);
+        assertTrue(fileWidth >= 360);
+        assertTrue(fileWidth > statusWidth);
+        assertTrue(statusWidth > rowWidth);
+    }
+
+    @Test
+    void defaultColumnConfig_growsWithLargerFont() {
+        JobsPanel smallFontPanel = createJobsPanel(new Font(Font.SANS_SERIF, Font.PLAIN, 12));
+        smallFontPanel.loadOptions(new Options());
+        int smallFileWidth = smallFontPanel
+                .getJobsTable()
+                .getHeaderListener()
+                .getColumnByModelIndex(JobColumn.FILE.getIndex())
+                .getPreferredWidth();
+
+        JobsPanel largeFontPanel = createJobsPanel(new Font(Font.SANS_SERIF, Font.PLAIN, 24));
+        largeFontPanel.loadOptions(new Options());
+        int largeFileWidth = largeFontPanel
+                .getJobsTable()
+                .getHeaderListener()
+                .getColumnByModelIndex(JobColumn.FILE.getIndex())
+                .getPreferredWidth();
+
+        assertTrue(largeFileWidth > smallFileWidth);
+    }
+
+    @Test
     void setVisibleColumns_keepsAtLeastOneColumnVisible() {
         JobsPanel panel = createJobsPanel();
 
@@ -205,8 +263,18 @@ class JobsPanelTest {
     }
 
     private JobsPanel createJobsPanel() {
+        return createJobsPanel(null);
+    }
+
+    private JobsPanel createJobsPanel(Font font) {
         TableModelJobs tableModel = new TableModelJobs(AppContext.jobs);
         JTableJobs jobsTable = new JTableJobs(tableModel);
+        if (font != null) {
+            jobsTable.setFont(font);
+            if (jobsTable.getTableHeader() != null) {
+                jobsTable.getTableHeader().setFont(font);
+            }
+        }
         TableModelJobs.formatTable(jobsTable);
         return new JobsPanel(jobsTable, tableModel);
     }

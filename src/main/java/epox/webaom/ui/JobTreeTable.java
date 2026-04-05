@@ -18,14 +18,13 @@ package epox.webaom.ui;
 
 import com.sun.swing.JTreeTable;
 import com.sun.swing.TreeTableModel;
+import epox.swing.layout.TableRowSizing;
 import epox.webaom.AppContext;
 import epox.webaom.Job;
 import epox.webaom.JobManager;
 import epox.webaom.data.AniDBEntity;
 import epox.webaom.data.AniDBFile;
 import java.awt.Font;
-import java.awt.FontMetrics;
-import java.awt.Graphics;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.util.ArrayList;
@@ -33,8 +32,6 @@ import javax.swing.UIManager;
 import javax.swing.tree.TreePath;
 
 public class JobTreeTable extends JTreeTable implements RowModel, MouseListener {
-    private boolean needsRowHeightCalculation = true;
-
     public JobTreeTable(TreeTableModel treeTableModel) {
         super(treeTableModel);
         addMouseListener(this);
@@ -44,6 +41,7 @@ public class JobTreeTable extends JTreeTable implements RowModel, MouseListener 
     public void updateUI() {
         long elapsedTime = System.currentTimeMillis();
         super.updateUI();
+        TableRowSizing.applyPreferredRowHeight(this, UIManager.getInt("Table.rowHeight"));
         elapsedTime = System.currentTimeMillis() - elapsedTime;
         System.out.println("@ Alt.updateUI() in " + elapsedTime + " ms. (" + AppContext.cache.stats() + ")");
     }
@@ -112,29 +110,10 @@ public class JobTreeTable extends JTreeTable implements RowModel, MouseListener 
         // No action required
     }
 
-    private void calculateRowHeight(Graphics graphics) {
-        Font font = getFont();
-        FontMetrics fontMetrics = graphics.getFontMetrics(font);
-        int preferredRowHeight = Math.max(fontMetrics.getHeight() + 3, UIManager.getInt("Table.rowHeight"));
-        if (preferredRowHeight < 1) {
-            preferredRowHeight = fontMetrics.getHeight() + 3;
-        }
-        setRowHeight(preferredRowHeight);
-    }
-
-    @Override
-    public void paint(Graphics graphics) {
-        if (needsRowHeightCalculation) {
-            calculateRowHeight(graphics);
-            needsRowHeightCalculation = false;
-        }
-        super.paint(graphics);
-    }
-
     @Override
     public void setFont(Font font) {
-        needsRowHeightCalculation = true;
         super.setFont(font);
+        TableRowSizing.applyPreferredRowHeight(this, UIManager.getInt("Table.rowHeight"));
     }
 
     @Override

@@ -16,12 +16,12 @@
 
 package epox.swing;
 
+import epox.swing.layout.TableRowSizing;
 import java.awt.Font;
-import java.awt.FontMetrics;
-import java.awt.Graphics;
 import java.util.ArrayList;
 import java.util.List;
 import javax.swing.JTable;
+import javax.swing.UIManager;
 import javax.swing.table.AbstractTableModel;
 import javax.swing.table.TableColumn;
 import javax.swing.table.TableRowSorter;
@@ -32,9 +32,6 @@ import javax.swing.table.TableRowSorter;
 public class JTableSortable extends JTable {
     /** Header click listener for column visibility menu */
     private transient HeaderListener headerListener;
-
-    /** Flag to trigger row height recalculation on next paint */
-    private boolean needsRowHeightCalculation = true;
 
     public JTableSortable(AbstractTableModel model) {
         super(model);
@@ -58,27 +55,13 @@ public class JTableSortable extends JTable {
         setAutoCreateColumnsFromModel(false);
         installHeaderListener();
         restoreColumnState(snapshot);
-    }
-
-    private void calculateRowHeight(Graphics graphics) {
-        Font font = getFont();
-        FontMetrics fontMetrics = graphics.getFontMetrics(font);
-        setRowHeight(fontMetrics.getHeight() + 3);
-    }
-
-    @Override
-    public void paint(Graphics graphics) {
-        if (needsRowHeightCalculation) {
-            calculateRowHeight(graphics);
-            needsRowHeightCalculation = false;
-        }
-        super.paint(graphics);
+        TableRowSizing.applyPreferredRowHeight(this, UIManager.getInt("Table.rowHeight"));
     }
 
     @Override
     public void setFont(Font font) {
-        needsRowHeightCalculation = true;
         super.setFont(font);
+        TableRowSizing.applyPreferredRowHeight(this, UIManager.getInt("Table.rowHeight"));
     }
 
     public HeaderListener getHeaderListener() {
