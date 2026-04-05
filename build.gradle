@@ -62,7 +62,7 @@ dependencies {
 
 tasks.named('test', Test) {
 	useJUnitPlatform {
-		excludeTags 'ui'
+		excludeTags 'ui', 'benchmark'
 	}
 	systemProperty 'java.awt.headless', 'true'
 }
@@ -76,6 +76,17 @@ tasks.register('testUi', Test) {
 		includeTags 'ui'
 	}
 	systemProperty 'java.awt.headless', 'true'
+}
+
+tasks.register('benchmark', Test) {
+	group = 'verification'
+	description = 'Runs hash algorithm benchmarks.'
+	testClassesDirs = sourceSets.test.output.classesDirs
+	classpath = sourceSets.test.runtimeClasspath
+	useJUnitPlatform {
+		includeTags 'benchmark'
+	}
+	maxHeapSize = '512m'
 }
 
 tasks.register('generateVersionProperties') {

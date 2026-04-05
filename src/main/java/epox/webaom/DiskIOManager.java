@@ -17,6 +17,8 @@
 package epox.webaom;
 
 import epox.av.AVInfo;
+import epox.webaom.hash.Ed2kHash;
+import epox.webaom.hash.HashAlgorithm;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
@@ -33,8 +35,6 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.stream.Collectors;
 import javax.swing.SwingUtilities;
-import jonelo.jacksum.algorithm.AbstractChecksum;
-import jonelo.jacksum.algorithm.Edonkey;
 
 /**
  * Manages disk I/O operations including parallel file hashing, file moving, and AV parsing.
@@ -73,10 +73,10 @@ public class DiskIOManager implements Runnable {
 
     public static class ChecksumData {
         final String name;
-        final AbstractChecksum algorithm;
+        final HashAlgorithm algorithm;
         String hexValue;
 
-        public ChecksumData(String name, AbstractChecksum algorithm) {
+        public ChecksumData(String name, HashAlgorithm algorithm) {
             this.name = name;
             this.algorithm = algorithm;
         }
@@ -358,7 +358,7 @@ public class DiskIOManager implements Runnable {
         private void completeHashing(File file) {
             // Extract hash values from all algorithms
             for (ChecksumData data : checksums.values()) {
-                data.hexValue = data.algorithm.getHexValue();
+                data.hexValue = data.algorithm.hexValue();
             }
 
             // Store hash values in job
@@ -599,13 +599,7 @@ public class DiskIOManager implements Runnable {
     }
 
     private String computeFileChecksum(File file) throws IOException {
-        Edonkey edonkeyHash;
-        try {
-            edonkeyHash = new Edonkey();
-        } catch (java.security.NoSuchAlgorithmException e) {
-            e.printStackTrace();
-            return null;
-        }
+        Ed2kHash edonkeyHash = new Ed2kHash();
         int bytesRead;
         long totalBytesRead = 0;
         long fileLength = file.length();
@@ -622,7 +616,7 @@ public class DiskIOManager implements Runnable {
         if (progress < 1) {
             return null;
         }
-        return edonkeyHash.getHexValue();
+        return edonkeyHash.hexValue();
     }
 
     private void copySiblingFiles(File sourceFile, File destinationFile) {
