@@ -27,6 +27,10 @@ import java.nio.file.Paths;
  * data, and configuration directories based on the operating system and platform conventions.
  */
 public final class PlatformPaths {
+    private static final String DEV_MODE_PROPERTY = "webaom.dev";
+    private static final String DEV_MODE_ENV = "WEBAOM_DEV";
+    private static final String DEFAULT_APP_NAME = "webaom";
+    private static final String DEVELOPMENT_APP_NAME = "webaom-dev";
 
     private static final String OS_NAME = System.getProperty("os.name").toLowerCase();
     private static final String USER_HOME = System.getProperty("user.home");
@@ -35,8 +39,6 @@ public final class PlatformPaths {
     private static final boolean IS_MAC = OS_NAME.contains("mac");
     private static final boolean IS_WINDOWS = OS_NAME.contains("win");
     private static final boolean IS_LINUX = OS_NAME.contains("linux");
-
-    private static final String APP_NAME = Boolean.getBoolean("webaom.dev") ? "webaom-dev" : "webaom";
 
     private PlatformPaths() {}
 
@@ -50,23 +52,24 @@ public final class PlatformPaths {
      * @return the default log directory path
      */
     public static String getDefaultLogDirectory() {
+        String appName = getApplicationName();
         if (IS_MAC) {
-            return new File(USER_HOME, "Library/Logs/" + APP_NAME).getAbsolutePath();
+            return new File(USER_HOME, "Library/Logs/" + appName).getAbsolutePath();
         } else if (IS_WINDOWS) {
             String appData = System.getenv("APPDATA");
             if (appData != null && !appData.isEmpty()) {
-                return new File(appData, APP_NAME + "/logs").getAbsolutePath();
+                return new File(appData, appName + "/logs").getAbsolutePath();
             }
         } else if (IS_LINUX) {
             String xdgDataHome = System.getenv("XDG_DATA_HOME");
             if (xdgDataHome != null && !xdgDataHome.isEmpty()) {
-                return new File(xdgDataHome, APP_NAME + "/logs").getAbsolutePath();
+                return new File(xdgDataHome, appName + "/logs").getAbsolutePath();
             } else {
-                return new File(USER_HOME, ".local/share/" + APP_NAME + "/logs").getAbsolutePath();
+                return new File(USER_HOME, ".local/share/" + appName + "/logs").getAbsolutePath();
             }
         }
         // Fallback for unknown platforms
-        return new File(USER_HOME, "." + APP_NAME + "/logs").getAbsolutePath();
+        return new File(USER_HOME, "." + appName + "/logs").getAbsolutePath();
     }
 
     /**
@@ -75,7 +78,7 @@ public final class PlatformPaths {
      * @return the default log file path (directory + webaom.log)
      */
     public static String getDefaultLogFilePath() {
-        return new File(getDefaultLogDirectory(), APP_NAME + ".log").getAbsolutePath();
+        return new File(getDefaultLogDirectory(), getApplicationName() + ".log").getAbsolutePath();
     }
 
     /**
@@ -85,23 +88,24 @@ public final class PlatformPaths {
      * @return the default database directory path
      */
     public static String getDefaultDatabaseDirectory() {
+        String appName = getApplicationName();
         if (IS_MAC) {
-            return new File(USER_HOME, "Library/Application Support/" + APP_NAME + "/database").getAbsolutePath();
+            return new File(USER_HOME, "Library/Application Support/" + appName + "/database").getAbsolutePath();
         } else if (IS_WINDOWS) {
             String appData = System.getenv("APPDATA");
             if (appData != null && !appData.isEmpty()) {
-                return new File(appData, APP_NAME + "/database").getAbsolutePath();
+                return new File(appData, appName + "/database").getAbsolutePath();
             }
         } else if (IS_LINUX) {
             String xdgDataHome = System.getenv("XDG_DATA_HOME");
             if (xdgDataHome != null && !xdgDataHome.isEmpty()) {
-                return new File(xdgDataHome, APP_NAME + "/database").getAbsolutePath();
+                return new File(xdgDataHome, appName + "/database").getAbsolutePath();
             } else {
-                return new File(USER_HOME, ".local/share/" + APP_NAME + "/database").getAbsolutePath();
+                return new File(USER_HOME, ".local/share/" + appName + "/database").getAbsolutePath();
             }
         }
         // Fallback for unknown platforms
-        return new File(USER_HOME, "." + APP_NAME + "/database").getAbsolutePath();
+        return new File(USER_HOME, "." + appName + "/database").getAbsolutePath();
     }
 
     /**
@@ -110,7 +114,7 @@ public final class PlatformPaths {
      * @return the full path to the embedded SQLite database file (with .db extension)
      */
     public static String getDefaultEmbeddedDatabasePath() {
-        return new File(getDefaultDatabaseDirectory(), APP_NAME + ".db").getAbsolutePath();
+        return new File(getDefaultDatabaseDirectory(), getApplicationName() + ".db").getAbsolutePath();
     }
 
     /**
@@ -123,23 +127,39 @@ public final class PlatformPaths {
      * @return the configuration directory path
      */
     public static String getConfigDirectory() {
+        String appName = getApplicationName();
         if (IS_MAC) {
-            return new File(USER_HOME, "Library/Application Support/" + APP_NAME).getAbsolutePath();
+            return new File(USER_HOME, "Library/Application Support/" + appName).getAbsolutePath();
         } else if (IS_WINDOWS) {
             String appData = System.getenv("APPDATA");
             if (appData != null && !appData.isEmpty()) {
-                return new File(appData, APP_NAME).getAbsolutePath();
+                return new File(appData, appName).getAbsolutePath();
             }
         } else if (IS_LINUX) {
             String xdgConfigHome = System.getenv("XDG_CONFIG_HOME");
             if (xdgConfigHome != null && !xdgConfigHome.isEmpty()) {
-                return new File(xdgConfigHome, APP_NAME).getAbsolutePath();
+                return new File(xdgConfigHome, appName).getAbsolutePath();
             } else {
-                return new File(USER_HOME, ".config/" + APP_NAME).getAbsolutePath();
+                return new File(USER_HOME, ".config/" + appName).getAbsolutePath();
             }
         }
         // Fallback for unknown platforms
-        return new File(USER_HOME, "." + APP_NAME).getAbsolutePath();
+        return new File(USER_HOME, "." + appName).getAbsolutePath();
+    }
+
+    static String getApplicationName() {
+        return getApplicationName(System.getProperty(DEV_MODE_PROPERTY), System.getenv(DEV_MODE_ENV));
+    }
+
+    static String getApplicationName(String devProperty, String devEnv) {
+        return isDevelopmentMode(devProperty, devEnv) ? DEVELOPMENT_APP_NAME : DEFAULT_APP_NAME;
+    }
+
+    static boolean isDevelopmentMode(String devProperty, String devEnv) {
+        if (devProperty != null) {
+            return Boolean.parseBoolean(devProperty);
+        }
+        return devEnv != null && Boolean.parseBoolean(devEnv);
     }
 
     /**
