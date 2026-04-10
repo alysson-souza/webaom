@@ -44,7 +44,7 @@ public final class OsAppearanceMonitor {
     }
 
     private static ScheduledExecutorService executor;
-    private static Appearance lastKnown = Appearance.UNKNOWN;
+    private static volatile Appearance lastKnown = Appearance.UNKNOWN;
 
     private OsAppearanceMonitor() {
         // static only
@@ -109,10 +109,7 @@ public final class OsAppearanceMonitor {
     // exits with error (status != 0) in light mode.
     static Appearance detectMacOs() {
         String output = runCommand("defaults", "read", "-g", "AppleInterfaceStyle");
-        if (output == null) {
-            return Appearance.UNKNOWN;
-        }
-        return output.trim().equalsIgnoreCase("Dark") ? Appearance.DARK : Appearance.LIGHT;
+        return parseMacOsOutput(output);
     }
 
     // Windows: `reg query` for AppsUseLightTheme; value 0x0 means dark mode.
@@ -123,10 +120,7 @@ public final class OsAppearanceMonitor {
                 "HKCU\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Themes\\Personalize",
                 "/v",
                 "AppsUseLightTheme");
-        if (output == null) {
-            return Appearance.UNKNOWN;
-        }
-        return output.contains("0x0") ? Appearance.DARK : Appearance.LIGHT;
+        return parseWindowsOutput(output);
     }
 
     // Linux: Use freedesktop portal (works on GNOME, KDE, and other compliant desktops).
@@ -152,6 +146,20 @@ public final class OsAppearanceMonitor {
         return output.contains("uint32 1") ? Appearance.DARK : Appearance.LIGHT;
     }
 
+    static Appearance parseMacOsOutput(String output) {
+        if (output == null) {
+            return Appearance.UNKNOWN;
+        }
+        return output.trim().equalsIgnoreCase("Dark") ? Appearance.DARK : Appearance.LIGHT;
+    }
+
+    static Appearance parseWindowsOutput(String output) {
+        if (output == null) {
+            return Appearance.UNKNOWN;
+        }
+        return output.contains("0x0") ? Appearance.DARK : Appearance.LIGHT;
+    }
+
     /** Runs a command with a timeout. Returns null on any failure. */
     static String runCommand(String... command) {
         try {
@@ -167,6 +175,9 @@ public final class OsAppearanceMonitor {
                 boolean finished = process.waitFor(COMMAND_TIMEOUT_SECONDS, TimeUnit.SECONDS);
                 if (!finished) {
                     process.destroyForcibly();
+                    return null;
+                }
+                if (process.exitValue() != 0) {
                     return null;
                 }
                 return sb.toString();

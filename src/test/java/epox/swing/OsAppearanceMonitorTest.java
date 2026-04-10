@@ -18,44 +18,45 @@ package epox.swing;
 
 import static org.junit.jupiter.api.Assertions.*;
 
+import java.nio.file.Path;
 import org.junit.jupiter.api.Test;
 
 class OsAppearanceMonitorTest {
 
     @Test
     void detectMacOs_darkOutput_returnsDark() {
-        assertEquals(OsAppearanceMonitor.Appearance.DARK, parseMacOs("Dark\n"));
-        assertEquals(OsAppearanceMonitor.Appearance.DARK, parseMacOs("Dark"));
-        assertEquals(OsAppearanceMonitor.Appearance.DARK, parseMacOs("dark\n"));
+        assertEquals(OsAppearanceMonitor.Appearance.DARK, OsAppearanceMonitor.parseMacOsOutput("Dark\n"));
+        assertEquals(OsAppearanceMonitor.Appearance.DARK, OsAppearanceMonitor.parseMacOsOutput("Dark"));
+        assertEquals(OsAppearanceMonitor.Appearance.DARK, OsAppearanceMonitor.parseMacOsOutput("dark\n"));
     }
 
     @Test
     void detectMacOs_lightOutput_returnsLight() {
         // macOS `defaults read` returns empty/error for light mode; empty string → LIGHT
-        assertEquals(OsAppearanceMonitor.Appearance.LIGHT, parseMacOs(""));
-        assertEquals(OsAppearanceMonitor.Appearance.LIGHT, parseMacOs("Light\n"));
+        assertEquals(OsAppearanceMonitor.Appearance.LIGHT, OsAppearanceMonitor.parseMacOsOutput(""));
+        assertEquals(OsAppearanceMonitor.Appearance.LIGHT, OsAppearanceMonitor.parseMacOsOutput("Light\n"));
     }
 
     @Test
     void detectMacOs_nullOutput_returnsUnknown() {
-        assertEquals(OsAppearanceMonitor.Appearance.UNKNOWN, parseMacOs(null));
+        assertEquals(OsAppearanceMonitor.Appearance.UNKNOWN, OsAppearanceMonitor.parseMacOsOutput(null));
     }
 
     @Test
     void detectWindows_dark_returnsDark() {
         String output = "HKEY_CURRENT_USER\\...\\Personalize\n    AppsUseLightTheme    REG_DWORD    0x0\n";
-        assertEquals(OsAppearanceMonitor.Appearance.DARK, parseWindows(output));
+        assertEquals(OsAppearanceMonitor.Appearance.DARK, OsAppearanceMonitor.parseWindowsOutput(output));
     }
 
     @Test
     void detectWindows_light_returnsLight() {
         String output = "HKEY_CURRENT_USER\\...\\Personalize\n    AppsUseLightTheme    REG_DWORD    0x1\n";
-        assertEquals(OsAppearanceMonitor.Appearance.LIGHT, parseWindows(output));
+        assertEquals(OsAppearanceMonitor.Appearance.LIGHT, OsAppearanceMonitor.parseWindowsOutput(output));
     }
 
     @Test
     void detectWindows_nullOutput_returnsUnknown() {
-        assertEquals(OsAppearanceMonitor.Appearance.UNKNOWN, parseWindows(null));
+        assertEquals(OsAppearanceMonitor.Appearance.UNKNOWN, OsAppearanceMonitor.parseWindowsOutput(null));
     }
 
     @Test
@@ -79,16 +80,18 @@ class OsAppearanceMonitorTest {
                 OsAppearanceMonitor.parseLinuxPortal("   variant    variant       uint32 2\n"));
     }
 
-    // Helpers that simulate detection logic without running actual commands
-    private static OsAppearanceMonitor.Appearance parseMacOs(String output) {
-        if (output == null) return OsAppearanceMonitor.Appearance.UNKNOWN;
-        return output.trim().equalsIgnoreCase("Dark")
-                ? OsAppearanceMonitor.Appearance.DARK
-                : OsAppearanceMonitor.Appearance.LIGHT;
+    @Test
+    void runCommand_nonZeroExit_returnsNull() {
+        assertNull(OsAppearanceMonitor.runCommand(javaBinary(), "--definitely-invalid-option"));
     }
 
-    private static OsAppearanceMonitor.Appearance parseWindows(String output) {
-        if (output == null) return OsAppearanceMonitor.Appearance.UNKNOWN;
-        return output.contains("0x0") ? OsAppearanceMonitor.Appearance.DARK : OsAppearanceMonitor.Appearance.LIGHT;
+    @Test
+    void runCommand_zeroExit_returnsOutput() {
+        assertNotNull(OsAppearanceMonitor.runCommand(javaBinary(), "--version"));
+    }
+
+    private static String javaBinary() {
+        String executableName = System.getProperty("os.name", "").toLowerCase().contains("win") ? "java.exe" : "java";
+        return Path.of(System.getProperty("java.home"), "bin", executableName).toString();
     }
 }
