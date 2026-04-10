@@ -33,6 +33,7 @@ import java.awt.Font;
 import java.io.File;
 import java.io.InputStream;
 import java.util.Properties;
+import java.util.function.Supplier;
 import javax.swing.JOptionPane;
 import javax.swing.SwingUtilities;
 import javax.swing.UIManager;
@@ -159,22 +160,33 @@ public final class AppContext {
         // A.mem1 = A.getUsed();
         gui = new MainPanel();
 
-        // Migrate legacy template to XDG-compliant path if needed
-        PlatformPaths.migrateIfNeeded(PlatformPaths.getLegacyTemplateFilePath(), PlatformPaths.getTemplateFilePath());
-
-        // Load template: XDG path first, then legacy fallback, then bundled
-        fileSchemaTemplate = StringUtilities.fileToString(PlatformPaths.getTemplateFilePath());
-        if (fileSchemaTemplate == null) {
-            fileSchemaTemplate = StringUtilities.fileToString(PlatformPaths.getLegacyTemplateFilePath());
+        String legacyTemplatePath = getLegacyTemplatePath(IS_DEVELOPMENT);
+        if (legacyTemplatePath != null) {
+            PlatformPaths.migrateIfNeeded(legacyTemplatePath, PlatformPaths.getTemplateFilePath());
         }
-        if (fileSchemaTemplate == null) {
-            fileSchemaTemplate = AppContext.getFileString("file.htm");
-        }
+        fileSchemaTemplate = loadFileSchemaTemplate(
+                PlatformPaths.getTemplateFilePath(), legacyTemplatePath, () -> AppContext.getFileString("file.htm"));
 
         if (!font.isEmpty()) {
             setFont(font, true);
         }
         // A.mem2 = A.getUsed();
+    }
+
+    static String getLegacyTemplatePath(boolean isDevelopment) {
+        return isDevelopment ? null : PlatformPaths.getLegacyTemplateFilePath();
+    }
+
+    static String loadFileSchemaTemplate(
+            String templatePath, String legacyTemplatePath, Supplier<String> bundledTemplate) {
+        String template = StringUtilities.fileToString(templatePath);
+        if (template == null && legacyTemplatePath != null) {
+            template = StringUtilities.fileToString(legacyTemplatePath);
+        }
+        if (template == null) {
+            template = bundledTemplate.get();
+        }
+        return template;
     }
 
     public static AppMode getAppMode() {
