@@ -16,6 +16,7 @@
 
 package epox.webaom;
 
+import epox.swing.FlatLafTheme;
 import epox.webaom.util.PlatformPaths;
 import java.io.File;
 import java.io.IOException;
@@ -80,8 +81,9 @@ public class Options {
     public static final int STR_LOG_HEADER = 16;
     public static final int STR_JOB_COLUMNS = 17;
     public static final int STR_LAST_DIRECTORY = 18;
-    public static final int STR_THEME = 19;
-    public static final int STRING_OPTIONS_COUNT = 20;
+    public static final int STR_THEME_LIGHT = 19;
+    public static final int STR_THEME_DARK = 20;
+    public static final int STRING_OPTIONS_COUNT = 21;
     private static final String OPTIONS_VERSION = "001";
     /** Secondary separator character (ASCII STX) for section boundaries. */
     private static final String SECTION_SEPARATOR = "\2";
@@ -92,8 +94,10 @@ public class Options {
     public final boolean[] booleanOptions = new boolean[BOOLEAN_OPTIONS_COUNT];
 
     public Options() {
-        // Migrate legacy config to XDG-compliant path if needed
-        PlatformPaths.migrateIfNeeded(PlatformPaths.getLegacyConfigFilePath(), PlatformPaths.getConfigFilePath());
+        // Migrate legacy config to XDG-compliant path if needed (skip in dev mode)
+        if (!AppContext.IS_DEVELOPMENT) {
+            PlatformPaths.migrateIfNeeded(PlatformPaths.getLegacyConfigFilePath(), PlatformPaths.getConfigFilePath());
+        }
 
         optionsFile = new File(PlatformPaths.getConfigFilePath());
         // Default auto-rename to true to preserve existing behavior
@@ -185,6 +189,7 @@ public class Options {
             decodeBooleans(tokenizer.nextToken());
             decodeIntegers(tokenizer.nextToken());
             decodeStrings(tokenizer);
+            migrateThemeOptions();
             return true;
         }
         System.out.println("! Options file is outdated. Could not load.");
@@ -264,6 +269,36 @@ public class Options {
                 tokenValue = null;
             }
             stringOptions[index] = (tokenValue == null || tokenValue.equals("null")) ? "" : tokenValue;
+        }
+    }
+
+    /**
+     * Migrates old single-theme config (STR_THEME_LIGHT only) to dual light/dark slots.
+     * If STR_THEME_DARK is empty, the old theme in STR_THEME_LIGHT is classified as light or dark
+     * using the raw stored string (before platform normalization) and placed in the correct slot.
+     */
+    void migrateThemeOptions() {
+        String darkSlot = stringOptions[STR_THEME_DARK];
+        if (darkSlot != null && !darkSlot.isEmpty()) {
+            return; // already migrated
+        }
+
+        String oldTheme = stringOptions[STR_THEME_LIGHT];
+        if (oldTheme == null || oldTheme.isEmpty()) {
+            // No theme stored at all — use defaults
+            stringOptions[STR_THEME_LIGHT] = FlatLafTheme.getDefaultLightTheme().getOptionValue();
+            stringOptions[STR_THEME_DARK] = FlatLafTheme.getDefaultDarkTheme().getOptionValue();
+            return;
+        }
+
+        // Classify the old theme using the raw string to avoid platform normalization
+        FlatLafTheme oldResolved = FlatLafTheme.fromOptionValueRaw(oldTheme);
+        if (oldResolved != null && oldResolved.isDark()) {
+            stringOptions[STR_THEME_DARK] = oldTheme;
+            stringOptions[STR_THEME_LIGHT] = FlatLafTheme.getDefaultLightTheme().getOptionValue();
+        } else {
+            // Light theme or unrecognized — keep in light slot, assign default dark
+            stringOptions[STR_THEME_DARK] = FlatLafTheme.getDefaultDarkTheme().getOptionValue();
         }
     }
 }

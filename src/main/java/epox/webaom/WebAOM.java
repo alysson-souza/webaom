@@ -18,6 +18,7 @@ package epox.webaom;
 
 import epox.swing.FlatLafSupport;
 import epox.swing.FlatLafTheme;
+import epox.swing.OsAppearanceMonitor;
 import epox.swing.UiTuning;
 import epox.swing.layout.DisplayEnvironment;
 import epox.swing.layout.UsableScreenBounds;
@@ -57,6 +58,11 @@ public class WebAOM {
     private static void configureRendering() {
         String osName = System.getProperty("os.name", "").toLowerCase();
         boolean isLinux = osName.contains("linux");
+        boolean isMacOS = osName.contains("mac");
+
+        if (isMacOS) {
+            configureMacOsAppearance();
+        }
 
         if (isLinux) {
             configureLinuxScaling();
@@ -75,6 +81,14 @@ public class WebAOM {
         if (isLinux) {
             JFrame.setDefaultLookAndFeelDecorated(true);
             JDialog.setDefaultLookAndFeelDecorated(true);
+        }
+    }
+
+    // Window title bars follow the macOS system appearance (light/dark).
+    // Must be called on the main thread before AWT/Swing initialization.
+    private static void configureMacOsAppearance() {
+        if (System.getProperty("apple.awt.application.appearance") == null) {
+            System.setProperty("apple.awt.application.appearance", "system");
         }
     }
 
@@ -147,21 +161,40 @@ public class WebAOM {
         frame.addWindowListener(new java.awt.event.WindowAdapter() {
             @Override
             public void windowClosing(java.awt.event.WindowEvent event) {
+                OsAppearanceMonitor.stop();
                 if (AppContext.shutdown(true)) {
                     System.exit(0);
                 }
             }
         });
+        startOsAppearanceMonitor();
         AppContext.gui.startup();
+    }
+
+    private static void startOsAppearanceMonitor() {
+        OsAppearanceMonitor.start(dark -> {
+            if (AppContext.gui != null && AppContext.gui.miscOptionsPanel != null) {
+                AppContext.gui.miscOptionsPanel.getThemeComboBox().onOsAppearanceChanged(dark);
+            }
+        });
     }
 
     private static FlatLafTheme loadStartupTheme() {
         Options startupOptions = new Options();
         if (!startupOptions.loadFromFile()) {
-            return FlatLafTheme.getDefaultTheme();
+            return OsAppearanceMonitor.isOsDarkMode()
+                    ? FlatLafTheme.getDefaultDarkTheme()
+                    : FlatLafTheme.getDefaultLightTheme();
         }
 
-        return FlatLafTheme.fromOptionValue(startupOptions.getString(Options.STR_THEME));
+        boolean osDark = OsAppearanceMonitor.isOsDarkMode();
+        String themeValue = osDark
+                ? startupOptions.getString(Options.STR_THEME_DARK)
+                : startupOptions.getString(Options.STR_THEME_LIGHT);
+        if (themeValue == null || themeValue.isBlank()) {
+            return osDark ? FlatLafTheme.getDefaultDarkTheme() : FlatLafTheme.getDefaultLightTheme();
+        }
+        return FlatLafTheme.fromOptionValue(themeValue);
     }
 
     static void setGlobalFont(Font primaryFont, Font tableFont) {

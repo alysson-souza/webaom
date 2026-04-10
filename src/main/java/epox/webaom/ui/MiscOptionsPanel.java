@@ -17,7 +17,7 @@
 package epox.webaom.ui;
 
 import epox.swing.FlatLafTheme;
-import epox.swing.JComboBoxLF;
+import epox.swing.ThemeComboBox;
 import epox.webaom.AppContext;
 import epox.webaom.DiskIOManager;
 import epox.webaom.Options;
@@ -59,7 +59,7 @@ public class MiscOptionsPanel extends JPanel {
     public final JTextField databaseUrlField;
     public final JButton disconnectButton;
     public final JTextField logFilePathField;
-    private final JComboBoxLF themeComboBox;
+    private final ThemeComboBox themeComboBox;
 
     public MiscOptionsPanel() {
         super(new GridBagLayout());
@@ -71,7 +71,7 @@ public class MiscOptionsPanel extends JPanel {
         disconnectButton.setToolTipText("Disconnect from database");
         disconnectButton.setEnabled(false);
         logFilePathField = new JTextField();
-        themeComboBox = new JComboBoxLF(AppContext.component);
+        themeComboBox = new ThemeComboBox(AppContext.component);
 
         hashDirectoriesField.setToolTipText("Check these directories for new files every now and then");
         browserPathField.setToolTipText("Absolute path to preferred browser");
@@ -214,7 +214,8 @@ public class MiscOptionsPanel extends JPanel {
         options.setString(Options.STR_BROWSER, browserPathField.getText());
         options.setString(Options.STR_DATABASE_URL, databaseUrlField.getText());
         options.setString(Options.STR_LOG_FILE, logFilePathField.getText());
-        options.setString(Options.STR_THEME, themeComboBox.getSelectedTheme().getOptionValue());
+        options.setString(Options.STR_THEME_LIGHT, themeComboBox.getLightTheme().getOptionValue());
+        options.setString(Options.STR_THEME_DARK, themeComboBox.getDarkTheme().getOptionValue());
     }
 
     public void loadFromOptions(Options options) {
@@ -232,7 +233,20 @@ public class MiscOptionsPanel extends JPanel {
         browserPathField.setText(options.getString(Options.STR_BROWSER));
         databaseUrlField.setText(options.getString(Options.STR_DATABASE_URL));
         logFilePathField.setText(options.getString(Options.STR_LOG_FILE));
-        themeComboBox.setSelectedTheme(FlatLafTheme.fromOptionValue(options.getString(Options.STR_THEME)));
+        themeComboBox.setLightTheme(resolveThemeOrNull(options.getString(Options.STR_THEME_LIGHT)));
+        themeComboBox.setDarkTheme(resolveThemeOrNull(options.getString(Options.STR_THEME_DARK)));
+    }
+
+    /** Returns null for blank values so setLightTheme/setDarkTheme apply their own defaults. */
+    private static FlatLafTheme resolveThemeOrNull(String value) {
+        if (value == null || value.isBlank()) {
+            return null;
+        }
+        return FlatLafTheme.fromOptionValue(value);
+    }
+
+    public ThemeComboBox getThemeComboBox() {
+        return themeComboBox;
     }
 
     public LinkedHashMap<String, DiskIOManager.ChecksumData> getChecksums() {

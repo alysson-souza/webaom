@@ -36,7 +36,7 @@ public final class PlatformPaths {
     private static final boolean IS_WINDOWS = OS_NAME.contains("win");
     private static final boolean IS_LINUX = OS_NAME.contains("linux");
 
-    private static final String APP_NAME = "webaom";
+    private static final String APP_NAME = Boolean.getBoolean("webaom.dev") ? "webaom-dev" : "webaom";
 
     private PlatformPaths() {}
 
