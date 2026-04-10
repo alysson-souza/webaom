@@ -16,6 +16,7 @@
 
 package epox.swing;
 
+import com.formdev.flatlaf.util.SystemInfo;
 import java.awt.Component;
 import java.awt.Font;
 import java.util.ArrayList;
@@ -52,17 +53,23 @@ public class ThemeComboBox extends JComboBox<Object> {
 
     private final Component rootComponent;
     private final BooleanSupplier osDarkModeSupplier;
+    private final boolean nativePopupCheckmarkSupported;
     private FlatLafTheme lightTheme;
     private FlatLafTheme darkTheme;
     private boolean suppressApply;
 
     public ThemeComboBox(Component rootComponent) {
-        this(rootComponent, OsAppearanceMonitor::isOsDarkMode);
+        this(rootComponent, OsAppearanceMonitor::isOsDarkMode, SystemInfo.isMacOS);
     }
 
     ThemeComboBox(Component rootComponent, BooleanSupplier osDarkModeSupplier) {
+        this(rootComponent, osDarkModeSupplier, SystemInfo.isMacOS);
+    }
+
+    ThemeComboBox(Component rootComponent, BooleanSupplier osDarkModeSupplier, boolean nativePopupCheckmarkSupported) {
         this.rootComponent = rootComponent;
         this.osDarkModeSupplier = osDarkModeSupplier;
+        this.nativePopupCheckmarkSupported = nativePopupCheckmarkSupported;
         this.lightTheme = FlatLafTheme.getDefaultLightTheme();
         this.darkTheme = FlatLafTheme.getDefaultDarkTheme();
 
@@ -198,7 +205,8 @@ public class ThemeComboBox extends JComboBox<Object> {
             if (value instanceof ThemeEntry entry) {
                 FlatLafTheme chosen = entry.darkSection() ? darkTheme : lightTheme;
                 boolean isChosen = entry.theme() == chosen;
-                boolean usesNativePopupCheckmark = index == ThemeComboBox.this.getSelectedIndex();
+                boolean usesNativePopupCheckmark =
+                        nativePopupCheckmarkSupported && index == ThemeComboBox.this.getSelectedIndex();
                 label.setText((isChosen && !usesNativePopupCheckmark ? "\u2713 " : "   ") + entry.theme());
             }
 

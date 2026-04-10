@@ -82,7 +82,7 @@ class ThemeComboBoxTest {
     @Test
     void renderer_comboSelectedEntry_omitsManualCheckmarkEvenWhenNotHovered() throws Exception {
         SwingUtilities.invokeAndWait(() -> {
-            ThemeComboBox comboBox = new ThemeComboBox(null, () -> true);
+            ThemeComboBox comboBox = new ThemeComboBox(null, () -> true, true);
             comboBox.setDarkTheme(FlatLafTheme.INTELLIJ);
 
             EntryLocation entry = findEntry(comboBox, FlatLafTheme.INTELLIJ, true);
@@ -90,6 +90,19 @@ class ThemeComboBoxTest {
 
             assertFalse(label.getText().startsWith("\u2713 "));
             assertEquals("   " + FlatLafTheme.INTELLIJ, label.getText());
+        });
+    }
+
+    @Test
+    void renderer_selectedEntryWithoutNativeSupport_keepsManualCheckmark() throws Exception {
+        SwingUtilities.invokeAndWait(() -> {
+            ThemeComboBox comboBox = new ThemeComboBox(null, () -> true, false);
+            comboBox.setDarkTheme(FlatLafTheme.INTELLIJ);
+
+            EntryLocation entry = findEntry(comboBox, FlatLafTheme.INTELLIJ, true);
+            JLabel label = renderEntry(comboBox, entry, false);
+
+            assertEquals("\u2713 " + FlatLafTheme.INTELLIJ, label.getText());
         });
     }
 
