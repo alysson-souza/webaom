@@ -16,8 +16,11 @@
 
 package epox.webaom.ui.shortcuts;
 
+import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import java.awt.event.InputEvent;
+import java.awt.event.KeyEvent;
 import org.junit.jupiter.api.Test;
 
 class ShortcutRegistryTest {
@@ -28,5 +31,43 @@ class ShortcutRegistryTest {
         String helpText = registry.generateHelpText();
 
         assertTrue(helpText.contains("Delete/BackSpace - Remove selected entries from the current tab"));
+    }
+
+    @Test
+    void generateHelpText_explicitlyShowsShiftModifiedCharacterShortcuts() {
+        ShortcutRegistry registry = new ShortcutRegistry();
+        registry.register(new TestShortcut('A', 0, ShortcutCategory.GLOBAL, "Open anime URL", 0));
+        registry.register(new TestShortcut('?', 0, ShortcutCategory.GLOBAL, "Show keyboard shortcuts help", 0));
+
+        String helpText = registry.generateHelpText();
+
+        assertAll(
+                () -> assertTrue(helpText.contains("Shift+A  - Open anime URL")),
+                () -> assertTrue(helpText.contains("Shift+?  - Show keyboard shortcuts help")));
+    }
+
+    @Test
+    void generateHelpText_explicitlyShowsDeclaredCtrlModifiers() {
+        ShortcutRegistry registry = new ShortcutRegistry();
+        registry.register(new TestShortcut(
+                '\0', KeyEvent.VK_R, ShortcutCategory.GLOBAL, "Refresh alternate view", InputEvent.CTRL_DOWN_MASK));
+
+        String helpText = registry.generateHelpText();
+
+        assertTrue(helpText.contains("Ctrl+R  - Refresh alternate view"));
+    }
+
+    private record TestShortcut(
+            char keyChar, int keyCode, ShortcutCategory category, String description, int displayModifiers)
+            implements ShortcutInfo {
+        @Override
+        public ShortcutHandler handler() {
+            return (event, source) -> true;
+        }
+
+        @Override
+        public int displayModifiers() {
+            return displayModifiers != 0 ? displayModifiers : ShortcutInfo.super.displayModifiers();
+        }
     }
 }

@@ -15,6 +15,7 @@ to time. Do at least check the changelog for relevant info before using it.
 *Jobs and Log tabs are now easier to read in dark themes.
 *Removed an old hidden log appearance customization that was no longer useful.
 *Keyboard shortcuts help no longer shows duplicate entries.
+*Keyboard shortcuts help now clearly tells you when Shift, Ctrl, Cmd, or Option is needed.
 *Pressing Esc now closes dialogs and file info windows more consistently.
 *Alt view keyboard navigation now keeps the current item selected when expanding or collapsing nodes.
 

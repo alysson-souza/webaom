@@ -16,6 +16,7 @@
 
 package epox.webaom.ui.shortcuts;
 
+import java.awt.event.InputEvent;
 import java.awt.event.KeyEvent;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
@@ -106,6 +107,15 @@ public class ShortcutRegistry {
 
     private static String formatKey(ShortcutInfo info) {
         boolean isMac = System.getProperty("os.name").toLowerCase().contains("mac");
+        String baseKey = formatBaseKey(info, isMac);
+        if (baseKey.equals("F5/Cmd+R")) {
+            return baseKey;
+        }
+        String modifiers = formatModifiers(info.displayModifiers(), isMac);
+        return modifiers + baseKey;
+    }
+
+    private static String formatBaseKey(ShortcutInfo info, boolean isMac) {
         if (info.keyChar() != '\0') {
             return String.valueOf(info.keyChar());
         } else if (info.keyCode() != 0) {
@@ -121,5 +131,26 @@ public class ShortcutRegistry {
             };
         }
         return "?";
+    }
+
+    private static String formatModifiers(int modifiers, boolean isMac) {
+        if (modifiers == 0) {
+            return "";
+        }
+
+        List<String> parts = new ArrayList<>();
+        if ((modifiers & InputEvent.CTRL_DOWN_MASK) != 0) {
+            parts.add("Ctrl");
+        }
+        if ((modifiers & InputEvent.META_DOWN_MASK) != 0) {
+            parts.add(isMac ? "Cmd" : "Meta");
+        }
+        if ((modifiers & InputEvent.ALT_DOWN_MASK) != 0) {
+            parts.add(isMac ? "Option" : "Alt");
+        }
+        if ((modifiers & InputEvent.SHIFT_DOWN_MASK) != 0) {
+            parts.add("Shift");
+        }
+        return String.join("+", parts) + "+";
     }
 }

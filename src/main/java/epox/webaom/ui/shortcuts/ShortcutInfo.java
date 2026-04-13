@@ -16,6 +16,8 @@
 
 package epox.webaom.ui.shortcuts;
 
+import java.awt.event.InputEvent;
+
 public interface ShortcutInfo {
     char keyChar();
 
@@ -26,4 +28,15 @@ public interface ShortcutInfo {
     String description();
 
     ShortcutHandler handler();
+
+    default int displayModifiers() {
+        if (keyChar() != '\0' && requiresShiftModifier(keyChar())) {
+            return InputEvent.SHIFT_DOWN_MASK;
+        }
+        return 0;
+    }
+
+    private static boolean requiresShiftModifier(char keyChar) {
+        return Character.isUpperCase(keyChar) || "~!@#$%^&*()_+{}|:\"<>?".indexOf(keyChar) >= 0;
+    }
 }
