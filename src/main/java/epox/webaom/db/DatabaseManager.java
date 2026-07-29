@@ -266,7 +266,7 @@ public abstract class DatabaseManager {
             ResultSet rs = query("select state from mylist where lid=0", true);
             if (rs != null && rs.next()) {
                 log("Detected legacy database schema (mylist table) - too old to migrate");
-                unsupportedLegacySchemaDetected = true;
+                markUnsupportedLegacySchema();
                 rs.close();
                 return false;
             }
@@ -325,6 +325,15 @@ public abstract class DatabaseManager {
             return false;
         }
         return true;
+    }
+
+    /**
+     * Records that the schema predates the migration chain entirely. Subclasses that override
+     * {@link #updateSchema()} must call this from their own ancient-schema branch, or callers cannot tell
+     * an unmigratable database apart from a generic open failure.
+     */
+    protected void markUnsupportedLegacySchema() {
+        unsupportedLegacySchemaDetected = true;
     }
 
     protected boolean confirmLegacySchemaUpgrade() {

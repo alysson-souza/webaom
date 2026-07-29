@@ -156,6 +156,20 @@ class DatabaseManagerMigrationConfigTest {
     }
 
     @Test
+    void mysqlUpdateSchema_ancientMylistSchemaIsReportedAsUnmigratable() {
+        // MySQL overrides updateSchema, so it has its own copy of the ancient-schema check. If that copy
+        // does not record the flag, callers fall back to a generic "could not open" message instead of
+        // explaining that the database predates the migration chain.
+        SchemaAwareMySQLDatabaseManager manager = new SchemaAwareMySQLDatabaseManager();
+        manager.queueQueryResult(resultSetWithSingleIntRow(1));
+
+        assertFalse(manager.runUpdateSchema());
+        assertTrue(manager.hasUnsupportedLegacySchema());
+        assertFalse(manager.isLegacySchemaUpgradeDeclined());
+        assertTrue(manager.executedBatches.isEmpty());
+    }
+
+    @Test
     void futureSchemaWarningMessage_matchesSimpleUserFacingCopy() {
         String message = DatabaseManager.buildFutureSchemaWarningMessage(8, 7);
 

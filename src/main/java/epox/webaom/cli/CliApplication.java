@@ -167,23 +167,30 @@ public final class CliApplication implements AutoCloseable {
      * is only ever sought (and only ever takes effect) for the pre-v4 legacy-schema case: a database that is
      * too old to migrate, or from a newer WebAOM version, is refused unconditionally regardless of consent.
      */
-    public boolean upgradeDatabase(CliOutput output, boolean assumeYes) {
+    public boolean upgradeDatabase(CliOutput output, boolean assumeYes) throws CliException {
         String connectionString = resolveConnectionString(options);
         if (!isSupportedDatabaseUrl(connectionString)) {
-            output.printText("Unsupported database type in WebAOM configuration.");
-            return false;
+            throw new CliException("Unsupported database type in WebAOM configuration.", 2);
         }
         DatabaseManager manager = DatabaseManagerFactory.create(connectionString);
         manager.setLoadAllJobs(false);
         manager.setLegacySchemaUpgradeConfirmationSource(() -> confirmUpgrade(output, assumeYes));
         if (!manager.initialize(connectionString)) {
-            String detail = manager.isLegacySchemaUpgradeDeclined()
+            boolean declined = manager.isLegacySchemaUpgradeDeclined();
+            String detail = declined
                     ? "Database schema upgrade was not confirmed; nothing was changed."
                     : databaseFailureDetail(manager);
             manager.shutdown();
-            output.printText(detail);
+            if (!declined) {
+                // Configuration or environment problem: same exit code the other commands use.
+                throw new CliException(detail, 2);
+            }
+            output.error(detail);
             return false;
         }
+        // Drop the consent callback before publishing the manager: nothing else should be able to
+        // reach an --yes supplier that answers "upgrade" without the user being asked.
+        manager.setLegacySchemaUpgradeConfirmationSource(null);
         manager.setDebug(false);
         AppContext.databaseManager = manager;
         output.printText("Database schema is up to date.");
@@ -191,15 +198,17 @@ public final class CliApplication implements AutoCloseable {
     }
 
     private static boolean confirmUpgrade(CliOutput output, boolean assumeYes) {
-        output.printText("The database schema must be upgraded. Back up the database now if you have not "
+        // Consent narration belongs on stderr: it precedes an interactive prompt and must not be
+        // captured as command output.
+        output.notice("The database schema must be upgraded. Back up the database now if you have not "
                 + "already: this will make it incompatible with older WebAOM versions.");
         if (assumeYes) {
-            output.printText("Proceeding because --yes was given.");
+            output.notice("Proceeding because --yes was given.");
             return true;
         }
         Console console = System.console();
         if (console == null) {
-            output.printText("Re-run with --yes to confirm without an interactive prompt.");
+            output.notice("Re-run with --yes to confirm without an interactive prompt.");
             return false;
         }
         String answer = console.readLine("Continue with the upgrade? [y/N]: ");

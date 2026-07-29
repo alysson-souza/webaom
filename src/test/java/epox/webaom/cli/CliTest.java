@@ -356,9 +356,13 @@ class CliTest {
 
         Invocation invocation = invoke("db", "upgrade", "--config", config.toString());
 
+        // Declining is the user's choice, not a configuration fault: exit 1, and every word of it on
+        // stderr so `db upgrade > file` cannot swallow the reason.
         assertEquals(1, invocation.exitCode());
-        assertTrue(invocation.out().contains("must be upgraded"));
-        assertTrue(invocation.out().contains("--yes"));
+        assertTrue(invocation.err().contains("must be upgraded"));
+        assertTrue(invocation.err().contains("--yes"));
+        assertTrue(invocation.err().contains("nothing was changed"));
+        assertTrue(invocation.out().isEmpty());
         assertEquals(3, schemaVersion(dbPath));
     }
 
@@ -374,7 +378,7 @@ class CliTest {
         Invocation upgrade = invoke("db", "upgrade", "--yes", "--config", config.toString());
 
         assertEquals(0, upgrade.exitCode());
-        assertTrue(upgrade.out().contains("--yes"));
+        assertTrue(upgrade.err().contains("--yes"));
         assertTrue(upgrade.out().contains("up to date"));
         assertEquals(7, schemaVersion(dbPath));
 
@@ -393,7 +397,7 @@ class CliTest {
         Invocation invocation = invoke("db", "upgrade", "--config", config.toString());
 
         assertEquals(0, invocation.exitCode());
-        assertFalse(invocation.out().contains("must be upgraded"));
+        assertFalse(invocation.err().contains("must be upgraded"));
         assertTrue(invocation.out().contains("up to date"));
         assertEquals(7, schemaVersion(dbPath));
     }
@@ -413,8 +417,11 @@ class CliTest {
 
         Invocation invocation = invoke("db", "upgrade", "--yes", "--config", config.toString());
 
-        assertEquals(1, invocation.exitCode());
-        assertTrue(invocation.out().contains("predates WebAOM's migrations and cannot be upgraded"));
+        // A database that cannot be migrated at all is an environment fault, not a declined prompt:
+        // exit 2, matching what every other command returns for an unusable database.
+        assertEquals(2, invocation.exitCode());
+        assertTrue(invocation.err().contains("predates WebAOM's migrations and cannot be upgraded"));
+        assertTrue(invocation.out().isEmpty());
     }
 
     @Test
@@ -432,8 +439,25 @@ class CliTest {
 
         Invocation invocation = invoke("db", "upgrade", "--yes", "--config", config.toString());
 
-        assertEquals(1, invocation.exitCode());
-        assertTrue(invocation.out().contains("newer WebAOM version"));
+        assertEquals(2, invocation.exitCode());
+        assertTrue(invocation.err().contains("newer WebAOM version"));
+        assertTrue(invocation.out().isEmpty());
+    }
+
+    @Test
+    void dbUpgradeReportsAnUnsupportedDatabaseUrlLikeEveryOtherCommand() {
+        Path config = temporaryDirectory.resolve("db-upgrade-unsupported-config");
+        Options options = new Options(config);
+        options.setString(Options.STR_DATABASE_URL, "jdbc:oracle:thin:alice/secret@db.example:1521/webaom");
+        assertTrue(options.saveToFileUnchecked());
+
+        Invocation invocation = invoke("db", "upgrade", "--yes", "--config", config.toString());
+
+        assertEquals(2, invocation.exitCode());
+        assertTrue(invocation.err().contains("Unsupported database type"));
+        assertFalse(invocation.err().contains("alice"));
+        assertFalse(invocation.err().contains("secret"));
+        assertTrue(invocation.out().isEmpty());
     }
 
     private static int schemaVersion(Path dbPath) throws Exception {

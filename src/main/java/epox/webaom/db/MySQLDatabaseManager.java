@@ -92,6 +92,7 @@ public class MySQLDatabaseManager extends DatabaseManager {
             ResultSet rs = query("select state from mylist where lid=0", true);
             if (rs != null && rs.next()) {
                 log("Detected legacy database schema (mylist table) - too old to migrate");
+                markUnsupportedLegacySchema();
                 rs.close();
                 return false;
             }

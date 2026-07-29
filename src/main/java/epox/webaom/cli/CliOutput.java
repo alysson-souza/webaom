@@ -57,6 +57,16 @@ public final class CliOutput {
         err.flush();
     }
 
+    /**
+     * Writes an unprefixed message to stderr, for narration that is neither an error nor part of the
+     * command's output. Unlike {@link #progress(String)} this is never suppressed, so it can carry
+     * text the user must read before answering a prompt.
+     */
+    public void notice(String message) {
+        err.println(message);
+        err.flush();
+    }
+
     public void printResults(List<CliFileResult> results, boolean renamePreview) {
         switch (format) {
             case TABLE -> printTable(results, renamePreview);
