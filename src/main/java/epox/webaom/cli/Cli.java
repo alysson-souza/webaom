@@ -60,7 +60,8 @@ import picocli.CommandLine.Spec;
             Cli.RulesCommand.class,
             Cli.ConfigCommand.class,
             Cli.LoginCommand.class,
-            Cli.DoctorCommand.class
+            Cli.DoctorCommand.class,
+            Cli.DbCommand.class
         })
 public final class Cli implements Callable<Integer> {
     @Spec
@@ -701,6 +702,40 @@ public final class Cli implements Callable<Integer> {
             CliOutput output = root.output(spec);
             try (CliApplication application = root.open(false)) {
                 return application.doctor(output) ? 0 : 1;
+            }
+        }
+    }
+
+    @Command(
+            name = "db",
+            description = "Manage the WebAOM database.",
+            mixinStandardHelpOptions = true,
+            subcommands = {DbUpgradeCommand.class})
+    static final class DbCommand implements Callable<Integer> {
+        @Spec
+        private CommandSpec spec;
+
+        @Override
+        public Integer call() {
+            spec.commandLine().usage(spec.commandLine().getOut());
+            return 0;
+        }
+    }
+
+    @Command(
+            name = "upgrade",
+            description = "Upgrade the database schema, with explicit consent.",
+            mixinStandardHelpOptions = true)
+    static final class DbUpgradeCommand extends SimpleCommand {
+        @Option(names = "--yes", description = "Confirm the upgrade without an interactive prompt.")
+        private boolean yes;
+
+        @Override
+        public Integer call() throws Exception {
+            Cli root = root();
+            CliOutput output = root.output(spec);
+            try (CliApplication application = root.open(false)) {
+                return application.upgradeDatabase(output, yes) ? 0 : 1;
             }
         }
     }

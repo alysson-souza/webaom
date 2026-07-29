@@ -33,6 +33,7 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.function.BooleanSupplier;
 
 /**
  * Abstract base class for database operations. Subclasses implement database-specific behavior.
@@ -80,6 +81,7 @@ public abstract class DatabaseManager {
     private boolean unsupportedFutureSchemaDetected = false;
     private boolean unsupportedLegacySchemaDetected = false;
     private boolean legacySchemaUpgradeDeclined = false;
+    private BooleanSupplier legacySchemaUpgradeConfirmationSource;
 
     // ========== Debug control ==========
 
@@ -97,6 +99,15 @@ public abstract class DatabaseManager {
 
     public boolean isLoadAllJobs() {
         return loadAllJobs;
+    }
+
+    /**
+     * Overrides how {@link #confirmLegacySchemaUpgrade()} obtains consent for a legacy schema upgrade. The
+     * CLI's {@code db upgrade} command uses this to grant explicit, one-time consent without touching the
+     * desktop confirmation dialog, which keeps using {@link AppContext#confirm} when this is left unset.
+     */
+    public void setLegacySchemaUpgradeConfirmationSource(BooleanSupplier confirmationSource) {
+        this.legacySchemaUpgradeConfirmationSource = confirmationSource;
     }
 
     // ========== Abstract methods for database-specific behavior ==========
@@ -317,6 +328,9 @@ public abstract class DatabaseManager {
     }
 
     protected boolean confirmLegacySchemaUpgrade() {
+        if (legacySchemaUpgradeConfirmationSource != null) {
+            return legacySchemaUpgradeConfirmationSource.getAsBoolean();
+        }
         return AppContext.confirm("Warning", """
             The database definition has to be upgraded.
             This will make it incompatible with previous versions of WebAOM.

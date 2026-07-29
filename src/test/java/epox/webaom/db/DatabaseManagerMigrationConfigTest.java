@@ -102,6 +102,47 @@ class DatabaseManagerMigrationConfigTest {
     }
 
     @Test
+    void legacySchemaValidation_acceptsUpgradeWhenConfirmationSourceGrantsConsent() {
+        java.awt.Component previous = AppContext.component;
+        AppContext.component = null;
+        try {
+            GuardAwareMySQLDatabaseManager manager = new GuardAwareMySQLDatabaseManager();
+            manager.setLegacySchemaUpgradeConfirmationSource(() -> true);
+
+            assertTrue(manager.validateSchemaVersion(3));
+            assertFalse(manager.isLegacySchemaUpgradeDeclined());
+        } finally {
+            AppContext.component = previous;
+        }
+    }
+
+    @Test
+    void legacySchemaValidation_stillDeclinesWhenConfirmationSourceRefusesConsent() {
+        java.awt.Component previous = AppContext.component;
+        AppContext.component = null;
+        try {
+            GuardAwareMySQLDatabaseManager manager = new GuardAwareMySQLDatabaseManager();
+            manager.setLegacySchemaUpgradeConfirmationSource(() -> false);
+
+            assertFalse(manager.validateSchemaVersion(3));
+            assertTrue(manager.isLegacySchemaUpgradeDeclined());
+        } finally {
+            AppContext.component = previous;
+        }
+    }
+
+    @Test
+    void legacySchemaValidation_confirmationSourceIsIgnoredForFutureSchema() {
+        GuardAwareMySQLDatabaseManager manager = new GuardAwareMySQLDatabaseManager();
+        manager.setLegacySchemaUpgradeConfirmationSource(() -> {
+            throw new AssertionError("Consent should never be sought for a future schema version");
+        });
+
+        assertFalse(manager.validateSchemaVersion(8));
+        assertTrue(manager.hasUnsupportedFutureSchema());
+    }
+
+    @Test
     void mysqlUpdateSchema_migratesOlderVersionWithoutWarning() {
         SchemaAwareMySQLDatabaseManager manager = new SchemaAwareMySQLDatabaseManager();
         manager.queueQueryResult(null);

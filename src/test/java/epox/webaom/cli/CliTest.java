@@ -31,6 +31,10 @@ import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.ResultSet;
+import java.sql.Statement;
 import java.util.List;
 import java.util.Set;
 import org.junit.jupiter.api.Test;
@@ -323,6 +327,162 @@ class CliTest {
         assertFalse(invocation.out().contains("secret"));
         assertFalse(invocation.err().contains("alice"));
         assertFalse(invocation.err().contains("secret"));
+    }
+
+    @Test
+    void identifyRefusesUndeclinedLegacyDatabaseAndPointsToDbUpgrade() throws Exception {
+        Path config = temporaryDirectory.resolve("legacy-database-config");
+        Path dbPath = temporaryDirectory.resolve("legacy.sqlite");
+        createPreV4Database(dbPath);
+        Options options = new Options(config);
+        options.setString(Options.STR_DATABASE_URL, "jdbc:sqlite:" + dbPath);
+        assertTrue(options.saveToFileUnchecked());
+
+        Invocation invocation = invoke("identify", "--config", config.toString(), temporaryDirectory.toString());
+
+        assertEquals(2, invocation.exitCode());
+        assertTrue(invocation.err().contains("must be upgraded"));
+        assertTrue(invocation.err().contains("webaom db upgrade"));
+    }
+
+    @Test
+    void dbUpgradeWithoutYesAndWithoutConsoleRefusesAndLeavesSchemaUntouched() throws Exception {
+        Path config = temporaryDirectory.resolve("db-upgrade-no-console-config");
+        Path dbPath = temporaryDirectory.resolve("no-console.sqlite");
+        createPreV4Database(dbPath);
+        Options options = new Options(config);
+        options.setString(Options.STR_DATABASE_URL, "jdbc:sqlite:" + dbPath);
+        assertTrue(options.saveToFileUnchecked());
+
+        Invocation invocation = invoke("db", "upgrade", "--config", config.toString());
+
+        assertEquals(1, invocation.exitCode());
+        assertTrue(invocation.out().contains("must be upgraded"));
+        assertTrue(invocation.out().contains("--yes"));
+        assertEquals(3, schemaVersion(dbPath));
+    }
+
+    @Test
+    void dbUpgradeWithYesMigratesPreV4DatabaseAndUnblocksOtherCommands() throws Exception {
+        Path config = temporaryDirectory.resolve("db-upgrade-yes-config");
+        Path dbPath = temporaryDirectory.resolve("upgrade-me.sqlite");
+        createPreV4Database(dbPath);
+        Options options = new Options(config);
+        options.setString(Options.STR_DATABASE_URL, "jdbc:sqlite:" + dbPath);
+        assertTrue(options.saveToFileUnchecked());
+
+        Invocation upgrade = invoke("db", "upgrade", "--yes", "--config", config.toString());
+
+        assertEquals(0, upgrade.exitCode());
+        assertTrue(upgrade.out().contains("--yes"));
+        assertTrue(upgrade.out().contains("up to date"));
+        assertEquals(7, schemaVersion(dbPath));
+
+        Invocation doctor = invoke("doctor", "--config", config.toString());
+        assertTrue(doctor.out().contains("Database: ok"));
+    }
+
+    @Test
+    void dbUpgradeOnFreshDatabaseSucceedsWithoutRequestingConsent() throws Exception {
+        Path config = temporaryDirectory.resolve("db-upgrade-fresh-config");
+        Path dbPath = temporaryDirectory.resolve("fresh.sqlite");
+        Options options = new Options(config);
+        options.setString(Options.STR_DATABASE_URL, "jdbc:sqlite:" + dbPath);
+        assertTrue(options.saveToFileUnchecked());
+
+        Invocation invocation = invoke("db", "upgrade", "--config", config.toString());
+
+        assertEquals(0, invocation.exitCode());
+        assertFalse(invocation.out().contains("must be upgraded"));
+        assertTrue(invocation.out().contains("up to date"));
+        assertEquals(7, schemaVersion(dbPath));
+    }
+
+    @Test
+    void dbUpgradeRefusesAncientSchemaEvenWithYes() throws Exception {
+        Path config = temporaryDirectory.resolve("db-upgrade-ancient-config");
+        Path dbPath = temporaryDirectory.resolve("ancient.sqlite");
+        try (Connection connection = DriverManager.getConnection("jdbc:sqlite:" + dbPath);
+                Statement statement = connection.createStatement()) {
+            statement.executeUpdate("CREATE TABLE mylist (lid INTEGER NOT NULL, state INTEGER NOT NULL)");
+            statement.executeUpdate("INSERT INTO mylist (lid, state) VALUES (0, 1)");
+        }
+        Options options = new Options(config);
+        options.setString(Options.STR_DATABASE_URL, "jdbc:sqlite:" + dbPath);
+        assertTrue(options.saveToFileUnchecked());
+
+        Invocation invocation = invoke("db", "upgrade", "--yes", "--config", config.toString());
+
+        assertEquals(1, invocation.exitCode());
+        assertTrue(invocation.out().contains("predates WebAOM's migrations and cannot be upgraded"));
+    }
+
+    @Test
+    void dbUpgradeRefusesFutureSchemaEvenWithYes() throws Exception {
+        Path config = temporaryDirectory.resolve("db-upgrade-future-config");
+        Path dbPath = temporaryDirectory.resolve("future.sqlite");
+        try (Connection connection = DriverManager.getConnection("jdbc:sqlite:" + dbPath);
+                Statement statement = connection.createStatement()) {
+            statement.executeUpdate("CREATE TABLE vtb (ver INTEGER NOT NULL)");
+            statement.executeUpdate("INSERT INTO vtb (ver) VALUES (99)");
+        }
+        Options options = new Options(config);
+        options.setString(Options.STR_DATABASE_URL, "jdbc:sqlite:" + dbPath);
+        assertTrue(options.saveToFileUnchecked());
+
+        Invocation invocation = invoke("db", "upgrade", "--yes", "--config", config.toString());
+
+        assertEquals(1, invocation.exitCode());
+        assertTrue(invocation.out().contains("newer WebAOM version"));
+    }
+
+    private static int schemaVersion(Path dbPath) throws Exception {
+        try (Connection connection = DriverManager.getConnection("jdbc:sqlite:" + dbPath);
+                Statement statement = connection.createStatement();
+                ResultSet rs = statement.executeQuery("select ver from vtb")) {
+            assertTrue(rs.next());
+            return rs.getInt(1);
+        }
+    }
+
+    private static void createPreV4Database(Path dbPath) throws Exception {
+        try (Connection connection = DriverManager.getConnection("jdbc:sqlite:" + dbPath);
+                Statement statement = connection.createStatement()) {
+            statement.executeUpdate("CREATE TABLE vtb (ver INTEGER NOT NULL)");
+            statement.executeUpdate(
+                    "CREATE TABLE atb (aid INTEGER NOT NULL, romaji TEXT NOT NULL, kanji TEXT DEFAULT NULL, "
+                            + "english TEXT DEFAULT NULL, year INTEGER NOT NULL, episodes INTEGER NOT NULL, "
+                            + "last_ep INTEGER NOT NULL, type TEXT NOT NULL, genre TEXT NOT NULL, img INTEGER "
+                            + "DEFAULT 0, PRIMARY KEY (aid))");
+            statement.executeUpdate(
+                    "CREATE TABLE etb (eid INTEGER NOT NULL, english TEXT NOT NULL, kanji TEXT DEFAULT NULL, "
+                            + "romaji TEXT DEFAULT NULL, number TEXT NOT NULL, PRIMARY KEY (eid))");
+            statement.executeUpdate("CREATE TABLE gtb (gid INTEGER NOT NULL, name TEXT NOT NULL, short TEXT NOT NULL, "
+                    + "PRIMARY KEY (gid))");
+            statement.executeUpdate(
+                    "CREATE TABLE ftb (fid INTEGER NOT NULL, aid INTEGER NOT NULL, eid INTEGER NOT NULL, "
+                            + "gid INTEGER NOT NULL, state INTEGER NOT NULL, size INTEGER NOT NULL, "
+                            + "ed2k TEXT DEFAULT NULL, md5 TEXT DEFAULT NULL, "
+                            + "sha1 TEXT DEFAULT NULL, crc32 TEXT DEFAULT NULL, ripsource TEXT DEFAULT NULL, "
+                            + "quality TEXT DEFAULT NULL, audio TEXT DEFAULT NULL, video TEXT DEFAULT NULL, "
+                            + "resolution TEXT DEFAULT NULL, def_name TEXT NOT NULL, time TEXT NOT NULL DEFAULT "
+                            + "(datetime('now')), sublang TEXT NOT NULL, dublang TEXT NOT NULL, "
+                            + "PRIMARY KEY (fid))");
+            statement.executeUpdate("CREATE TABLE utb (uid INTEGER PRIMARY KEY, name TEXT NOT NULL)");
+            statement.executeUpdate("CREATE TABLE dtb (did INTEGER PRIMARY KEY, name TEXT NOT NULL)");
+            statement.executeUpdate("CREATE TABLE jtb (orig TEXT NOT NULL, name TEXT NOT NULL, did INTEGER NOT NULL, "
+                    + "fid INTEGER NOT NULL, status INTEGER NOT NULL, ed2k TEXT NOT NULL, md5 TEXT "
+                    + "DEFAULT NULL, sha1 TEXT DEFAULT NULL, tth TEXT DEFAULT NULL, crc32 TEXT DEFAULT NULL, "
+                    + "size INTEGER NOT NULL, uid INTEGER NOT NULL, lid INTEGER NOT NULL, time TEXT "
+                    + "NOT NULL DEFAULT (datetime('now')), avxml TEXT DEFAULT NULL, PRIMARY KEY (size, ed2k))");
+            statement.executeUpdate("INSERT INTO utb (uid, name) VALUES (1, 'default')");
+            statement.executeUpdate("INSERT INTO dtb (did, name) VALUES (1, '/tmp')");
+            statement.executeUpdate("INSERT INTO ftb (fid, aid, eid, gid, state, size, ed2k, def_name, sublang, "
+                    + "dublang) VALUES (1, 1, 1, 0, 0, 123, 'hash-prev4', 'legacy.mkv', '', '')");
+            statement.executeUpdate("INSERT INTO jtb (orig, name, did, fid, status, ed2k, size, uid, lid) VALUES "
+                    + "('legacy.mkv', 'legacy.mkv', 1, 1, 16777217, 'hash-prev4', 123, 1, 0)");
+            statement.executeUpdate("INSERT INTO vtb (ver) VALUES (3)");
+        }
     }
 
     @Test

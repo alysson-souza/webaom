@@ -35,6 +35,7 @@ import epox.webaom.net.AniDBConnectionSettings;
 import epox.webaom.net.AniDBException;
 import epox.webaom.net.AniDBFileClient;
 import epox.webaom.util.PlatformPaths;
+import java.io.Console;
 import java.io.IOException;
 import java.nio.file.DirectoryStream;
 import java.nio.file.FileStore;
@@ -140,10 +141,7 @@ public final class CliApplication implements AutoCloseable {
 
     /** Opens the database, returning null on success or a user-facing reason on failure. */
     static String openDatabase(Options options) {
-        String connectionString = blankToNull(options.getString(Options.STR_DATABASE_URL));
-        if (connectionString == null) {
-            connectionString = DatabaseManagerFactory.getEmbeddedConnectionString();
-        }
+        String connectionString = resolveConnectionString(options);
         if (!isSupportedDatabaseUrl(connectionString)) {
             return "Unsupported database type in WebAOM configuration.";
         }
@@ -159,6 +157,55 @@ public final class CliApplication implements AutoCloseable {
         return null;
     }
 
+    private static String resolveConnectionString(Options options) {
+        String connectionString = blankToNull(options.getString(Options.STR_DATABASE_URL));
+        return connectionString == null ? DatabaseManagerFactory.getEmbeddedConnectionString() : connectionString;
+    }
+
+    /**
+     * Upgrades the database schema with explicit consent from the {@code webaom db upgrade} command. Consent
+     * is only ever sought (and only ever takes effect) for the pre-v4 legacy-schema case: a database that is
+     * too old to migrate, or from a newer WebAOM version, is refused unconditionally regardless of consent.
+     */
+    public boolean upgradeDatabase(CliOutput output, boolean assumeYes) {
+        String connectionString = resolveConnectionString(options);
+        if (!isSupportedDatabaseUrl(connectionString)) {
+            output.printText("Unsupported database type in WebAOM configuration.");
+            return false;
+        }
+        DatabaseManager manager = DatabaseManagerFactory.create(connectionString);
+        manager.setLoadAllJobs(false);
+        manager.setLegacySchemaUpgradeConfirmationSource(() -> confirmUpgrade(output, assumeYes));
+        if (!manager.initialize(connectionString)) {
+            String detail = manager.isLegacySchemaUpgradeDeclined()
+                    ? "Database schema upgrade was not confirmed; nothing was changed."
+                    : databaseFailureDetail(manager);
+            manager.shutdown();
+            output.printText(detail);
+            return false;
+        }
+        manager.setDebug(false);
+        AppContext.databaseManager = manager;
+        output.printText("Database schema is up to date.");
+        return true;
+    }
+
+    private static boolean confirmUpgrade(CliOutput output, boolean assumeYes) {
+        output.printText("The database schema must be upgraded. Back up the database now if you have not "
+                + "already: this will make it incompatible with older WebAOM versions.");
+        if (assumeYes) {
+            output.printText("Proceeding because --yes was given.");
+            return true;
+        }
+        Console console = System.console();
+        if (console == null) {
+            output.printText("Re-run with --yes to confirm without an interactive prompt.");
+            return false;
+        }
+        String answer = console.readLine("Continue with the upgrade? [y/N]: ");
+        return answer != null && (answer.equalsIgnoreCase("y") || answer.equalsIgnoreCase("yes"));
+    }
+
     private static String databaseFailureDetail(DatabaseManager manager) {
         if (manager.hasUnsupportedFutureSchema()) {
             return "The database was created by a newer WebAOM version.";
@@ -169,12 +216,9 @@ public final class CliApplication implements AutoCloseable {
                     + "using the old one with a matching WebAOM release.";
         }
         if (manager.isLegacySchemaUpgradeDeclined()) {
-            // TODO: let the CLI carry out this migration itself (a `webaom db upgrade` command, or a
-            // --yes flag on the commands that need the database) so headless users are not forced
-            // through the desktop app just to grant consent.
-            return "The database schema must be upgraded before it can be used, and the CLI cannot ask "
-                    + "for confirmation. Back up the database, then open it once in the WebAOM desktop "
-                    + "app to complete the upgrade.";
+            return "The database schema must be upgraded before it can be used. Back up the database, then "
+                    + "run `webaom db upgrade` to grant consent (or open the database once in the WebAOM "
+                    + "desktop app instead).";
         }
         return "Could not open the WebAOM database.";
     }

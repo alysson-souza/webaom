@@ -153,6 +153,7 @@ webaom config show
 webaom config path
 webaom doctor
 webaom login
+webaom db upgrade
 ```
 
 Human-readable output is the default. File-processing commands accept `--format json` to return one array or
@@ -162,6 +163,12 @@ written separately from it. For unattended use, credentials can be supplied thro
 
 `doctor` reports configuration, database, credentials, and AniDB as a checklist, including when the database itself
 is the thing that fails. Colored output can be turned off with `--no-color` or by setting `NO_COLOR`.
+
+Very old databases (predating WebAOM's migration chain) require a one-time schema upgrade before they can be used.
+The CLI never performs this upgrade implicitly: run `webaom db upgrade` and confirm at the interactive prompt, or
+pass `--yes` for unattended use. **Back up the database first** — the upgrade makes it incompatible with older
+WebAOM versions. A database that is too old to migrate at all, or that was created by a newer WebAOM version, is
+always refused, with or without `--yes`.
 
 ## Configuration
 
