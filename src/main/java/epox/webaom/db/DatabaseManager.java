@@ -78,6 +78,8 @@ public abstract class DatabaseManager {
     protected final boolean shouldCleanDatabase = false;
     protected boolean debug = false;
     private boolean unsupportedFutureSchemaDetected = false;
+    private boolean unsupportedLegacySchemaDetected = false;
+    private boolean legacySchemaUpgradeDeclined = false;
 
     // ========== Debug control ==========
 
@@ -129,6 +131,8 @@ public abstract class DatabaseManager {
             return false;
         }
         unsupportedFutureSchemaDetected = false;
+        unsupportedLegacySchemaDetected = false;
+        legacySchemaUpgradeDeclined = false;
         try {
             parseConnectionString(databaseString);
 
@@ -251,6 +255,7 @@ public abstract class DatabaseManager {
             ResultSet rs = query("select state from mylist where lid=0", true);
             if (rs != null && rs.next()) {
                 log("Detected legacy database schema (mylist table) - too old to migrate");
+                unsupportedLegacySchemaDetected = true;
                 rs.close();
                 return false;
             }
@@ -305,6 +310,7 @@ public abstract class DatabaseManager {
             return false;
         }
         if (version < 4 && !confirmLegacySchemaUpgrade()) {
+            legacySchemaUpgradeDeclined = true;
             return false;
         }
         return true;
@@ -740,6 +746,16 @@ public abstract class DatabaseManager {
 
     public boolean hasUnsupportedFutureSchema() {
         return unsupportedFutureSchemaDetected;
+    }
+
+    /** True when the schema predates the migration chain entirely and cannot be upgraded. */
+    public boolean hasUnsupportedLegacySchema() {
+        return unsupportedLegacySchemaDetected;
+    }
+
+    /** True when a pre-v4 schema needs an upgrade but consent was not given. */
+    public boolean isLegacySchemaUpgradeDeclined() {
+        return legacySchemaUpgradeDeclined;
     }
 
     public void shutdown() {

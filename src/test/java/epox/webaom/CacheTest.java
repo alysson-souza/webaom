@@ -20,6 +20,9 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyInt;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -149,6 +152,61 @@ class CacheTest {
         cache.add(anime, 1, DatabaseManager.INDEX_ANIME);
 
         verify(databaseManager, times(1)).update(55, anime, DatabaseManager.INDEX_ANIME);
+    }
+
+    @Test
+    void parseFileWithPersistenceReportsAnyFailedMetadataWrite() throws IOException {
+        Cache cache = new Cache();
+        DatabaseManager databaseManager = AppContext.databaseManager;
+        when(databaseManager.update(anyInt(), any(), anyInt())).thenReturn(true);
+        when(databaseManager.update(eq(10), any(Anime.class), eq(DatabaseManager.INDEX_ANIME)))
+                .thenReturn(false);
+        Job job = new Job(Files.createFile(tempDir.resolve("identified.mkv")).toFile(), Job.HASHWAIT);
+
+        Cache.FileParseResult result = cache.parseFileWithPersistence(fileResponseFields(), job);
+
+        assertFalse(result.persisted());
+        assertSame(job.anidbFile, result.file());
+        verify(databaseManager, times(4)).update(anyInt(), any(), anyInt());
+    }
+
+    private static String[] fileResponseFields() {
+        return new String[] {
+            "100",
+            "10",
+            "20",
+            "30",
+            "0",
+            "0",
+            "3",
+            "a448017aaf21d8525fc10ae87aa6729d",
+            "",
+            "",
+            "",
+            "japanese",
+            "english",
+            "high",
+            "BluRay",
+            "AAC",
+            "H264",
+            "1920x1080",
+            "mkv",
+            "24",
+            "Group",
+            "GRP",
+            "1",
+            "Episode",
+            "",
+            "",
+            "12",
+            "12",
+            "2024",
+            "TV",
+            "Anime",
+            "",
+            "",
+            "action"
+        };
     }
 
     private Job buildCompleteJob(int idBase, String episodeNumber, boolean missingFile) throws IOException {

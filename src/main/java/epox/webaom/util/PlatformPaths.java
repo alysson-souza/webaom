@@ -18,6 +18,7 @@ package epox.webaom.util;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.PrintStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -209,6 +210,22 @@ public final class PlatformPaths {
      * @return true if migration was performed, false otherwise
      */
     public static boolean migrateIfNeeded(String legacyPath, String newPath) {
+        return migrateIfNeeded(legacyPath, newPath, System.out);
+    }
+
+    /**
+     * Migrate a file from legacy path to new path if needed, reporting diagnostics to the supplied
+     * stream.
+     *
+     * @param legacyPath
+     *            the old file path
+     * @param newPath
+     *            the new file path
+     * @param migrationOutput
+     *            destination for successful migration messages
+     * @return true if migration was performed, false otherwise
+     */
+    public static boolean migrateIfNeeded(String legacyPath, String newPath, PrintStream migrationOutput) {
         File legacyFile = new File(legacyPath);
         File newFile = new File(newPath);
 
@@ -220,7 +237,7 @@ public final class PlatformPaths {
         try {
             ensureParentDirectoryExists(newPath);
             Files.copy(legacyFile.toPath(), newFile.toPath());
-            System.out.println("$ Migrated config: " + legacyPath + " -> " + newPath);
+            migrationOutput.println("$ Migrated config: " + legacyPath + " -> " + newPath);
             return true;
         } catch (IOException e) {
             System.err.println("! Migration failed: " + e.getMessage());

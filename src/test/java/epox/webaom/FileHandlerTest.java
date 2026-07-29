@@ -99,4 +99,27 @@ class FileHandlerTest {
         assertTrue(AppContext.jobCounter.getStatus().contains("tot=1"));
         assertTrue(AppContext.jobCounter.getStatus().contains("dio=1"));
     }
+
+    @Test
+    void loadOptions_usesDefaultsWhenTheExtensionSettingIsMissing() {
+        FileHandler fileHandler = new FileHandler();
+
+        fileHandler.loadOptions(new Options(tempDir.resolve("config")));
+
+        assertTrue(fileHandler.allowedExtensions.getSize() > 0);
+    }
+
+    @Test
+    void loadOptions_preservesAnExplicitEmptyAllowAllExtensionList() {
+        Options options = new Options(tempDir.resolve("config"));
+        options.setString(Options.STR_EXTENSIONS, "");
+        FileHandler fileHandler = new FileHandler();
+
+        fileHandler.loadOptions(options);
+
+        assertEquals(0, fileHandler.allowedExtensions.getSize());
+        assertTrue(fileHandler
+                .createFileFilter()
+                .accept(tempDir.resolve("episode.unknown").toFile()));
+    }
 }

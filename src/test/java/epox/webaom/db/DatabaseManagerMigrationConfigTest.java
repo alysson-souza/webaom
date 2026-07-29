@@ -21,6 +21,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import epox.webaom.AppContext;
 import java.lang.reflect.Proxy;
 import java.sql.ResultSet;
 import java.util.ArrayDeque;
@@ -85,6 +86,19 @@ class DatabaseManagerMigrationConfigTest {
         assertTrue(manager.validateSchemaVersion(7));
         assertEquals(-1, manager.warnedDetectedVersion);
         assertEquals(-1, manager.warnedSupportedVersion);
+    }
+
+    @Test
+    void legacySchemaValidation_refusesUpgradeWhenNoConfirmationUiExists() {
+        java.awt.Component previous = AppContext.component;
+        AppContext.component = null;
+        try {
+            GuardAwareMySQLDatabaseManager manager = new GuardAwareMySQLDatabaseManager();
+
+            assertFalse(manager.validateSchemaVersion(3));
+        } finally {
+            AppContext.component = previous;
+        }
     }
 
     @Test

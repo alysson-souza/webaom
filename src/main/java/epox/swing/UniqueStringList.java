@@ -39,19 +39,25 @@ public class UniqueStringList implements ListModel<String> {
         if (!stringList.contains(element)) {
             int size = getSize();
             stringList.add(element);
-            listDataListener.intervalAdded(new ListDataEvent(this, ListDataEvent.INTERVAL_ADDED, size, size));
+            if (listDataListener != null) {
+                listDataListener.intervalAdded(new ListDataEvent(this, ListDataEvent.INTERVAL_ADDED, size, size));
+            }
         }
     }
 
     public void removeElementAt(int index) {
         String removed = stringList.remove(index);
-        listDataListener.intervalRemoved(new ListDataEvent(this, ListDataEvent.INTERVAL_REMOVED, index, index));
+        if (listDataListener != null) {
+            listDataListener.intervalRemoved(new ListDataEvent(this, ListDataEvent.INTERVAL_REMOVED, index, index));
+        }
     }
 
     public void reset() {
         int size = getSize();
         stringList.clear();
-        listDataListener.intervalRemoved(new ListDataEvent(this, ListDataEvent.INTERVAL_REMOVED, 0, size - 1));
+        if (listDataListener != null && size > 0) {
+            listDataListener.intervalRemoved(new ListDataEvent(this, ListDataEvent.INTERVAL_REMOVED, 0, size - 1));
+        }
     }
 
     public boolean includes(String element) {

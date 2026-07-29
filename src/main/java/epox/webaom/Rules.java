@@ -38,6 +38,9 @@ public class Rules {
     /** Safe filename length with margin for UTF-8 multi-byte chars. */
     public static final int SAFE_FILENAME_LENGTH = 200;
 
+    /** Parsed trailing weight metadata for a rule section. */
+    public record WeightClause(int startIndex, float weight, int maxLength) {}
+
     /** Characters to replace in filenames (illegal filesystem characters) */
     private final List<ReplacementRule> illegalCharReplacements;
 
@@ -63,6 +66,14 @@ public class Rules {
             #DO SET 'TRUNCATE<200,%ann (%yea) - %enr - %epn [%src-%res][%aud][%dub][%vid]-%grp>'
             """;
         moveRulesScript = "#MOVE";
+    }
+
+    private static void printError(String message) {
+        if (AppContext.gui != null) {
+            AppContext.gui.println(HyperlinkBuilder.formatAsError(message));
+        } else {
+            System.err.println(message);
+        }
     }
 
     public List<ReplacementRule> getIllegalCharReplacements() {
@@ -157,6 +168,99 @@ public class Rules {
     }
 
     /**
+     * Smart-truncates a filename while preserving a multi-part suffix such as {@code .en.forced.srt}.
+     *
+     * @param baseName the filename portion before the suffix
+     * @param suffix the complete suffix to preserve
+     * @param maxBytes the maximum byte length
+     * @return the filename fitted to the byte limit
+     */
+    public static String smartTruncateFilenamePreservingSuffix(String baseName, String suffix, int maxBytes) {
+        String filename = baseName + suffix;
+        if (filename.getBytes(StandardCharsets.UTF_8).length <= maxBytes) {
+            return filename;
+        }
+
+        String ellipsis = "...";
+        int suffixBytes = suffix.getBytes(StandardCharsets.UTF_8).length;
+        int availableBytes = maxBytes - suffixBytes - ellipsis.getBytes(StandardCharsets.UTF_8).length;
+        if (availableBytes <= 0) {
+            return smartTruncateFilename(filename, maxBytes);
+        }
+        return truncateToBytes(baseName, availableBytes) + ellipsis + suffix;
+    }
+
+    /**
+     * Finds the {@code " DO "} separator that ends a conditional rule's condition list.
+     *
+     * <p>Occurrences inside parentheses are ignored so that condition values and regular
+     * expressions may themselves contain the word "do".
+     *
+     * @param upperInput the rule line, already upper-cased
+     * @param fromIndex the offset at which the condition list starts
+     * @return the index of the separator, or -1 when the line has no {@code DO}
+     */
+    public static int indexOfConditionSeparator(String upperInput, int fromIndex) {
+        int depth = 0;
+        for (int index = fromIndex; index <= upperInput.length() - 4; index++) {
+            char character = upperInput.charAt(index);
+            if (character == '(') {
+                depth++;
+            } else if (character == ')') {
+                if (depth > 0) {
+                    depth--;
+                }
+            } else if (depth == 0 && upperInput.startsWith(" DO ", index)) {
+                return index;
+            }
+        }
+        // Unbalanced parentheses leave the scan stuck inside a group; fall back to the first
+        // separator so malformed conditions are still split, and reported, as they always were.
+        return upperInput.indexOf(" DO ", fromIndex);
+    }
+
+    /**
+     * Parses an optional trailing {@code WEIGHT number:number} clause outside quoted rule text.
+     *
+     * @param input a rule operation or section
+     * @return the parsed clause, or {@code null} when no clause is present
+     * @throws IllegalArgumentException when a clause is present but malformed
+     */
+    public static WeightClause parseWeightClause(String input) {
+        int weightIndex = findWeightClause(input);
+        if (weightIndex < 0) {
+            return null;
+        }
+        String value = input.substring(weightIndex + " WEIGHT ".length()).trim();
+        int colonIndex = value.indexOf(':');
+        if (colonIndex <= 0 || colonIndex == value.length() - 1) {
+            throw new IllegalArgumentException("expected weight:maxLength");
+        }
+        try {
+            float weight = Float.parseFloat(value.substring(0, colonIndex));
+            int maxLength = Integer.parseInt(value.substring(colonIndex + 1));
+            return new WeightClause(weightIndex, weight, maxLength);
+        } catch (NumberFormatException exception) {
+            throw new IllegalArgumentException("expected weight:maxLength", exception);
+        }
+    }
+
+    static int findWeightClause(String input) {
+        boolean quoted = false;
+        int markerLength = " WEIGHT ".length();
+        for (int index = 0; index <= input.length() - markerLength; index++) {
+            if (input.charAt(index) == '\'') {
+                quoted = !quoted;
+                continue;
+            }
+            if (!quoted && input.regionMatches(true, index, " WEIGHT ", 0, markerLength)) {
+                return index;
+            }
+        }
+        return -1;
+    }
+
+    /**
      * Truncates a string to fit within the specified byte limit in UTF-8,
      * ensuring we don't cut in the middle of a multi-byte character.
      */
@@ -213,7 +317,7 @@ public class Rules {
                 truncateStart = text.indexOf(TRUNC);
             }
         } catch (NumberFormatException e) {
-            AppContext.gui.println(HyperlinkBuilder.formatAsError("Truncation error: " + e.getMessage()));
+            printError("Truncation error: " + e.getMessage());
         }
         return text;
     }
@@ -292,7 +396,9 @@ public class Rules {
 
         File f = new File(abs);
 
-        AppContext.gui.println("% New file: " + f);
+        if (AppContext.gui != null) {
+            AppContext.gui.println("% New file: " + f);
+        }
         return f;
     }
 
@@ -329,14 +435,14 @@ public class Rules {
             if (upperToken.startsWith("DO ") && handleOperation(sections, token.substring(3))) {
                 break;
             } else if (upperToken.startsWith("IF ")
-                    && (previousConditionPassed =
-                            evaluateConditions(token.substring(3, (doIndex = upperToken.indexOf(" DO "))), job))
+                    && (previousConditionPassed = evaluateConditions(
+                            token.substring(3, (doIndex = indexOfConditionSeparator(upperToken, 3))), job))
                     && handleOperation(sections, token.substring(doIndex + 4))) {
                 break;
             } else if (upperToken.startsWith("ELSE IF ")
                     && !previousConditionPassed
-                    && (previousConditionPassed =
-                            evaluateConditions(token.substring(8, (doIndex = upperToken.indexOf(" DO "))), job))
+                    && (previousConditionPassed = evaluateConditions(
+                            token.substring(8, (doIndex = indexOfConditionSeparator(upperToken, 8))), job))
                     && handleOperation(sections, token.substring(doIndex + 4))) {
                 break;
             } else if (upperToken.startsWith("ELSE DO ")
@@ -395,7 +501,7 @@ public class Rules {
             if (closeIndex > 0 && commaIndex > 0 && commaIndex < closeIndex) {
                 sections.add(new Section(upperOp.substring(0, closeIndex + 1)));
             } else {
-                AppContext.gui.println(HyperlinkBuilder.formatAsError("Invalid rule element: " + operation));
+                printError("Invalid rule element: " + operation);
             }
             return false;
         }
@@ -522,7 +628,7 @@ public class Rules {
                             && tagValueMap.containsKey(comparison[1])
                             && !tagValueMap.get(comparison[0]).equals(tagValueMap.get(comparison[1]));
                 }
-                AppContext.gui.println(HyperlinkBuilder.formatAsError("Invalid data in test: U(" + testValue + ")"));
+                printError("Invalid data in test: U(" + testValue + ")");
                 return false;
             }
             case 'L': { // Tags are equal (Like)
@@ -532,7 +638,7 @@ public class Rules {
                             && tagValueMap.containsKey(comparison[1])
                             && tagValueMap.get(comparison[0]).equals(tagValueMap.get(comparison[1]));
                 }
-                AppContext.gui.println(HyperlinkBuilder.formatAsError("Invalid data in test: L(" + testValue + ")"));
+                printError("Invalid data in test: L(" + testValue + ")");
                 return false;
             }
             case 'Z': { // Tag matches regex
@@ -541,7 +647,7 @@ public class Rules {
                     return tagValueMap.containsKey(comparison[0])
                             && matchesPattern(tagValueMap.get(comparison[0]), comparison[1]);
                 }
-                AppContext.gui.println(HyperlinkBuilder.formatAsError("Invalid data in test: Z(" + testValue + ")"));
+                printError("Invalid data in test: Z(" + testValue + ")");
                 return false;
             }
 
@@ -572,15 +678,18 @@ class Section {
     int maxLength = 255;
 
     Section(String input) {
-        int weightIndex = input.indexOf(" WEIGHT ");
-        if (weightIndex >= 0) {
-            content = input.substring(0, weightIndex);
-            input = input.substring(weightIndex + 8).trim();
-            int colonIndex = input.indexOf(':');
-            if (colonIndex >= 0) {
-                weight = Float.parseFloat(input.substring(0, colonIndex));
-                maxLength = Integer.parseInt(input.substring(colonIndex + 1));
-            }
+        Rules.WeightClause weightClause;
+        try {
+            weightClause = Rules.parseWeightClause(input);
+        } catch (IllegalArgumentException exception) {
+            // Older versions ignored malformed trailing WEIGHT clauses; keep legacy scripts renaming.
+            weightClause = null;
+            input = input.substring(0, Rules.findWeightClause(input));
+        }
+        if (weightClause != null) {
+            content = input.substring(0, weightClause.startIndex());
+            weight = weightClause.weight();
+            maxLength = weightClause.maxLength();
         } else {
             content = input;
         }

@@ -67,38 +67,88 @@ public class AniDBFileClient extends AniDBConnection {
         return null;
     }
 
-    public int addFileToMylist(Job job, Mylist mylistEntry) throws AniDBException {
-        String escapedSource = escapeForXml(mylistEntry.source);
-        String escapedStorage = escapeForXml(mylistEntry.storage);
-        String escapedOther = escapeForXml(mylistEntry.other);
-        String params = "fid=" + job.anidbFile.getFileId() + "&state="
-                + mylistEntry.state + "&filestate="
-                + mylistEntry.filestate + "&viewed="
-                + mylistEntry.viewed + "&source="
-                + escapedSource + "&storage="
-                + escapedStorage + "&other="
-                + escapedOther + "&edit=0";
+    /**
+     * Outcome of a MYLISTADD request.
+     *
+     * @param listEntryId the MyList entry id, or 0 when the request failed
+     * @param created whether a new entry was created
+     * @param edited whether an existing entry was updated with the supplied values
+     */
+    public record MylistAddOutcome(int listEntryId, boolean created, boolean edited) {
+        static final MylistAddOutcome FAILED = new MylistAddOutcome(0, false, false);
 
-        AniDBConnectionResponse response = send("MYLISTADD", params, true);
+        public boolean succeeded() {
+            return listEntryId > 0;
+        }
+    }
+
+    /**
+     * Adds the file to MyList, leaving any existing entry untouched.
+     *
+     * <p>This is the behaviour the desktop job pipeline relies on: a bulk run must never rewrite the
+     * state of entries the user already curated. Use {@link #addOrEditMylistEntry} when the caller
+     * has explicitly asked for the supplied values to be applied.
+     */
+    public int addFileToMylist(Job job, Mylist mylistEntry) throws AniDBException {
+        return addMylistEntry(job, mylistEntry, false).listEntryId();
+    }
+
+    /**
+     * Adds the file to MyList, updating the existing entry when AniDB reports one already exists.
+     *
+     * <p>AniDB answers a plain {@code edit=0} add for a known file with 310 and ignores the supplied
+     * values, so the requested state is re-sent as an edit rather than being silently dropped. Only
+     * call this when the values came from an explicit request; it overwrites whatever is on record.
+     */
+    public MylistAddOutcome addOrEditMylistEntry(Job job, Mylist mylistEntry) throws AniDBException {
+        return addMylistEntry(job, mylistEntry, true);
+    }
+
+    private MylistAddOutcome addMylistEntry(Job job, Mylist mylistEntry, boolean editExisting) throws AniDBException {
+        AniDBConnectionResponse response = send("MYLISTADD", mylistAddParameters(job, mylistEntry, false), true);
         if (response == null) {
-            return 0;
+            return MylistAddOutcome.FAILED;
         }
         switch (response.code) {
             case AniDBConnectionResponse.MYLIST_ENTRY_ADDED:
-                return Integer.parseInt(response.data);
-            case AniDBConnectionResponse.FILE_ALREADY_IN_MYLIST:
-                error(job.anidbFile.getDefaultName() + " is already in mylist.");
+                return new MylistAddOutcome(Integer.parseInt(response.data), true, false);
+            case AniDBConnectionResponse.FILE_ALREADY_IN_MYLIST: {
                 // Response format: {lid}|{fid}|{eid}|{aid}|{gid}|{date}|{state}|...
                 String[] fields = StringUtilities.split(response.data, '|');
-                return Integer.parseInt(fields[0]);
+                int listEntryId = Integer.parseInt(fields[0]);
+                if (!editExisting) {
+                    error(job.anidbFile.getDefaultName() + " is already in mylist.");
+                    return new MylistAddOutcome(listEntryId, false, false);
+                }
+                AniDBConnectionResponse editResponse =
+                        send("MYLISTADD", mylistAddParameters(job, mylistEntry, true), true);
+                if (editResponse != null && editResponse.code == AniDBConnectionResponse.MYLIST_ENTRY_EDITED) {
+                    return new MylistAddOutcome(listEntryId, false, true);
+                }
+                error(job.anidbFile.getDefaultName() + " is already in mylist and could not be updated"
+                        + (editResponse == null ? "." : ": " + editResponse.message));
+                return new MylistAddOutcome(listEntryId, false, false);
+            }
             case AniDBConnectionResponse.NO_SUCH_MYLIST_FILE:
                 error(job.anidbFile.getDefaultName() + " was not found in AniDB.");
+                break;
             case AniDBConnectionResponse.MYLIST_ENTRY_EDITED:
             case AniDBConnectionResponse.NO_SUCH_MYLIST_ENTRY:
             default:
                 error("Unexpected response (" + response.code + "): " + response.message);
         }
-        return 0;
+        return MylistAddOutcome.FAILED;
+    }
+
+    private String mylistAddParameters(Job job, Mylist mylistEntry, boolean edit) {
+        return "fid=" + job.anidbFile.getFileId() + "&state="
+                + mylistEntry.state + "&filestate="
+                + mylistEntry.filestate + "&viewed="
+                + mylistEntry.viewed + "&source="
+                + escapeForXml(mylistEntry.source) + "&storage="
+                + escapeForXml(mylistEntry.storage) + "&other="
+                + escapeForXml(mylistEntry.other) + "&edit="
+                + (edit ? 1 : 0);
     }
 
     public boolean removeFromMylist(int listEntryId, String fileName) throws AniDBException {

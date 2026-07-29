@@ -20,9 +20,11 @@ import epox.swing.FlatLafTheme;
 import epox.webaom.util.PlatformPaths;
 import java.io.File;
 import java.io.IOException;
+import java.io.PrintStream;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.StandardCopyOption;
 import java.util.StringTokenizer;
 
 public class Options {
@@ -89,18 +91,37 @@ public class Options {
     private static final String SECTION_SEPARATOR = "\2";
 
     private final File optionsFile;
+    private final PrintStream diagnostics;
     public final int[] integerOptions = new int[INTEGER_OPTIONS_COUNT];
     public final String[] stringOptions = new String[STRING_OPTIONS_COUNT];
     public final boolean[] booleanOptions = new boolean[BOOLEAN_OPTIONS_COUNT];
 
     public Options() {
+        this(System.out);
+    }
+
+    private Options(PrintStream migrationDiagnostics) {
+        diagnostics = migrationDiagnostics;
         // Migrate legacy config to XDG-compliant path if needed (skip in dev mode)
         if (!AppContext.IS_DEVELOPMENT) {
-            PlatformPaths.migrateIfNeeded(PlatformPaths.getLegacyConfigFilePath(), PlatformPaths.getConfigFilePath());
+            PlatformPaths.migrateIfNeeded(
+                    PlatformPaths.getLegacyConfigFilePath(), PlatformPaths.getConfigFilePath(), migrationDiagnostics);
         }
 
         optionsFile = new File(PlatformPaths.getConfigFilePath());
         // Default auto-rename to true to preserve existing behavior
+        booleanOptions[BOOL_AUTO_RENAME] = true;
+    }
+
+    /** Creates the default options model while keeping command output on standard output clean. */
+    public static Options forCommandLine() {
+        return new Options(System.err);
+    }
+
+    /** Creates an options model backed by an explicit file path. */
+    public Options(Path optionsPath) {
+        diagnostics = System.err;
+        optionsFile = optionsPath.toAbsolutePath().normalize().toFile();
         booleanOptions[BOOL_AUTO_RENAME] = true;
     }
 
@@ -140,33 +161,98 @@ public class Options {
         return first.equals(second);
     }
 
-    public void saveToFile() {
+    public boolean saveToFile() {
+        return saveToFile(true);
+    }
+
+    /** Saves options without showing the first-run location confirmation dialog. */
+    public boolean saveToFileUnchecked() {
+        return saveToFile(false);
+    }
+
+    private boolean saveToFile(boolean confirmLocation) {
         if (!existsOnDisk()
+                && confirmLocation
                 && !AppContext.confirm(
                         "Warning", "Options will be stored here:\n" + getFilePath(), "Continue", "Cancel")) {
-            return;
+            return false;
         }
         try {
-            Path parentDir = optionsFile.toPath().getParent();
+            Path savePath = resolveSavePath(optionsFile.toPath());
+            Path parentDir = savePath.getParent();
             if (parentDir != null && !Files.exists(parentDir)) {
                 Files.createDirectories(parentDir);
             }
-            Files.writeString(optionsFile.toPath(), encodeAllOptions(), StandardCharsets.UTF_8);
-            System.out.println("$ File written:" + optionsFile);
+            String temporaryPrefix = savePath.getFileName().toString();
+            if (temporaryPrefix.length() < 3) {
+                temporaryPrefix = (temporaryPrefix + "___").substring(0, 3);
+            }
+            Path temporary = Files.createTempFile(parentDir, temporaryPrefix, ".tmp");
+            try {
+                Files.writeString(temporary, encodeAllOptions(), StandardCharsets.UTF_8);
+                copyPermissionsIfPossible(savePath, temporary);
+                try {
+                    Files.move(
+                            temporary, savePath, StandardCopyOption.ATOMIC_MOVE, StandardCopyOption.REPLACE_EXISTING);
+                } catch (java.nio.file.AtomicMoveNotSupportedException exception) {
+                    Files.move(temporary, savePath, StandardCopyOption.REPLACE_EXISTING);
+                }
+            } finally {
+                Files.deleteIfExists(temporary);
+            }
+            diagnostics.println("$ File written:" + optionsFile);
+            return true;
         } catch (IOException e) {
             System.err.println("! Failed to save options: " + e.getMessage());
             e.printStackTrace();
+            return false;
         }
     }
 
+    private static void copyPermissionsIfPossible(Path existing, Path replacement) {
+        try {
+            if (Files.exists(existing)) {
+                Files.setPosixFilePermissions(replacement, Files.getPosixFilePermissions(existing));
+            }
+        } catch (UnsupportedOperationException | IOException ignored) {
+            // Windows and non-POSIX filesystems keep the temporary file's default permissions.
+        }
+    }
+
+    private static Path resolveSavePath(Path configuredPath) throws IOException {
+        if (!Files.isSymbolicLink(configuredPath)) {
+            return configuredPath;
+        }
+        Path linkTarget = Files.readSymbolicLink(configuredPath);
+        Path resolvedTarget = linkTarget.isAbsolute()
+                ? linkTarget
+                : configuredPath.toAbsolutePath().getParent().resolve(linkTarget);
+        return Files.exists(resolvedTarget) ? resolvedTarget.toRealPath() : resolvedTarget.normalize();
+    }
+
     public boolean loadFromFile() {
+        return loadFromFile(true);
+    }
+
+    /** Loads options without writing informational messages to standard output. */
+    public boolean loadFromFileQuietly() {
+        return loadFromFile(false);
+    }
+
+    private boolean loadFromFile(boolean announce) {
         if (!existsOnDisk()) {
             return false;
         }
         try {
             String content = Files.readString(optionsFile.toPath(), StandardCharsets.UTF_8);
-            System.out.println("$ File read:" + optionsFile);
-            return decodeAllOptions(content);
+            if (announce) {
+                diagnostics.println("$ File read:" + optionsFile);
+            }
+            boolean loaded = decodeAllOptions(content);
+            if (announce && !loaded) {
+                diagnostics.println("! Options file is outdated. Could not load.");
+            }
+            return loaded;
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -192,7 +278,6 @@ public class Options {
             migrateThemeOptions();
             return true;
         }
-        System.out.println("! Options file is outdated. Could not load.");
         return false;
     }
 

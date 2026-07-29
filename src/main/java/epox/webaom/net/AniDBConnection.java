@@ -52,6 +52,7 @@ public class AniDBConnection implements ActionListener {
     private final AniDBConnectionSettings settings;
     private final Log log;
     private boolean authenticated = false;
+    private boolean loginPromptEnabled = true;
     protected String session = null;
     protected String currentTag = null;
     private int tagCounter = 0;
@@ -105,6 +106,11 @@ public class AniDBConnection implements ActionListener {
     // PASSW
     public void set(String username, String password, String apiKey) {
         userPass = new UserPass(username, password, apiKey);
+    }
+
+    /** Controls whether authentication failures may open the Swing login dialog. */
+    public void setLoginPromptEnabled(boolean enabled) {
+        loginPromptEnabled = enabled;
     }
 
     private static void decrementLoginAttempts() {
@@ -177,6 +183,9 @@ public class AniDBConnection implements ActionListener {
     }
 
     private boolean showLoginDialog() throws AniDBException {
+        if (!loginPromptEnabled) {
+            throw new AniDBException(AniDBException.CLIENT_USER, "AniDB authentication failed.");
+        }
         if (remainingLoginAttempts <= 0) {
             throw new AniDBException(AniDBException.CLIENT_USER, "Access Denied! No more login attempts allowed.");
         }

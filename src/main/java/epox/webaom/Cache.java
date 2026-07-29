@@ -103,17 +103,19 @@ public class Cache {
         }
     }
 
-    public void add(AniDBEntity baseObject, int updateMode, int cacheType) {
+    public boolean add(AniDBEntity baseObject, int updateMode, int cacheType) {
+        boolean persisted = true;
         Integer id = baseObject.getId();
         if (!cacheMaps[cacheType].containsKey(id)) {
             cacheMaps[cacheType].put(id, baseObject);
             if (updateMode == 1) {
-                AppContext.databaseManager.update(baseObject.getId(), baseObject, cacheType);
+                persisted = AppContext.databaseManager.update(baseObject.getId(), baseObject, cacheType);
             }
         }
         if (updateMode == 2) {
-            AppContext.databaseManager.update(baseObject.getId(), baseObject, cacheType);
+            persisted = AppContext.databaseManager.update(baseObject.getId(), baseObject, cacheType);
         }
+        return persisted;
     }
 
     public AniDBEntity get(int id, int cacheType) {
@@ -151,10 +153,15 @@ public class Cache {
     }
 
     public AniDBFile parseFile(String[] fields, Job job) {
+        return parseFileWithPersistence(fields, job).file();
+    }
+
+    /** Parses an AniDB file response and reports whether every related metadata row was persisted. */
+    public FileParseResult parseFileWithPersistence(String[] fields, Job job) {
         if (fields.length != 34) {
             LOGGER.warning(() -> "Unexpected response! len=" + fields.length);
             job.setError("Unexpected response from server.");
-            return null;
+            return new FileParseResult(null, false);
         }
         AniDBFile file = new AniDBFile(fields);
         int fieldIndex = 20;
@@ -213,16 +220,19 @@ public class Cache {
         file.pack();
 
         // update cache/db
-        add(file.getAnime(), 2, DatabaseManager.INDEX_ANIME);
-        add(file.getEpisode(), 2, DatabaseManager.INDEX_EPISODE);
-        add(file.getGroup(), 2, DatabaseManager.INDEX_GROUP);
-        AppContext.databaseManager.update(file.getFileId(), file, DatabaseManager.INDEX_FILE);
+        boolean animePersisted = add(file.getAnime(), 2, DatabaseManager.INDEX_ANIME);
+        boolean episodePersisted = add(file.getEpisode(), 2, DatabaseManager.INDEX_EPISODE);
+        boolean groupPersisted = add(file.getGroup(), 2, DatabaseManager.INDEX_GROUP);
+        boolean filePersisted = AppContext.databaseManager.update(file.getFileId(), file, DatabaseManager.INDEX_FILE);
 
         // update data tree
         job.anidbFile = file;
         treeAdd(job);
-        return file;
+        return new FileParseResult(file, animePersisted && episodePersisted && groupPersisted && filePersisted);
     }
+
+    /** Result of parsing AniDB metadata and attempting to persist its related cache rows. */
+    public record FileParseResult(AniDBFile file, boolean persisted) {}
 
     public String stats() {
         return cacheMaps[0].size() + "," + cacheMaps[1].size() + "," + cacheMaps[2].size();

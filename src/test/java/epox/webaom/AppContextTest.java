@@ -17,8 +17,11 @@
 package epox.webaom;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertSame;
 
+import epox.webaom.db.DatabaseManager;
 import epox.webaom.util.PlatformPaths;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -60,5 +63,48 @@ class AppContextTest {
                 () -> "bundled-template");
 
         assertEquals("legacy-template", template);
+    }
+
+    @Test
+    void confirmationFailsClosedWhenNoUiIsAvailable() {
+        java.awt.Component previous = AppContext.component;
+        AppContext.component = null;
+        try {
+            assertFalse(AppContext.confirm("Warning", "Proceed?", "Yes", "No"));
+        } finally {
+            AppContext.component = previous;
+        }
+    }
+
+    @Test
+    void initCoreUsesTheSelectedOptionsWithoutReplacingThem() {
+        Options selectedOptions = new Options(tempDir.resolve("selected-config"));
+
+        // initCore replaces every global subsystem, so the previous ones have to be put back or
+        // later tests inherit this test's job list, database, and IO managers.
+        JobList previousJobs = AppContext.jobs;
+        JobCounter previousJobCounter = AppContext.jobCounter;
+        Rules previousRules = AppContext.rules;
+        Cache previousCache = AppContext.cache;
+        DatabaseManager previousDatabaseManager = AppContext.databaseManager;
+        FileHandler previousFileHandler = AppContext.fileHandler;
+        Options previousOptions = AppContext.opt;
+        DiskIOManager previousDiskIo = AppContext.dio;
+        NetworkIOManager previousNetworkIo = AppContext.nio;
+        try {
+            AppContext.initCore(selectedOptions);
+
+            assertSame(selectedOptions, AppContext.opt);
+        } finally {
+            AppContext.jobs = previousJobs;
+            AppContext.jobCounter = previousJobCounter;
+            AppContext.rules = previousRules;
+            AppContext.cache = previousCache;
+            AppContext.databaseManager = previousDatabaseManager;
+            AppContext.fileHandler = previousFileHandler;
+            AppContext.opt = previousOptions;
+            AppContext.dio = previousDiskIo;
+            AppContext.nio = previousNetworkIo;
+        }
     }
 }

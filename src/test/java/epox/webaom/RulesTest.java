@@ -59,4 +59,31 @@ class RulesTest {
         assertTrue(Rules.getFilenameByteLength(filename) > Rules.MAX_FILENAME_BYTES);
         assertTrue(Rules.isFilenameTooLong(filename));
     }
+
+    @Test
+    void sectionParsesWeightClauseCaseInsensitively() {
+        Section section = new Section("'episode' weight 1.5:200");
+
+        assertEquals("episode", section.content);
+        assertEquals(1.5f, section.weight);
+        assertEquals(200, section.maxLength);
+    }
+
+    @Test
+    void sectionIgnoresMalformedWeightClauseLikeOlderVersions() {
+        Section section = new Section("'episode' WEIGHT 100");
+
+        assertEquals("episode", section.content);
+        assertEquals(1.0f, section.weight);
+        assertEquals(255, section.maxLength);
+    }
+
+    @Test
+    void sectionPreservesWeightTextInsideQuotes() {
+        Section section = new Section("'light weight 1:200 class'");
+
+        assertEquals("light weight 1:200 class", section.content);
+        assertEquals(1.0f, section.weight);
+        assertEquals(255, section.maxLength);
+    }
 }

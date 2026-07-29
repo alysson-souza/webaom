@@ -139,8 +139,15 @@ public class FileHandler {
     }
 
     public synchronized void loadOptions(Options options) {
-        StringTokenizer tokenizer =
-                new StringTokenizer(options.getString(Options.STR_EXTENSIONS), Options.FIELD_SEPARATOR);
+        String encodedExtensions = options.getString(Options.STR_EXTENSIONS);
+        if (encodedExtensions == null) {
+            loadDefaultExtensions();
+            return;
+        }
+        if (encodedExtensions.isBlank()) {
+            return;
+        }
+        StringTokenizer tokenizer = new StringTokenizer(encodedExtensions, Options.FIELD_SEPARATOR);
         while (tokenizer.hasMoreTokens()) {
             allowedExtensions.add(tokenizer.nextToken());
         }

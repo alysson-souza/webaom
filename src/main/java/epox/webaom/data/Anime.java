@@ -128,10 +128,18 @@ public class Anime extends AniDBEntity {
         if (!episodeProgress.set(episodeNumber, value)) {
             if (episodeNumber > (episodeCount > 0 ? episodeCount : latestEpisode)) {
                 if (!episodeProgress.fill(value)) {
-                    epox.webaom.AppContext.gui.println("@ Completion " + (value ? "over" : "under") + "flow: " + this
-                            + " [" + type + "] epno=" + episodeNumber);
+                    warn("@ Completion " + (value ? "over" : "under") + "flow: " + this + " [" + type + "] epno="
+                            + episodeNumber);
                 }
             }
+        }
+    }
+
+    private static void warn(String message) {
+        if (epox.webaom.AppContext.gui != null) {
+            epox.webaom.AppContext.gui.println(message);
+        } else {
+            System.err.println(message);
         }
     }
 
@@ -161,7 +169,7 @@ public class Anime extends AniDBEntity {
                             setOrFill(Integer.parseInt(rangeParts[0]), watched);
                             break;
                         default:
-                            epox.webaom.AppContext.gui.println("@ Anime.registerEpisode: Unexpected epno format!");
+                            warn("@ Anime.registerEpisode: Unexpected epno format!");
                     }
                 }
             }

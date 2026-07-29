@@ -30,6 +30,7 @@ import epox.webaom.ui.shortcuts.ShortcutRegistry;
 import epox.webaom.util.PlatformPaths;
 import java.awt.Component;
 import java.awt.Font;
+import java.awt.GraphicsEnvironment;
 import java.io.File;
 import java.io.InputStream;
 import java.util.Properties;
@@ -146,18 +147,7 @@ public final class AppContext {
     }
 
     public static void init() {
-        // A.mem0 = A.getUsed();
-        Thread.currentThread().setName("Main");
-        jobs = new JobList();
-        jobCounter = new JobCounter();
-        rules = new Rules();
-        cache = new Cache();
-        databaseManager = DatabaseManagerFactory.createEmbedded();
-        fileHandler = new FileHandler();
-        opt = new Options();
-        dio = new DiskIOManager();
-        nio = new NetworkIOManager();
-        // A.mem1 = A.getUsed();
+        initCore();
         gui = new MainPanel();
 
         String legacyTemplatePath = getLegacyTemplatePath(IS_DEVELOPMENT);
@@ -171,6 +161,28 @@ public final class AppContext {
             setFont(font, true);
         }
         // A.mem2 = A.getUsed();
+    }
+
+    /** Initializes the application services that do not require Swing. */
+    public static void initCore() {
+        initCore(new Options());
+    }
+
+    /** Initializes the application services that do not require Swing with the selected options. */
+    public static void initCore(Options selectedOptions) {
+        // A.mem0 = A.getUsed();
+        Thread.currentThread().setName("Main");
+        jobs = new JobList();
+        jobCounter = new JobCounter();
+        rules = new Rules();
+        cache = new Cache();
+        databaseManager = DatabaseManagerFactory.createEmbedded();
+        fileHandler = new FileHandler();
+        opt = selectedOptions;
+        dio = new DiskIOManager();
+        nio = new NetworkIOManager();
+        // A.mem1 = A.getUsed();
+        gui = null;
     }
 
     static String getLegacyTemplatePath(boolean isDevelopment) {
@@ -287,6 +299,10 @@ public final class AppContext {
     }
 
     public static void dialog(String title, String msg) {
+        if (component == null || GraphicsEnvironment.isHeadless()) {
+            System.err.println(title + ": " + msg);
+            return;
+        }
         DialogHelper.showMessageDialog(component, msg, title, JOptionPane.PLAIN_MESSAGE);
     }
 
@@ -295,6 +311,10 @@ public final class AppContext {
     }
 
     public static boolean confirm(String title, String msg, String pos, String neg) {
+        if (component == null || GraphicsEnvironment.isHeadless()) {
+            System.err.println(title + ": " + msg);
+            return false;
+        }
         Object[] o = {pos, neg};
         return DialogHelper.showOptionDialog(
                         AppContext.component,

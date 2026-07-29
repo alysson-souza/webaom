@@ -17,11 +17,20 @@
 package epox.webaom.util;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import java.io.ByteArrayOutputStream;
 import java.io.File;
+import java.io.PrintStream;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
 
 class PlatformPathsTest {
+    @TempDir
+    Path temporaryDirectory;
 
     @Test
     void getApplicationName_usesEnvVarFallbackWhenPropertyMissing() {
@@ -43,6 +52,22 @@ class PlatformPathsTest {
         } finally {
             restoreDevProperty(originalProperty);
         }
+    }
+
+    @Test
+    void migrateIfNeededReportsToTheSelectedDiagnosticsStream() throws Exception {
+        Path legacy = Files.writeString(temporaryDirectory.resolve("legacy"), "options");
+        Path destination = temporaryDirectory.resolve("new/config");
+        ByteArrayOutputStream output = new ByteArrayOutputStream();
+
+        boolean migrated;
+        try (PrintStream diagnostics = new PrintStream(output, true, StandardCharsets.UTF_8)) {
+            migrated = PlatformPaths.migrateIfNeeded(legacy.toString(), destination.toString(), diagnostics);
+        }
+
+        assertTrue(migrated);
+        assertEquals("options", Files.readString(destination));
+        assertTrue(output.toString(StandardCharsets.UTF_8).contains("$ Migrated config:"));
     }
 
     private static void restoreDevProperty(String originalProperty) {
