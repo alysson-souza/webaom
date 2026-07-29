@@ -147,6 +147,7 @@ public final class CliApplication implements AutoCloseable {
         }
         AppContext.databaseManager = DatabaseManagerFactory.create(connectionString);
         AppContext.databaseManager.setLoadAllJobs(false);
+        AppContext.databaseManager.setUiPromptsAvailable(false);
         if (!AppContext.databaseManager.initialize(connectionString)) {
             String detail = databaseFailureDetail(AppContext.databaseManager);
             AppContext.databaseManager.shutdown();
@@ -174,6 +175,7 @@ public final class CliApplication implements AutoCloseable {
         }
         DatabaseManager manager = DatabaseManagerFactory.create(connectionString);
         manager.setLoadAllJobs(false);
+        manager.setUiPromptsAvailable(false);
         manager.setLegacySchemaUpgradeConfirmationSource(() -> confirmUpgrade(output, assumeYes));
         if (!manager.initialize(connectionString)) {
             boolean declined = manager.isLegacySchemaUpgradeDeclined();
@@ -192,12 +194,28 @@ public final class CliApplication implements AutoCloseable {
         // reach an --yes supplier that answers "upgrade" without the user being asked.
         manager.setLegacySchemaUpgradeConfirmationSource(null);
         manager.setDebug(false);
+        boolean created = manager.wasSchemaCreated();
         AppContext.databaseManager = manager;
-        output.printText("Database schema is up to date.");
+        output.printText(created ? "Created a new WebAOM database." : "Database schema is up to date.");
         return true;
     }
 
-    private static boolean confirmUpgrade(CliOutput output, boolean assumeYes) {
+    /** Reads a confirmation line, returning null when there is no interactive terminal. */
+    @FunctionalInterface
+    interface ConsoleReader {
+        String readLine(String prompt);
+    }
+
+    private ConsoleReader consoleReader = prompt -> {
+        Console console = System.console();
+        return console == null ? null : console.readLine(prompt);
+    };
+
+    void setConsoleReader(ConsoleReader reader) {
+        this.consoleReader = reader;
+    }
+
+    private boolean confirmUpgrade(CliOutput output, boolean assumeYes) {
         // Consent narration belongs on stderr: it precedes an interactive prompt and must not be
         // captured as command output.
         output.notice("The database schema must be upgraded. Back up the database now if you have not "
@@ -206,13 +224,13 @@ public final class CliApplication implements AutoCloseable {
             output.notice("Proceeding because --yes was given.");
             return true;
         }
-        Console console = System.console();
-        if (console == null) {
+        String answer = consoleReader.readLine("Continue with the upgrade? [y/N]: ");
+        if (answer == null) {
             output.notice("Re-run with --yes to confirm without an interactive prompt.");
             return false;
         }
-        String answer = console.readLine("Continue with the upgrade? [y/N]: ");
-        return answer != null && (answer.equalsIgnoreCase("y") || answer.equalsIgnoreCase("yes"));
+        String normalized = answer.trim();
+        return normalized.equalsIgnoreCase("y") || normalized.equalsIgnoreCase("yes");
     }
 
     private static String databaseFailureDetail(DatabaseManager manager) {
@@ -228,6 +246,14 @@ public final class CliApplication implements AutoCloseable {
             return "The database schema must be upgraded before it can be used. Back up the database, then "
                     + "run `webaom db upgrade` to grant consent (or open the database once in the WebAOM "
                     + "desktop app instead).";
+        }
+        String schemaFailure = manager.getSchemaFailureDetail();
+        if (schemaFailure != null) {
+            // Name the statement that broke rather than making the user guess. Claiming the database is
+            // untouched would over-promise on MySQL, where DDL cannot be rolled back; what is always
+            // true is that the recorded version was not advanced, so the upgrade can be retried.
+            return "The database schema could not be updated: " + schemaFailure
+                    + " The recorded schema version was left unchanged.";
         }
         return "Could not open the WebAOM database.";
     }

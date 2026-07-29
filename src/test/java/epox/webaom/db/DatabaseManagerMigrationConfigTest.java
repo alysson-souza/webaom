@@ -222,7 +222,7 @@ class DatabaseManagerMigrationConfigTest {
         }
 
         @Override
-        protected void executeStatements(String sqlBatch) {
+        protected void executeSchemaBatch(String sqlBatch) {
             executedBatches.add(sqlBatch);
         }
 

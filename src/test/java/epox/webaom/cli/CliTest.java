@@ -343,6 +343,31 @@ class CliTest {
         assertEquals(2, invocation.exitCode());
         assertTrue(invocation.err().contains("must be upgraded"));
         assertTrue(invocation.err().contains("webaom db upgrade"));
+        // AppContext.confirm prints its dialog body to stderr when there is no Swing component. A
+        // terminal user must not be shown a question they have no way to answer.
+        assertFalse(invocation.err().contains("Do you want to continue?"));
+        assertFalse(invocation.err().contains("Warning:"));
+    }
+
+    @Test
+    void futureSchemaDatabaseDoesNotLeakTheDesktopWarningDialog() throws Exception {
+        Path config = temporaryDirectory.resolve("future-leak-config");
+        Path dbPath = temporaryDirectory.resolve("future-leak.sqlite");
+        try (Connection connection = DriverManager.getConnection("jdbc:sqlite:" + dbPath);
+                Statement statement = connection.createStatement()) {
+            statement.executeUpdate("CREATE TABLE vtb (ver INTEGER NOT NULL)");
+            statement.executeUpdate("INSERT INTO vtb (ver) VALUES (99)");
+        }
+        Options options = new Options(config);
+        options.setString(Options.STR_DATABASE_URL, "jdbc:sqlite:" + dbPath);
+        assertTrue(options.saveToFileUnchecked());
+
+        Invocation invocation = invoke("identify", "--config", config.toString(), temporaryDirectory.toString());
+
+        assertEquals(2, invocation.exitCode());
+        assertTrue(invocation.err().contains("newer WebAOM version"));
+        assertFalse(invocation.err().contains("Please update WebAOM."));
+        assertFalse(invocation.err().contains("Warning:"));
     }
 
     @Test
@@ -398,7 +423,9 @@ class CliTest {
 
         assertEquals(0, invocation.exitCode());
         assertFalse(invocation.err().contains("must be upgraded"));
-        assertTrue(invocation.out().contains("up to date"));
+        // Creating a database is not the same as upgrading one; saying "up to date" would imply an
+        // existing database was inspected.
+        assertTrue(invocation.out().contains("Created a new WebAOM database."));
         assertEquals(7, schemaVersion(dbPath));
     }
 

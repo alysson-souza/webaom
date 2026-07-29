@@ -112,6 +112,24 @@ Status flags use hexadecimal bitmasks:
 - `H_NORMAL = 0x00000100`, `H_PAUSED = 0x00000200`
 - `D_DIO = 0x00010000` (disk I/O), `D_NIO = 0x00020000` (network I/O)
 
+### Database Migrations (DatabaseManager.java)
+
+Every migration file in `src/main/resources/` ends by stamping the new version (`UPDATE vtb SET ver=N`).
+That makes failure handling load-bearing:
+
+- `executeSchemaBatch` stops at the first failing statement, so the version stamp never runs after a
+  failure. Swallowing errors would leave a database that claims to be migrated while missing columns
+  `SQL_JOB_QUERY` selects — unrecoverable, and previously reported as success.
+- `applySchemaChanges` wraps a migration in a transaction where the dialect allows it. MySQL commits
+  implicitly on DDL and overrides `supportsTransactionalSchemaChanges()` to false; there, the
+  first-failure stop is the only protection.
+- Dialect differences belong in `prepareSchemaSql` / `supportsTransactionalSchemaChanges`, not in a
+  copied `updateSchema`. MySQL used to duplicate the whole method, and the copy silently missed the
+  ancient-schema flag.
+- Headless callers must call `setUiPromptsAvailable(false)`. `AppContext.confirm`/`dialog` print their
+  body text to stderr when there is no Swing component, which otherwise shows CLI users a dialog's
+  wording — including unanswerable questions — ahead of the real error.
+
 ### Rules Grammar (Rules.java / RuleDocument.java)
 
 `Rules` executes rename and move scripts; `cli/RuleDocument` validates them for `rules check` and `rules edit`. The

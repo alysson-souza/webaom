@@ -142,6 +142,31 @@ class SQLiteDatabaseManagerMigrationTest {
         }
     }
 
+    @Test
+    void initialize_failedMigrationStatement_isReportedAndLeavesTheVersionUnstamped() throws Exception {
+        // Every migration file ends with `UPDATE vtb SET ver=N`. If an earlier statement in the file
+        // fails, stamping the version anyway would leave a database that claims to be migrated while
+        // missing the columns the rest of the app selects, with no way back.
+        Path dbPath = tempDir.resolve("partial-migration.sqlite");
+        createLegacyV6Database(dbPath);
+        try (Connection connection = DriverManager.getConnection("jdbc:sqlite:" + dbPath);
+                Statement statement = connection.createStatement()) {
+            // Simulates a half-applied earlier attempt: the v6->v7 ALTER will now fail as a duplicate.
+            statement.executeUpdate("ALTER TABLE jtb ADD COLUMN jobs_visible INTEGER NOT NULL DEFAULT 1");
+        }
+
+        SQLiteDatabaseManager manager = new SQLiteDatabaseManager();
+        assertFalse(manager.initialize("jdbc:sqlite:" + dbPath), "A failed migration must not report success");
+        manager.shutdown();
+
+        try (Connection connection = DriverManager.getConnection("jdbc:sqlite:" + dbPath);
+                Statement statement = connection.createStatement();
+                ResultSet rs = statement.executeQuery("select ver from vtb")) {
+            assertTrue(rs.next());
+            assertEquals(6, rs.getInt(1), "A failed migration must leave the recorded version untouched");
+        }
+    }
+
     private void createLegacyV6Database(Path dbPath) throws Exception {
         try (Connection connection = DriverManager.getConnection("jdbc:sqlite:" + dbPath);
                 Statement statement = connection.createStatement()) {

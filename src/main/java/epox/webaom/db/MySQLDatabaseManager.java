@@ -16,7 +16,6 @@
 
 package epox.webaom.db;
 
-import epox.webaom.AppContext;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.ResultSet;
@@ -84,55 +83,20 @@ public class MySQLDatabaseManager extends DatabaseManager {
         return -1;
     }
 
+    /** MySQL has no `serial` type; the shipped schema uses it for auto-incrementing keys. */
     @Override
-    protected boolean updateSchema() {
-        log("Checking database schema...");
-        try {
-            // Check for ancient legacy schema
-            ResultSet rs = query("select state from mylist where lid=0", true);
-            if (rs != null && rs.next()) {
-                log("Detected legacy database schema (mylist table) - too old to migrate");
-                markUnsupportedLegacySchema();
-                rs.close();
-                return false;
-            }
-            if (rs != null) rs.close();
+    protected String prepareSchemaSql(String sqlBatch) {
+        return sqlBatch.replace("serial", "integer NOT NULL auto_increment");
+    }
 
-            // Check current schema version
-            rs = query("select ver from vtb", true);
-            String[] sqlFiles = getSqlFiles();
-
-            if (rs != null && rs.next()) {
-                int version = rs.getInt(1);
-                rs.close();
-                log("Detected existing database with schema version " + version);
-
-                if (!validateExistingSchemaVersion(version)) {
-                    return false;
-                }
-
-                // Apply migrations
-                for (int v = version + 1; v < sqlFiles.length; v++) {
-                    log("Applying migration: " + sqlFiles[v]);
-                    executeStatements(AppContext.getFileString(sqlFiles[v]));
-                }
-            } else {
-                if (rs != null) rs.close();
-                // New database - MySQL needs serial -> auto_increment conversion
-                log("No existing database found, creating new schema...");
-                String schemaSql = AppContext.getFileString(sqlFiles[0]);
-                schemaSql = schemaSql.replace("serial", "integer NOT NULL auto_increment");
-                log("Using MySQL schema with auto_increment conversion");
-                executeStatements(schemaSql);
-                log("Database schema created successfully");
-            }
-        } catch (Exception ex) {
-            log("Schema update failed: " + ex.getMessage());
-            ex.printStackTrace();
-            return false;
-        }
-        log("Database schema is up to date");
-        return true;
+    /**
+     * MySQL commits implicitly on DDL, so wrapping a migration in a transaction would give a false
+     * sense of safety: a failure part-way through a migration file cannot be rolled back. The batch
+     * still stops at the first failing statement, which keeps the recorded version untouched.
+     */
+    @Override
+    protected boolean supportsTransactionalSchemaChanges() {
+        return false;
     }
 
     @Override

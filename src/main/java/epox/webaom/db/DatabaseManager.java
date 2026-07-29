@@ -81,6 +81,9 @@ public abstract class DatabaseManager {
     private boolean unsupportedFutureSchemaDetected = false;
     private boolean unsupportedLegacySchemaDetected = false;
     private boolean legacySchemaUpgradeDeclined = false;
+    private String schemaFailureDetail;
+    private boolean schemaWasCreated = false;
+    private boolean uiPromptsAvailable = true;
     private BooleanSupplier legacySchemaUpgradeConfirmationSource;
 
     // ========== Debug control ==========
@@ -108,6 +111,19 @@ public abstract class DatabaseManager {
      */
     public void setLegacySchemaUpgradeConfirmationSource(BooleanSupplier confirmationSource) {
         this.legacySchemaUpgradeConfirmationSource = confirmationSource;
+    }
+
+    /**
+     * Declares whether a desktop UI is available to show schema prompts and warnings.
+     *
+     * <p>Headless callers set this false. {@link AppContext#confirm} and {@link AppContext#dialog} fall
+     * back to printing their body text on stderr when there is no component, which on a terminal means a
+     * user is shown a dialog's wording — including questions they have no way to answer — ahead of the
+     * real error. Callers that turn this off are expected to report the outcome themselves from
+     * {@link #hasUnsupportedFutureSchema()} and friends.
+     */
+    public void setUiPromptsAvailable(boolean available) {
+        this.uiPromptsAvailable = available;
     }
 
     // ========== Abstract methods for database-specific behavior ==========
@@ -144,6 +160,8 @@ public abstract class DatabaseManager {
         unsupportedFutureSchemaDetected = false;
         unsupportedLegacySchemaDetected = false;
         legacySchemaUpgradeDeclined = false;
+        schemaFailureDetail = null;
+        schemaWasCreated = false;
         try {
             parseConnectionString(databaseString);
 
@@ -286,25 +304,115 @@ public abstract class DatabaseManager {
                 }
 
                 // Apply migrations from current version to latest
-                for (int v = version + 1; v < sqlFiles.length; v++) {
-                    log("Applying migration: " + sqlFiles[v]);
-                    executeStatements(AppContext.getFileString(sqlFiles[v]));
-                }
+                applySchemaChanges(() -> {
+                    for (int v = version + 1; v < sqlFiles.length; v++) {
+                        log("Applying migration: " + sqlFiles[v]);
+                        executeSchemaBatch(prepareSchemaSql(AppContext.getFileString(sqlFiles[v])));
+                    }
+                });
             } else {
                 if (rs != null) rs.close();
                 // New database - use schema file at index 0
                 log("No existing database found, creating new schema...");
                 log("Using schema file: " + sqlFiles[0]);
-                executeStatements(AppContext.getFileString(sqlFiles[0]));
+                applySchemaChanges(() -> executeSchemaBatch(prepareSchemaSql(AppContext.getFileString(sqlFiles[0]))));
+                schemaWasCreated = true;
                 log("Database schema created successfully");
             }
         } catch (Exception ex) {
+            schemaFailureDetail = ex.getMessage();
             log("Schema update failed: " + ex.getMessage());
-            ex.printStackTrace();
             return false;
         }
         log("Database schema is up to date");
         return true;
+    }
+
+    /** Hook for dialects that must rewrite the shipped schema SQL. */
+    protected String prepareSchemaSql(String sqlBatch) {
+        return sqlBatch;
+    }
+
+    /**
+     * Whether this dialect rolls schema changes back with the surrounding transaction. MySQL commits
+     * implicitly on DDL, so a failure part-way through a migration file cannot be undone there.
+     */
+    protected boolean supportsTransactionalSchemaChanges() {
+        return true;
+    }
+
+    /** Schema work that may fail part-way through. */
+    @FunctionalInterface
+    protected interface SchemaChange {
+        void apply() throws SQLException;
+    }
+
+    /**
+     * Runs schema work inside a transaction where the dialect supports it, so a migration that fails
+     * part-way leaves nothing behind.
+     */
+    protected void applySchemaChanges(SchemaChange change) throws SQLException {
+        if (connection == null || !supportsTransactionalSchemaChanges()) {
+            change.apply();
+            return;
+        }
+        boolean previousAutoCommit = connection.getAutoCommit();
+        connection.setAutoCommit(false);
+        try {
+            change.apply();
+            connection.commit();
+        } catch (SQLException ex) {
+            try {
+                connection.rollback();
+            } catch (SQLException rollbackFailure) {
+                ex.addSuppressed(rollbackFailure);
+            }
+            throw ex;
+        } finally {
+            try {
+                connection.setAutoCommit(previousAutoCommit);
+            } catch (SQLException ignored) {
+                // Best-effort restore; the caller is already handling any real failure.
+            }
+        }
+    }
+
+    /**
+     * Executes a schema batch, stopping at the first statement that fails.
+     *
+     * <p>Every migration file ends by stamping the new version number. Swallowing an earlier failure
+     * would leave a database that claims to be migrated while missing the columns the rest of the
+     * application selects, which is unrecoverable. Failing here keeps the recorded version on its old
+     * value so the upgrade can be diagnosed and retried.
+     */
+    protected void executeSchemaBatch(String sqlBatch) throws SQLException {
+        for (String rawStatement : sqlBatch.split(";")) {
+            String sql = rawStatement.trim();
+            if (sql.isEmpty()) {
+                continue;
+            }
+            try {
+                statement.execute(sql);
+            } catch (SQLException ex) {
+                throw new SQLException(
+                        "Schema statement failed [" + summarizeStatement(sql) + "]: " + ex.getMessage(), ex);
+            }
+        }
+    }
+
+    private static String summarizeStatement(String sql) {
+        String collapsed = sql.replaceAll("\\s+", " ").trim();
+        return collapsed.length() <= 90 ? collapsed : collapsed.substring(0, 87) + "...";
+    }
+
+    /** The reason the last schema update failed, or null when it did not fail. */
+    public String getSchemaFailureDetail() {
+        return schemaFailureDetail;
+    }
+
+    /** True when the last successful initialize created the schema rather than finding an existing one. */
+    public boolean wasSchemaCreated() {
+        return schemaWasCreated;
     }
 
     protected int getSupportedSchemaVersion() {
@@ -340,6 +448,10 @@ public abstract class DatabaseManager {
         if (legacySchemaUpgradeConfirmationSource != null) {
             return legacySchemaUpgradeConfirmationSource.getAsBoolean();
         }
+        if (!uiPromptsAvailable) {
+            // Fail closed without printing a dialog the caller cannot answer.
+            return false;
+        }
         return AppContext.confirm("Warning", """
             The database definition has to be upgraded.
             This will make it incompatible with previous versions of WebAOM.
@@ -348,6 +460,9 @@ public abstract class DatabaseManager {
     }
 
     protected void showFutureSchemaWarning(int detectedVersion, int supportedVersion) {
+        if (!uiPromptsAvailable) {
+            return;
+        }
         AppContext.dialog("Warning", buildFutureSchemaWarningMessage(detectedVersion, supportedVersion));
     }
 

@@ -170,6 +170,10 @@ pass `--yes` for unattended use. **Back up the database first** — the upgrade 
 WebAOM versions. A database that is too old to migrate at all, or that was created by a newer WebAOM version, is
 always refused, with or without `--yes`.
 
+If a migration fails part-way, the upgrade stops at the statement that failed and reports it, and the recorded
+schema version is left unchanged so the upgrade can be retried once the cause is fixed. On SQLite and PostgreSQL
+the partial changes are rolled back; MySQL commits DDL implicitly, so there some changes may remain.
+
 ## Configuration
 
 Settings are stored in the platform app-data directory (UTF-8):
