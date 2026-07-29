@@ -114,21 +114,35 @@ Status flags use hexadecimal bitmasks:
 
 ### Database Migrations (DatabaseManager.java)
 
-Every migration file in `src/main/resources/` ends by stamping the new version (`UPDATE vtb SET ver=N`).
-That makes failure handling load-bearing:
+Schema SQL lives in `src/main/resources/`. Each dialect manager lists its files in `SQL_FILES`: index 0
+creates a current-version schema, index N upgrades version N-1 to N. Suffixes select the dialect
+(`a` PostgreSQL, `b` MySQL, `c` SQLite; unsuffixed files are shared).
 
-- `executeSchemaBatch` stops at the first failing statement, so the version stamp never runs after a
-  failure. Swallowing errors would leave a database that claims to be migrated while missing columns
-  `SQL_JOB_QUERY` selects — unrecoverable, and previously reported as success.
-- `applySchemaChanges` wraps a migration in a transaction where the dialect allows it. MySQL commits
-  implicitly on DDL and overrides `supportsTransactionalSchemaChanges()` to false; there, the
-  first-failure stop is the only protection.
-- Dialect differences belong in `prepareSchemaSql` / `supportsTransactionalSchemaChanges`, not in a
-  copied `updateSchema`. MySQL used to duplicate the whole method, and the copy silently missed the
-  ancient-schema flag.
-- Headless callers must call `setUiPromptsAvailable(false)`. `AppContext.confirm`/`dialog` print their
-  body text to stderr when there is no Swing component, which otherwise shows CLI users a dialog's
-  wording — including unanswerable questions — ahead of the real error.
+To add schema version N:
+
+1. Add the upgrade file for each dialect and append it to every `SQL_FILES`.
+2. End each upgrade file with `UPDATE vtb SET ver=N;`.
+3. Bump the `INSERT INTO vtb VALUES (...)` at the end of `db00.sql` and `db00c.sql` to N.
+
+`getSupportedSchemaVersion()` derives from `SQL_FILES.length`, so a database whose `vtb.ver` exceeds it
+is rejected as coming from a newer build.
+
+Rules for the code:
+
+- Run schema SQL only through `executeSchemaBatch`, which throws on the first failing statement.
+  Continuing past a failure reaches the file's own `UPDATE vtb SET ver=N` and records the database as
+  migrated without the columns `SQL_JOB_QUERY` selects, which no later run can detect or repair.
+- Wrap schema work in `applySchemaChanges`. It opens a transaction where
+  `supportsTransactionalSchemaChanges()` is true (SQLite, PostgreSQL) and runs statements directly
+  where it is false (MySQL, which commits implicitly on DDL).
+- Express dialect differences by overriding `prepareSchemaSql` or
+  `supportsTransactionalSchemaChanges`. Do not override `updateSchema`.
+- Headless callers must call `setUiPromptsAvailable(false)`, otherwise `AppContext.confirm` and
+  `AppContext.dialog` print dialog text to stderr. Such callers report outcomes themselves from
+  `hasUnsupportedFutureSchema()`, `hasUnsupportedLegacySchema()`, `isLegacySchemaUpgradeDeclined()`
+  and `getSchemaFailureDetail()`.
+- Grant legacy-schema consent by installing a `setLegacySchemaUpgradeConfirmationSource(...)`; with
+  none set, a pre-v4 schema falls back to the desktop dialog.
 
 ### Rules Grammar (Rules.java / RuleDocument.java)
 
