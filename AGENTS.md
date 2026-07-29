@@ -2,7 +2,8 @@
 
 ## Project Overview
 
-WebAOM (Web Anime-o-Matic) is a Java Swing desktop application for identifying anime files via AniDB's UDP API.
+WebAOM (Web Anime-o-Matic) is a Java application for identifying anime files via AniDB's UDP API. It ships a Swing
+desktop app and a command-line interface that share the same configuration, database, credentials, and rules.
 
 ## Build Commands
 
@@ -27,7 +28,8 @@ WebAOM (Web Anime-o-Matic) is a Java Swing desktop application for identifying a
 
 ### Core Components
 
-- **Entry Point**: `src/main/java/epox/webaom/WebAOM.java` - Swing launcher
+- **Entry Point**: `src/main/java/epox/webaom/WebAOM.java` - Swing launcher; dispatches to the CLI when given arguments
+- **CLI Entry Point**: `src/main/java/epox/webaom/cli/Cli.java` - picocli command tree
 - **Global State**: `AppContext.java` - Static singleton with all subsystems
 - **Job System**: `Job.java` with bitmask-based state machine
 - **Network Layer**: `AniDBConnection.java` / `AniDBFileClient.java`
@@ -39,6 +41,7 @@ WebAOM (Web Anime-o-Matic) is a Java Swing desktop application for identifying a
 - `epox.webaom.net/` - AniDB UDP protocol implementation (see `@docs/udp-api-definition.md` for protocol spec)
 - `epox.webaom.ui/` - Swing UI components (JPanel*, JTable*, JDialog*)
 - `epox.webaom.ui.actions.jobs/` - UI-decoupled job action orchestration (commands, gateway, controller)
+- `epox.webaom.cli/` - Command-line interface (`Cli` commands, `CliApplication` headless orchestration, `RuleDocument`)
 - `epox.webaom.db/` - Database management
 - `epox.webaom.job/` - Job processing system
 - `epox.util/` - Utilities and hashing
@@ -108,6 +111,18 @@ Status flags use hexadecimal bitmasks:
 - `S_DONE = 0x00000001`, `S_DO = 0x00000002`, `S_DOING = 0x00000014`
 - `H_NORMAL = 0x00000100`, `H_PAUSED = 0x00000200`
 - `D_DIO = 0x00010000` (disk I/O), `D_NIO = 0x00020000` (network I/O)
+
+### Rules Grammar (Rules.java / RuleDocument.java)
+
+`Rules` executes rename and move scripts; `cli/RuleDocument` validates them for `rules check` and `rules edit`. The
+two hold the grammar independently, so a change to one needs a matching change to the other.
+
+- The validator must not reject what the engine accepts. `Rules.buildSections` skips unrecognized lines, and its
+  tokenizers drop empty condition groups (`;`) and values (`,`), so `RuleDocument` accepts all of these.
+- Both find the `DO` separator via `Rules.indexOfConditionSeparator`, which ignores `DO` inside parentheses so
+  condition values and regexes may contain the word "do".
+- `processRulesScript` catches everything and returns null, which silently disables the whole script. Parsing
+  helpers reached from `Section` must therefore tolerate legacy clauses rather than throw.
 
 ### Testing
 
