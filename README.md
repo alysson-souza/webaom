@@ -51,128 +51,95 @@ java -jar webaom-2.5.0-full.jar
 
 ## Command Line
 
-The desktop app and CLI use the same configuration, database, credentials, extensions, and rules. Running WebAOM
-without arguments opens the desktop app.
+The command-line interface uses the same configuration, database, credentials, extensions, and rules as the desktop
+application.
 
-Native Windows installations provide `webaom-cli.exe` for command-line use while keeping `WebAOM.exe` as the
-console-free desktop launcher. Running `webaom-cli.exe` without a command shows CLI help.
+### Running the CLI
 
-The examples below use the `webaom` script included in archive distributions. For a standalone JAR, replace
-`webaom` with `java -jar webaom-<version>-lite.jar` (or the full JAR):
+The CLI is included in the lite and full JARs. Use the lite JAR with SQLite or the full JAR with PostgreSQL or MySQL:
 
 ```bash
-# Archive distribution
-webaom identify "mystery-file.mkv"
-
-# Native Windows installation
-webaom-cli.exe identify "mystery-file.mkv"
-
-# Standalone JAR
-java -jar webaom-<version>-lite.jar identify "mystery-file.mkv"
+java -jar webaom-2.6.0-lite.jar --help
+java -jar webaom-2.6.0-full.jar --help
 ```
+
+The examples below use the lite JAR.
+
+### Setup and Diagnostics
+
+Credentials can be saved from the desktop application or from the CLI. `doctor` checks the resulting configuration,
+database, credentials, and AniDB connection.
 
 ```bash
-# Identify a file without renaming it or changing MyList
-webaom identify "mystery-file.mkv"
-
-# Directories are scanned recursively using the configured media extensions
-webaom identify ./incoming
-
-# Preview rule-based filenames, then apply exactly those changes
-webaom rename ./incoming
-webaom rename ./incoming --apply
-
-# Also apply the configured move rules
-webaom rename ./incoming --move --apply
+java -jar webaom-2.6.0-lite.jar login
+java -jar webaom-2.6.0-lite.jar config show
+java -jar webaom-2.6.0-lite.jar doctor
 ```
 
-`rename` performs any hashing and AniDB lookup it needs, so `identify` does not need to be run first. Rename and move
-operations never overwrite an existing destination, and a batch collision prevents the batch from starting. Matching
-companion files with the same base name, such as `episode.en.srt`, are included in the preview and follow the media
-file when changes are applied.
+### Identifying Files
 
-Results are cached, and a file is re-hashed automatically when its size no longer matches what was stored. If a file
-was replaced by different content of exactly the same size, `--refresh` discards the cached result and identifies it
-from scratch:
+`identify` looks up files on AniDB without renaming them or changing MyList. Directories are scanned recursively
+using the configured media extensions.
 
 ```bash
-webaom identify ./incoming --refresh
-webaom rename ./incoming --refresh
+java -jar webaom-2.6.0-lite.jar identify "episode.mkv"
+java -jar webaom-2.6.0-lite.jar identify ./incoming
 ```
 
-MyList is a separate, explicit operation:
+Results are cached. Add `--refresh` to identify the files again instead of using cached results.
+
+### Renaming and Moving Files
+
+`rename` previews the file operations produced by the active rules:
 
 ```bash
-webaom mylist status ./incoming
-webaom mylist add ./incoming
-webaom mylist remove ./incoming
+java -jar webaom-2.6.0-lite.jar rename ./incoming
 ```
 
-`mylist status` answers from the local database, so it works without credentials or a network connection.
-
-The `mylist add` command uses the saved MyList defaults. Common values can be overridden for one run:
+Use `--apply` to perform the previewed renames. Add `--move` to include the active move rules.
 
 ```bash
-webaom mylist add ./incoming --state hdd --watched --storage NAS --source BluRay
+java -jar webaom-2.6.0-lite.jar rename ./incoming --apply
+java -jar webaom-2.6.0-lite.jar rename ./incoming --move --apply
 ```
 
-When a file is already in your MyList, `mylist add` updates the existing entry with these values rather than
-leaving it unchanged.
+WebAOM does not overwrite an existing destination. Matching companion files, such as subtitles, follow the media
+file when a rename or move is applied.
+
+### Managing MyList
+
+MyList operations are explicit and separate from identification and renaming:
+
+```bash
+java -jar webaom-2.6.0-lite.jar mylist status ./incoming
+java -jar webaom-2.6.0-lite.jar mylist add ./incoming
+java -jar webaom-2.6.0-lite.jar mylist remove ./incoming
+```
+
+`mylist add` uses the saved MyList options. Run it with `--help` to see the values that can be overridden for one
+command.
 
 ### Rules
 
 ```bash
-webaom rules show
-webaom rules edit
-webaom rules check
-
-# Preview a temporary rules file without changing saved configuration
-webaom rename ./incoming --rules ./alternate-rules.conf
+java -jar webaom-2.6.0-lite.jar rules show
+java -jar webaom-2.6.0-lite.jar rules check
+java -jar webaom-2.6.0-lite.jar rules edit
 ```
 
-The editable rules document contains the existing WebAOM rule language in two sections:
+Run `rename` without `--apply` to test the active rules against real files.
 
-```ini
-[rename]
-DO ADD '%eng (%yea) - %enr - %epn'
-IF G(!unknown) DO ADD ' [%grp]'
+### Automation
 
-[move]
-DO ADD '~/Anime/%eng (%yea)/'
-```
-
-`rules edit` validates the document before atomically updating the active configuration. Use `rename` without
-`--apply` to test how the rules affect real files.
-
-### Automation and Diagnostics
+File-processing commands support `--format json` and `--format jsonl`. Structured results are written to standard
+output and diagnostics to standard error.
 
 ```bash
-webaom hash ./incoming --all
-webaom identify ./incoming --format jsonl
-webaom config show
-webaom config path
-webaom doctor
-webaom login
-webaom db upgrade
+java -jar webaom-2.6.0-lite.jar hash ./incoming --all
+java -jar webaom-2.6.0-lite.jar identify ./incoming --format jsonl
 ```
 
-Human-readable output is the default. File-processing commands accept `--format json` to return one array or
-`--format jsonl` to return one object per file. Structured output is always UTF-8, and progress and diagnostics are
-written separately from it. For unattended use, credentials can be supplied through `WEBAOM_USERNAME`,
-`WEBAOM_PASSWORD`, and optionally `WEBAOM_API_KEY`.
-
-`doctor` reports configuration, database, credentials, and AniDB as a checklist, including when the database itself
-is the thing that fails. Colored output can be turned off with `--no-color` or by setting `NO_COLOR`.
-
-Very old databases (predating WebAOM's migration chain) require a one-time schema upgrade before they can be used.
-The CLI never performs this upgrade implicitly: run `webaom db upgrade` and confirm at the interactive prompt, or
-pass `--yes` for unattended use. **Back up the database first** — the upgrade makes it incompatible with older
-WebAOM versions. A database that is too old to migrate at all, or that was created by a newer WebAOM version, is
-always refused, with or without `--yes`.
-
-If a migration fails part-way, the upgrade stops at the statement that failed and reports it, and the recorded
-schema version is left unchanged so the upgrade can be retried once the cause is fixed. On SQLite and PostgreSQL
-the partial changes are rolled back; MySQL commits DDL implicitly, so there some changes may remain.
+Automated processes can provide credentials through `WEBAOM_USERNAME`, `WEBAOM_PASSWORD`, and `WEBAOM_API_KEY`.
 
 ## Configuration
 

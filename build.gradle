@@ -31,6 +31,15 @@ tasks.named('run', JavaExec) {
 	jvmArgs '-Dwebaom.dev=true'
 }
 
+tasks.register('runCli', JavaExec) {
+	dependsOn classes
+	group = 'application'
+	description = 'Runs the WebAOM CLI. Pass arguments with --args="...".'
+	classpath = sourceSets.main.runtimeClasspath
+	mainClass = 'epox.webaom.cli.Cli'
+	jvmArgs '-Dwebaom.dev=true'
+}
+
 repositories {
 	mavenCentral()
 }
