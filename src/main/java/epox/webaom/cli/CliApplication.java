@@ -35,7 +35,6 @@ import epox.webaom.net.AniDBConnectionSettings;
 import epox.webaom.net.AniDBException;
 import epox.webaom.net.AniDBFileClient;
 import epox.webaom.util.PlatformPaths;
-import java.io.Console;
 import java.io.IOException;
 import java.nio.file.DirectoryStream;
 import java.nio.file.FileStore;
@@ -66,6 +65,7 @@ public final class CliApplication implements AutoCloseable {
     private final ConnectionFactory connectionFactory;
     private AniDBFileClient connection;
     private Thread shutdownHook;
+    private CliPrompt.Cancelled promptCancellation;
 
     private CliApplication(Options options, Rules rules, Set<String> extensions) {
         this(options, rules, extensions, settings -> new AniDBFileClient(null, settings));
@@ -176,8 +176,15 @@ public final class CliApplication implements AutoCloseable {
         DatabaseManager manager = DatabaseManagerFactory.create(connectionString);
         manager.setLoadAllJobs(false);
         manager.setUiPromptsAvailable(false);
+        promptCancellation = null;
         manager.setLegacySchemaUpgradeConfirmationSource(() -> confirmUpgrade(output, assumeYes));
         if (!manager.initialize(connectionString)) {
+            if (promptCancellation != null) {
+                manager.shutdown();
+                CliPrompt.Cancelled cancelled = promptCancellation;
+                promptCancellation = null;
+                throw CliException.cancelled("Database upgrade cancelled.", cancelled.exitCode());
+            }
             boolean declined = manager.isLegacySchemaUpgradeDeclined();
             String detail = declined
                     ? "Database schema upgrade was not confirmed; nothing was changed."
@@ -196,7 +203,7 @@ public final class CliApplication implements AutoCloseable {
         manager.setDebug(false);
         boolean created = manager.wasSchemaCreated();
         AppContext.databaseManager = manager;
-        output.printText(created ? "Created a new WebAOM database." : "Database schema is up to date.");
+        output.printSuccess(created ? "Created a new WebAOM database." : "Database schema is up to date.");
         return true;
     }
 
@@ -206,10 +213,7 @@ public final class CliApplication implements AutoCloseable {
         String readLine(String prompt);
     }
 
-    private ConsoleReader consoleReader = prompt -> {
-        Console console = System.console();
-        return console == null ? null : console.readLine(prompt);
-    };
+    private ConsoleReader consoleReader = prompt -> null;
 
     void setConsoleReader(ConsoleReader reader) {
         this.consoleReader = reader;
@@ -224,7 +228,13 @@ public final class CliApplication implements AutoCloseable {
             output.notice("Proceeding because --yes was given.");
             return true;
         }
-        String answer = consoleReader.readLine("Continue with the upgrade? [y/N]: ");
+        String answer;
+        try {
+            answer = consoleReader.readLine("Continue with the upgrade? [y/N]: ");
+        } catch (CliPrompt.Cancelled cancelled) {
+            promptCancellation = cancelled;
+            return false;
+        }
         if (answer == null) {
             output.notice("Re-run with --yes to confirm without an interactive prompt.");
             return false;
@@ -291,7 +301,7 @@ public final class CliApplication implements AutoCloseable {
         for (Path file : discover(inputs)) {
             CliFileResult result = new CliFileResult(file);
             try {
-                output.progress("Hashing " + file);
+                output.progress("Hashing", file);
                 result.hashes = hasher.hash(file, algorithms);
                 result.status = CliFileResult.Status.HASHED;
             } catch (IOException exception) {
@@ -330,7 +340,7 @@ public final class CliApplication implements AutoCloseable {
             CliFileResult result = new CliFileResult(file);
             results.add(result);
             try {
-                output.progress("Identifying " + file);
+                output.progress("Identifying", file);
                 identify(result, refresh);
             } catch (CliException exception) {
                 throw exception;
@@ -682,7 +692,7 @@ public final class CliApplication implements AutoCloseable {
                 continue;
             }
             try {
-                output.progress("Applying " + result.source + " → " + result.target);
+                output.progress("Applying", result.source);
                 boolean moved = !result.source.getParent().equals(result.target.getParent());
                 moveWithCompanions(result);
                 result.applied = true;
@@ -893,31 +903,32 @@ public final class CliApplication implements AutoCloseable {
 
     public boolean doctor(CliOutput output) {
         boolean healthy = true;
-        output.printText("Configuration: " + options.getFilePath());
+        output.printPath("Configuration", Path.of(options.getFilePath()));
         // doctor opens without requiring the database so that database failures become a reported
         // check rather than an abort; diagnosing them is the point of the command.
         if (AppContext.databaseManager != null && AppContext.databaseManager.isConnected()) {
-            output.printText("Database: ok");
+            output.printCheck("Database", "ok", true);
         } else {
             String failure = openDatabase(options);
             if (failure == null) {
-                output.printText("Database: ok");
+                output.printCheck("Database", "ok", true);
             } else {
-                output.printText("Database: " + failure);
+                output.printCheck("Database", failure, false);
                 healthy = false;
             }
         }
         String username = resolvedUsername();
         if (username == null || resolvedPassword() == null) {
-            output.printText("Credentials: missing (run `webaom login` or set WEBAOM_USERNAME/WEBAOM_PASSWORD)");
+            output.printCheck(
+                    "Credentials", "missing (run `webaom login` or set WEBAOM_USERNAME/WEBAOM_PASSWORD)", false);
             healthy = false;
         } else {
-            output.printText("Credentials: configured for " + username);
+            output.printCheck("Credentials", "configured for " + username, true);
             try {
                 connection();
-                output.printText("AniDB: authenticated");
+                output.printCheck("AniDB", "authenticated", true);
             } catch (Exception exception) {
-                output.printText("AniDB: " + usefulMessage(exception));
+                output.printCheck("AniDB", usefulMessage(exception), false);
                 healthy = false;
             }
         }

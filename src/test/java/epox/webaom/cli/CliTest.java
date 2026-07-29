@@ -98,6 +98,25 @@ class CliTest {
     }
 
     @Test
+    void jsonRemainsPlainWhenTerminalStylingIsForced() throws Exception {
+        Path file = Files.writeString(temporaryDirectory.resolve("styled-json.mkv"), "abc");
+        Path config = temporaryDirectory.resolve("styled-json-config");
+
+        Invocation invocation = invoke(
+                "hash",
+                file.toString(),
+                "--config",
+                config.toString(),
+                "--format=json",
+                "--color=always",
+                "--hyperlinks=always");
+
+        assertEquals(0, invocation.exitCode());
+        assertTrue(invocation.out().startsWith("[{"));
+        assertFalse(invocation.out().contains("\u001B"));
+    }
+
+    @Test
     void existingMalformedConfigFailsClosedWithoutBeingOverwritten() throws Exception {
         Path file = Files.writeString(temporaryDirectory.resolve("sample.mkv"), "abc");
         Path config = Files.writeString(temporaryDirectory.resolve("broken-config"), "not a WebAOM config");
@@ -118,6 +137,37 @@ class CliTest {
         assertTrue(invocation.out().contains("--[no-]watched"));
         assertTrue(invocation.out().contains("--state"));
         assertTrue(invocation.out().contains("--storage"));
+    }
+
+    @Test
+    void helpColorCanBeForcedAndNoColorWins() {
+        Invocation colored = invoke("--color=always", "--help");
+        Invocation disabled = invoke("--color=always", "--no-color", "--help");
+
+        assertTrue(colored.out().contains("\u001B["));
+        assertFalse(disabled.out().contains("\u001B["));
+    }
+
+    @Test
+    void stylingOptionsAfterOptionTerminatorArePositionalArguments() {
+        Invocation invocation = invoke("config", "show", "--", "--color=always");
+
+        assertEquals(2, invocation.exitCode());
+        assertFalse(invocation.err().contains("\u001B"));
+    }
+
+    @Test
+    void hyperlinksCanBeForcedForConfigurationPaths() {
+        Path config = temporaryDirectory.resolve("linked config");
+
+        Invocation invocation =
+                invoke("config", "path", "--config", config.toString(), "--color=never", "--hyperlinks=always");
+
+        assertEquals(0, invocation.exitCode());
+        assertTrue(invocation
+                .out()
+                .contains("\u001B]8;;"
+                        + config.toAbsolutePath().normalize().toUri().toASCIIString()));
     }
 
     @Test
@@ -392,6 +442,25 @@ class CliTest {
     }
 
     @Test
+    void dbUpgradeInterruptCancelsAndLeavesSchemaUntouched() throws Exception {
+        Path config = temporaryDirectory.resolve("db-upgrade-cancel-config");
+        Path dbPath = temporaryDirectory.resolve("cancel.sqlite");
+        createPreV4Database(dbPath);
+        Options options = new Options(config);
+        options.setString(Options.STR_DATABASE_URL, "jdbc:sqlite:" + dbPath);
+        assertTrue(options.saveToFileUnchecked());
+        FakeInput input = FakeInput.interruptAt(0);
+
+        Invocation invocation = invokeInteractive(input, "db", "upgrade", "--config", config.toString());
+
+        assertEquals(130, invocation.exitCode());
+        assertTrue(invocation.err().contains("Database upgrade cancelled."));
+        assertFalse(invocation.err().contains("Error:"));
+        assertEquals(3, schemaVersion(dbPath));
+        assertTrue(input.closed);
+    }
+
+    @Test
     void dbUpgradeWithYesMigratesPreV4DatabaseAndUnblocksOtherCommands() throws Exception {
         Path config = temporaryDirectory.resolve("db-upgrade-yes-config");
         Path dbPath = temporaryDirectory.resolve("upgrade-me.sqlite");
@@ -578,11 +647,96 @@ class CliTest {
         assertTrue(Files.readString(temporaryRules).contains("edited"));
     }
 
+    @Test
+    void loginInterruptsAtEveryPromptWithoutSavingPartialCredentials() throws Exception {
+        for (int prompt = 0; prompt < 3; prompt++) {
+            Path config = temporaryDirectory.resolve("login-cancel-" + prompt);
+            Options options = new Options(config);
+            options.setString(Options.STR_HOST_URL, "api.anidb.net");
+            assertTrue(options.saveToFileUnchecked());
+            byte[] before = Files.readAllBytes(config);
+            FakeInput input = FakeInput.interruptAt(prompt);
+
+            Invocation invocation = invokeInteractive(input, "login", "--config", config.toString());
+
+            assertEquals(130, invocation.exitCode());
+            assertTrue(invocation.err().contains("Login cancelled."));
+            assertFalse(invocation.err().contains("Error:"));
+            assertTrue(invocation.out().isEmpty());
+            assertTrue(java.util.Arrays.equals(before, Files.readAllBytes(config)));
+            assertTrue(input.closed);
+        }
+    }
+
+    @Test
+    void loginEndOfFileCancelsWithStatusOne() {
+        Path config = temporaryDirectory.resolve("login-eof");
+        FakeInput input = FakeInput.endOfFileAt(1);
+
+        Invocation invocation = invokeInteractive(input, "login", "--config", config.toString());
+
+        assertEquals(1, invocation.exitCode());
+        assertTrue(invocation.err().contains("Login cancelled."));
+        assertFalse(invocation.err().contains("Error:"));
+        assertTrue(Files.notExists(config));
+        assertTrue(input.closed);
+    }
+
     private static Invocation invoke(String... arguments) {
         StringWriter outBuffer = new StringWriter();
         StringWriter errBuffer = new StringWriter();
         int exitCode = Cli.execute(new PrintWriter(outBuffer, true), new PrintWriter(errBuffer, true), arguments);
         return new Invocation(exitCode, outBuffer.toString(), errBuffer.toString());
+    }
+
+    private static Invocation invokeInteractive(CliInput input, String... arguments) {
+        StringWriter outBuffer = new StringWriter();
+        StringWriter errBuffer = new StringWriter();
+        int exitCode = Cli.execute(
+                new PrintWriter(outBuffer, true), new PrintWriter(errBuffer, true), true, style -> input, arguments);
+        return new Invocation(exitCode, outBuffer.toString(), errBuffer.toString());
+    }
+
+    private static final class FakeInput implements CliInput {
+        private final int cancelAt;
+        private final int exitCode;
+        private int prompt;
+        private boolean closed;
+
+        private FakeInput(int cancelAt, int exitCode) {
+            this.cancelAt = cancelAt;
+            this.exitCode = exitCode;
+        }
+
+        static FakeInput interruptAt(int prompt) {
+            return new FakeInput(prompt, 130);
+        }
+
+        static FakeInput endOfFileAt(int prompt) {
+            return new FakeInput(prompt, 1);
+        }
+
+        @Override
+        public String readLine(String ignored) {
+            return answer("test-user");
+        }
+
+        @Override
+        public String readSecret(String ignored) {
+            return answer(prompt == 1 ? "test-password" : "");
+        }
+
+        private String answer(String value) {
+            if (prompt++ == cancelAt) {
+                throw new CliPrompt.Cancelled(exitCode);
+            }
+            return value;
+        }
+
+        @Override
+        public void close() {
+            closed = true;
+        }
     }
 
     private record Invocation(int exitCode, String out, String err) {}

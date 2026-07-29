@@ -36,24 +36,37 @@ public final class CliOutput {
     private final Format format;
     private final boolean quiet;
     private final boolean verbose;
+    private final CliStyle style;
 
     public CliOutput(PrintWriter out, PrintWriter err, Format format, boolean quiet, boolean verbose) {
+        this(out, err, format, quiet, verbose, CliStyle.plain());
+    }
+
+    CliOutput(PrintWriter out, PrintWriter err, Format format, boolean quiet, boolean verbose, CliStyle style) {
         this.out = out;
         this.err = err;
         this.format = format;
         this.quiet = quiet;
         this.verbose = verbose;
+        this.style = format == Format.TABLE ? style : CliStyle.plain();
     }
 
     public void progress(String message) {
         if (!quiet && format == Format.TABLE) {
-            err.println(message);
+            err.println(style.progress(message));
+            err.flush();
+        }
+    }
+
+    public void progress(String action, java.nio.file.Path path) {
+        if (!quiet && format == Format.TABLE) {
+            err.println(style.progress(action + " ") + style.path(path));
             err.flush();
         }
     }
 
     public void error(String message) {
-        err.println("Error: " + message);
+        err.println(style.error("Error:") + " " + style.text(message));
         err.flush();
     }
 
@@ -63,7 +76,7 @@ public final class CliOutput {
      * text the user must read before answering a prompt.
      */
     public void notice(String message) {
-        err.println(message);
+        err.println(style.warning(message));
         err.flush();
     }
 
@@ -77,52 +90,85 @@ public final class CliOutput {
     }
 
     public void printText(String text) {
-        out.print(text);
+        String safeText = style.text(text);
+        out.print(safeText);
         if (!text.endsWith(System.lineSeparator())) {
             out.println();
         }
         out.flush();
     }
 
+    public void printSuccess(String text) {
+        out.println(style.success(text));
+        out.flush();
+    }
+
+    public void printWarning(String text) {
+        out.println(style.warning(text));
+        out.flush();
+    }
+
+    public void printValue(String label, String value) {
+        out.println(style.label(label + ":") + " " + style.text(value));
+        out.flush();
+    }
+
+    public void printPath(String label, java.nio.file.Path path) {
+        out.println(style.label(label + ":") + " " + style.path(path));
+        out.flush();
+    }
+
+    public void printCheck(String label, String value, boolean healthy) {
+        out.println(style.label(label + ":") + " " + (healthy ? style.success(value) : style.error(value)));
+        out.flush();
+    }
+
     private void printTable(List<CliFileResult> results, boolean renamePreview) {
         for (CliFileResult result : results) {
             if (renamePreview && result.target != null) {
-                out.println(result.source);
-                out.println("→ " + result.target);
+                out.println(style.path(result.source));
+                out.println(style.warning("→") + " " + style.path(result.target));
                 for (CliFileResult.CompanionMove companionMove : result.companionMoves) {
-                    out.println("  Companion: " + companionMove.source);
-                    out.println("           → " + companionMove.target);
+                    out.println(style.label("  Companion:") + " " + style.path(companionMove.source));
+                    out.println("             " + style.warning("→") + " " + style.path(companionMove.target));
                 }
                 if (result.failed()) {
-                    out.println("  Status: " + display(result.status));
+                    out.println(style.label("  Status:") + " " + style.status(result.status));
                 }
                 if (result.message != null && (verbose || result.failed())) {
-                    out.println("  Detail: " + result.message);
+                    out.println(style.label("  Detail:") + " " + style.detail(result.message));
                 }
                 out.println();
                 continue;
             }
 
-            out.println(result.source);
-            out.println("  Status:  " + display(result.status));
+            out.println(style.path(result.source));
+            out.println(style.label("  Status:") + "  " + style.status(result.status));
             if (result.job != null && result.job.anidbFile != null) {
                 AniDBFile file = result.job.anidbFile;
-                out.println("  Anime:   " + title(file));
-                out.println("  Episode: " + episode(file));
-                out.println("  Group:   " + group(file));
-                out.println("  AniDB:   file " + file.getFileId());
+                out.println(style.label("  Anime:") + "   " + style.webLink(file.getAnimeUrl(), title(file)));
+                out.println(style.label("  Episode:") + " " + style.webLink(file.getEpisodeUrl(), episode(file)));
+                String group = group(file);
+                out.println(style.label("  Group:") + "   "
+                        + (file.getGroupId() == 0 ? style.text(group) : style.webLink(file.getGroupUrl(), group)));
+                out.println(
+                        style.label("  AniDB:") + "   " + style.webLink(file.getFileUrl(), "file " + file.getFileId()));
             }
             if (!result.hashes.isEmpty()) {
-                result.hashes.forEach((algorithm, value) ->
-                        out.printf("  %-8s %s%n", algorithm.name().toLowerCase(Locale.ROOT) + ":", value));
+                result.hashes.forEach((algorithm, value) -> {
+                    String label = String.format("%-8s", algorithm.name().toLowerCase(Locale.ROOT) + ":");
+                    out.println("  " + style.label(label) + " " + style.text(value));
+                });
             }
             if (result.message != null) {
-                out.println("  Detail:  " + result.message);
+                out.println(style.label("  Detail:") + "  " + style.detail(result.message));
             }
             out.println();
         }
         long failed = results.stream().filter(CliFileResult::failed).count();
-        out.printf("%d file%s, %d failed or unknown%n", results.size(), results.size() == 1 ? "" : "s", failed);
+        String summary =
+                results.size() + " file" + (results.size() == 1 ? "" : "s") + ", " + failed + " failed or unknown";
+        out.println(failed == 0 ? style.success(summary) : style.error(summary));
     }
 
     private String toJson(CliFileResult result) {
@@ -218,12 +264,6 @@ public final class CliOutput {
             return "RAW";
         }
         return file.getGroup().shortName;
-    }
-
-    private static String display(CliFileResult.Status status) {
-        return status == null
-                ? "Failed"
-                : status.name().toLowerCase(Locale.ROOT).replace('_', ' ');
     }
 
     private static void field(StringBuilder json, String name, String value) {

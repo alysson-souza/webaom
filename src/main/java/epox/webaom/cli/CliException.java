@@ -16,21 +16,46 @@
 
 package epox.webaom.cli;
 
+import java.nio.file.Path;
+
 /** Expected command failure with a stable process exit code. */
 public final class CliException extends Exception {
     private final int exitCode;
+    private final boolean error;
+    private final Path linkedPath;
 
     public CliException(String message, int exitCode) {
-        super(message);
-        this.exitCode = exitCode;
+        this(message, exitCode, null, true, null);
     }
 
     public CliException(String message, int exitCode, Throwable cause) {
+        this(message, exitCode, cause, true, null);
+    }
+
+    static CliException cancelled(String message, int exitCode) {
+        return new CliException(message, exitCode, null, false, null);
+    }
+
+    static CliException withPath(String message, int exitCode, Throwable cause, Path linkedPath) {
+        return new CliException(message, exitCode, cause, true, linkedPath);
+    }
+
+    private CliException(String message, int exitCode, Throwable cause, boolean error, Path linkedPath) {
         super(message, cause);
         this.exitCode = exitCode;
+        this.error = error;
+        this.linkedPath = linkedPath;
     }
 
     public int exitCode() {
         return exitCode;
+    }
+
+    boolean isError() {
+        return error;
+    }
+
+    Path linkedPath() {
+        return linkedPath;
     }
 }

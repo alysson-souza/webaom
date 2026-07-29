@@ -26,8 +26,8 @@ import epox.webaom.Options;
 import epox.webaom.cli.CliApplication.MylistAction;
 import epox.webaom.cli.CliApplication.MylistOverrides;
 import epox.webaom.cli.CliOutput.Format;
+import epox.webaom.cli.CliStyle.Mode;
 import epox.webaom.util.PlatformPaths;
-import java.io.Console;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
@@ -86,11 +86,27 @@ public final class Cli implements Callable<Integer> {
             scope = ScopeType.INHERIT)
     private boolean verbose;
 
-    // Declared so the flag appears in help and parses anywhere on the line; the value is read
-    // straight from the arguments in execute(), before picocli renders any colored output.
+    @Option(
+            names = "--color",
+            paramLabel = "WHEN",
+            description = "Color output: ${COMPLETION-CANDIDATES} (default: ${DEFAULT-VALUE}).",
+            defaultValue = "auto",
+            scope = ScopeType.INHERIT)
+    private Mode colorMode = Mode.AUTO;
+
+    @Option(
+            names = "--hyperlinks",
+            paramLabel = "WHEN",
+            description = "OSC 8 hyperlinks: ${COMPLETION-CANDIDATES} (default: ${DEFAULT-VALUE}).",
+            defaultValue = "auto",
+            scope = ScopeType.INHERIT)
+    private Mode hyperlinkMode = Mode.AUTO;
+
     @Option(names = "--no-color", description = "Disable colored output.", scope = ScopeType.INHERIT)
-    @SuppressWarnings("unused")
     private boolean noColor;
+
+    private boolean interactive;
+    private CliPrompt.Factory promptFactory = CliPrompt::open;
 
     @Override
     public Integer call() {
@@ -106,22 +122,41 @@ public final class Cli implements Callable<Integer> {
         return execute(
                 new PrintWriter(new OutputStreamWriter(System.out, StandardCharsets.UTF_8), true),
                 new PrintWriter(new OutputStreamWriter(System.err, StandardCharsets.UTF_8), true),
+                terminalInteractive(),
                 args);
     }
 
     static int execute(PrintWriter out, PrintWriter err, String... args) {
-        CommandLine commandLine = new CommandLine(new Cli());
+        return execute(out, err, false, CliPrompt::open, args);
+    }
+
+    static int execute(PrintWriter out, PrintWriter err, boolean interactive, String... args) {
+        return execute(out, err, interactive, CliPrompt::open, args);
+    }
+
+    static int execute(
+            PrintWriter out, PrintWriter err, boolean interactive, CliPrompt.Factory promptFactory, String... args) {
+        Cli root = new Cli();
+        root.interactive = interactive;
+        root.promptFactory = promptFactory;
+        CommandLine commandLine = new CommandLine(root);
         commandLine.setOut(out);
         commandLine.setErr(err);
         commandLine.setCaseInsensitiveEnumValuesAllowed(true);
-        if (colorDisabled(args)) {
-            commandLine.setColorScheme(CommandLine.Help.defaultColorScheme(CommandLine.Help.Ansi.OFF));
-        }
+        CliStyle handlerStyle = styleFromArguments(interactive, args);
+        CommandLine.Help.Ansi helpAnsi =
+                handlerStyle.colorsEnabled() ? CommandLine.Help.Ansi.ON : CommandLine.Help.Ansi.OFF;
+        commandLine.setColorScheme(CommandLine.Help.defaultColorScheme(helpAnsi));
         commandLine.setExecutionExceptionHandler((exception, cmd, parseResult) -> {
             Throwable cause = exception;
             while (true) {
                 if (cause instanceof CliException cliException) {
-                    cmd.getErr().println("Error: " + cliException.getMessage());
+                    String message = handlerStyle.messageWithPath(cliException.getMessage(), cliException.linkedPath());
+                    if (cliException.isError()) {
+                        cmd.getErr().println(handlerStyle.error("Error:") + " " + message);
+                    } else {
+                        cmd.getErr().println(message);
+                    }
                     return cliException.exitCode();
                 }
                 if (cause.getCause() == null || cause == cause.getCause()) {
@@ -129,42 +164,95 @@ public final class Cli implements Callable<Integer> {
                 }
                 cause = cause.getCause();
             }
-            cmd.getErr().println("Error: " + usefulMessage(cause));
+            cmd.getErr().println(handlerStyle.error("Error:") + " " + handlerStyle.text(usefulMessage(cause)));
             return 1;
         });
         commandLine.setParameterExceptionHandler((exception, arguments) -> {
-            exception.getCommandLine().getErr().println("Error: " + exception.getMessage());
             exception
                     .getCommandLine()
                     .getErr()
-                    .println("Try '" + exception.getCommandLine().getCommandName() + " --help' for more information.");
+                    .println(handlerStyle.error("Error:") + " " + handlerStyle.text(exception.getMessage()));
+            exception
+                    .getCommandLine()
+                    .getErr()
+                    .println(handlerStyle.detail(
+                            "Try '" + exception.getCommandLine().getCommandName() + " --help' for more information."));
             return 2;
         });
         return commandLine.execute(args);
     }
 
-    /** Honors {@code --no-color} and the NO_COLOR convention (https://no-color.org). */
-    private static boolean colorDisabled(String... args) {
-        String noColorEnvironment = System.getenv("NO_COLOR");
-        if (noColorEnvironment != null && !noColorEnvironment.isEmpty()) {
-            return true;
-        }
-        for (String argument : args) {
-            if ("--no-color".equals(argument)) {
-                return true;
+    private static CliStyle styleFromArguments(boolean interactive, String... args) {
+        Mode color = Mode.AUTO;
+        Mode hyperlinks = Mode.AUTO;
+        boolean noColor = false;
+        for (int index = 0; index < args.length; index++) {
+            String argument = args[index];
+            if ("--".equals(argument)) {
+                break;
+            } else if ("--no-color".equals(argument)) {
+                noColor = true;
+            } else if (argument.startsWith("--color=")) {
+                color = Mode.parse(argument.substring("--color=".length()));
+            } else if ("--color".equals(argument) && index + 1 < args.length) {
+                color = Mode.parse(args[++index]);
+            } else if (argument.startsWith("--hyperlinks=")) {
+                hyperlinks = Mode.parse(argument.substring("--hyperlinks=".length()));
+            } else if ("--hyperlinks".equals(argument) && index + 1 < args.length) {
+                hyperlinks = Mode.parse(args[++index]);
             }
         }
-        return false;
+        String noColorEnvironment = System.getenv("NO_COLOR");
+        boolean noColorPresent = noColorEnvironment != null && !noColorEnvironment.isEmpty();
+        return CliStyle.resolve(noColor ? Mode.NEVER : color, hyperlinks, interactive, noColorPresent);
+    }
+
+    private static boolean terminalInteractive() {
+        String terminal = System.getenv("TERM");
+        return System.console() != null && (terminal == null || !"dumb".equalsIgnoreCase(terminal));
+    }
+
+    private CliStyle style() {
+        String noColorEnvironment = System.getenv("NO_COLOR");
+        boolean noColorPresent = noColorEnvironment != null && !noColorEnvironment.isEmpty();
+        return CliStyle.resolve(noColor ? Mode.NEVER : colorMode, hyperlinkMode, interactive, noColorPresent);
     }
 
     private CliOutput output(CommandSpec commandSpec) {
         Format format = commandSpec.userObject() instanceof FileCommand fileCommand ? fileCommand.format : Format.TABLE;
         return new CliOutput(
-                commandSpec.commandLine().getOut(), commandSpec.commandLine().getErr(), format, quiet, verbose);
+                commandSpec.commandLine().getOut(),
+                commandSpec.commandLine().getErr(),
+                format,
+                quiet,
+                verbose,
+                style());
     }
 
     private CliApplication open(boolean database) throws CliException {
         return CliApplication.open(configPath, database);
+    }
+
+    private CliInput openPrompt(String command) throws CliException {
+        if (!interactive) {
+            throw new CliException(command + " requires an interactive terminal.", 2);
+        }
+        return promptFactory.open(style());
+    }
+
+    private String readConfirmation(String prompt) {
+        if (!interactive) {
+            return null;
+        }
+        try (CliInput input = openPrompt("Database upgrade")) {
+            return input.readLine(prompt);
+        } catch (CliPrompt.Cancelled cancelled) {
+            throw cancelled;
+        } catch (CliException | IOException exception) {
+            return null;
+        } catch (Exception exception) {
+            return null;
+        }
     }
 
     private static Cli root(CommandSpec spec) {
@@ -255,7 +343,7 @@ public final class Cli implements Callable<Integer> {
                             .filter(result -> result.target != null && !result.source.equals(result.target))
                             .mapToLong(result -> 1L + result.companionMoves.size())
                             .sum();
-                    output.printText("Preview only. Run again with --apply to change " + changes + " file"
+                    output.printWarning("Preview only. Run again with --apply to change " + changes + " file"
                             + (changes == 1 ? "." : "s."));
                 }
                 return resultCode(results);
@@ -449,7 +537,7 @@ public final class Cli implements Callable<Integer> {
                             RuleDocument.fromRules(application.rules()).format());
                 }
             }
-            output.printText("Rules are valid.");
+            output.printSuccess("Rules are valid.");
             return 0;
         }
     }
@@ -481,35 +569,40 @@ public final class Cli implements Callable<Integer> {
                         Thread.currentThread().interrupt();
                     }
                     int exitCode = exception instanceof CliException cliException ? cliException.exitCode() : 1;
-                    throw new CliException(
+                    throw CliException.withPath(
                             "Editor failed; your rules file was kept at "
                                     + temporary
                                     + System.lineSeparator()
                                     + exception.getMessage(),
                             exitCode,
-                            exception);
+                            exception,
+                            temporary);
                 }
                 RuleDocument edited;
                 try {
                     edited = RuleDocument.parse(Files.readString(temporary, StandardCharsets.UTF_8));
                 } catch (IllegalArgumentException exception) {
-                    throw new CliException(
+                    throw CliException.withPath(
                             "Rules are invalid; your edited file was kept at "
                                     + temporary
                                     + System.lineSeparator()
                                     + exception.getMessage(),
                             1,
-                            exception);
+                            exception,
+                            temporary);
                 }
                 application.rules().setRenameRules(edited.renameRules());
                 application.rules().setMoveRules(edited.moveRules());
                 application.rules().saveToOptions(application.options());
                 if (!application.options().saveToFileUnchecked()) {
-                    throw new CliException(
-                            "Could not save the WebAOM configuration; your edited file was kept at " + temporary, 1);
+                    throw CliException.withPath(
+                            "Could not save the WebAOM configuration; your edited file was kept at " + temporary,
+                            1,
+                            null,
+                            temporary);
                 }
                 keepTemporary = false;
-                output.printText("Rules saved.");
+                output.printSuccess("Rules saved.");
             } finally {
                 if (!keepTemporary) {
                     Files.deleteIfExists(temporary);
@@ -606,19 +699,18 @@ public final class Cli implements Callable<Integer> {
             Cli root = root();
             try (CliApplication application = root.open(false)) {
                 Options options = application.options();
-                StringBuilder text = new StringBuilder();
-                text.append("Configuration: ").append(options.getFilePath()).append(System.lineSeparator());
-                text.append("AniDB host: ")
-                        .append(valueOr(options.getString(Options.STR_HOST_URL), "api.anidb.net"))
-                        .append(System.lineSeparator());
-                text.append("Automatic GUI rename: ")
-                        .append(options.getBoolean(Options.BOOL_AUTO_RENAME))
-                        .append(System.lineSeparator());
-                text.append("Automatic GUI MyList add: ")
-                        .append(options.getBoolean(Options.BOOL_ADD_FILE))
-                        .append(System.lineSeparator());
-                text.append("Database: ").append(databaseLocation(options)).append(System.lineSeparator());
-                root.output(spec).printText(text.toString());
+                CliOutput output = root.output(spec);
+                output.printPath("Configuration", Path.of(options.getFilePath()));
+                output.printValue("AniDB host", valueOr(options.getString(Options.STR_HOST_URL), "api.anidb.net"));
+                output.printValue("Automatic GUI rename", String.valueOf(options.getBoolean(Options.BOOL_AUTO_RENAME)));
+                output.printValue(
+                        "Automatic GUI MyList add", String.valueOf(options.getBoolean(Options.BOOL_ADD_FILE)));
+                Path databasePath = databasePath(options);
+                if (databasePath == null) {
+                    output.printValue("Database", databaseLocation(options));
+                } else {
+                    output.printPath("Database", databasePath);
+                }
                 return 0;
             }
         }
@@ -631,15 +723,23 @@ public final class Cli implements Callable<Integer> {
             Cli root = root();
             try (CliApplication application = root.open(false)) {
                 Options options = application.options();
-                root.output(spec)
-                        .printText("Configuration: "
-                                + options.getFilePath()
-                                + System.lineSeparator()
-                                + "Database: "
-                                + databaseLocation(options));
+                CliOutput output = root.output(spec);
+                output.printPath("Configuration", Path.of(options.getFilePath()));
+                Path databasePath = databasePath(options);
+                if (databasePath == null) {
+                    output.printValue("Database", databaseLocation(options));
+                } else {
+                    output.printPath("Database", databasePath);
+                }
                 return 0;
             }
         }
+    }
+
+    private static Path databasePath(Options options) {
+        return valueOr(options.getString(Options.STR_DATABASE_URL), null) == null
+                ? Path.of(PlatformPaths.getDefaultEmbeddedDatabasePath())
+                : null;
     }
 
     static String databaseLocation(Options options) {
@@ -658,35 +758,34 @@ public final class Cli implements Callable<Integer> {
     static final class LoginCommand extends SimpleCommand {
         @Override
         public Integer call() throws Exception {
-            Console console = System.console();
-            if (console == null) {
-                throw new CliException("Login requires an interactive terminal.", 2);
-            }
             Cli root = root();
+            CliOutput output = root.output(spec);
             try (CliApplication application = root.open(false)) {
-                String current = AppContext.userPass.username;
-                String prompt = current == null || current.isBlank()
-                        ? "AniDB username: "
-                        : "AniDB username [" + current + "]: ";
-                String username = console.readLine(prompt);
-                if (username == null || username.isBlank()) {
-                    username = current;
+                try (CliInput input = root.openPrompt("Login")) {
+                    String current = AppContext.userPass.username;
+                    String prompt = current == null || current.isBlank()
+                            ? "AniDB username: "
+                            : "AniDB username [" + current + "]: ";
+                    String username = input.readLine(prompt);
+                    if (username == null || username.isBlank()) {
+                        username = current;
+                    }
+                    String password = input.readSecret("AniDB password: ");
+                    String apiKey = input.readSecret("AniDB API key (optional): ");
+                    if (username == null || username.isBlank() || password == null || password.isBlank()) {
+                        throw new CliException("Username and password are required.", 2);
+                    }
+                    UserPass credentials = new UserPass(username, password, apiKey);
+                    application.options().setBoolean(Options.BOOL_STORE_PASSWORD, true);
+                    application.options().setString(Options.STR_USERNAME, credentials.get(true));
+                    if (!application.options().saveToFileUnchecked()) {
+                        throw new CliException("Could not save the WebAOM configuration.", 1);
+                    }
+                    output.printSuccess("Credentials saved for " + username + ".");
+                    return 0;
                 }
-                char[] passwordChars = console.readPassword("AniDB password: ");
-                char[] apiKeyChars = console.readPassword("AniDB API key (optional): ");
-                String password = passwordChars == null ? null : new String(passwordChars);
-                String apiKey = apiKeyChars == null ? null : new String(apiKeyChars);
-                if (username == null || username.isBlank() || password == null || password.isBlank()) {
-                    throw new CliException("Username and password are required.", 2);
-                }
-                UserPass credentials = new UserPass(username, password, apiKey);
-                application.options().setBoolean(Options.BOOL_STORE_PASSWORD, true);
-                application.options().setString(Options.STR_USERNAME, credentials.get(true));
-                if (!application.options().saveToFileUnchecked()) {
-                    throw new CliException("Could not save the WebAOM configuration.", 1);
-                }
-                root.output(spec).printText("Credentials saved for " + username + ".");
-                return 0;
+            } catch (CliPrompt.Cancelled cancelled) {
+                throw CliException.cancelled("Login cancelled.", cancelled.exitCode());
             }
         }
     }
@@ -735,6 +834,7 @@ public final class Cli implements Callable<Integer> {
             Cli root = root();
             CliOutput output = root.output(spec);
             try (CliApplication application = root.open(false)) {
+                application.setConsoleReader(root::readConfirmation);
                 return application.upgradeDatabase(output, yes) ? 0 : 1;
             }
         }
