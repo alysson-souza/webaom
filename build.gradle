@@ -43,6 +43,7 @@ configurations {
 
 dependencies {
 	implementation 'com.formdev:flatlaf:3.7'
+	implementation 'info.picocli:picocli:4.7.7'
 
 	// SQLite is always included (embedded database)
 	runtimeOnly 'org.xerial:sqlite-jdbc:3.51.0.0'
@@ -481,6 +482,11 @@ tasks.register('jpackageAppImage', Exec) {
 			])
 		}
 	} else if (os.contains('win')) {
+		def cliLauncher = file('packaging/jpackage/windows/webaom-cli.properties')
+		args.addAll([
+			'--add-launcher',
+			"webaom-cli=${cliLauncher.absolutePath}"
+		])
 		def winIcon = file('src/main/resources/webaom.ico')
 		if (winIcon.exists()) {
 			args.addAll([

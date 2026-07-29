@@ -49,6 +49,120 @@ java -jar webaom-2.5.0-full.jar
 2. **Log in** — Click "Login" and enter your AniDB credentials
 3. **Start** — Click "Start" and WebAOM will hash each file, fetch metadata from AniDB, add it to your MyList, and optionally rename/move it based on your rules
 
+## Command Line
+
+The desktop app and CLI use the same configuration, database, credentials, extensions, and rules. Running WebAOM
+without arguments opens the desktop app.
+
+Native Windows installations provide `webaom-cli.exe` for command-line use while keeping `WebAOM.exe` as the
+console-free desktop launcher. Running `webaom-cli.exe` without a command shows CLI help.
+
+The examples below use the `webaom` script included in archive distributions. For a standalone JAR, replace
+`webaom` with `java -jar webaom-<version>-lite.jar` (or the full JAR):
+
+```bash
+# Archive distribution
+webaom identify "mystery-file.mkv"
+
+# Native Windows installation
+webaom-cli.exe identify "mystery-file.mkv"
+
+# Standalone JAR
+java -jar webaom-<version>-lite.jar identify "mystery-file.mkv"
+```
+
+```bash
+# Identify a file without renaming it or changing MyList
+webaom identify "mystery-file.mkv"
+
+# Directories are scanned recursively using the configured media extensions
+webaom identify ./incoming
+
+# Preview rule-based filenames, then apply exactly those changes
+webaom rename ./incoming
+webaom rename ./incoming --apply
+
+# Also apply the configured move rules
+webaom rename ./incoming --move --apply
+```
+
+`rename` performs any hashing and AniDB lookup it needs, so `identify` does not need to be run first. Rename and move
+operations never overwrite an existing destination, and a batch collision prevents the batch from starting. Matching
+companion files with the same base name, such as `episode.en.srt`, are included in the preview and follow the media
+file when changes are applied.
+
+Results are cached, and a file is re-hashed automatically when its size no longer matches what was stored. If a file
+was replaced by different content of exactly the same size, `--refresh` discards the cached result and identifies it
+from scratch:
+
+```bash
+webaom identify ./incoming --refresh
+webaom rename ./incoming --refresh
+```
+
+MyList is a separate, explicit operation:
+
+```bash
+webaom mylist status ./incoming
+webaom mylist add ./incoming
+webaom mylist remove ./incoming
+```
+
+`mylist status` answers from the local database, so it works without credentials or a network connection.
+
+The `mylist add` command uses the saved MyList defaults. Common values can be overridden for one run:
+
+```bash
+webaom mylist add ./incoming --state hdd --watched --storage NAS --source BluRay
+```
+
+When a file is already in your MyList, `mylist add` updates the existing entry with these values rather than
+leaving it unchanged.
+
+### Rules
+
+```bash
+webaom rules show
+webaom rules edit
+webaom rules check
+
+# Preview a temporary rules file without changing saved configuration
+webaom rename ./incoming --rules ./alternate-rules.conf
+```
+
+The editable rules document contains the existing WebAOM rule language in two sections:
+
+```ini
+[rename]
+DO ADD '%eng (%yea) - %enr - %epn'
+IF G(!unknown) DO ADD ' [%grp]'
+
+[move]
+DO ADD '~/Anime/%eng (%yea)/'
+```
+
+`rules edit` validates the document before atomically updating the active configuration. Use `rename` without
+`--apply` to test how the rules affect real files.
+
+### Automation and Diagnostics
+
+```bash
+webaom hash ./incoming --all
+webaom identify ./incoming --format jsonl
+webaom config show
+webaom config path
+webaom doctor
+webaom login
+```
+
+Human-readable output is the default. File-processing commands accept `--format json` to return one array or
+`--format jsonl` to return one object per file. Structured output is always UTF-8, and progress and diagnostics are
+written separately from it. For unattended use, credentials can be supplied through `WEBAOM_USERNAME`,
+`WEBAOM_PASSWORD`, and optionally `WEBAOM_API_KEY`.
+
+`doctor` reports configuration, database, credentials, and AniDB as a checklist, including when the database itself
+is the thing that fails. Colored output can be turned off with `--no-color` or by setting `NO_COLOR`.
+
 ## Configuration
 
 Settings are stored in the platform app-data directory (UTF-8):

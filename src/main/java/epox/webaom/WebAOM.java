@@ -25,6 +25,7 @@ import epox.swing.layout.UsableScreenBounds;
 import epox.swing.layout.WindowLayoutPolicy;
 import epox.swing.layout.WindowLayoutSupport;
 import epox.swing.layout.WindowPlacement;
+import epox.webaom.cli.Cli;
 import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.Image;
@@ -45,6 +46,9 @@ public class WebAOM {
     private static final WindowLayoutPolicy WINDOW_LAYOUT_POLICY = new WindowLayoutPolicy();
 
     public static void main(String[] args) {
+        if (args.length > 0) {
+            System.exit(Cli.execute(args));
+        }
         try {
             configureRendering();
             launch();
