@@ -199,7 +199,11 @@ public final class CliOutput {
             return "";
         }
         String english = file.getAnime().englishTitle;
-        return english == null || english.isBlank() ? file.getAnime().romajiTitle : english;
+        if (english != null && !english.isBlank()) {
+            return english;
+        }
+        String romaji = file.getAnime().romajiTitle;
+        return romaji == null ? "" : romaji;
     }
 
     private static String episode(AniDBFile file) {

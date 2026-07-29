@@ -368,6 +368,13 @@ public abstract class DatabaseManager {
                 ex.addSuppressed(rollbackFailure);
             }
             throw ex;
+        } catch (RuntimeException ex) {
+            try {
+                connection.rollback();
+            } catch (SQLException rollbackFailure) {
+                ex.addSuppressed(rollbackFailure);
+            }
+            throw ex;
         } finally {
             try {
                 connection.setAutoCommit(previousAutoCommit);

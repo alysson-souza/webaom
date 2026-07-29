@@ -18,6 +18,7 @@ package epox.webaom.net;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.contains;
 import static org.mockito.ArgumentMatchers.eq;
@@ -172,5 +173,15 @@ class AniDBFileClientMylistTest {
         assertEquals(55555, client.addFileToMylist(jobWithFile(), unwatchedEntry()));
 
         verify(client, never()).send(eq("MYLISTADD"), contains("edit=1"), eq(true));
+    }
+
+    @Test
+    void refusesLoginPromptWhenDisabled() {
+        AniDBFileClient client = new AniDBFileClient(null, settings());
+        client.setLoginPromptEnabled(false);
+
+        AniDBException exception = assertThrows(AniDBException.class, client::login);
+
+        assertTrue(exception.is(AniDBException.CLIENT_USER));
     }
 }
