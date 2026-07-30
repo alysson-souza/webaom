@@ -114,7 +114,7 @@ class CliStyleTest {
                         false,
                         false,
                         CliStyle.resolve(CliStyle.Mode.NEVER, CliStyle.Mode.ALWAYS, true, false))
-                .printResults(List.of(result), false);
+                .printResults(List.of(result), CliOutput.ResultView.STANDARD);
 
         assertTrue(out.toString().contains(ESC + "]8;;" + file.getAnimeUrl() + ESC + "\\Example Anime"));
         assertTrue(out.toString().contains(ESC + "]8;;" + file.getEpisodeUrl() + ESC + "\\1 — Pilot"));
@@ -135,7 +135,7 @@ class CliStyleTest {
                         false,
                         false,
                         CliStyle.resolve(CliStyle.Mode.ALWAYS, CliStyle.Mode.ALWAYS, true, false))
-                .printResults(List.of(result), false);
+                .printResults(List.of(result), CliOutput.ResultView.STANDARD);
 
         assertTrue(json.toString().contains("\"status\":\"hashed\""));
         assertFalse(json.toString().contains(ESC));

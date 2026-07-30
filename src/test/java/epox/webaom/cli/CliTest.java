@@ -262,7 +262,7 @@ class CliTest {
                         CliOutput.Format.TABLE,
                         false,
                         false)
-                .printResults(List.of(result), true);
+                .printResults(List.of(result), CliOutput.ResultView.RENAME_PREVIEW);
 
         assertTrue(out.toString().contains("Status: failed"));
         assertTrue(out.toString().contains("Detail: Permission denied"));
@@ -287,14 +287,14 @@ class CliTest {
                         CliOutput.Format.TABLE,
                         false,
                         false)
-                .printResults(List.of(result), true);
+                .printResults(List.of(result), CliOutput.ResultView.RENAME_PREVIEW);
         new CliOutput(
                         new PrintWriter(json, true),
                         new PrintWriter(new StringWriter(), true),
                         CliOutput.Format.JSON,
                         false,
                         false)
-                .printResults(List.of(result), true);
+                .printResults(List.of(result), CliOutput.ResultView.RENAME_PREVIEW);
 
         assertTrue(table.toString().contains("Companion:"));
         assertTrue(table.toString().contains("episode.en.srt"));
@@ -319,7 +319,7 @@ class CliTest {
                         CliOutput.Format.JSON,
                         false,
                         false)
-                .printResults(List.of(result), true);
+                .printResults(List.of(result), CliOutput.ResultView.RENAME_PREVIEW);
 
         assertTrue(result.failed());
         assertTrue(json.toString().contains("\"status\":\"renamed\""));

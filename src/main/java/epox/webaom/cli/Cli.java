@@ -301,7 +301,7 @@ public final class Cli implements Callable<Integer> {
             try (CliApplication application = root.open(true)) {
                 List<CliFileResult> results = application.identify(
                         paths, output, refresh ? CliApplication.Refresh.FULL : CliApplication.Refresh.NONE);
-                output.printResults(results, false);
+                output.printResults(results, CliOutput.ResultView.IDENTIFY);
                 return resultCode(results);
             }
         }
@@ -337,7 +337,7 @@ public final class Cli implements Callable<Integer> {
                         override,
                         output,
                         refresh ? CliApplication.Refresh.FULL : CliApplication.Refresh.NONE);
-                output.printResults(results, true);
+                output.printResults(results, CliOutput.ResultView.RENAME_PREVIEW);
                 if (!apply && format == Format.TABLE) {
                     long changes = results.stream()
                             .filter(result -> result.target != null && !result.source.equals(result.target))
@@ -383,7 +383,7 @@ public final class Cli implements Callable<Integer> {
             CliOutput output = root.output(spec);
             try (CliApplication application = root.open(false)) {
                 List<CliFileResult> results = application.hash(paths, algorithms, output);
-                output.printResults(results, false);
+                output.printResults(results, CliOutput.ResultView.STANDARD);
                 return resultCode(results);
             }
         }
@@ -418,7 +418,7 @@ public final class Cli implements Callable<Integer> {
             CliOutput output = root.output(spec);
             try (CliApplication application = root.open(true)) {
                 List<CliFileResult> results = application.mylist(paths, action(), overrides(), output);
-                output.printResults(results, false);
+                output.printResults(results, CliOutput.ResultView.STANDARD);
                 return resultCode(results);
             }
         }
