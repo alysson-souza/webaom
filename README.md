@@ -36,10 +36,10 @@ Download pre-built packages from the [Releases](https://github.com/alysson-souza
 Requires Java 21+:
 
 ```bash
-# Lite (SQLite only, ~4MB) - recommended for most users
+# Lite (SQLite only, ~18MB) - recommended for most users
 java -jar webaom-2.5.0-lite.jar
 
-# Full (SQLite + PostgreSQL + MySQL, ~10MB)
+# Full (SQLite + PostgreSQL + MySQL, ~22MB)
 java -jar webaom-2.5.0-full.jar
 ```
 
