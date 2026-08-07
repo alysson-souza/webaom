@@ -48,6 +48,16 @@ repositories {
 configurations {
 	sqliteOnly
 	allDrivers
+
+	// Resolvable classpath for the lite JAR: the application's own dependencies plus SQLite,
+	// with PostgreSQL and MySQL left out along with their transitives. Selecting by
+	// configuration rather than by artifact name keeps transitives such as protobuf-java
+	// (pulled in by mysql-connector-j) and checker-qual (by postgresql) out of the lite JAR.
+	liteRuntimeClasspath {
+		canBeConsumed = false
+		canBeResolved = true
+		extendsFrom configurations.implementation
+	}
 }
 
 dependencies {
@@ -60,6 +70,7 @@ dependencies {
 	// SQLite is always included (embedded database)
 	runtimeOnly 'org.xerial:sqlite-jdbc:3.51.0.0'
 	sqliteOnly 'org.xerial:sqlite-jdbc:3.51.0.0'
+	liteRuntimeClasspath 'org.xerial:sqlite-jdbc:3.51.0.0'
 
 	// External database drivers (PostgreSQL, MySQL)
 	runtimeOnly 'org.postgresql:postgresql:42.7.8'
@@ -144,17 +155,19 @@ sourceSets {
 
 processResources.dependsOn generateVersionProperties
 
+def webaomManifestAttributes = [
+	'Main-Class': 'epox.webaom.WebAOM',
+	'Implementation-Title': 'WebAOM',
+	'Implementation-Version': version,
+	'Created-By': 'epoximator',
+	'Specification-Title': 'WebAOM',
+	'Specification-Version': version,
+	'Specification-Vendor': 'epoximator'
+]
+
 jar {
 	manifest {
-		attributes(
-				'Main-Class': 'epox.webaom.WebAOM',
-				'Implementation-Title': 'WebAOM',
-				'Implementation-Version': version,
-				'Created-By': 'epoximator',
-				'Specification-Title': 'WebAOM',
-				'Specification-Version': version,
-				'Specification-Vendor': 'epoximator'
-				)
+		attributes(webaomManifestAttributes)
 	}
 
 	from {
@@ -173,26 +186,14 @@ tasks.register('jarLite', Jar) {
 	archiveClassifier = 'lite'
 
 	manifest {
-		attributes(
-				'Main-Class': 'epox.webaom.WebAOM',
-				'Implementation-Title': 'WebAOM',
-				'Implementation-Version': version,
-				'Created-By': 'epoximator',
-				'Specification-Title': 'WebAOM',
-				'Specification-Version': version,
-				'Specification-Vendor': 'epoximator'
-				)
+		attributes(webaomManifestAttributes)
 	}
 
 	from sourceSets.main.output
 	from("${layout.buildDirectory.get()}/resources/main")
 
 	from {
-		sourceSets.main.runtimeClasspath
-				.findAll { dep ->
-					!dep.name.contains('postgresql') && !dep.name.contains('mysql-connector-j')
-				}
-				.collect { it.isDirectory() ? it : zipTree(it) }
+		configurations.liteRuntimeClasspath.collect { it.isDirectory() ? it : zipTree(it) }
 	}
 
 	duplicatesStrategy = DuplicatesStrategy.EXCLUDE
@@ -444,8 +445,89 @@ tasks.register('jpackage', Exec) {
 	}
 }
 
+// The lite JAR bundles SQLite and JLine native libraries for every OS and architecture they
+// support, because it is published as a portable artifact. A native package targets exactly one
+// platform, so everything but the host's own natives is dead weight inside the .dmg/.msi/.deb.
+def nativeOsDirs = { String osName ->
+	def os = osName.toLowerCase()
+	if (os.contains('mac')) {
+		return ['Mac']
+	}
+	if (os.contains('win')) {
+		return ['Windows']
+	}
+	// Keep the musl build too: the .deb is glibc-only but the AppImage may land on Alpine.
+	return ['Linux', 'Linux-Musl']
+}
+
+// sqlite-jdbc and JLine disagree on how to spell 64-bit ARM, so each gets its own mapping.
+def nativeArchNames = { String archName ->
+	switch (archName.toLowerCase()) {
+		case ['amd64', 'x86_64']:
+			return [sqlite: 'x86_64', jline: 'x86_64']
+		case ['aarch64', 'arm64']:
+			return [sqlite: 'aarch64', jline: 'arm64']
+		default:
+			return null
+	}
+}
+
+def jpackageInputDir = layout.buildDirectory.dir('jpackage-input')
+
+// Sole contents of jpackage's --input directory. Pointing --input at build/libs would copy every
+// JAR in it (lite, full and the plain fat JAR) into the package, not just the --main-jar one.
+tasks.register('jarPackaged', Jar) {
+	dependsOn classes, generateVersionProperties
+	group = 'distribution'
+	description = 'Creates the lite JAR trimmed to the host platform, for native packaging'
+
+	archiveClassifier = 'packaged'
+	destinationDirectory = jpackageInputDir
+
+	manifest {
+		attributes(webaomManifestAttributes)
+	}
+
+	from sourceSets.main.output
+	from("${layout.buildDirectory.get()}/resources/main")
+
+	from {
+		configurations.liteRuntimeClasspath.collect { it.isDirectory() ? it : zipTree(it) }
+	}
+
+	def keptOsDirs = nativeOsDirs(System.getProperty('os.name'))
+	def keptArch = nativeArchNames(System.getProperty('os.arch'))
+
+	// An unrecognised architecture keeps every native, which is wasteful but always correct.
+	if (keptArch != null) {
+		exclude { element ->
+			def segments = element.relativePath.segments
+			if (segments.length < 5 || segments[0] != 'org') {
+				return false
+			}
+			def isSqlite = segments[1] == 'sqlite' && segments[2] == 'native'
+			def isJline = segments[1] == 'jline' && segments[2] == 'nativ'
+			if (!isSqlite && !isJline) {
+				return false
+			}
+			if (!keptOsDirs.contains(segments[3])) {
+				return true
+			}
+			return segments[4] != (isSqlite ? keptArch.sqlite : keptArch.jline)
+		}
+	}
+
+	duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+
+	// jpackage copies the whole --input directory, so a JAR left behind by an earlier version
+	// would be packaged alongside the current one.
+	doFirst {
+		delete fileTree(jpackageInputDir)
+	}
+}
+
 tasks.register('jpackageAppImage', Exec) {
-	dependsOn jarLite, jlink
+	dependsOn jarPackaged, jlink
 	group = 'distribution'
 	description = 'Creates a portable app-image (no installer) for the current platform'
 
@@ -457,9 +539,9 @@ tasks.register('jpackageAppImage', Exec) {
 	def args = [
 		jpackageExe.absolutePath,
 		'--input',
-		"${layout.buildDirectory.get()}/libs",
+		jpackageInputDir.get().asFile.absolutePath,
 		'--main-jar',
-		"webaom-${version}-lite.jar",
+		"webaom-${version}-packaged.jar",
 		'--name',
 		appName,
 		'--app-version',
