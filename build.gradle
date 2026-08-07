@@ -485,6 +485,10 @@ tasks.register('jpackageAppImage', Exec) {
 			resourceDir.absolutePath
 		])
 	}
+	// The CLI add-launcher gets its own Windows version resource, and jpackage does not inherit
+	// --app-version into it, so the properties file is generated with app-version filled in.
+	def cliLauncherTemplate = file('packaging/jpackage/windows/webaom-cli.properties')
+	def generatedCliLauncher = layout.buildDirectory.file('tmp/jpackage/webaom-cli.properties').get().asFile
 	if (os.contains('mac')) {
 		def macIcon = file('src/main/resources/webaom.icns')
 		if (macIcon.exists()) {
@@ -494,10 +498,9 @@ tasks.register('jpackageAppImage', Exec) {
 			])
 		}
 	} else if (os.contains('win')) {
-		def cliLauncher = file('packaging/jpackage/windows/webaom-cli.properties')
 		args.addAll([
 			'--add-launcher',
-			"webaom-cli=${cliLauncher.absolutePath}"
+			"webaom-cli=${generatedCliLauncher.absolutePath}"
 		])
 		def winIcon = file('src/main/resources/webaom.ico')
 		if (winIcon.exists()) {
@@ -521,6 +524,11 @@ tasks.register('jpackageAppImage', Exec) {
 	doFirst {
 		delete appImageDir
 		outputDir.mkdirs()
+		if (os.contains('win')) {
+			generatedCliLauncher.parentFile.mkdirs()
+			generatedCliLauncher.text =
+					"${cliLauncherTemplate.text.trim()}\napp-version=${jpackageAppVersion}\n"
+		}
 		println "Creating app-image with minimal runtime..."
 	}
 
