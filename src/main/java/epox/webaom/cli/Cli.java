@@ -49,7 +49,7 @@ import picocli.CommandLine.Spec;
 /** Picocli command tree for the headless WebAOM interface. */
 @Command(
         name = "webaom",
-        description = "Identify and rename anime files with AniDB.",
+        description = "Identify anime files by content against AniDB, then rename, move, and track them.",
         mixinStandardHelpOptions = true,
         versionProvider = Cli.VersionProvider.class,
         subcommands = {
@@ -70,19 +70,19 @@ public final class Cli implements Callable<Integer> {
     @Option(
             names = "--config",
             paramLabel = "FILE",
-            description = "Use an explicit WebAOM configuration file.",
+            description = "Read and save settings in FILE instead of the default configuration.",
             scope = ScopeType.INHERIT)
     private Path configPath;
 
     @Option(
             names = {"-q", "--quiet"},
-            description = "Suppress progress output.",
+            description = "Print results only, without per-file progress.",
             scope = ScopeType.INHERIT)
     private boolean quiet;
 
     @Option(
             names = {"-v", "--verbose"},
-            description = "Show additional detail.",
+            description = "Print additional detail for each file.",
             scope = ScopeType.INHERIT)
     private boolean verbose;
 
@@ -97,7 +97,8 @@ public final class Cli implements Callable<Integer> {
     @Option(
             names = "--hyperlinks",
             paramLabel = "WHEN",
-            description = "OSC 8 hyperlinks: ${COMPLETION-CANDIDATES} (default: ${DEFAULT-VALUE}).",
+            description = "Make printed paths and AniDB links clickable: "
+                    + "${COMPLETION-CANDIDATES} (default: ${DEFAULT-VALUE}).",
             defaultValue = "auto",
             scope = ScopeType.INHERIT)
     private Mode hyperlinkMode = Mode.AUTO;
@@ -277,11 +278,15 @@ public final class Cli implements Callable<Integer> {
         @Option(
                 names = "--format",
                 paramLabel = "FORMAT",
-                description = "Output format: ${COMPLETION-CANDIDATES} (default: ${DEFAULT-VALUE}).",
+                description = "Result format: ${COMPLETION-CANDIDATES} (default: ${DEFAULT-VALUE}). TABLE is "
+                        + "aligned for reading, JSON emits one array, JSONL one object per line.",
                 defaultValue = "table")
         protected Format format;
 
-        @Parameters(arity = "1..*", paramLabel = "PATH", description = "Files or directories to process.")
+        @Parameters(
+                arity = "1..*",
+                paramLabel = "PATH",
+                description = "Files to process, or directories to scan recursively for the configured file types.")
         protected List<Path> paths;
 
         protected Cli root() {
@@ -289,9 +294,14 @@ public final class Cli implements Callable<Integer> {
         }
     }
 
-    @Command(name = "identify", description = "Identify files using AniDB.", mixinStandardHelpOptions = true)
+    @Command(
+            name = "identify",
+            description = "Hash each file and look it up on AniDB, storing what it reports.",
+            mixinStandardHelpOptions = true)
     static final class IdentifyCommand extends FileCommand {
-        @Option(names = "--refresh", description = "Ignore cached results and query AniDB again.")
+        @Option(
+                names = "--refresh",
+                description = "Re-hash the files and look them up again, replacing the stored result.")
         private boolean refresh;
 
         @Override
@@ -307,18 +317,27 @@ public final class Cli implements Callable<Integer> {
         }
     }
 
-    @Command(name = "rename", description = "Preview or apply rule-based file names.", mixinStandardHelpOptions = true)
+    @Command(
+            name = "rename",
+            description = "Identify each file, then print the name the rules produce for it; nothing is "
+                    + "renamed or moved without --apply.",
+            mixinStandardHelpOptions = true)
     static final class RenameCommand extends FileCommand {
-        @Option(names = "--apply", description = "Apply the displayed filesystem changes.")
+        @Option(names = "--apply", description = "Perform the renames and moves shown in the preview.")
         private boolean apply;
 
-        @Option(names = "--move", description = "Also apply the configured move rules.")
+        @Option(names = "--move", description = "Include the move rules, so --apply relocates the files as well.")
         private boolean move;
 
-        @Option(names = "--rules", paramLabel = "FILE", description = "Use a rules document for this run only.")
+        @Option(
+                names = "--rules",
+                paramLabel = "FILE",
+                description = "Use the rules in FILE for this run; the saved rules are not modified.")
         private Path rulesFile;
 
-        @Option(names = "--refresh", description = "Ignore cached results and query AniDB again.")
+        @Option(
+                names = "--refresh",
+                description = "Re-hash the files and look them up again, replacing the stored result.")
         private boolean refresh;
 
         @Override
@@ -353,22 +372,22 @@ public final class Cli implements Callable<Integer> {
 
     @Command(
             name = "hash",
-            description = "Calculate file hashes without contacting AniDB.",
+            description = "Compute file checksums locally, without contacting AniDB.",
             mixinStandardHelpOptions = true)
     static final class HashCommand extends FileCommand {
-        @Option(names = "--all", description = "Calculate every supported hash.")
+        @Option(names = "--all", description = "Compute every supported hash; ED2K is always computed.")
         private boolean all;
 
-        @Option(names = "--crc32", description = "Also calculate CRC32.")
+        @Option(names = "--crc32", description = "Also compute CRC32.")
         private boolean crc32;
 
-        @Option(names = "--md5", description = "Also calculate MD5.")
+        @Option(names = "--md5", description = "Also compute MD5.")
         private boolean md5;
 
-        @Option(names = "--sha1", description = "Also calculate SHA-1.")
+        @Option(names = "--sha1", description = "Also compute SHA-1.")
         private boolean sha1;
 
-        @Option(names = "--tth", description = "Also calculate Tiger Tree Hash.")
+        @Option(names = "--tth", description = "Also compute TTH (Tiger Tree Hash).")
         private boolean tth;
 
         @Override
@@ -391,7 +410,7 @@ public final class Cli implements Callable<Integer> {
 
     @Command(
             name = "mylist",
-            description = "Manage AniDB MyList entries.",
+            description = "Add files to the AniDB MyList, remove them, or report what is there.",
             mixinStandardHelpOptions = true,
             subcommands = {MylistAddCommand.class, MylistRemoveCommand.class, MylistStatusCommand.class})
     static final class MylistCommand implements Callable<Integer> {
@@ -424,21 +443,40 @@ public final class Cli implements Callable<Integer> {
         }
     }
 
-    @Command(name = "add", description = "Add files to MyList.", mixinStandardHelpOptions = true)
+    @Command(
+            name = "add",
+            description = "Add each file to MyList, looking it up on AniDB first so the entry is current.",
+            mixinStandardHelpOptions = true)
     static final class MylistAddCommand extends MylistFileCommand {
-        @Option(names = "--watched", negatable = true, description = "Override the saved watched state.")
+        @Option(
+                names = "--watched",
+                negatable = true,
+                description =
+                        "Mark the files watched, or --no-watched for unwatched, overriding the configured " + "state.")
         private Boolean watched;
 
-        @Option(names = "--state", paramLabel = "STATE", description = "Storage state: ${COMPLETION-CANDIDATES}.")
+        @Option(
+                names = "--state",
+                paramLabel = "STATE",
+                description = "Where the file is kept: ${COMPLETION-CANDIDATES}.")
         private MylistState state;
 
-        @Option(names = "--source", paramLabel = "TEXT", description = "Override the saved source.")
+        @Option(
+                names = "--source",
+                paramLabel = "TEXT",
+                description = "Where the file came from, overriding the configured source.")
         private String source;
 
-        @Option(names = "--storage", paramLabel = "TEXT", description = "Override the saved storage location.")
+        @Option(
+                names = "--storage",
+                paramLabel = "TEXT",
+                description = "Medium the file is kept on, overriding the configured storage.")
         private String storage;
 
-        @Option(names = "--other", paramLabel = "TEXT", description = "Override the saved notes.")
+        @Option(
+                names = "--other",
+                paramLabel = "TEXT",
+                description = "Free-text note on the entry, overriding the configured note.")
         private String other;
 
         @Override
@@ -452,7 +490,10 @@ public final class Cli implements Callable<Integer> {
         }
     }
 
-    @Command(name = "remove", description = "Remove files from MyList.", mixinStandardHelpOptions = true)
+    @Command(
+            name = "remove",
+            description = "Remove each file's MyList entry; the files themselves are untouched.",
+            mixinStandardHelpOptions = true)
     static final class MylistRemoveCommand extends MylistFileCommand {
         @Override
         protected MylistAction action() {
@@ -460,7 +501,10 @@ public final class Cli implements Callable<Integer> {
         }
     }
 
-    @Command(name = "status", description = "Show whether files are in MyList.", mixinStandardHelpOptions = true)
+    @Command(
+            name = "status",
+            description = "Report whether each file is in MyList, as last seen by WebAOM.",
+            mixinStandardHelpOptions = true)
     static final class MylistStatusCommand extends MylistFileCommand {
         @Override
         protected MylistAction action() {
@@ -484,7 +528,7 @@ public final class Cli implements Callable<Integer> {
 
     @Command(
             name = "rules",
-            description = "Inspect and edit rename and move rules.",
+            description = "Inspect, edit, and validate the rename and move rules.",
             mixinStandardHelpOptions = true,
             subcommands = {RulesShowCommand.class, RulesEditCommand.class, RulesCheckCommand.class})
     static final class RulesCommand implements Callable<Integer> {
@@ -507,7 +551,10 @@ public final class Cli implements Callable<Integer> {
         }
     }
 
-    @Command(name = "show", description = "Print the active rules.", mixinStandardHelpOptions = true)
+    @Command(
+            name = "show",
+            description = "Print the active rules, in the format 'rules edit' and 'rename --rules' expect.",
+            mixinStandardHelpOptions = true)
     static final class RulesShowCommand extends SimpleCommand {
         @Override
         public Integer call() throws Exception {
@@ -520,9 +567,15 @@ public final class Cli implements Callable<Integer> {
         }
     }
 
-    @Command(name = "check", description = "Validate saved rules or a rules file.", mixinStandardHelpOptions = true)
+    @Command(
+            name = "check",
+            description = "Validate a rules file, or the active rules, naming every bad line.",
+            mixinStandardHelpOptions = true)
     static final class RulesCheckCommand extends SimpleCommand {
-        @Parameters(arity = "0..1", paramLabel = "FILE", description = "Rules document to validate.")
+        @Parameters(
+                arity = "0..1",
+                paramLabel = "FILE",
+                description = "Rules document to validate (default: the active rules).")
         private Path rulesFile;
 
         @Override
@@ -542,7 +595,10 @@ public final class Cli implements Callable<Integer> {
         }
     }
 
-    @Command(name = "edit", description = "Edit and validate the active rules.", mixinStandardHelpOptions = true)
+    @Command(
+            name = "edit",
+            description = "Edit the active rules in VISUAL, EDITOR, or the default editor, saving them back if valid.",
+            mixinStandardHelpOptions = true)
     static final class RulesEditCommand extends SimpleCommand {
         @Override
         public Integer call() throws Exception {
@@ -678,7 +734,7 @@ public final class Cli implements Callable<Integer> {
 
     @Command(
             name = "config",
-            description = "Inspect the effective configuration.",
+            description = "Report the settings in effect and where they are stored.",
             mixinStandardHelpOptions = true,
             subcommands = {ConfigShowCommand.class, ConfigPathCommand.class})
     static final class ConfigCommand implements Callable<Integer> {
@@ -692,7 +748,10 @@ public final class Cli implements Callable<Integer> {
         }
     }
 
-    @Command(name = "show", description = "Show non-secret effective settings.", mixinStandardHelpOptions = true)
+    @Command(
+            name = "show",
+            description = "Print the effective settings; no credentials are shown.",
+            mixinStandardHelpOptions = true)
     static final class ConfigShowCommand extends SimpleCommand {
         @Override
         public Integer call() throws Exception {
@@ -716,7 +775,10 @@ public final class Cli implements Callable<Integer> {
         }
     }
 
-    @Command(name = "path", description = "Print configuration and database paths.", mixinStandardHelpOptions = true)
+    @Command(
+            name = "path",
+            description = "Print the configuration file and database in use.",
+            mixinStandardHelpOptions = true)
     static final class ConfigPathCommand extends SimpleCommand {
         @Override
         public Integer call() throws Exception {
@@ -754,7 +816,10 @@ public final class Cli implements Callable<Integer> {
                         "$1<redacted>");
     }
 
-    @Command(name = "login", description = "Save AniDB credentials securely.", mixinStandardHelpOptions = true)
+    @Command(
+            name = "login",
+            description = "Prompt for AniDB credentials and store them in the configuration.",
+            mixinStandardHelpOptions = true)
     static final class LoginCommand extends SimpleCommand {
         @Override
         public Integer call() throws Exception {
@@ -792,7 +857,7 @@ public final class Cli implements Callable<Integer> {
 
     @Command(
             name = "doctor",
-            description = "Check configuration, database, credentials, and AniDB.",
+            description = "Check the configuration, database, credentials, and AniDB login.",
             mixinStandardHelpOptions = true)
     static final class DoctorCommand extends SimpleCommand {
         @Override
@@ -807,7 +872,7 @@ public final class Cli implements Callable<Integer> {
 
     @Command(
             name = "db",
-            description = "Manage the WebAOM database.",
+            description = "Manage the database shared with the desktop application.",
             mixinStandardHelpOptions = true,
             subcommands = {DbUpgradeCommand.class})
     static final class DbCommand implements Callable<Integer> {
@@ -823,10 +888,10 @@ public final class Cli implements Callable<Integer> {
 
     @Command(
             name = "upgrade",
-            description = "Upgrade the database schema, with explicit consent.",
+            description = "Upgrade the schema to the version this build requires. One-way; back up first.",
             mixinStandardHelpOptions = true)
     static final class DbUpgradeCommand extends SimpleCommand {
-        @Option(names = "--yes", description = "Confirm the upgrade without an interactive prompt.")
+        @Option(names = "--yes", description = "Confirm the upgrade without prompting.")
         private boolean yes;
 
         @Override
