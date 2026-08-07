@@ -30,6 +30,8 @@ import java.io.StringWriter;
 import java.nio.file.Path;
 import java.util.List;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.condition.DisabledOnOs;
+import org.junit.jupiter.api.condition.OS;
 import org.junit.jupiter.api.io.TempDir;
 
 class CliStyleTest {
@@ -61,6 +63,7 @@ class CliStyleTest {
     }
 
     @Test
+    @DisabledOnOs(value = OS.WINDOWS, disabledReason = "Windows rejects control characters in file names")
     void pathLinksUseAbsoluteEncodedUrisAndEscapeControlCharacters() {
         Path path = temporaryDirectory.resolve("episode \u001B[31m.mkv");
         CliStyle style = CliStyle.resolve(CliStyle.Mode.ALWAYS, CliStyle.Mode.ALWAYS, true, false);

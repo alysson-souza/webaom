@@ -23,6 +23,11 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import org.junit.jupiter.api.Test;
 
 class RuleDocumentTest {
+    // RuleDocument joins rule lines with the platform separator, so expectations must too.
+    private static String lines(String... rules) {
+        return String.join(System.lineSeparator(), rules);
+    }
+
     @Test
     void roundTripsRenameAndMoveSections() {
         RuleDocument document = RuleDocument.parse("""
@@ -76,7 +81,7 @@ class RuleDocumentTest {
     void normalizesRuleIndentationAcceptedByValidation() {
         RuleDocument document = RuleDocument.parse("[rename]\n  DO ADD 'x'\n\tIF G(!unknown) DO ADD 'y'\n");
 
-        assertEquals("DO ADD 'x'\nIF G(!unknown) DO ADD 'y'", document.renameRules());
+        assertEquals(lines("DO ADD 'x'", "IF G(!unknown) DO ADD 'y'"), document.renameRules());
     }
 
     @Test
@@ -114,10 +119,11 @@ class RuleDocumentTest {
                 + "DO ADD 'x' WEIGHT 1.5:200\n");
 
         assertEquals(
-                "DO ASSUME SPECIAL 12\n"
-                        + "DO TRUNCATE<200,...> // keep it short\n"
-                        + "DO SET 'TRUNCATE<80,...>'\n"
-                        + "DO ADD 'x' WEIGHT 1.5:200",
+                lines(
+                        "DO ASSUME SPECIAL 12",
+                        "DO TRUNCATE<200,...> // keep it short",
+                        "DO SET 'TRUNCATE<80,...>'",
+                        "DO ADD 'x' WEIGHT 1.5:200"),
                 document.renameRules());
     }
 
@@ -139,7 +145,7 @@ class RuleDocumentTest {
     void acceptsWeightTextInsideQuotedContent() {
         RuleDocument document = RuleDocument.parse("[rename]\nDO ADD 'light weight class'\nDO ADD 'weight 1:200'\n");
 
-        assertEquals("DO ADD 'light weight class'\nDO ADD 'weight 1:200'", document.renameRules());
+        assertEquals(lines("DO ADD 'light weight class'", "DO ADD 'weight 1:200'"), document.renameRules());
     }
 
     @Test
