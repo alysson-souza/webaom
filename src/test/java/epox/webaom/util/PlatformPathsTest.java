@@ -117,13 +117,18 @@ class PlatformPathsTest {
     }
 
     @Test
-    void legacyPathsAndPlatformFlagsDescribeTheRunningLinuxHost() {
+    void legacyPathsAndPlatformFlagsDescribeTheRunningHost() {
         assertTrue(PlatformPaths.getLegacyConfigFilePath().endsWith(File.separator + ".webaom"));
         assertTrue(PlatformPaths.getLegacyTemplateFilePath().endsWith(File.separator + ".webaom.htm"));
-        assertEquals("Linux", PlatformPaths.getOSName());
-        assertTrue(PlatformPaths.isLinux());
-        assertFalse(PlatformPaths.isMac());
-        assertFalse(PlatformPaths.isWindows());
+
+        String osName = PlatformPaths.getOSName();
+        assertTrue(osName.equals("Linux")
+                || osName.equals("macOS")
+                || osName.equals("Windows")
+                || osName.equals("Unknown"));
+        assertEquals(osName.equals("Linux"), PlatformPaths.isLinux());
+        assertEquals(osName.equals("macOS"), PlatformPaths.isMac());
+        assertEquals(osName.equals("Windows"), PlatformPaths.isWindows());
     }
 
     @Test

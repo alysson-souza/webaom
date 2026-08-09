@@ -182,7 +182,9 @@ class RulesCharacterizationTest {
 
         // TODO: Review why the default illegal-character rules preserve colons in final filenames.
         assertEquals("bad'name:.mkv", result.getName());
-        assertEquals(tempDir.resolve("Anime Show/Season: 1").toFile(), result.getParentFile());
+        assertEquals(
+                tempDir.resolve("Anime Show") + File.separator + "Season: 1",
+                result.getParentFile().getPath());
     }
 
     @Test

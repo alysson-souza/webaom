@@ -294,8 +294,8 @@ public final class StringUtilities {
                 return null;
             }
             byte[] buffer = new byte[(int) file.length()];
-            try (BufferedInputStream inputStream =
-                    new BufferedInputStream(new FileInputStream(file), (int) file.length())) {
+            try (FileInputStream fileInputStream = new FileInputStream(file);
+                    BufferedInputStream inputStream = new BufferedInputStream(fileInputStream, (int) file.length())) {
                 int totalBytesRead = 0;
                 int bytesRead;
                 while (totalBytesRead < buffer.length
