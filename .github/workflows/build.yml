@@ -2,13 +2,13 @@ name: Build and Test
 
 on:
   push:
-    branches: [ '**' ]
+    branches: [ main ]
     tags: [ 'v*' ]
   pull_request:
-    branches: [ master, main ]
+    branches: [ main ]
   workflow_dispatch:
 
-# Superseded PR runs are pointless; tag and branch runs always finish.
+# Superseded PR runs are pointless; tag and main runs always finish.
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: ${{ github.event_name == 'pull_request' }}
