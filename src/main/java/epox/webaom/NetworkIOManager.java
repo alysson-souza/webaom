@@ -27,7 +27,16 @@ import epox.webaom.net.AniDBFileClient;
 public class NetworkIOManager implements Runnable {
     private static final String THREAD_TERMINATED_MESSAGE = "NetIO thread terminated.";
 
+    private final Sleeper sleeper;
     private Job currentJob;
+
+    public NetworkIOManager() {
+        this(Thread::sleep);
+    }
+
+    NetworkIOManager(Sleeper sleeper) {
+        this.sleeper = sleeper;
+    }
 
     @Override
     public void run() {
@@ -79,7 +88,7 @@ public class NetworkIOManager implements Runnable {
                 ac = null;
                 AppContext.gui.status1("Sleeping...");
                 try {
-                    Thread.sleep(100);
+                    sleeper.sleep(100);
                 } catch (InterruptedException e) {
                     Thread.currentThread().interrupt();
                 }
@@ -153,7 +162,7 @@ public class NetworkIOManager implements Runnable {
                     }
                 } else {
                     AppContext.gui.status1("Idle");
-                    Thread.sleep(500);
+                    sleeper.sleep(500);
                 }
             } while (AppContext.gui.isNetworkIoOk());
             AppContext.gui.status1("Disconnecting...");
@@ -251,5 +260,10 @@ public class NetworkIOManager implements Runnable {
         }
         AppContext.gui.println("Check out the connection options or try again later.");
         return false;
+    }
+
+    @FunctionalInterface
+    interface Sleeper {
+        void sleep(long milliseconds) throws InterruptedException;
     }
 }
