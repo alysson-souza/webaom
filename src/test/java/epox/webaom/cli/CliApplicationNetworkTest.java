@@ -17,8 +17,10 @@
 package epox.webaom.cli;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.inOrder;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
@@ -28,9 +30,13 @@ import static org.mockito.Mockito.when;
 import epox.webaom.AppContext;
 import epox.webaom.Options;
 import epox.webaom.Rules;
+import epox.webaom.db.DatabaseManager;
+import epox.webaom.net.AniDBConnection;
 import epox.webaom.net.AniDBConnectionSettings;
 import epox.webaom.net.AniDBFileClient;
 import java.io.IOException;
+import java.io.OutputStream;
+import java.io.PrintWriter;
 import java.nio.file.Path;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicReference;
@@ -143,8 +149,83 @@ class CliApplicationNetworkTest {
         assertEquals(0, capturedSettings.get().localPort);
     }
 
+    @Test
+    void disconnectsWhenAuthenticationIsRejected() throws Exception {
+        AniDBFileClient client = mock(AniDBFileClient.class);
+        when(client.connect()).thenReturn(true);
+        when(client.encrypt()).thenReturn(20);
+        when(client.login()).thenReturn(false);
+
+        CliException exception = assertThrows(CliException.class, application(client)::connection);
+
+        assertEquals("AniDB authentication failed.", exception.getMessage());
+        verify(client).disconnect();
+    }
+
+    @Test
+    void invalidConnectionOptionsFallBackToProtocolDefaults() {
+        AniDBFileClient client = mock(AniDBFileClient.class);
+        when(client.connect()).thenReturn(false);
+        Options options = new Options(temporaryDirectory.resolve("invalid-options"));
+        options.setInteger(Options.INT_REMOTE_PORT, -1);
+        options.setInteger(Options.INT_LOCAL_PORT, 70_000);
+        options.setInteger(Options.INT_TIMEOUT, 0);
+        options.setInteger(Options.INT_DATAGRAM_DELAY, -1);
+        AtomicReference<AniDBConnectionSettings> captured = new AtomicReference<>();
+        CliApplication application = new CliApplication(options, new Rules(), Set.of("mkv"), settings -> {
+            captured.set(settings);
+            return client;
+        });
+
+        assertThrows(CliException.class, application::connection);
+
+        AniDBConnectionSettings settings = captured.get();
+        assertEquals(9_000, settings.remotePort);
+        assertEquals(AniDBConnection.DEFAULT_LOCAL_PORT, settings.localPort);
+        assertEquals(20_000, settings.timeoutMillis);
+        assertEquals(4_000, settings.packetDelay);
+    }
+
+    @Test
+    void doctorAuthenticatesWhenDatabaseAndCredentialsAreAvailable() throws Exception {
+        DatabaseManager previousDatabase = AppContext.databaseManager;
+        DatabaseManager database = mock(DatabaseManager.class);
+        when(database.isConnected()).thenReturn(true);
+        AppContext.databaseManager = database;
+        AniDBFileClient client = mock(AniDBFileClient.class);
+        when(client.connect()).thenReturn(true);
+        when(client.encrypt()).thenReturn(20);
+        when(client.login()).thenReturn(true);
+        try {
+            assertTrue(application(client).doctor(silentOutput()));
+        } finally {
+            AppContext.databaseManager = previousDatabase;
+        }
+    }
+
+    @Test
+    void doctorReportsAniDbAuthenticationFailureAsUnhealthy() throws Exception {
+        DatabaseManager previousDatabase = AppContext.databaseManager;
+        DatabaseManager database = mock(DatabaseManager.class);
+        when(database.isConnected()).thenReturn(true);
+        AppContext.databaseManager = database;
+        AniDBFileClient client = mock(AniDBFileClient.class);
+        when(client.connect()).thenReturn(false);
+        when(client.getLastError()).thenReturn("offline");
+        try {
+            assertFalse(application(client).doctor(silentOutput()));
+        } finally {
+            AppContext.databaseManager = previousDatabase;
+        }
+    }
+
     private CliApplication application(AniDBFileClient client) {
         Options options = new Options(temporaryDirectory.resolve("config"));
         return new CliApplication(options, new Rules(), Set.of("mkv"), settings -> client);
+    }
+
+    private static CliOutput silentOutput() {
+        PrintWriter discard = new PrintWriter(OutputStream.nullOutputStream());
+        return new CliOutput(discard, discard, CliOutput.Format.TABLE, true, false);
     }
 }

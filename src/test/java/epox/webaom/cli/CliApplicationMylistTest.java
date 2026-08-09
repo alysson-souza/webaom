@@ -23,6 +23,7 @@ import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import epox.webaom.AppContext;
@@ -145,6 +146,83 @@ class CliApplicationMylistTest {
         assertTrue(results.getFirst().message.contains("Entry is locked"));
     }
 
+    @Test
+    void statusReportsCachedMylistPresenceWithoutMutatingTheEntry() throws Exception {
+        AniDBFileClient client = identifiedClient(321);
+
+        CliFileResult result = application(client)
+                .mylist(
+                        List.of(mediaFile()),
+                        CliApplication.MylistAction.STATUS,
+                        CliApplication.MylistOverrides.none(),
+                        silentOutput())
+                .getFirst();
+
+        assertEquals(CliFileResult.Status.MYLIST_PRESENT, result.status);
+        assertEquals(321, result.job.mylistId);
+    }
+
+    @Test
+    void statusAndRemoveReportAnAbsentMylistEntry() throws Exception {
+        AniDBFileClient statusClient = identifiedClient();
+        CliFileResult status = application(statusClient)
+                .mylist(
+                        List.of(mediaFile()),
+                        CliApplication.MylistAction.STATUS,
+                        CliApplication.MylistOverrides.none(),
+                        silentOutput())
+                .getFirst();
+        assertEquals(CliFileResult.Status.MYLIST_ABSENT, status.status);
+
+        AppContext.jobs = new JobList();
+        AniDBFileClient removeClient = identifiedClient();
+        CliFileResult remove = application(removeClient)
+                .mylist(
+                        List.of(mediaFile()),
+                        CliApplication.MylistAction.REMOVE,
+                        CliApplication.MylistOverrides.none(),
+                        silentOutput())
+                .getFirst();
+        assertEquals(CliFileResult.Status.MYLIST_ABSENT, remove.status);
+        assertEquals("File is not in MyList.", remove.message);
+    }
+
+    @Test
+    void removeClearsAnExistingMylistEntryAndPersistsTheJob() throws Exception {
+        AniDBFileClient client = identifiedClient(654);
+        when(client.removeFromMylist(654, "episode.mkv")).thenReturn(true);
+
+        CliFileResult result = application(client)
+                .mylist(
+                        List.of(mediaFile()),
+                        CliApplication.MylistAction.REMOVE,
+                        CliApplication.MylistOverrides.none(),
+                        silentOutput())
+                .getFirst();
+
+        assertEquals(CliFileResult.Status.MYLIST_REMOVED, result.status);
+        assertEquals(0, result.job.mylistId);
+        verify(client).removeFromMylist(654, "episode.mkv");
+    }
+
+    @Test
+    void failedRemoveUsesTheCurrentConnectionError() throws Exception {
+        AniDBFileClient client = identifiedClient(654);
+        when(client.removeFromMylist(654, "episode.mkv")).thenReturn(false);
+        when(client.getLastError()).thenReturn("Removal rejected");
+
+        CliFileResult result = application(client)
+                .mylist(
+                        List.of(mediaFile()),
+                        CliApplication.MylistAction.REMOVE,
+                        CliApplication.MylistOverrides.none(),
+                        silentOutput())
+                .getFirst();
+
+        assertEquals(CliFileResult.Status.FAILED, result.status);
+        assertEquals("Removal rejected", result.message);
+    }
+
     private static CliOutput silentOutput() {
         PrintWriter discard = new PrintWriter(java.io.OutputStream.nullOutputStream());
         return new CliOutput(discard, discard, CliOutput.Format.TABLE, true, false);
@@ -161,6 +239,10 @@ class CliApplicationMylistTest {
 
     /** A mock client whose identify flow produces a complete IDENTIFIED result. */
     private AniDBFileClient identifiedClient() throws Exception {
+        return identifiedClient(0);
+    }
+
+    private AniDBFileClient identifiedClient(int mylistEntryId) throws Exception {
         AniDBFileClient client = mock(AniDBFileClient.class);
         when(client.connect()).thenReturn(true);
         when(client.encrypt()).thenReturn(25);
@@ -170,6 +252,7 @@ class CliApplicationMylistTest {
 
         AniDBFile anidbFile = new AniDBFile(4242);
         anidbFile.setFileId(4242);
+        anidbFile.setMylistEntryId(mylistEntryId);
         Anime anime = new Anime(10);
         anime.romajiTitle = "Test Anime";
         Episode episode = new Episode(20);
