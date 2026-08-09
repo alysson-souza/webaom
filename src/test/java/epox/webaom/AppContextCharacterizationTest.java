@@ -37,7 +37,9 @@ import java.io.PrintStream;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.ArrayList;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicBoolean;
 import javax.swing.JPanel;
@@ -95,6 +97,7 @@ class AppContextCharacterizationTest {
     private Component previousSecondaryPopup;
     private AppContext.AppMode previousMode;
     private Map<String, Object> previousFonts;
+    private List<AniDBEntity> previousAnimeTreeEntries;
 
     @BeforeEach
     void setUp() {
@@ -105,6 +108,7 @@ class AppContextCharacterizationTest {
         previousSecondaryPopup = AppContext.secondaryPopupMenu;
         previousMode = AppContext.getAppMode();
         previousFonts = captureUiDefaults(FONT_KEYS);
+        previousAnimeTreeEntries = detachAnimeTreeEntries();
         AppContext.gui = null;
         AppContext.component = null;
         AppContext.frame = null;
@@ -121,6 +125,9 @@ class AppContextCharacterizationTest {
         AppContext.secondaryPopupMenu = previousSecondaryPopup;
         AppContext.setAppMode(previousMode);
         restoreUiDefaults(previousFonts);
+        detachAnimeTreeEntries();
+        previousAnimeTreeEntries.forEach(AppContext.animeTreeRoot::add);
+        AppContext.animeTreeRoot.buildSortedChildArray();
     }
 
     @Test
@@ -280,7 +287,6 @@ class AppContextCharacterizationTest {
             AppContext.dumpStats();
         } finally {
             System.setOut(previousOut);
-            AppContext.animeTreeRoot.clear();
             AppContext.jobs = previousJobs;
             AppContext.cache = previousCache;
         }
@@ -289,9 +295,19 @@ class AppContextCharacterizationTest {
         assertTrue(stats.contains("@ JobList:"));
         assertTrue(stats.contains("@ Cache:"));
         assertTrue(stats.contains("@ Tree: 1, 1, 1"));
-        assertEquals(0, AppContext.animeTreeRoot.size());
         assertSame(previousJobs, AppContext.jobs);
         assertSame(previousCache, AppContext.cache);
+    }
+
+    private static List<AniDBEntity> detachAnimeTreeEntries() {
+        List<AniDBEntity> entries = new ArrayList<>();
+        AppContext.animeTreeRoot.buildSortedChildArray();
+        for (int index = 0; index < AppContext.animeTreeRoot.size(); index++) {
+            entries.add(AppContext.animeTreeRoot.get(index));
+        }
+        entries.forEach(AppContext.animeTreeRoot::remove);
+        AppContext.animeTreeRoot.buildSortedChildArray();
+        return entries;
     }
 
     private static AniDBEntity entity(int id) {

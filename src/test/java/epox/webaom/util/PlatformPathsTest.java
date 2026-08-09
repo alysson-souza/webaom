@@ -29,6 +29,7 @@ import java.net.URLClassLoader;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 import org.junit.jupiter.api.parallel.ResourceLock;
@@ -38,6 +39,11 @@ import org.junit.jupiter.api.parallel.Resources;
 class PlatformPathsTest {
     @TempDir
     Path temporaryDirectory;
+
+    @BeforeAll
+    static void initializePlatformPathsBeforeChangingSystemProperties() {
+        PlatformPaths.getOSName();
+    }
 
     @Test
     void getApplicationName_usesEnvVarFallbackWhenPropertyMissing() {

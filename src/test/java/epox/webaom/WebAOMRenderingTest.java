@@ -21,6 +21,7 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import epox.webaom.util.PlatformPaths;
 import java.awt.Font;
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -29,9 +30,13 @@ import javax.swing.JFrame;
 import javax.swing.UIManager;
 import javax.swing.plaf.FontUIResource;
 import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.parallel.ResourceLock;
+import org.junit.jupiter.api.parallel.Resources;
 
+@ResourceLock(Resources.SYSTEM_PROPERTIES)
 class WebAOMRenderingTest {
     private static final String[] RENDERING_PROPERTIES = {
         "os.name",
@@ -84,6 +89,11 @@ class WebAOMRenderingTest {
     private Map<String, Object> previousFonts;
     private boolean previousFrameDecoration;
     private boolean previousDialogDecoration;
+
+    @BeforeAll
+    static void initializePlatformPathsBeforeChangingSystemProperties() {
+        PlatformPaths.getOSName();
+    }
 
     @BeforeEach
     void setUp() {
