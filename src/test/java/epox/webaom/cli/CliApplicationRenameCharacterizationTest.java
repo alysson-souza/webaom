@@ -139,8 +139,58 @@ class CliApplicationRenameCharacterizationTest {
         assertEquals(source, result.target);
     }
 
+    @Test
+    void commandRuleDocumentOverridesConfiguredRules() throws Exception {
+        Path source = Files.writeString(tempDirectory.resolve("episode.mkv"), "video");
+        Job job = identifiedJob(source);
+        when(jobs.add(source.toFile())).thenReturn(job);
+        RuleDocument override = new RuleDocument("DO SET 'override'", "# no move rule");
+
+        CliFileResult result = application(renameRules("configured"))
+                .rename(List.of(source), true, false, override, silentOutput())
+                .getFirst();
+
+        assertEquals(CliFileResult.Status.RENAME_PLANNED, result.status);
+        assertEquals(tempDirectory.resolve("override.mkv"), result.target);
+    }
+
+    @Test
+    void persistedRulesAreLoadedWhenTheOptionsContainScripts() throws Exception {
+        Path source = Files.writeString(tempDirectory.resolve("episode.mkv"), "video");
+        Job job = identifiedJob(source);
+        when(jobs.add(source.toFile())).thenReturn(job);
+        Options options = new Options(tempDirectory.resolve("configured-options"));
+        renameRules("from-options").saveToOptions(options);
+
+        CliFileResult result = application(options, renameRules("ignored"))
+                .rename(List.of(source), true, false, null, silentOutput())
+                .getFirst();
+
+        assertEquals(tempDirectory.resolve("from-options.mkv"), result.target);
+    }
+
+    @Test
+    void excessivelyLongRuleResultIsTruncatedBeforePreflight() throws Exception {
+        Path source = Files.writeString(tempDirectory.resolve("episode.mkv"), "video");
+        Job job = identifiedJob(source);
+        when(jobs.add(source.toFile())).thenReturn(job);
+
+        CliFileResult result = application(renameRules("x".repeat(300)))
+                .rename(List.of(source), true, false, null, silentOutput())
+                .getFirst();
+
+        assertEquals(CliFileResult.Status.RENAME_PLANNED, result.status);
+        assertTrue(result.target.getFileName().toString().endsWith(".mkv"));
+        assertTrue(result.target.getFileName().toString().getBytes(java.nio.charset.StandardCharsets.UTF_8).length
+                <= Rules.MAX_FILENAME_BYTES);
+    }
+
     private CliApplication application(Rules rules) {
-        return new CliApplication(new Options(tempDirectory.resolve("config")), rules, Set.of("mkv"), settings -> {
+        return application(new Options(tempDirectory.resolve("config")), rules);
+    }
+
+    private CliApplication application(Options options, Rules rules) {
+        return new CliApplication(options, rules, Set.of("mkv"), settings -> {
             throw new AssertionError("Cached identification must not access the network");
         });
     }

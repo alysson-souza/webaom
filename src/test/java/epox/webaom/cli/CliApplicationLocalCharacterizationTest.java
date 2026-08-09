@@ -118,6 +118,11 @@ class CliApplicationLocalCharacterizationTest {
         assertFalse(CliApplication.canApplyMove(result));
     }
 
+    @Test
+    void defaultConfigPathUsesThePlatformResolver() {
+        assertTrue(CliApplication.defaultConfigPath().isAbsolute());
+    }
+
     private CliApplication localApplication() {
         Options options = new Options(tempDir.resolve("config"));
         return new CliApplication(options, new Rules(), Set.of("mkv"), settings -> {

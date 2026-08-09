@@ -91,6 +91,21 @@ class CliApplicationNetworkTest {
     }
 
     @Test
+    void closeStillDisconnectsWhenBestEffortLogoutFails() throws Exception {
+        AniDBFileClient client = mock(AniDBFileClient.class);
+        when(client.connect()).thenReturn(true);
+        when(client.encrypt()).thenReturn(25);
+        when(client.login()).thenReturn(true);
+        when(client.logout()).thenThrow(new epox.webaom.net.AniDBException(0, "logout failed"));
+        CliApplication application = application(client);
+
+        application.connection();
+        application.close();
+
+        verify(client).disconnect();
+    }
+
+    @Test
     void disconnectsWhenTheSocketCannotBeOpened() throws Exception {
         AniDBFileClient client = mock(AniDBFileClient.class);
         when(client.connect()).thenReturn(false);

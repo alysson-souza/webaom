@@ -48,6 +48,7 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
+import org.mockito.ArgumentCaptor;
 
 class CliApplicationMylistTest {
     @TempDir
@@ -221,6 +222,29 @@ class CliApplicationMylistTest {
 
         assertEquals(CliFileResult.Status.FAILED, result.status);
         assertEquals("Removal rejected", result.message);
+    }
+
+    @Test
+    void explicitMylistOverridesReplaceEveryConfiguredDefault() throws Exception {
+        AniDBFileClient client = identifiedClient();
+        when(client.addOrEditMylistEntry(any(Job.class), any()))
+                .thenReturn(new AniDBFileClient.MylistAddOutcome(123, true, false));
+        CliApplication.MylistOverrides overrides =
+                new CliApplication.MylistOverrides(true, 4, "BluRay", "Shelf", "Loaned");
+
+        CliFileResult result = application(client)
+                .mylist(List.of(mediaFile()), CliApplication.MylistAction.ADD, overrides, silentOutput())
+                .getFirst();
+
+        ArgumentCaptor<epox.webaom.data.Mylist> captured = ArgumentCaptor.forClass(epox.webaom.data.Mylist.class);
+        verify(client).addOrEditMylistEntry(any(Job.class), captured.capture());
+        epox.webaom.data.Mylist mylist = captured.getValue();
+        assertEquals(CliFileResult.Status.MYLIST_ADDED, result.status);
+        assertEquals(4, mylist.state);
+        assertEquals(1, mylist.viewed);
+        assertEquals("Shelf", mylist.storage);
+        assertEquals("BluRay", mylist.source);
+        assertEquals("Loaned", mylist.other);
     }
 
     private static CliOutput silentOutput() {
