@@ -59,7 +59,7 @@ public class WebAOM {
         }
     }
 
-    private static void configureRendering() {
+    static void configureRendering() {
         String osName = System.getProperty("os.name", "").toLowerCase();
         boolean isLinux = osName.contains("linux");
         boolean isMacOS = osName.contains("mac");
