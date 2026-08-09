@@ -47,7 +47,7 @@ final class CliPrompt implements CliInput {
     private final Terminal terminal;
     private final LineReader reader;
 
-    private CliPrompt(CliStyle style, Terminal terminal, LineReader reader) {
+    CliPrompt(CliStyle style, Terminal terminal, LineReader reader) {
         this.style = style;
         this.terminal = terminal;
         this.reader = reader;

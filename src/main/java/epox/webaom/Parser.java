@@ -149,34 +149,37 @@ public final class Parser {
                     }
 
                     if (chooserResult.isApproved() && chooserResult.getSelectedFile() != null) {
-                        File file = chooserResult.getSelectedFile();
-                        FileOutputStream outputStream = new FileOutputStream(file);
-                        Writer writer = new OutputStreamWriter(outputStream, StandardCharsets.UTF_8);
-                        writer.write("a0\r\n");
-                        AppContext.animeTreeRoot.buildSortedChildArray();
-                        for (int animeIndex = 0; animeIndex < AppContext.animeTreeRoot.size(); animeIndex++) {
-                            AniDBEntity animeEntry = AppContext.animeTreeRoot.get(animeIndex);
-                            animeEntry.buildSortedChildArray();
-                            writer.write("a" + animeEntry.serialize() + AppContext.LINE_SEPARATOR);
-                            for (int episodeIndex = 0; episodeIndex < animeEntry.size(); episodeIndex++) {
-                                AniDBEntity episodeEntry = animeEntry.get(episodeIndex);
-                                episodeEntry.buildSortedChildArray();
-                                writer.write("e" + episodeEntry.serialize() + AppContext.LINE_SEPARATOR);
-                                for (int fileIndex = 0; fileIndex < episodeEntry.size(); fileIndex++) {
-                                    AniDBFile anidbFile = (AniDBFile) episodeEntry.get(fileIndex);
-                                    writer.write("f" + anidbFile.serialize() + AppContext.LINE_SEPARATOR);
-                                    if (anidbFile.getJob() != null) {
-                                        writer.write("j" + anidbFile.getJob().serialize() + AppContext.LINE_SEPARATOR);
-                                    }
-                                }
-                            }
-                        }
-                        writer.flush();
-                        writer.close();
+                        exportDatabaseTo(chooserResult.getSelectedFile());
                     }
                 }
             } catch (IOException ex) {
                 ex.printStackTrace();
+            }
+        }
+    }
+
+    /** Writes an export to an explicit file, allowing headless callers to avoid the file chooser. */
+    static void exportDatabaseTo(File file) throws IOException {
+        try (FileOutputStream outputStream = new FileOutputStream(file);
+                Writer writer = new OutputStreamWriter(outputStream, StandardCharsets.UTF_8)) {
+            writer.write("a0\r\n");
+            AppContext.animeTreeRoot.buildSortedChildArray();
+            for (int animeIndex = 0; animeIndex < AppContext.animeTreeRoot.size(); animeIndex++) {
+                AniDBEntity animeEntry = AppContext.animeTreeRoot.get(animeIndex);
+                animeEntry.buildSortedChildArray();
+                writer.write("a" + animeEntry.serialize() + AppContext.LINE_SEPARATOR);
+                for (int episodeIndex = 0; episodeIndex < animeEntry.size(); episodeIndex++) {
+                    AniDBEntity episodeEntry = animeEntry.get(episodeIndex);
+                    episodeEntry.buildSortedChildArray();
+                    writer.write("e" + episodeEntry.serialize() + AppContext.LINE_SEPARATOR);
+                    for (int fileIndex = 0; fileIndex < episodeEntry.size(); fileIndex++) {
+                        AniDBFile anidbFile = (AniDBFile) episodeEntry.get(fileIndex);
+                        writer.write("f" + anidbFile.serialize() + AppContext.LINE_SEPARATOR);
+                        if (anidbFile.getJob() != null) {
+                            writer.write("j" + anidbFile.getJob().serialize() + AppContext.LINE_SEPARATOR);
+                        }
+                    }
+                }
             }
         }
     }
@@ -199,74 +202,7 @@ public final class Parser {
                     }
 
                     if (chooserResult.isApproved() && chooserResult.getSelectedFile() != null) {
-                        File file = chooserResult.getSelectedFile();
-                        try (FileInputStream inputStream = new FileInputStream(file);
-                                BufferedReader reader = new BufferedReader(
-                                        new InputStreamReader(inputStream, StandardCharsets.UTF_8))) {
-                            String formatVersion = reader.readLine();
-                            boolean isLegacyFormat = false;
-                            if (formatVersion.equals("s0")) {
-                                isLegacyFormat = true;
-                            } else if (!formatVersion.equals("a0")) {
-                                throw new Exception("format not supported");
-                            }
-                            String line;
-                            Anime currentAnime = null;
-                            Episode currentEpisode = null;
-                            AniDBFile currentFile = null;
-                            Job currentJob = null;
-                            while (reader.ready()) {
-                                line = StringUtilities.htmldesc(reader.readLine());
-                                if (line.isEmpty()) {
-                                    continue;
-                                }
-                                switch (line.charAt(0)) {
-                                    case 'a':
-                                        currentAnime = new Anime(StringUtilities.split(line.substring(1), '|'));
-                                        AppContext.cache.add(currentAnime, 2, DatabaseManager.INDEX_ANIME);
-                                        AppContext.animeTreeRoot.add(currentAnime);
-                                        break;
-                                    case 'e':
-                                        currentEpisode = new Episode(StringUtilities.split(line.substring(1), '|'));
-                                        AppContext.cache.add(currentEpisode, 2, DatabaseManager.INDEX_EPISODE);
-                                        break;
-                                    case 'f':
-                                        String[] fields = StringUtilities.split(line.substring(1), '|');
-                                        currentFile = new AniDBFile(fields);
-                                        Group group = new Group(currentFile.getGroupId());
-                                        group.name = fields[20];
-                                        group.shortName = fields[21];
-                                        AppContext.cache.add(group, 1, DatabaseManager.INDEX_GROUP);
-                                        currentFile.setAnime(currentAnime);
-                                        currentFile.setEpisode(currentEpisode);
-                                        currentFile.setGroup(group);
-                                        currentFile.setDefaultName(currentAnime.romajiTitle + " - " + currentEpisode.num
-                                                + " - " + currentEpisode.eng + " - ["
-                                                + ((currentFile.getGroupId() > 0) ? group.shortName : "RAW") + "]");
-                                        AppContext.databaseManager.update(
-                                                currentFile.getFileId(), currentFile, DatabaseManager.INDEX_FILE);
-                                        break;
-                                    case 'j':
-                                        line = line.substring(1);
-                                        if (isLegacyFormat) {
-                                            currentJob = new Job(
-                                                    new File(File.separatorChar + line.replace("/", "")), Job.FINISHED);
-                                            currentJob.originalName = line;
-                                            currentJob.ed2kHash = currentFile.getEd2kHash();
-                                            currentJob.fileSize = currentFile.getTotalSize();
-                                        } else {
-                                            currentJob = new Job(StringUtilities.split(line, '|'));
-                                        }
-                                        currentJob.anidbFile = currentFile;
-                                        currentFile.setJob(currentJob);
-                                        AppContext.jobs.add(currentJob);
-                                        AppContext.databaseManager.update(0, currentJob, DatabaseManager.INDEX_JOB);
-                                        break;
-                                    default:
-                                        break;
-                                }
-                            }
-                        }
+                        importDatabaseFrom(chooserResult.getSelectedFile());
                     }
                 }
             } catch (IOException ex) {
@@ -274,5 +210,75 @@ public final class Parser {
             }
         }
         AppContext.databaseManager.setDebug(true);
+    }
+
+    /** Reads an export from an explicit file, allowing headless callers to avoid the file chooser. */
+    static void importDatabaseFrom(File file) throws Exception {
+        try (FileInputStream inputStream = new FileInputStream(file);
+                BufferedReader reader =
+                        new BufferedReader(new InputStreamReader(inputStream, StandardCharsets.UTF_8))) {
+            String formatVersion = reader.readLine();
+            boolean isLegacyFormat = false;
+            if (formatVersion.equals("s0")) {
+                isLegacyFormat = true;
+            } else if (!formatVersion.equals("a0")) {
+                throw new Exception("format not supported");
+            }
+            String line;
+            Anime currentAnime = null;
+            Episode currentEpisode = null;
+            AniDBFile currentFile = null;
+            while (reader.ready()) {
+                line = StringUtilities.htmldesc(reader.readLine());
+                if (line.isEmpty()) {
+                    continue;
+                }
+                switch (line.charAt(0)) {
+                    case 'a':
+                        currentAnime = new Anime(StringUtilities.split(line.substring(1), '|'));
+                        AppContext.cache.add(currentAnime, 2, DatabaseManager.INDEX_ANIME);
+                        AppContext.animeTreeRoot.add(currentAnime);
+                        break;
+                    case 'e':
+                        currentEpisode = new Episode(StringUtilities.split(line.substring(1), '|'));
+                        AppContext.cache.add(currentEpisode, 2, DatabaseManager.INDEX_EPISODE);
+                        break;
+                    case 'f':
+                        String[] fields = StringUtilities.split(line.substring(1), '|');
+                        currentFile = new AniDBFile(fields);
+                        Group group = new Group(currentFile.getGroupId());
+                        group.name = fields[20];
+                        group.shortName = fields[21];
+                        AppContext.cache.add(group, 1, DatabaseManager.INDEX_GROUP);
+                        currentFile.setAnime(currentAnime);
+                        currentFile.setEpisode(currentEpisode);
+                        currentFile.setGroup(group);
+                        currentFile.setDefaultName(currentAnime.romajiTitle + " - " + currentEpisode.num + " - "
+                                + currentEpisode.eng + " - ["
+                                + ((currentFile.getGroupId() > 0) ? group.shortName : "RAW") + "]");
+                        AppContext.databaseManager.update(
+                                currentFile.getFileId(), currentFile, DatabaseManager.INDEX_FILE);
+                        break;
+                    case 'j':
+                        line = line.substring(1);
+                        Job currentJob;
+                        if (isLegacyFormat) {
+                            currentJob = new Job(new File(File.separatorChar + line.replace("/", "")), Job.FINISHED);
+                            currentJob.originalName = line;
+                            currentJob.ed2kHash = currentFile.getEd2kHash();
+                            currentJob.fileSize = currentFile.getTotalSize();
+                        } else {
+                            currentJob = new Job(StringUtilities.split(line, '|'));
+                        }
+                        currentJob.anidbFile = currentFile;
+                        currentFile.setJob(currentJob);
+                        AppContext.jobs.add(currentJob);
+                        AppContext.databaseManager.update(0, currentJob, DatabaseManager.INDEX_JOB);
+                        break;
+                    default:
+                        break;
+                }
+            }
+        }
     }
 }

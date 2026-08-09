@@ -93,6 +93,15 @@ Run `./gradlew spotlessApply` before committing.
 - Javadoc for public APIs and data classes
 - Use `//` for inline comments, not `/* */`
 
+### Documentation
+
+- `README.md` is the public project overview for GitHub visitors. Keep it focused on what WebAOM is, its
+  user-facing capabilities, installation and usage, and only the essential commands needed to build the project.
+- Do not use `README.md` as a development log, status report, contributor notice board, or a home for internal
+  verification details such as coverage targets, verification tasks, and generated report paths.
+- Keep maintainer and agent workflow instructions in `AGENTS.md`. Put longer implementation documentation in the
+  existing project documentation when it does not belong in the public overview.
+
 ## Key Implementation Details
 
 ### Configuration
@@ -162,6 +171,12 @@ two hold the grammar independently, so a change to one needs a matching change t
 - `./gradlew test` runs non-UI tests (default CI-safe path).
 - `./gradlew testUi` runs UI-tagged tests in headless mode.
 - For focused runs, use `./gradlew test --tests "ClassName"` or `./gradlew test --tests "ClassName.methodName"`.
+- Run `./gradlew clean jacocoAggregateReport jacocoAggregateCoverageVerification` to execute both test suites,
+  generate aggregate first-party coverage, and enforce the 80% line-coverage gate.
+- Aggregate coverage includes production classes under `epox/**`. Vendored `com/**`, `gnu/**`, and `jonelo/**`
+  packages are excluded.
+- Coverage reports are written to `build/reports/jacoco/aggregate/html/index.html`,
+  `build/reports/jacoco/aggregate/aggregate.xml`, and `build/reports/jacoco/aggregate/aggregate.csv`.
 
 ## Native Packaging
 

@@ -1,6 +1,7 @@
 plugins {
     id 'java'
     id 'application'
+	id 'jacoco'
     id('com.diffplug.spotless') version '8.1.0'
     id('com.palantir.java-format-spotless') version '2.83.0'
     id('com.palantir.java-format') version '2.83.0'
@@ -98,6 +99,7 @@ tasks.register('testUi', Test) {
 	classpath = sourceSets.test.runtimeClasspath
 	useJUnitPlatform {
 		includeTags 'ui'
+		excludeTags 'benchmark'
 	}
 	systemProperty 'java.awt.headless', 'true'
 }
@@ -107,10 +109,64 @@ tasks.register('benchmark', Test) {
 	description = 'Runs hash algorithm benchmarks.'
 	testClassesDirs = sourceSets.test.output.classesDirs
 	classpath = sourceSets.test.runtimeClasspath
+	jacoco {
+		enabled = false
+	}
 	useJUnitPlatform {
 		includeTags 'benchmark'
 	}
 	maxHeapSize = '512m'
+}
+
+def firstPartyClassDirectories = provider {
+	sourceSets.main.output.classesDirs.files.collect { classesDirectory ->
+		fileTree(classesDirectory) {
+			include 'epox/**/*.class'
+		}
+	}
+}
+
+tasks.register('jacocoAggregateReport', JacocoReport) {
+	group = 'verification'
+	description = 'Generates aggregate first-party coverage for the standard and UI test suites.'
+	dependsOn tasks.named('test'), tasks.named('testUi')
+
+	executionData layout.buildDirectory.file('jacoco/test.exec'), layout.buildDirectory.file('jacoco/testUi.exec')
+	classDirectories.from(firstPartyClassDirectories)
+	sourceDirectories.from(sourceSets.main.allSource.srcDirs)
+
+	reports {
+		html.required = true
+		html.outputLocation = layout.buildDirectory.dir('reports/jacoco/aggregate/html')
+		xml.required = true
+		xml.outputLocation = layout.buildDirectory.file('reports/jacoco/aggregate/aggregate.xml')
+		csv.required = true
+		csv.outputLocation = layout.buildDirectory.file('reports/jacoco/aggregate/aggregate.csv')
+	}
+}
+
+tasks.register('jacocoAggregateCoverageVerification', JacocoCoverageVerification) {
+	group = 'verification'
+	description = 'Enforces at least 80% aggregate line coverage for first-party production code.'
+	dependsOn tasks.named('jacocoAggregateReport')
+
+	executionData layout.buildDirectory.file('jacoco/test.exec'), layout.buildDirectory.file('jacoco/testUi.exec')
+	classDirectories.from(firstPartyClassDirectories)
+	sourceDirectories.from(sourceSets.main.allSource.srcDirs)
+
+	violationRules {
+		rule {
+			limit {
+				counter = 'LINE'
+				value = 'COVEREDRATIO'
+				minimum = 0.80
+			}
+		}
+	}
+}
+
+tasks.named('check') {
+	dependsOn tasks.named('jacocoAggregateCoverageVerification')
 }
 
 tasks.register('generateVersionProperties') {
