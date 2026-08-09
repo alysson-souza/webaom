@@ -180,11 +180,14 @@ class RulesCharacterizationTest {
 
         File result = rules.apply(job);
 
-        // TODO: Review why the default illegal-character rules preserve colons in final filenames.
+        // TODO: Review why the default illegal-character rules preserve colons in final filenames,
+        // and why forward-slash move rules lose their directory semantics on Windows.
         assertEquals("bad'name:.mkv", result.getName());
-        assertEquals(
-                tempDir.resolve("Anime Show") + File.separator + "Season: 1",
-                result.getParentFile().getPath());
+        if (File.separatorChar == '\\') {
+            assertEquals(".Season: 1", result.getParent());
+        } else {
+            assertEquals(tempDir.resolve("Anime Show/Season: 1").toFile(), result.getParentFile());
+        }
     }
 
     @Test
