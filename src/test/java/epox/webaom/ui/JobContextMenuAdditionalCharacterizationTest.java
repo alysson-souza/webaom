@@ -161,11 +161,12 @@ class JobContextMenuAdditionalCharacterizationTest {
 
     @Test
     void editCommandsUseDialogResultsWithoutOpeningDialogs() {
-        Job job = new Job(new File("/source/episode.mkv"), Job.HASHWAIT);
+        File source = new File("source", "episode.mkv").getAbsoluteFile();
+        Job job = new Job(source, Job.HASHWAIT);
         TrackingController controller = new TrackingController();
         JobContextMenu menu = new JobContextMenu(table(1), row -> new Job[] {job}, controller);
         try (MockedStatic<DialogHelper> dialogs = mockStatic(DialogHelper.class)) {
-            dialogs.when(() -> DialogHelper.showInputDialog(null, "Edit path", "/source"))
+            dialogs.when(() -> DialogHelper.showInputDialog(null, "Edit path", source.getParent()))
                     .thenReturn(null, "x", "/library");
 
             menu.command(JobActionCommand.EDIT_PATH, new Job[] {job}, "ignored");
