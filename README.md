@@ -201,23 +201,8 @@ Requires Java 21+. Gradle is included via wrapper.
 | Command                   | Description                                  |
 | ------------------------- | -------------------------------------------- |
 | `./gradlew clean`         | Remove build artifacts                       |
-| `./gradlew test`          | Run standard tests, excluding UI and benchmarks |
-| `./gradlew testUi`        | Run headless UI tests                        |
-| `./gradlew jacocoAggregateReport` | Generate aggregate first-party coverage |
-| `./gradlew jacocoAggregateCoverageVerification` | Enforce 80% first-party line coverage |
 | `./gradlew spotlessApply` | Format code                                  |
 | `./gradlew jpackage`      | Create native installer for current platform |
-
-Run both coverage suites, generate the aggregate report, and enforce the line coverage gate with:
-
-```bash
-./gradlew clean jacocoAggregateReport jacocoAggregateCoverageVerification
-```
-
-The aggregate report covers first-party production code under `epox/**`. Vendored `com/**`, `gnu/**`, and
-`jonelo/**` packages are excluded. The HTML report is written to
-`build/reports/jacoco/aggregate/html/index.html`, with machine-readable XML and CSV reports at
-`build/reports/jacoco/aggregate/aggregate.xml` and `build/reports/jacoco/aggregate/aggregate.csv`.
 
 Git hooks are installed automatically by Gradle. Any `./gradlew ...` invocation refreshes
 `.git/hooks/pre-commit` and `.git/hooks/pre-push` shims that run repository hooks.
