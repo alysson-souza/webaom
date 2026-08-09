@@ -400,7 +400,8 @@ public class AniDBConnection implements ActionListener {
         return sendRaw(operation + " " + param, wait);
     }
 
-    private AniDBConnectionResponse sendRaw(String command, boolean wait) throws IOException, AniDBException {
+    /** Package-visible transport boundary for deterministic protocol testing. */
+    AniDBConnectionResponse sendRaw(String command, boolean wait) throws IOException, AniDBException {
         if (shutdown) {
             return null;
         }
