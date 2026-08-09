@@ -109,6 +109,9 @@ tasks.register('benchmark', Test) {
 	description = 'Runs hash algorithm benchmarks.'
 	testClassesDirs = sourceSets.test.output.classesDirs
 	classpath = sourceSets.test.runtimeClasspath
+	jacoco {
+		enabled = false
+	}
 	useJUnitPlatform {
 		includeTags 'benchmark'
 	}
@@ -160,6 +163,10 @@ tasks.register('jacocoAggregateCoverageVerification', JacocoCoverageVerification
 			}
 		}
 	}
+}
+
+tasks.named('check') {
+	dependsOn tasks.named('jacocoAggregateCoverageVerification')
 }
 
 tasks.register('generateVersionProperties') {
