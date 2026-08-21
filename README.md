@@ -1,6 +1,6 @@
 # WebAOM
 
-WebAOM (Web Anime-O-Matic) is a Java desktop application that hashes anime files and adds them to your [MyList](https://wiki.anidb.net/MyList) on AniDB. It retrieves metadata via the [UDP API](https://wiki.anidb.net/UDP_API) and can automatically rename and organize your collection.
+WebAOM (Web Anime-O-Matic) is a Java desktop application for AniDB. It hashes anime files, adds them to your [MyList](https://wiki.anidb.net/MyList), and gets metadata through AniDB's [UDP API](https://wiki.anidb.net/UDP_API). User-defined rules can rename and move matched files.
 
 ## Features
 
@@ -14,11 +14,11 @@ WebAOM (Web Anime-O-Matic) is a Java desktop application that hashes anime files
 ## Requirements
 
 - [AniDB account](https://anidb.net/user/register) (required)
-- Java 21+ (for JAR files) or use native packages
+- Java 21 or newer when running a JAR file
 
 ## Installation
 
-### Native Packages (Recommended)
+### Native packages
 
 Download pre-built packages from the [Releases](https://github.com/alysson-souza/webaom/releases) page:
 
@@ -29,34 +29,33 @@ Download pre-built packages from the [Releases](https://github.com/alysson-souza
 | Linux    | `WebAOM-2.5.0-x86_64.AppImage`    |
 | Linux    | `webaom_2.5.0_amd64.deb` (Debian) |
 
-> **macOS users**: The app is not notarized. Right-click → Open, or run `xattr -cr /Applications/WebAOM.app`
+> The macOS app is not notarized. Right-click the app and select "Open", or run `xattr -cr /Applications/WebAOM.app`.
 
-### JAR Files
+### JAR files
 
-Requires Java 21+:
+With Java 21 or newer installed:
 
 ```bash
-# Lite (SQLite only, ~18MB) - recommended for most users
+# Lite, SQLite only, about 18 MB. Recommended for most users.
 java -jar webaom-2.5.0-lite.jar
 
-# Full (SQLite + PostgreSQL + MySQL, ~22MB)
+# Full, with SQLite, PostgreSQL, and MySQL, about 22 MB.
 java -jar webaom-2.5.0-full.jar
 ```
 
-## Quick Start
+## Quick start
 
-1. **Add files** — Drag-and-drop, click "Files..." or "Folders...", or set default directories in Options
-2. **Log in** — Click "Login" and enter your AniDB credentials
-3. **Start** — Click "Start" and WebAOM will hash each file, fetch metadata from AniDB, add it to your MyList, and optionally rename/move it based on your rules
+1. Add files. Drag them into the window, click "Files..." or "Folders...", or set default directories in Options.
+2. Log in. Click "Login" and enter your AniDB credentials.
+3. Start processing. Click "Start". WebAOM hashes each file, gets its AniDB metadata, adds it to your MyList, and applies any rename or move rules.
 
-## Command Line
+## Command line
 
-The command-line interface uses the same configuration, database, credentials, extensions, and rules as the desktop
-application.
+The CLI uses the desktop application's configuration, database, AniDB credentials, file extensions, and rules.
 
 ### Running the CLI
 
-The CLI is included in the lite and full JARs. Use the lite JAR with SQLite or the full JAR with PostgreSQL or MySQL:
+Both JARs include the CLI. Use the lite JAR with SQLite or the full JAR with PostgreSQL or MySQL:
 
 ```bash
 java -jar webaom-2.6.0-lite.jar --help
@@ -65,22 +64,22 @@ java -jar webaom-2.6.0-full.jar --help
 
 ## Configuration
 
-Settings are stored in the platform app-data directory (UTF-8):
+WebAOM stores its UTF-8 settings in the platform app-data directory:
 
 - Linux: `~/.config/webaom`
 - macOS: `~/Library/Application Support/webaom`
 - Windows: `%APPDATA%\\webaom`
 
-Key options include:
+The main options are:
 
-- **Connection**: AniDB host, ports, keep-alive, delay between requests (minimum 2 sec, 3 recommended)
-- **File Options**: MyList state, source, storage, watched status
-- **Hash Functions**: Select which algorithms to compute (ED2K is required)
-- **Wanted Extensions**: File types to process (default: avi, ogm, mkv, mp4, and many more)
+- **Connection.** Set the AniDB host, ports, keep-alive interval, and delay between requests. The minimum delay is two seconds, and three seconds is recommended.
+- **File Options.** Set the MyList state, source, storage, and watched status.
+- **Hash Functions.** Choose which hashes to calculate. ED2K is required.
+- **Wanted Extensions.** Choose which file types WebAOM processes. The default list includes AVI, OGM, MKV, and MP4.
 
-### File Renaming Rules
+### File renaming rules
 
-WebAOM uses a scripting system to rename and move files based on metadata. Rules are defined in the **Rules** tab.
+Rules in the **Rules** tab rename and move files based on AniDB metadata.
 
 Example rename script:
 
@@ -100,7 +99,7 @@ ELSE DO ADD 'N:\tv\'
 DO ADD '%yea\%ann [%eps]\'
 ```
 
-#### Common Tags
+#### Common tags
 
 | Tag             | Description             |
 | --------------- | ----------------------- |
@@ -116,7 +115,7 @@ DO ADD '%yea\%ann [%eps]\'
 | `%res`          | Resolution              |
 | `%yea`          | Year                    |
 
-#### Rule Tests
+#### Rule tests
 
 | Test        | Description                          |
 | ----------- | ------------------------------------ |
@@ -131,33 +130,33 @@ DO ADD '%yea\%ann [%eps]\'
 
 Use `;` for AND, `,` for OR, `!` for NOT.
 
-### Converting to TVDB Naming (FileBot)
+### Converting to TVDB names with FileBot
 
-Media servers like Plex, Jellyfin, and Emby require TVDB naming (S01E01 format) rather than AniDB absolute numbering. Use [FileBot](https://www.filebot.net/) to convert WebAOM-renamed files.
+Plex, Jellyfin, and Emby expect TVDB season and episode numbers such as S01E01. AniDB uses absolute episode numbers. Use [FileBot](https://www.filebot.net/) to convert files after WebAOM renames them.
 
-> **Note:** This expression is designed for files renamed with WebAOM's default template:
-> `%ann (%yea) - %enr - %epn [%src-%res][%aud][%dub][%vid]-%grp`
+The expression below expects files renamed with WebAOM's default template:
+`%ann (%yea) - %enr - %epn [%src-%res][%aud][%dub][%vid]-%grp`
 
 ```bash
 filebot -rename "FILES" --db AniDB --format @format.txt -non-strict
 ```
 
-**format.txt** — converts AniDB matches to TVDB season/episode numbering:
+Put this expression in **format.txt** to convert AniDB matches to TVDB season and episode numbers:
 
 ```groovy
 {def grp=any{group}{fn.tokenize("-")[-1].tokenize(".")[0]}; def lang=any{audioLanguages.join("+")}{""}; def src=any{vs}{source}{""}; def res=any{vf}{resolution}{""}; def aud=any{ac}{""}; def vid=any{vc}{""}; db.TheTVDB.n+" ("+any{db.TheTVDB.y}{""}+") - "+db.TheTVDB.s00e00+" - "+db.TheTVDB.t+" ["+src+"-"+res+"]["+aud+"]["+lang+"]["+vid+"]"+(grp?"-"+grp:"")}
 ```
 
-This uses the `db.TheTVDB` cross-reference binding which maps AniDB episodes to TVDB using the [Anime-Lists](https://github.com/Anime-Lists/anime-lists) project.
+FileBot's `db.TheTVDB` binding gets AniDB-to-TVDB mappings from the [Anime-Lists](https://github.com/Anime-Lists/anime-lists) project.
 
-**Example conversion:**
+For example:
 
 ```
 From: Gintama (2006) - 083 - Rank Has Nothing to Do With Luck [DVD-760x576][FLAC][japanese][H264]-CBT.mkv
 To:   Gintama (2006) - S02E34 - Rank Has Nothing to Do with Luck [DVDRip-576p][FLAC][jpn][x264]-CBT.mkv
 ```
 
-## Keyboard Shortcuts
+## Keyboard shortcuts
 
 | Key         | Action                       |
 | ----------- | ---------------------------- |
@@ -177,21 +176,21 @@ To:   Gintama (2006) - S02E34 - Rank Has Nothing to Do with Luck [DVDRip-576p][F
 | Delete/BackSpace | Delete selected jobs     |
 | ESC         | Stop worker thread           |
 
-## External Database
+## External database
 
-WebAOM uses an embedded SQLite database by default. For PostgreSQL or MySQL:
+WebAOM uses an embedded SQLite database by default. To use PostgreSQL or MySQL:
 
-1. Create the database with Unicode support
-2. Enter the JDBC URL in Options → "My Database":
+1. Create a database with Unicode support.
+2. Enter its JDBC URL in Options under "My Database".
    ```
    jdbc:postgresql://localhost/webaom?user=myuser&password=mypass
    jdbc:mysql://localhost/webaom?user=myuser&password=mypass
    ```
-3. Press Enter to connect
+3. Press Enter to connect.
 
-## Building from Source
+## Building from source
 
-Requires Java 21+. Gradle is included via wrapper.
+Java 21 or newer is required. The repository includes the Gradle wrapper.
 
 ```bash
 ./gradlew build   # Compile and create JARs
@@ -204,16 +203,13 @@ Requires Java 21+. Gradle is included via wrapper.
 | `./gradlew spotlessApply` | Format code                                  |
 | `./gradlew jpackage`      | Create native installer for current platform |
 
-Git hooks are installed automatically by Gradle. Any `./gradlew ...` invocation refreshes
-`.git/hooks/pre-commit` and `.git/hooks/pre-push` shims that run repository hooks.
+Running any Gradle task installs or refreshes the `.git/hooks/pre-commit` and `.git/hooks/pre-push` shims. The hooks run `spotlessCheck` on commits with staged Java or Gradle changes and on every push.
 
-These hooks run `spotlessCheck` on commit (for staged Java/Gradle changes) and on push.
+## Project history
 
-## Project History
+epoximator created WebAOM and developed it from 2005 to 2010. RIP. This maintenance fork revived the project in 2025 from [AniDB's UDP clients repository](https://git.anidb.net/anidb/udp-clients/).
 
-Created by **epoximator** — RIP (developed 2005–2010). Revived in 2025 as a maintenance fork from [AniDB's UDP clients repository](https://git.anidb.net/anidb/udp-clients/).
-
-Goals: preserve the application, fix bugs, and maintain compatibility with modern Java.
+The fork preserves WebAOM, fixes bugs, and keeps it working with current Java releases.
 
 ## License
 
