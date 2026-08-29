@@ -1,6 +1,6 @@
 WebAOM!
 
-2.6.0 unreleased
+2.6.0 2026.08.29
 *Downloads are around 60% smaller: installers are now about 40 MB instead of 100 MB.
 *New command-line interface for identifying, hashing, renaming, moving, and managing AniDB MyList files without opening the desktop app.
 *Choose separate themes for light and dark modes. The app automatically switches when your system appearance changes.

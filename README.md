@@ -24,10 +24,10 @@ Download pre-built packages from the [Releases](https://github.com/alysson-souza
 
 | Platform | Package                           |
 | -------- | --------------------------------- |
-| macOS    | `WebAOM-2.5.0.dmg`                |
-| Windows  | `WebAOM-2.5.0.msi`                |
-| Linux    | `WebAOM-2.5.0-x86_64.AppImage`    |
-| Linux    | `webaom_2.5.0_amd64.deb` (Debian) |
+| macOS    | `WebAOM-2.6.0.dmg`                |
+| Windows  | `WebAOM-2.6.0.msi`                |
+| Linux    | `WebAOM-2.6.0-x86_64.AppImage`    |
+| Linux    | `webaom_2.6.0_amd64.deb` (Debian) |
 
 > The macOS app is not notarized. Right-click the app and select "Open", or run `xattr -cr /Applications/WebAOM.app`.
 
@@ -37,10 +37,10 @@ With Java 21 or newer installed:
 
 ```bash
 # Lite, SQLite only, about 18 MB. Recommended for most users.
-java -jar webaom-2.5.0-lite.jar
+java -jar webaom-2.6.0-lite.jar
 
 # Full, with SQLite, PostgreSQL, and MySQL, about 22 MB.
-java -jar webaom-2.5.0-full.jar
+java -jar webaom-2.6.0-full.jar
 ```
 
 ## Quick start
