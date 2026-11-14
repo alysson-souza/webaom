@@ -85,6 +85,15 @@ dependencies {
 	testImplementation 'org.mockito:mockito-core:5.12.0'
 }
 
+tasks.withType(Test).configureEach {
+	// Keep test temp files in the build directory, so tests do not need a writable system temp directory.
+	systemProperty 'java.io.tmpdir', temporaryDir
+	// Load Mockito's instrumentation agent at startup; the JDK is phasing out attaching agents to a running JVM.
+	doFirst {
+		jvmArgs "-javaagent:${classpath.find { it.name.startsWith('byte-buddy-agent-') }}"
+	}
+}
+
 tasks.named('test', Test) {
 	useJUnitPlatform {
 		excludeTags 'ui', 'benchmark'
