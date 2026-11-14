@@ -724,8 +724,9 @@ tasks.register('appimage') {
 		copy {
 			from 'src/main/resources/AppRun'
 			into appDir
+			// appimagetool rejects a launcher that other users cannot read and run.
+			filePermissions { unix('rwxr-xr-x') }
 		}
-		file("${appDir}/AppRun").setExecutable(true)
 
 		// Copy .desktop file
 		copy {
