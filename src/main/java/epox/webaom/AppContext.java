@@ -22,6 +22,7 @@ import epox.util.UserPass;
 import epox.webaom.data.AniDBEntity;
 import epox.webaom.db.DatabaseManager;
 import epox.webaom.db.DatabaseManagerFactory;
+import epox.webaom.io.RemoteFileResolver;
 import epox.webaom.net.AniDBConnectionSettings;
 import epox.webaom.net.AniDBFileClient;
 import epox.webaom.ui.DialogHelper;
@@ -87,6 +88,8 @@ public final class AppContext {
     public static MainPanel gui;
     /** File handler for managing file extensions and file operations. */
     public static FileHandler fileHandler;
+    /** Optional remote-file bridge. Local files never start a desktop service. */
+    public static RemoteFileResolver remoteFiles = new RemoteFileResolver();
     /** Primary popup menu component (jobs table context menu). */
     public static Component primaryPopupMenu;
     /** Secondary popup menu component (alternate view context menu). */

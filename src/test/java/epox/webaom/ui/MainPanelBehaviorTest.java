@@ -24,6 +24,7 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.anyBoolean;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -38,14 +39,26 @@ import epox.webaom.Rules;
 import epox.webaom.data.Anime;
 import epox.webaom.data.Episode;
 import epox.webaom.db.DatabaseManager;
+import epox.webaom.io.RemoteFileResolver;
 import epox.webaom.net.AniDBConnection;
 import epox.webaom.net.AniDBFileClient;
 import epox.webaom.ui.shortcuts.ShortcutInfo;
 import java.awt.Component;
+import java.awt.GraphicsEnvironment;
+import java.awt.Point;
+import java.awt.Robot;
+import java.awt.datatransfer.DataFlavor;
+import java.awt.datatransfer.Transferable;
+import java.awt.dnd.DnDConstants;
+import java.awt.dnd.DropTargetDragEvent;
+import java.awt.dnd.DropTargetDropEvent;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.InputEvent;
 import java.io.File;
+import java.io.IOException;
 import java.lang.reflect.Field;
+import java.net.URI;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
@@ -53,16 +66,22 @@ import java.util.Collections;
 import java.util.IdentityHashMap;
 import java.util.List;
 import java.util.Set;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
+import javax.swing.JFrame;
 import javax.swing.JRootPane;
 import javax.swing.JTabbedPane;
 import javax.swing.JTextArea;
 import javax.swing.JTextField;
+import javax.swing.SwingUtilities;
 import javax.swing.Timer;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.HyperlinkEvent;
 import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.Assumptions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
@@ -93,6 +112,7 @@ class MainPanelBehaviorTest {
     private Component originalPrimaryPopupMenu;
     private Component originalSecondaryPopupMenu;
     private Set<ShortcutInfo> originalShortcuts;
+    private RemoteFileResolver originalRemoteFiles;
 
     private DatabaseManager databaseManager;
     private RecordingRuntime runtime;
@@ -119,6 +139,7 @@ class MainPanelBehaviorTest {
         originalEpisodeTitlePriority = Episode.titlePriority;
         originalPrimaryPopupMenu = AppContext.primaryPopupMenu;
         originalSecondaryPopupMenu = AppContext.secondaryPopupMenu;
+        originalRemoteFiles = AppContext.remoteFiles;
         originalShortcuts = Collections.newSetFromMap(new IdentityHashMap<>());
         originalShortcuts.addAll(AppContext.shortcutRegistry.getAllShortcuts());
 
@@ -177,7 +198,231 @@ class MainPanelBehaviorTest {
         Episode.titlePriority = originalEpisodeTitlePriority;
         AppContext.primaryPopupMenu = originalPrimaryPopupMenu;
         AppContext.secondaryPopupMenu = originalSecondaryPopupMenu;
+        AppContext.remoteFiles = originalRemoteFiles;
         AniDBConnection.setShutdown(originalConnectionShutdown);
+    }
+
+    @Test
+    void nativeFileListDropKeepsLocalFilesWithoutDesktopServices() throws Exception {
+        AppContext.remoteFiles = new RemoteFileResolver("Linux", uri -> {
+            throw new AssertionError("Local file drops must not use KIO Fuse");
+        });
+        File file = Files.writeString(tempDir.resolve("local.mkv"), "video").toFile();
+        Transferable transfer = mock(Transferable.class);
+        when(transfer.isDataFlavorSupported(DataFlavor.javaFileListFlavor)).thenReturn(true);
+        when(transfer.getTransferData(DataFlavor.javaFileListFlavor)).thenReturn(List.of(file));
+        DropTargetDropEvent event = mock(DropTargetDropEvent.class);
+        when(event.getTransferable()).thenReturn(transfer);
+        SwingUtilities.invokeAndWait(() -> panel.drop(event));
+        awaitWorker();
+        verify(event).dropComplete(true);
+        assertEquals(file, AppContext.jobs.array()[0].getFile());
+    }
+
+    @Test
+    void finderDropWhoseUriListHoldsPlainPathsAddsTheListedFiles() throws Exception {
+        File file = Files.writeString(tempDir.resolve("[Group] Show - 01.mkv"), "video")
+                .toFile();
+        // macOS maps a Finder drop to text/uri-list too, but fills it with plain paths instead of URLs.
+        DataFlavor uriList = new DataFlavor("text/uri-list;class=java.lang.String");
+        Transferable transfer = mock(Transferable.class);
+        when(transfer.getTransferDataFlavors()).thenReturn(new DataFlavor[] {uriList, DataFlavor.javaFileListFlavor});
+        when(transfer.isDataFlavorSupported(uriList)).thenReturn(true);
+        when(transfer.isDataFlavorSupported(DataFlavor.javaFileListFlavor)).thenReturn(true);
+        when(transfer.getTransferData(uriList)).thenReturn(file.getPath() + "\n");
+        when(transfer.getTransferData(DataFlavor.javaFileListFlavor)).thenReturn(List.of(file));
+        DropTargetDropEvent event = mock(DropTargetDropEvent.class);
+        when(event.getTransferable()).thenReturn(transfer);
+
+        SwingUtilities.invokeAndWait(() -> panel.drop(event));
+        awaitWorker();
+
+        verify(event).dropComplete(true);
+        assertEquals(1, AppContext.jobs.size());
+        assertEquals(file, AppContext.jobs.array()[0].getFile());
+    }
+
+    @Test
+    void emptyDropSaysItHeldNoFiles() throws Exception {
+        DropTargetDropEvent event = mock(DropTargetDropEvent.class);
+        when(event.getTransferable()).thenReturn(NativeFileDropSource.uriList("# nothing was selected\r\n"));
+
+        SwingUtilities.invokeAndWait(() -> panel.drop(event));
+        SwingUtilities.invokeAndWait(() -> {});
+
+        verify(event).dropComplete(false);
+        assertEquals("The drop contains no files.", panel.statusProgressBar.getString());
+    }
+
+    @Test
+    void dropOfAPathWithoutAParentRemembersThePathItself() throws Exception {
+        File orphan = new File("not-in-any-folder.mkv");
+        Transferable transfer = mock(Transferable.class);
+        when(transfer.isDataFlavorSupported(DataFlavor.javaFileListFlavor)).thenReturn(true);
+        when(transfer.getTransferData(DataFlavor.javaFileListFlavor)).thenReturn(List.of(orphan));
+        DropTargetDropEvent event = mock(DropTargetDropEvent.class);
+        when(event.getTransferable()).thenReturn(transfer);
+
+        SwingUtilities.invokeAndWait(() -> panel.drop(event));
+        awaitWorker();
+
+        assertEquals(orphan.getAbsolutePath(), AppContext.lastDirectory);
+    }
+
+    @Test
+    void idleDiskIoRescanLeavesTheRunningWorkerRegistered() throws Exception {
+        Thread busy = new Thread(() -> {});
+        panel.workerThread = busy;
+
+        // With nothing to hash, disk I/O rescans the hash directories on a thread of its own.
+        panel.toggleDiskIo();
+        panel.toggleDiskIo();
+        for (Thread thread : Thread.getAllStackTraces().keySet()) {
+            if (thread.getName().equals("RecursiveDirectoryScanner")) thread.join(5000);
+        }
+
+        assertEquals(busy, panel.workerThread);
+    }
+
+    @Test
+    void loadAllJobsCheckboxKeepsShowingWhatIsLoadedWhileAnotherWorkerRuns() {
+        when(databaseManager.isConnected()).thenReturn(true);
+        panel.workerThread = new Thread(() -> {});
+        JCheckBox loadAll = panel.altViewPanel.getLoadAllJobsCheckbox();
+
+        loadAll.setSelected(true);
+        fire(loadAll);
+
+        assertFalse(loadAll.isSelected());
+        verify(databaseManager, never()).getJobs();
+    }
+
+    @Test
+    void smbDirectoryDropResolvesOffTheUiThreadAndAddsItsChildren() throws Exception {
+        Path share = Files.createDirectories(tempDir.resolve("share/Season 1"));
+        File file = Files.writeString(share.resolve("episode.mkv"), "video").toFile();
+        AtomicBoolean onEdt = new AtomicBoolean(true);
+        AppContext.remoteFiles = new RemoteFileResolver("Linux", uri -> {
+            onEdt.set(SwingUtilities.isEventDispatchThread());
+            return share.getParent().toFile();
+        });
+        Transferable transfer = NativeFileDropSource.uriList("smb://nas.example/Anime/Season%201/\r\n");
+        DropTargetDropEvent event = mock(DropTargetDropEvent.class);
+        when(event.getTransferable()).thenReturn(transfer);
+        SwingUtilities.invokeAndWait(() -> panel.drop(event));
+        awaitWorker();
+
+        assertFalse(onEdt.get());
+        assertEquals(1, AppContext.jobs.size());
+        assertEquals(file, AppContext.jobs.array()[0].getFile());
+        assertEquals(
+                URI.create("smb://nas.example/Anime/Season%201/episode.mkv"),
+                AppContext.jobs.array()[0].getRemoteUri());
+    }
+
+    @Test
+    void failedRemoteDropReportsErrorAndAllowsTheNextDrop() throws Exception {
+        AppContext.remoteFiles = new RemoteFileResolver("Linux", uri -> {
+            throw new IOException("KIO Fuse is unavailable. Use a mounted folder.");
+        });
+        DropTargetDropEvent event = mock(DropTargetDropEvent.class);
+        when(event.getTransferable()).thenReturn(NativeFileDropSource.uriList("smb://nas.example/Anime/a.mkv"));
+        SwingUtilities.invokeAndWait(() -> panel.drop(event));
+        awaitWorker();
+        SwingUtilities.invokeAndWait(() -> {});
+
+        assertEquals(0, AppContext.jobs.size());
+        assertNull(panel.workerThread);
+        assertTrue(panel.statusProgressBar.getString().contains("Use a mounted folder"));
+        uriListDropAddsLocalFileWithEscapedCharacters();
+    }
+
+    @Test
+    void nativeSmbDragAddsFileThroughTheWindow() throws Exception {
+        Assumptions.assumeFalse(GraphicsEnvironment.isHeadless());
+        File file = Files.writeString(tempDir.resolve("native.mkv"), "video").toFile();
+        CountDownLatch resolved = new CountDownLatch(1);
+        AppContext.remoteFiles = new RemoteFileResolver("Linux", uri -> {
+            assertFalse(SwingUtilities.isEventDispatchThread());
+            resolved.countDown();
+            return tempDir.toFile();
+        });
+        Process source = new ProcessBuilder(
+                        Path.of(System.getProperty("java.home"), "bin", "java").toString(),
+                        "-cp",
+                        Path.of(NativeFileDropSource.class
+                                        .getProtectionDomain()
+                                        .getCodeSource()
+                                        .getLocation()
+                                        .toURI())
+                                .toString(),
+                        NativeFileDropSource.class.getName())
+                .redirectError(ProcessBuilder.Redirect.INHERIT)
+                .start();
+        JFrame target = new JFrame("WebAOM drop test");
+        Point[] points = new Point[2];
+        Robot robot = new Robot();
+        try {
+            java.util.concurrent.FutureTask<String> ready = new java.util.concurrent.FutureTask<>(
+                    () -> source.inputReader().readLine());
+            Thread.ofVirtual().start(ready);
+            String[] coordinates = ready.get(5, TimeUnit.SECONDS).split(",");
+            points[0] = new Point(Integer.parseInt(coordinates[0]), Integer.parseInt(coordinates[1]));
+            SwingUtilities.invokeAndWait(() -> {
+                target.add(panel);
+                target.setBounds(260, 20, 1000, 800);
+                target.setVisible(true);
+                points[1] = panel.getLocationOnScreen();
+                points[1].translate(panel.getWidth() / 2, panel.getHeight() - 2);
+            });
+            robot.waitForIdle();
+            robot.mouseMove(points[0].x, points[0].y);
+            robot.mousePress(InputEvent.BUTTON1_DOWN_MASK);
+            for (int step = 1; step <= 30; step++) {
+                robot.mouseMove(
+                        points[0].x + (points[1].x - points[0].x) * step / 30,
+                        points[0].y + (points[1].y - points[0].y) * step / 30);
+                robot.delay(30);
+            }
+            robot.mouseRelease(InputEvent.BUTTON1_DOWN_MASK);
+            assertTrue(resolved.await(5, TimeUnit.SECONDS), "Native drop must reach the resolver");
+            awaitWorker();
+            assertEquals(1, AppContext.jobs.size());
+            assertEquals(file, AppContext.jobs.array()[0].getFile());
+        } finally {
+            robot.mouseRelease(InputEvent.BUTTON1_DOWN_MASK);
+            source.destroyForcibly();
+            source.waitFor(5, TimeUnit.SECONDS);
+            SwingUtilities.invokeAndWait(target::dispose);
+        }
+    }
+
+    private void awaitWorker() throws InterruptedException {
+        Thread worker = panel.workerThread;
+        if (worker != null) worker.join(5000);
+    }
+
+    @Test
+    void uriListDropAddsLocalFileWithEscapedCharacters() throws Exception {
+        File file = Files.writeString(tempDir.resolve("episode + 日本語 #1.mkv"), "video")
+                .toFile();
+        Transferable transfer =
+                NativeFileDropSource.uriList("# Files\r\n" + file.toURI().toASCIIString() + "\r\n");
+        DropTargetDragEvent drag = mock(DropTargetDragEvent.class);
+        DropTargetDropEvent drop = mock(DropTargetDropEvent.class);
+        when(drag.getTransferable()).thenReturn(transfer);
+        when(drop.getTransferable()).thenReturn(transfer);
+
+        SwingUtilities.invokeAndWait(() -> {
+            panel.dragEnter(drag);
+            panel.drop(drop);
+        });
+        awaitWorker();
+
+        verify(drag).acceptDrag(DnDConstants.ACTION_COPY);
+        verify(drop).dropComplete(true);
+        assertEquals(1, AppContext.jobs.size());
+        assertEquals(file, AppContext.jobs.array()[0].getFile());
     }
 
     @Test
@@ -277,6 +522,9 @@ class MainPanelBehaviorTest {
         when(databaseManager.isConnected()).thenReturn(true);
         panel.altViewPanel.getLoadAllJobsCheckbox().setSelected(true);
         fire(panel.altViewPanel.getLoadAllJobsCheckbox());
+        Thread reloader = panel.workerThread;
+        if (reloader != null) reloader.join(5000);
+        SwingUtilities.invokeAndWait(() -> {});
         verify(databaseManager).setLoadAllJobs(true);
         verify(databaseManager).getJobs();
 

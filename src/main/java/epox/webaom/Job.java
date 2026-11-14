@@ -20,7 +20,10 @@ import epox.av.FileInfo;
 import epox.util.StringUtilities;
 import epox.webaom.data.AniDBFile;
 import epox.webaom.data.AttributeMap;
+import epox.webaom.io.RemoteFileResolver;
 import java.io.File;
+import java.io.IOException;
+import java.net.URI;
 import java.util.logging.Logger;
 
 public class Job {
@@ -94,6 +97,8 @@ public class Job {
     public volatile float hashProgress = 0f;
 
     private int status;
+    private URI remoteUri;
+    private File remoteFile;
 
     public Job(String[] serializedData) {
         this(new File(serializedData[1]), StringUtilities.i(serializedData[0]));
@@ -109,7 +114,10 @@ public class Job {
             jobsVisible = StringUtilities.i(serializedData[index++]) != 0;
         }
         if (index < serializedData.length) {
-            altVisible = StringUtilities.i(serializedData[index]) != 0;
+            altVisible = StringUtilities.i(serializedData[index++]) != 0;
+        }
+        if (index < serializedData.length) {
+            setSavedRemoteUri(serializedData[index]);
         }
     }
 
@@ -160,10 +168,12 @@ public class Job {
     }
 
     public String serialize() {
+        URI location = getRemoteUri();
         return "" + getStatus() + FIELD_SEPARATOR + currentFile + FIELD_SEPARATOR + fileSize + FIELD_SEPARATOR
                 + ed2kHash + FIELD_SEPARATOR + md5Hash + FIELD_SEPARATOR + sha1Hash + FIELD_SEPARATOR + tthHash
                 + FIELD_SEPARATOR + crc32Hash + FIELD_SEPARATOR + originalName + FIELD_SEPARATOR
-                + (jobsVisible ? 1 : 0) + FIELD_SEPARATOR + (altVisible ? 1 : 0);
+                + (jobsVisible ? 1 : 0) + FIELD_SEPARATOR + (altVisible ? 1 : 0)
+                + (location == null ? "" : FIELD_SEPARATOR + location.toASCIIString());
     }
 
     public String toString() {
@@ -182,6 +192,47 @@ public class Job {
 
     public File getFile() {
         return currentFile;
+    }
+
+    /** Stable remote location, when this file came from a resolved SMB share. */
+    public URI getRemoteUri() {
+        URI mapped = AppContext.remoteFiles.remoteUri(currentFile);
+        return mapped != null ? mapped : (currentFile.equals(remoteFile) ? remoteUri : null);
+    }
+
+    /** Associates a saved remote URL with the current path, without accessing the network. */
+    public void setRemoteUri(URI location) {
+        remoteUri = location;
+        remoteFile = currentFile;
+    }
+
+    /** Associates a remote URL read from the database or an export, flagging one that cannot be parsed. */
+    public void setSavedRemoteUri(String location) {
+        if (location == null || location.isEmpty()) return;
+        try {
+            setRemoteUri(URI.create(location));
+        } catch (IllegalArgumentException e) {
+            errorMessage = "The saved remote URL is invalid.";
+        }
+    }
+
+    /**
+     * Reconnects a job that has a saved remote URL before it is added to a job list. Must run off the UI thread.
+     *
+     * @param remoteFiles the batch shared by every job of one load, so an unavailable share is requested once
+     */
+    public void restoreRemoteFile(RemoteFileResolver.Batch remoteFiles) {
+        URI location = remoteUri;
+        if (location == null || !currentFile.equals(remoteFile)) return;
+        try {
+            currentFile = remoteFiles.resolve(location);
+            setRemoteUri(location);
+            directoryId = 0;
+            setHealth(currentFile.exists() ? H_PAUSED : H_MISSING);
+        } catch (IOException e) {
+            errorMessage = e.getMessage();
+            setHealth(H_MISSING);
+        }
     }
 
     public String getExtension() {

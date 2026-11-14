@@ -42,7 +42,6 @@ import java.awt.Color;
 import java.awt.GraphicsEnvironment;
 import java.awt.GridLayout;
 import java.awt.Insets;
-import java.awt.datatransfer.DataFlavor;
 import java.awt.datatransfer.Transferable;
 import java.awt.dnd.DnDConstants;
 import java.awt.dnd.DropTarget;
@@ -53,8 +52,10 @@ import java.awt.dnd.DropTargetListener;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.File;
+import java.io.IOException;
 import java.util.List;
 import java.util.Objects;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.AbstractAction;
 import javax.swing.JButton;
@@ -70,6 +71,7 @@ import javax.swing.JTextArea;
 import javax.swing.JTextField;
 import javax.swing.KeyStroke;
 import javax.swing.SwingConstants;
+import javax.swing.SwingUtilities;
 import javax.swing.Timer;
 import javax.swing.border.Border;
 import javax.swing.border.EmptyBorder;
@@ -111,11 +113,11 @@ public class MainPanel extends JPanel
     public AlternateViewPanel altViewPanel;
     public Thread diskIoThread;
     public Thread networkIoThread;
-    public Thread workerThread;
+    public volatile Thread workerThread;
     protected JTableJobs jobsTable;
     protected JScrollBar jobsScrollBar;
     protected TableModelJobs jobsTableModel;
-    protected boolean cancelRecursiveWorker;
+    protected volatile boolean cancelRecursiveWorker;
     protected final Timer diskIoTimer;
     protected final Timer progressTimer;
     protected final Timer unfreezeTimer;
@@ -687,24 +689,38 @@ public class MainPanel extends JPanel
     }
 
     private void reloadJobs() {
-        if (!AppContext.databaseManager.isConnected()) {
+        if (!AppContext.databaseManager.isConnected()) return;
+        if (workerThread != null) {
+            // The running worker owns the job list, so keep the checkbox showing what is loaded.
+            altViewPanel.getLoadAllJobsCheckbox().setSelected(AppContext.databaseManager.isLoadAllJobs());
             return;
         }
         boolean loadAll = altViewPanel.getLoadAllJobsCheckbox().isSelected();
         AppContext.databaseManager.setLoadAllJobs(loadAll);
-        AppContext.jobs.clear();
-        AppContext.cache.clear();
-        AppContext.databaseManager.getJobs();
-        // Gather anime/episode/group info for each job to populate the tree
-        for (Job job : AppContext.jobs.array()) {
-            AppContext.cache.gatherInfo(job, false);
-        }
-        altViewPanel.updateAlternativeView(true);
-        println("Reloaded " + AppContext.jobs.size() + " jobs" + (loadAll ? " (including finished)" : "") + ".");
+        workerThread = new Thread(
+                () -> {
+                    try {
+                        AppContext.jobs.clear();
+                        AppContext.cache.clear();
+                        AppContext.databaseManager.getJobs();
+                        for (Job job : AppContext.jobs.array()) {
+                            AppContext.cache.gatherInfo(job, false);
+                        }
+                        SwingUtilities.invokeLater(() -> {
+                            altViewPanel.updateAlternativeView(true);
+                            println("Reloaded " + AppContext.jobs.size() + " jobs"
+                                    + (loadAll ? " (including finished)" : "") + ".");
+                        });
+                    } finally {
+                        workerThread = null;
+                    }
+                },
+                "ReloadJobs");
+        workerThread.start();
     }
 
     private void disconnectDatabase() {
-        if (!AppContext.databaseManager.isConnected()) {
+        if (workerThread != null || !AppContext.databaseManager.isConnected()) {
             return;
         }
         AppContext.databaseManager.shutdown();
@@ -1003,14 +1019,14 @@ public class MainPanel extends JPanel
         if (files.length <= 0) {
             return;
         }
-        if (files[0].getParent() != null) {
-            AppContext.lastDirectory = files[0].getParent();
-        } else {
-            AppContext.lastDirectory = files[0].getAbsolutePath();
-        }
+        rememberDirectoryOf(files[0]);
         switchToJobsTab();
         workerThread = new RecursiveDirectoryScanner(files, false);
         workerThread.start();
+    }
+
+    private static void rememberDirectoryOf(File file) {
+        AppContext.lastDirectory = file.getParent() != null ? file.getParent() : file.getAbsolutePath();
     }
 
     private void clearHighlight() {
@@ -1036,7 +1052,7 @@ public class MainPanel extends JPanel
             dragEvent.rejectDrag();
             return;
         }
-        if (dragEvent.getTransferable().isDataFlavorSupported(DataFlavor.javaFileListFlavor)) {
+        if (FileDrop.supports(dragEvent.getTransferable())) {
             dragEvent.acceptDrag(DnDConstants.ACTION_COPY);
 
             if (jobsPanel != null) {
@@ -1072,28 +1088,37 @@ public class MainPanel extends JPanel
             clearHighlight();
             return;
         }
+        boolean accepted = false;
         try {
             Transferable transferable = dropEvent.getTransferable();
-            if (transferable.isDataFlavorSupported(DataFlavor.javaFileListFlavor)) {
-                dropEvent.acceptDrop(DnDConstants.ACTION_COPY);
-                @SuppressWarnings("unchecked")
-                java.util.List<File> fileList =
-                        (java.util.List<File>) transferable.getTransferData(DataFlavor.javaFileListFlavor);
-                File[] files = fileList.toArray(new File[0]);
-                java.util.Arrays.sort(files);
-                selectFilesForProcessing(files);
-                dropEvent.dropComplete(true);
-                clearHighlight();
-                if (jobsPanel != null) {
-                    jobsPanel.repaint();
-                }
-            } else {
+            if (!FileDrop.supports(transferable) || workerThread != null) {
                 dropEvent.rejectDrop();
+                return;
             }
+            dropEvent.acceptDrop(DnDConstants.ACTION_COPY);
+            accepted = true;
+            List<FileDrop.Location> locations = FileDrop.read(transferable);
+            // Capture transfer data before completing the native drop; resolve URLs on the scanner thread.
+            dropEvent.dropComplete(true);
+            accepted = false;
+            switchToJobsTab();
+            workerThread = new RecursiveDirectoryScanner(locations);
+            workerThread.start();
         } catch (Exception ex) {
-            ex.printStackTrace();
-            dropEvent.rejectDrop();
+            if (accepted) dropEvent.dropComplete(false);
+            LOGGER.log(Level.WARNING, "Could not read the dropped files", ex);
+            // FileDrop words its IOExceptions for the user; anything else is an internal failure.
+            reportDropFailure(ex instanceof IOException ? ex.getMessage() : "The dropped files could not be opened.");
+        } finally {
+            clearHighlight();
         }
+    }
+
+    private void reportDropFailure(String message) {
+        SwingUtilities.invokeLater(() -> {
+            setStatusMessage(message);
+            AppContext.dialog("Cannot open dropped files", message);
+        });
     }
 
     protected class JobScrollDown implements Runnable {
@@ -1141,7 +1166,8 @@ public class MainPanel extends JPanel
     /** Thread that recursively scans directories for files to process. */
     private class RecursiveDirectoryScanner extends Thread {
 
-        private final File[] directories;
+        private File[] directories;
+        private List<FileDrop.Location> locations;
         private final boolean shouldPrintStatus;
         private int directoryCount = 0;
 
@@ -1152,8 +1178,37 @@ public class MainPanel extends JPanel
             shouldPrintStatus = !isHiddenDir && diskIoThread == null;
         }
 
+        RecursiveDirectoryScanner(List<FileDrop.Location> locations) {
+            this(new File[0], false);
+            this.locations = locations;
+        }
+
         @Override
         public void run() {
+            try {
+                if (locations != null) {
+                    directories = new File[locations.size()];
+                    for (int i = 0; i < locations.size(); i++) {
+                        if (cancelRecursiveWorker || AppContext.isInteractionBlocked()) return;
+                        FileDrop.Location location = locations.get(i);
+                        directories[i] = location.file() != null
+                                ? location.file()
+                                : AppContext.remoteFiles.resolve(location.uri());
+                    }
+                    java.util.Arrays.sort(directories);
+                    if (directories.length > 0) rememberDirectoryOf(directories[0]);
+                }
+                scan();
+            } catch (IOException e) {
+                reportDropFailure(e.getMessage());
+            } finally {
+                setEnabled(true);
+                // The hash-directory rescan is never registered, so it must not release another worker's slot.
+                if (workerThread == this) workerThread = null;
+            }
+        }
+
+        private void scan() {
             long startTime = System.currentTimeMillis();
             setEnabled(false);
             int fileCount = 0;
@@ -1178,9 +1233,6 @@ public class MainPanel extends JPanel
                     println(statusMessage);
                 }
             }
-            setEnabled(true);
-            Thread.yield();
-            workerThread = null;
         }
 
         private int addFileRecursive(File file) {

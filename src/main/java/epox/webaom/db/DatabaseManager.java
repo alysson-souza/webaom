@@ -25,13 +25,17 @@ import epox.webaom.data.AniDBFile;
 import epox.webaom.data.Anime;
 import epox.webaom.data.Episode;
 import epox.webaom.data.Group;
+import epox.webaom.io.RemoteFileResolver;
 import java.io.File;
+import java.net.URI;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.function.BooleanSupplier;
 
@@ -58,7 +62,7 @@ public abstract class DatabaseManager {
             "select d.name,j.name,j.status,j.jobs_visible,j.alt_visible,j.orig,j.ed2k,j.md5,j.sha1,j.tth,"
                     + "j.crc32,j.size,j.did,j.uid,j.lid,j.avxml,f.fid,f.aid,f.eid,f.gid,f.def_name,f.state,f.size,"
                     + "f.ed2k,f.md5,f.sha1,f.crc32,f.dublang,f.sublang,f.quality,f.ripsource,f.audio,f.video,"
-                    + "f.resolution,f.ext,f.len,e.eid,e.number,e.english,e.romaji,e.kanji "
+                    + "f.resolution,f.ext,f.len,e.eid,e.number,e.english,e.romaji,e.kanji,j.remote_uri "
                     + "from dtb d,jtb j,ftb f,etb e where d.did=j.did and j.fid=f.fid and f.eid=e.eid"
                     + " and (j.jobs_visible<>0 or j.alt_visible<>0)";
 
@@ -248,7 +252,7 @@ public abstract class DatabaseManager {
             updateStatements[INDEX_GROUP] = connection.prepareStatement("update gtb set name=?,short=? where gid=?");
             updateStatements[INDEX_JOB] = connection.prepareStatement(
                     "update jtb set name=?,did=?,status=?,jobs_visible=?,alt_visible=?,md5=?,sha1=?,tth=?,crc32=?,"
-                            + "fid=?,lid=?,avxml=? where size=? and ed2k=?");
+                            + "fid=?,lid=?,avxml=?,remote_uri=? where size=? and ed2k=?");
 
             insertStatements = new PreparedStatement[INDEX_COUNT];
             insertStatements[INDEX_ANIME] = connection.prepareStatement(
@@ -263,7 +267,7 @@ public abstract class DatabaseManager {
                     connection.prepareStatement("insert into gtb (name,short,gid) values (?,?,?)");
             insertStatements[INDEX_JOB] = connection.prepareStatement(
                     "insert into jtb (name,did,status,jobs_visible,alt_visible,md5,sha1,tth,crc32,fid,lid,avxml,"
-                            + "size,ed2k,orig,uid) values (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,1)");
+                            + "remote_uri,size,ed2k,orig,uid) values (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,1)");
 
             isInitialized = true;
             log("SQL statements prepared successfully");
@@ -645,6 +649,7 @@ public abstract class DatabaseManager {
                 int colIndex = 1;
                 job.targetFile = new File(rs.getString(colIndex++) + File.separatorChar + rs.getString(colIndex++));
                 if (job.currentFile.equals(job.targetFile)) {
+                    job.setSavedRemoteUri(rs.getString("remote_uri"));
                     job.targetFile = null;
                 }
                 int status = rs.getInt(colIndex++);
@@ -663,11 +668,27 @@ public abstract class DatabaseManager {
         return -1;
     }
 
-    public synchronized void getJobs() {
+    public void getJobs() {
+        List<Job> loaded = readJobs();
+        if (loaded == null) return;
+        // Mounting a share can wait on the network, so reconnect remote jobs after releasing the database lock.
+        RemoteFileResolver.Batch remoteFiles = AppContext.remoteFiles.batch();
+        for (Job job : loaded) {
+            job.restoreRemoteFile(remoteFiles);
+            if (!AppContext.jobs.add(job)) {
+                StringUtilities.err("DB: Dupe: " + job);
+            }
+        }
+        log("Loaded " + loaded.size() + " jobs from database");
+    }
+
+    /** Reads the saved jobs, or returns null when the database cannot be queried. */
+    private synchronized List<Job> readJobs() {
         if (!isInitialized) {
             log("getJobs() called but database not initialized");
-            return;
+            return null;
         }
+        List<Job> loaded = new ArrayList<>();
         try {
             log("Loading jobs from database (loadAllJobs=" + loadAllJobs + ")...");
             ResultSet rs;
@@ -681,10 +702,9 @@ public abstract class DatabaseManager {
 
             if (rs == null) {
                 log("Job query returned null ResultSet");
-                return;
+                return null;
             }
 
-            int jobCount = 0;
             while (rs.next()) {
                 int colIndex = 1;
                 File file = new File(rs.getString(colIndex++) + File.separatorChar + rs.getString(colIndex++));
@@ -692,17 +712,15 @@ public abstract class DatabaseManager {
                 job.setJobsVisible(rs.getInt(colIndex++) != 0);
                 job.setAltVisible(rs.getInt(colIndex++) != 0);
                 populateJobFromResultSet(rs, colIndex, job);
-                if (!AppContext.jobs.add(job)) {
-                    StringUtilities.err("DB: Dupe: " + job);
-                }
-                jobCount++;
+                job.setSavedRemoteUri(rs.getString("remote_uri"));
+                loaded.add(job);
             }
             rs.close();
-            log("Loaded " + jobCount + " jobs from database");
         } catch (SQLException ex) {
             log("Error loading jobs: " + ex.getMessage());
             ex.printStackTrace();
         }
+        return loaded;
     }
 
     private void populateJobFromResultSet(ResultSet rs, int colIndex, Job job) throws SQLException {
@@ -875,6 +893,8 @@ public abstract class DatabaseManager {
             ps.setInt(paramIndex++, job.anidbFile != null ? job.anidbFile.getFileId() : 0);
             ps.setInt(paramIndex++, job.mylistId);
             ps.setString(paramIndex++, job.avFileInfo == null ? null : job.avFileInfo.m_xml);
+            URI remoteUri = job.getRemoteUri();
+            ps.setString(paramIndex++, remoteUri == null ? null : remoteUri.toASCIIString());
             ps.setLong(paramIndex++, getPersistentJobSize(job));
             ps.setString(paramIndex++, job.ed2kHash);
             if (isInsert) {

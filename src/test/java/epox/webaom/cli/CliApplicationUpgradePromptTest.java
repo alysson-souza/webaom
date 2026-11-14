@@ -84,7 +84,7 @@ class CliApplicationUpgradePromptTest {
         assertEquals(1, run.prompts().size());
         assertTrue(run.prompts().get(0).contains("[y/N]"));
         assertTrue(run.err().contains("Back up the database"));
-        assertEquals(7, schemaVersion(dbPath));
+        assertEquals(8, schemaVersion(dbPath));
     }
 
     @Test
@@ -93,7 +93,7 @@ class CliApplicationUpgradePromptTest {
         createPreV4Database(dbPath);
 
         assertTrue(upgradeAnsweringWith(dbPath, "  YES  ").succeeded());
-        assertEquals(7, schemaVersion(dbPath));
+        assertEquals(8, schemaVersion(dbPath));
     }
 
     @Test

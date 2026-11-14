@@ -1,6 +1,10 @@
 Please note that this version is marked "unstable", meaning it can be broken from time
 to time. Do at least check the changelog for relevant info before using it.
 
+Unreleased:
+*On Linux, drag files and folders from SMB shares in Dolphin using optional KIO Fuse support.
+*Saved jobs from SMB shares remember their network locations and can reconnect when the share's local path changes.
+
 2.6.0 29.08.2026:
 *Downloads are around 60% smaller: installers are now about 40 MB instead of 100 MB.
 *New command-line interface for identifying, hashing, renaming, moving, and managing AniDB MyList files without opening the desktop app.

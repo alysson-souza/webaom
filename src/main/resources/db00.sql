@@ -92,6 +92,7 @@ CREATE TABLE jtb
     lid    integer      NOT NULL,
     time   timestamp    NOT NULL default CURRENT_TIMESTAMP,
     avxml  TEXT                  DEFAULT NULL,
+    remote_uri TEXT DEFAULT NULL,
     PRIMARY KEY (size, ed2k),
     CONSTRAINT fk_did FOREIGN KEY (did) REFERENCES dtb (did),
     CONSTRAINT fk_fid FOREIGN KEY (fid) REFERENCES ftb (fid),
@@ -106,4 +107,4 @@ VALUES (0, '', '');
 INSERT INTO utb (name)
 VALUES ('default');
 INSERT INTO vtb
-VALUES (7);
+VALUES (8);

@@ -30,9 +30,14 @@ import epox.webaom.data.AniDBFile;
 import epox.webaom.data.Anime;
 import epox.webaom.data.Episode;
 import epox.webaom.data.Group;
+import epox.webaom.io.RemoteFileResolver;
 import java.io.File;
+import java.io.IOException;
+import java.net.URI;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.ArrayList;
+import java.util.List;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -46,6 +51,7 @@ class SQLiteDatabaseManagerCrudTest {
     private Cache previousCache;
     private JobCounter previousJobCounter;
     private JobList previousJobs;
+    private RemoteFileResolver previousRemoteFiles;
     private TestableSQLiteDatabaseManager manager;
 
     @BeforeEach
@@ -54,6 +60,7 @@ class SQLiteDatabaseManagerCrudTest {
         previousCache = AppContext.cache;
         previousJobCounter = AppContext.jobCounter;
         previousJobs = AppContext.jobs;
+        previousRemoteFiles = AppContext.remoteFiles;
 
         manager = new TestableSQLiteDatabaseManager();
         manager.setUiPromptsAvailable(false);
@@ -75,6 +82,7 @@ class SQLiteDatabaseManagerCrudTest {
         AppContext.cache = previousCache;
         AppContext.jobCounter = previousJobCounter;
         AppContext.jobs = previousJobs;
+        AppContext.remoteFiles = previousRemoteFiles;
     }
 
     @Test
@@ -135,6 +143,73 @@ class SQLiteDatabaseManagerCrudTest {
         int nullPathId = manager.getDirectoryId(null);
         assertTrue(nullPathId > 0);
         assertEquals(nullPathId, manager.getDirectoryId(""));
+    }
+
+    @Test
+    void remoteJobReloadsFromANewMountAndKeepsItsUrlWhenOffline() throws Exception {
+        Path firstMount = Files.createDirectories(tempDir.resolve("mount-one"));
+        File firstFile = Files.writeString(firstMount.resolve("episode #1.mkv"), "media bytes")
+                .toFile();
+        URI uri = URI.create("smb://nas.example/Anime/episode%20%231.mkv");
+        AppContext.remoteFiles = new RemoteFileResolver("Linux", location -> firstMount.toFile());
+        assertEquals(firstFile, AppContext.remoteFiles.resolve(uri));
+        Job stored = job(firstFile, "remote-hash");
+        persistFileDependencies();
+        assertTrue(manager.update(0, stored, DatabaseManager.INDEX_JOB));
+
+        AppContext.remoteFiles = new RemoteFileResolver("Linux", location -> {
+            throw new AssertionError("Looking up an existing local path must not mount a share");
+        });
+        Job localLookup = new Job(firstFile, Job.HASHWAIT);
+        assertEquals(Job.HASHWAIT, manager.getJob(localLookup, false));
+        assertEquals(uri, localLookup.getRemoteUri());
+
+        Path secondMount = Files.createDirectories(tempDir.resolve("mount-two"));
+        File secondFile = Files.move(firstFile.toPath(), secondMount.resolve(firstFile.getName()))
+                .toFile();
+        AppContext.remoteFiles = new RemoteFileResolver("Linux", location -> secondMount.toFile());
+        manager.getJobs();
+        Job loaded = AppContext.jobs.array()[0];
+        assertEquals(secondFile, loaded.getFile());
+        assertEquals(uri, loaded.getRemoteUri());
+        assertEquals(Job.H_PAUSED, loaded.getHealth());
+        assertTrue(manager.update(0, loaded, DatabaseManager.INDEX_JOB));
+
+        AppContext.jobs.clear();
+        AppContext.remoteFiles = new RemoteFileResolver("Linux", location -> {
+            throw new IOException("Share is unavailable.");
+        });
+        manager.getJobs();
+        Job offline = AppContext.jobs.array()[0];
+        assertEquals(uri, offline.getRemoteUri());
+        assertEquals(Job.H_MISSING, offline.getHealth());
+        assertEquals("Share is unavailable.", offline.errorMessage);
+    }
+
+    @Test
+    void loadingSavedJobsRequestsAnUnavailableShareOnce() throws Exception {
+        Path mount = Files.createDirectories(tempDir.resolve("mount"));
+        AppContext.remoteFiles = new RemoteFileResolver("Linux", location -> mount.toFile());
+        persistFileDependencies();
+        for (String name : List.of("one.mkv", "two.mkv")) {
+            File file = AppContext.remoteFiles.resolve(URI.create("smb://nas.example/Anime/" + name));
+            Files.writeString(file.toPath(), "media bytes");
+            assertTrue(manager.update(0, job(file, "hash-" + name), DatabaseManager.INDEX_JOB));
+        }
+
+        List<URI> requests = new ArrayList<>();
+        AppContext.remoteFiles = new RemoteFileResolver("Linux", location -> {
+            requests.add(location);
+            throw new IOException("Share is unavailable.");
+        });
+        manager.getJobs();
+
+        assertEquals(List.of(URI.create("smb://nas.example/Anime")), requests);
+        assertEquals(2, AppContext.jobs.size());
+        for (Job job : AppContext.jobs.array()) {
+            assertEquals(Job.H_MISSING, job.getHealth());
+            assertEquals("Share is unavailable.", job.errorMessage);
+        }
     }
 
     @Test
@@ -238,7 +313,7 @@ class SQLiteDatabaseManagerCrudTest {
         assertEquals("NULL", manager.quoteString(null));
         assertEquals("", manager.escape(null));
         assertEquals("O''Brien", manager.escape("O'Brien"));
-        assertEquals(7, manager.supportedSchemaVersion());
+        assertEquals(8, manager.supportedSchemaVersion());
         assertTrue(manager.transactionalSchemaChanges());
         assertTrue(DatabaseManagerFactory.getEmbeddedConnectionString().startsWith("jdbc:sqlite:"));
     }

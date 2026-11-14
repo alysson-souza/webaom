@@ -32,28 +32,52 @@ import org.junit.jupiter.api.Test;
 
 class DatabaseManagerMigrationConfigTest {
     @Test
-    void sqliteMigrationList_includesV7Migration() {
+    void sqliteMigrationList_includesV8Migration() {
         assertArrayEquals(
                 new String[] {
-                    "db00c.sql", "db03.sql", "db04.sql", "db05.sql", "db06.sql", "db07c.sql", "db08c.sql", "db09c.sql"
+                    "db00c.sql",
+                    "db03.sql",
+                    "db04.sql",
+                    "db05.sql",
+                    "db06.sql",
+                    "db07c.sql",
+                    "db08c.sql",
+                    "db09c.sql",
+                    "db10.sql"
                 },
                 new SQLiteDatabaseManager().getSqlFiles());
     }
 
     @Test
-    void mysqlMigrationList_includesV7Migration() {
+    void mysqlMigrationList_includesV8Migration() {
         assertArrayEquals(
                 new String[] {
-                    "db00.sql", "db03.sql", "db04.sql", "db05.sql", "db06.sql", "db07b.sql", "db08b.sql", "db09b.sql"
+                    "db00.sql",
+                    "db03.sql",
+                    "db04.sql",
+                    "db05.sql",
+                    "db06.sql",
+                    "db07b.sql",
+                    "db08b.sql",
+                    "db09b.sql",
+                    "db10.sql"
                 },
                 new MySQLDatabaseManager().getSqlFiles());
     }
 
     @Test
-    void postgresqlMigrationList_includesV7Migration() {
+    void postgresqlMigrationList_includesV8Migration() {
         assertArrayEquals(
                 new String[] {
-                    "db00.sql", "db03.sql", "db04.sql", "db05.sql", "db06.sql", "db07a.sql", "db08a.sql", "db09a.sql"
+                    "db00.sql",
+                    "db03.sql",
+                    "db04.sql",
+                    "db05.sql",
+                    "db06.sql",
+                    "db07a.sql",
+                    "db08a.sql",
+                    "db09a.sql",
+                    "db10.sql"
                 },
                 new PostgreSQLDatabaseManager().getSqlFiles());
     }
@@ -62,20 +86,20 @@ class DatabaseManagerMigrationConfigTest {
     void mysqlFutureSchemaValidation_rejectsNewerDatabaseVersion() {
         GuardAwareMySQLDatabaseManager manager = new GuardAwareMySQLDatabaseManager();
 
-        assertFalse(manager.validateSchemaVersion(8));
-        assertEquals(8, manager.warnedDetectedVersion);
-        assertEquals(7, manager.warnedSupportedVersion);
+        assertFalse(manager.validateSchemaVersion(9));
+        assertEquals(9, manager.warnedDetectedVersion);
+        assertEquals(8, manager.warnedSupportedVersion);
     }
 
     @Test
     void mysqlUpdateSchema_rejectsFutureVersionBeforeRunningMigrations() {
         SchemaAwareMySQLDatabaseManager manager = new SchemaAwareMySQLDatabaseManager();
         manager.queueQueryResult(null);
-        manager.queueQueryResult(resultSetWithSingleIntRow(8));
+        manager.queueQueryResult(resultSetWithSingleIntRow(9));
 
         assertFalse(manager.runUpdateSchema());
-        assertEquals(8, manager.warnedDetectedVersion);
-        assertEquals(7, manager.warnedSupportedVersion);
+        assertEquals(9, manager.warnedDetectedVersion);
+        assertEquals(8, manager.warnedSupportedVersion);
         assertTrue(manager.executedBatches.isEmpty());
     }
 
@@ -83,7 +107,7 @@ class DatabaseManagerMigrationConfigTest {
     void sharedSchemaValidation_acceptsSupportedVersionWithoutWarning() {
         GuardAwareMySQLDatabaseManager manager = new GuardAwareMySQLDatabaseManager();
 
-        assertTrue(manager.validateSchemaVersion(7));
+        assertTrue(manager.validateSchemaVersion(8));
         assertEquals(-1, manager.warnedDetectedVersion);
         assertEquals(-1, manager.warnedSupportedVersion);
     }
@@ -138,7 +162,7 @@ class DatabaseManagerMigrationConfigTest {
             throw new AssertionError("Consent should never be sought for a future schema version");
         });
 
-        assertFalse(manager.validateSchemaVersion(8));
+        assertFalse(manager.validateSchemaVersion(9));
         assertTrue(manager.hasUnsupportedFutureSchema());
     }
 
@@ -151,7 +175,7 @@ class DatabaseManagerMigrationConfigTest {
         assertTrue(manager.runUpdateSchema());
         assertEquals(-1, manager.warnedDetectedVersion);
         assertEquals(-1, manager.warnedSupportedVersion);
-        assertEquals(1, manager.executedBatches.size());
+        assertEquals(2, manager.executedBatches.size());
         assertTrue(manager.executedBatches.get(0).contains("ALTER TABLE jtb ADD COLUMN jobs_visible"));
     }
 

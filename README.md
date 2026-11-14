@@ -49,6 +49,17 @@ java -jar webaom-2.6.0-full.jar
 2. Log in. Click "Login" and enter your AniDB credentials.
 3. Start processing. Click "Start". WebAOM hashes each file, gets its AniDB metadata, adds it to your MyList, and applies any rename or move rules.
 
+### Network shares
+
+On Linux, dragging `smb://` files or folders from Dolphin uses [KIO Fuse](https://invent.kde.org/system/kio-fuse).
+Install KIO Fuse and a Qt D-Bus command-line client (`qdbus6` or `qdbus`) to enable this optional integration.
+Sign in to the share through Dolphin if needed. Saved remote jobs retain their SMB URLs so WebAOM can reconnect
+after the mount path changes. If a share is unavailable, its jobs remain marked missing; reload the database after
+restoring access.
+
+Local files do not require KDE services. On Windows, macOS, or Linux without KIO Fuse, open the share through a
+mapped drive or mounted folder and drag files from that local path.
+
 ## Command line
 
 The CLI uses the desktop application's configuration, database, AniDB credentials, file extensions, and rules.

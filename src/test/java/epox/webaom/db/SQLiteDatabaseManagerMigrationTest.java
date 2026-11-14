@@ -18,6 +18,7 @@ package epox.webaom.db;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.nio.file.Path;
@@ -35,7 +36,7 @@ class SQLiteDatabaseManagerMigrationTest {
     Path tempDir;
 
     @Test
-    void initialize_existingV6Database_migratesToV7AndBackfillsVisibility() throws Exception {
+    void initialize_existingV6Database_migratesToV8AndBackfillsVisibility() throws Exception {
         Path dbPath = tempDir.resolve("migrate-v6.sqlite");
         createLegacyV6Database(dbPath);
 
@@ -47,13 +48,14 @@ class SQLiteDatabaseManagerMigrationTest {
                 Statement statement = connection.createStatement()) {
             try (ResultSet rs = statement.executeQuery("select ver from vtb")) {
                 assertTrue(rs.next());
-                assertEquals(7, rs.getInt(1));
+                assertEquals(8, rs.getInt(1));
             }
-            try (ResultSet rs =
-                    statement.executeQuery("select jobs_visible, alt_visible from jtb where ed2k='hash-v6'")) {
+            try (ResultSet rs = statement.executeQuery(
+                    "select jobs_visible, alt_visible, remote_uri from jtb where ed2k='hash-v6'")) {
                 assertTrue(rs.next());
                 assertEquals(1, rs.getInt(1));
                 assertEquals(1, rs.getInt(2));
+                assertNull(rs.getString(3));
             }
         }
     }
@@ -103,7 +105,7 @@ class SQLiteDatabaseManagerMigrationTest {
                 Statement statement = connection.createStatement();
                 ResultSet rs = statement.executeQuery("select ver from vtb")) {
             assertTrue(rs.next());
-            assertEquals(7, rs.getInt(1));
+            assertEquals(8, rs.getInt(1));
         }
     }
 
@@ -127,18 +129,18 @@ class SQLiteDatabaseManagerMigrationTest {
     @Test
     void initialize_existingFutureVersionDatabase_rejectsInitializationAndWarns() throws Exception {
         Path dbPath = tempDir.resolve("future-version.sqlite");
-        createFutureVersionDatabase(dbPath, 8);
+        createFutureVersionDatabase(dbPath, 9);
 
         CapturingSQLiteDatabaseManager manager = new CapturingSQLiteDatabaseManager();
         assertFalse(manager.initialize("jdbc:sqlite:" + dbPath));
-        assertEquals(8, manager.warnedDetectedVersion);
-        assertEquals(7, manager.warnedSupportedVersion);
+        assertEquals(9, manager.warnedDetectedVersion);
+        assertEquals(8, manager.warnedSupportedVersion);
 
         try (Connection connection = DriverManager.getConnection("jdbc:sqlite:" + dbPath);
                 Statement statement = connection.createStatement();
                 ResultSet rs = statement.executeQuery("select ver from vtb")) {
             assertTrue(rs.next());
-            assertEquals(8, rs.getInt(1));
+            assertEquals(9, rs.getInt(1));
         }
     }
 

@@ -474,7 +474,7 @@ class CliTest {
         assertEquals(0, upgrade.exitCode());
         assertTrue(upgrade.err().contains("--yes"));
         assertTrue(upgrade.out().contains("up to date"));
-        assertEquals(7, schemaVersion(dbPath));
+        assertEquals(8, schemaVersion(dbPath));
 
         Invocation doctor = invoke("doctor", "--config", config.toString());
         assertTrue(doctor.out().contains("Database: ok"));
@@ -495,7 +495,7 @@ class CliTest {
         // Creating a database is not the same as upgrading one; saying "up to date" would imply an
         // existing database was inspected.
         assertTrue(invocation.out().contains("Created a new WebAOM database."));
-        assertEquals(7, schemaVersion(dbPath));
+        assertEquals(8, schemaVersion(dbPath));
     }
 
     @Test

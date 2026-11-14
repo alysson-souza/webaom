@@ -24,6 +24,7 @@ import epox.webaom.data.Anime;
 import epox.webaom.data.Episode;
 import epox.webaom.data.Group;
 import epox.webaom.db.DatabaseManager;
+import epox.webaom.io.RemoteFileResolver;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
@@ -228,6 +229,7 @@ public final class Parser {
             Anime currentAnime = null;
             Episode currentEpisode = null;
             AniDBFile currentFile = null;
+            RemoteFileResolver.Batch remoteFiles = AppContext.remoteFiles.batch();
             while (reader.ready()) {
                 line = StringUtilities.htmldesc(reader.readLine());
                 if (line.isEmpty()) {
@@ -270,6 +272,7 @@ public final class Parser {
                         } else {
                             currentJob = new Job(StringUtilities.split(line, '|'));
                         }
+                        currentJob.restoreRemoteFile(remoteFiles);
                         currentJob.anidbFile = currentFile;
                         currentFile.setJob(currentJob);
                         AppContext.jobs.add(currentJob);
