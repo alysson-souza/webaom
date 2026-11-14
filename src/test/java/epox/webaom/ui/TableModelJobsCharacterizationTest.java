@@ -98,6 +98,7 @@ class TableModelJobsCharacterizationTest {
         assertEquals("", model.getValueAt(0, JobColumn.FMDS.getIndex()));
         assertEquals("", model.getValueAt(0, JobColumn.FMDA.getIndex()));
         assertEquals(2025, model.getValueAt(0, JobColumn.AYEN.getIndex()));
+        assertEquals("Romaji - 3 - Episode English [GRP]", model.getValueAt(0, JobColumn.TITL.getIndex()));
         assertSame(job, model.getValueAt(0, TableModelJobs.JOB));
     }
 
@@ -113,12 +114,27 @@ class TableModelJobsCharacterizationTest {
         assertEquals(0, model.getValueAt(0, JobColumn.FIDN.getIndex()));
         assertEquals(0L, model.getValueAt(0, JobColumn.FSIZ.getIndex()));
         assertEquals("N/A", model.getValueAt(0, JobColumn.AROM.getIndex()));
+        assertEquals("defaults.mkv", model.getValueAt(0, JobColumn.TITL.getIndex()));
 
         AniDBFile partial = new AniDBFile(1);
         partial.setDubLanguage(null);
         job.anidbFile = partial;
         assertEquals("", model.getValueAt(0, JobColumn.FDUB.getIndex()));
         assertEquals("N/A", model.getValueAt(0, JobColumn.AROM.getIndex()));
+        assertEquals("defaults.mkv", model.getValueAt(0, JobColumn.TITL.getIndex()));
+    }
+
+    @Test
+    void titleOmitsEpisodeTitleAndGroupWhenAniDbHasNone() throws Exception {
+        JobList jobs = new JobList();
+        Job job = completeJob();
+        job.anidbFile.getEpisode().eng = null;
+        job.anidbFile.getEpisode().rom = "";
+        job.anidbFile.setGroup(null);
+        jobs.add(job);
+        TableModelJobs model = new TableModelJobs(jobs);
+
+        assertEquals("Romaji - 3", model.getValueAt(0, JobColumn.TITL.getIndex()));
     }
 
     @Test

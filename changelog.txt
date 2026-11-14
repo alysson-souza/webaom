@@ -4,6 +4,10 @@ to time. Do at least check the changelog for relevant info before using it.
 Unreleased:
 *On Linux, drag files and folders from SMB shares in Dolphin using optional KIO Fuse support.
 *Saved jobs from SMB shares remember their network locations and can reconnect when the share's local path changes.
+*The job list has a new Title column that shows the anime, episode and group once a file is identified, and the filename before that. New setups show Title and Status by default.
+*Hover over a job to see its full path. Long paths are shortened from the start, so the filename stays visible.
+*Files being hashed show a progress bar.
+*Right-click a column header to choose columns, or pick Reset Columns to return to the default layout.
 
 2.6.0 29.08.2026:
 *Downloads are around 60% smaller: installers are now about 40 MB instead of 100 MB.

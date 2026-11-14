@@ -23,7 +23,9 @@ import epox.webaom.Job;
 import java.awt.Color;
 import java.awt.Component;
 import java.awt.event.ActionEvent;
+import java.awt.event.MouseEvent;
 import javax.swing.AbstractAction;
+import javax.swing.JProgressBar;
 import javax.swing.KeyStroke;
 import javax.swing.table.TableCellRenderer;
 
@@ -41,6 +43,7 @@ public class JTableJobs extends JTableSortable {
     private static final double MINIMUM_STATE_CONTRAST = 3.0;
     private static final double INVALID_BACKGROUND_BLEND_RATIO = 0.35;
     private static final double MISSING_FOREGROUND_BLEND_RATIO = 0.30;
+    private static final double PROGRESS_TRACK_BLEND_RATIO = 0.15;
 
     private final TableModelJobs jobsTableModel;
     /** Controls whether UI updates should be processed */
@@ -64,10 +67,26 @@ public class JTableJobs extends JTableSortable {
         addKeyListener(new KeyAdapterJob(this, tableModel));
     }
 
+    /** Shows the full path of the hovered job, which no column can display completely. */
+    @Override
+    public String getToolTipText(MouseEvent event) {
+        int row = rowAtPoint(event.getPoint());
+        // The job list can shrink under the view while the pointer rests, leaving no job at that row
+        Job job = row < 0 ? null : getJobAtViewRow(row);
+        if (job == null) {
+            return super.getToolTipText(event);
+        }
+        return job.getFile().getAbsolutePath();
+    }
+
     @Override
     public Component prepareRenderer(TableCellRenderer renderer, int row, int column) {
         Component component = super.prepareRenderer(renderer, row, column);
 
+        if (component instanceof JProgressBar progressBar) {
+            applyProgressTrackColor(progressBar, row);
+            return component;
+        }
         if (isRowSelected(row)) {
             return component;
         }
@@ -83,6 +102,24 @@ public class JTableJobs extends JTableSortable {
 
         component.setBackground(background);
         component.setForeground(foreground);
+    }
+
+    /**
+     * Tints the bar's track toward the row's text color so the unfilled part stands out from the row. The fill keeps
+     * the look-and-feel color, which the bar's label colors are chosen to contrast with.
+     */
+    private void applyProgressTrackColor(JProgressBar progressBar, int row) {
+        Color background;
+        Color foreground;
+        if (isRowSelected(row)) {
+            background = getSelectionBackground();
+            foreground = getSelectionForeground();
+        } else {
+            Job job = getJobAtViewRow(row);
+            background = resolveBackground(job, getThemeTableBackground());
+            foreground = resolveForeground(job, getThemeTableForeground(), background);
+        }
+        progressBar.setBackground(ThemeColorSupport.blend(background, foreground, PROGRESS_TRACK_BLEND_RATIO));
     }
 
     private Job getJobAtViewRow(int row) {

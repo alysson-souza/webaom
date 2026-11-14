@@ -78,7 +78,10 @@ public enum JobColumn {
     FMDA(33, "mda", "MD5 / Audio", String.class),
 
     // Extended anime metadata
-    AYEN(34, "yen", "Year End", Integer.class);
+    AYEN(34, "yen", "Year End", Integer.class),
+
+    // Readable summary: AniDB title once identified, filename before
+    TITL(35, "title", "Title", String.class);
 
     // Pseudo-column for row object access
     public static final int JOB = -1;

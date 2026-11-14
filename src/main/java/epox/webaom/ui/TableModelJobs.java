@@ -16,17 +16,22 @@
 
 package epox.webaom.ui;
 
+import epox.swing.LeadingEllipsisCellRenderer;
+import epox.swing.layout.TableColumnSizing;
 import epox.webaom.Job;
 import epox.webaom.JobList;
+import epox.webaom.data.AniDBFile;
+import epox.webaom.data.Episode;
+import epox.webaom.data.Group;
 import javax.swing.JTable;
 import javax.swing.table.AbstractTableModel;
 import javax.swing.table.DefaultTableCellRenderer;
+import javax.swing.table.TableColumn;
 import javax.swing.table.TableColumnModel;
 
 public class TableModelJobs extends AbstractTableModel implements RowModel {
     public static final int JOB = JobColumn.JOB;
-    public static final long MASK =
-            (1L << JobColumn.NUMB.getIndex()) | (1L << JobColumn.FILE.getIndex()) | (1L << JobColumn.STAT.getIndex());
+    static final String ROW_NUMBER_SAMPLE = "00000";
 
     private final JobList jobList;
     private int currentRowIndex;
@@ -43,14 +48,26 @@ public class TableModelJobs extends AbstractTableModel implements RowModel {
         for (int i = 0; i < JobColumn.getColumnCount(); i++) {
             JobColumn column = JobColumn.fromIndex(i);
             if (column != null) {
-                columnModel.getColumn(i).setCellRenderer(createRenderer(column.getHorizontalAlignment()));
+                columnModel.getColumn(i).setCellRenderer(createRenderer(column));
             }
         }
+        applyRowNumberMinimumWidth(table, columnModel.getColumn(JobColumn.NUMB.getIndex()));
     }
 
-    private static DefaultTableCellRenderer createRenderer(int alignment) {
-        DefaultTableCellRenderer renderer = new DefaultTableCellRenderer();
-        renderer.setHorizontalAlignment(alignment);
+    /** Keeps the row-number column wide enough for its header and five digits, whatever width was saved. */
+    static void applyRowNumberMinimumWidth(JTable table, TableColumn column) {
+        column.setMinWidth(
+                TableColumnSizing.calculatePreferredWidth(table, column.getHeaderValue(), 0, ROW_NUMBER_SAMPLE));
+    }
+
+    private static DefaultTableCellRenderer createRenderer(JobColumn column) {
+        DefaultTableCellRenderer renderer =
+                switch (column) {
+                    case FILE, PATH -> new LeadingEllipsisCellRenderer();
+                    case STAT -> new JobStatusCellRenderer();
+                    default -> new DefaultTableCellRenderer();
+                };
+        renderer.setHorizontalAlignment(column.getHorizontalAlignment());
         return renderer;
     }
 
@@ -116,6 +133,8 @@ public class TableModelJobs extends AbstractTableModel implements RowModel {
                 return job.getFile().getName();
             case STAT:
                 return job.getStatusText();
+            case TITL:
+                return buildTitle(job);
             default:
                 break;
         }
@@ -221,6 +240,34 @@ public class TableModelJobs extends AbstractTableModel implements RowModel {
         }
 
         return getDefaultValue(column);
+    }
+
+    /** "Anime - 05 - Episode Title [Group]" once AniDB identified the file, the filename until then. */
+    private String buildTitle(Job job) {
+        AniDBFile file = job.anidbFile;
+        if (file == null || file.getAnime() == null || isBlank(file.getAnime().romajiTitle)) {
+            return job.getFile().getName();
+        }
+        StringBuilder title = new StringBuilder(file.getAnime().romajiTitle);
+        Episode episode = file.getEpisode();
+        if (episode != null) {
+            if (!isBlank(episode.num)) {
+                title.append(" - ").append(episode.num);
+            }
+            String episodeTitle = isBlank(episode.eng) ? episode.rom : episode.eng;
+            if (!isBlank(episodeTitle)) {
+                title.append(" - ").append(episodeTitle);
+            }
+        }
+        Group group = file.getGroup();
+        if (group != null && !isBlank(group.shortName)) {
+            title.append(" [").append(group.shortName).append(']');
+        }
+        return title.toString();
+    }
+
+    private static boolean isBlank(String value) {
+        return value == null || value.isBlank();
     }
 
     /**

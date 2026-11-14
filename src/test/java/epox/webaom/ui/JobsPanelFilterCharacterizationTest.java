@@ -161,12 +161,12 @@ class JobsPanelFilterCharacterizationTest {
 
         JobsPanel hiddenPanel = createRealPanel();
         Options hidden = new Options();
-        hidden.setString(Options.STR_JOB_COLUMNS, "999,80,1;14,111,0;14,222,1;0,55,0;");
+        hidden.setString(Options.STR_JOB_COLUMNS, "999,80,1;14,111,0;14,222,1;0,95,0;");
         hiddenPanel.loadOptions(hidden);
 
         assertDefaultColumns(hiddenPanel);
         assertEquals(111, column(hiddenPanel, JobColumn.STAT).getPreferredWidth());
-        assertEquals(55, column(hiddenPanel, JobColumn.NUMB).getPreferredWidth());
+        assertEquals(95, column(hiddenPanel, JobColumn.NUMB).getPreferredWidth());
     }
 
     @Test
@@ -174,15 +174,15 @@ class JobsPanelFilterCharacterizationTest {
         AppContext.jobs = new JobList();
         JobsPanel panel = createRealPanel();
         panel.loadOptions(new Options());
-        TableColumn fileColumn = column(panel, JobColumn.FILE);
-        fileColumn.setPreferredWidth(20);
+        TableColumn titleColumn = column(panel, JobColumn.TITL);
+        titleColumn.setPreferredWidth(20);
 
         panel.reapplyScaleAwareSizing();
-        assertTrue(fileColumn.getPreferredWidth() >= 360);
+        assertTrue(titleColumn.getPreferredWidth() >= 360);
 
-        int originalWidth = fileColumn.getPreferredWidth();
+        int originalWidth = titleColumn.getPreferredWidth();
         panel.scaleCurrentColumnWidths(1.5);
-        assertTrue(fileColumn.getPreferredWidth() > originalWidth);
+        assertTrue(titleColumn.getPreferredWidth() > originalWidth);
     }
 
     private static JobsPanel createRealPanel() {
@@ -193,16 +193,7 @@ class JobsPanelFilterCharacterizationTest {
     }
 
     private static void assertDefaultColumns(JobsPanel panel) {
-        assertEquals(3, panel.getJobsTable().getColumnCount());
-        assertEquals(
-                JobColumn.NUMB.getIndex(),
-                panel.getJobsTable().getColumnModel().getColumn(0).getModelIndex());
-        assertEquals(
-                JobColumn.FILE.getIndex(),
-                panel.getJobsTable().getColumnModel().getColumn(1).getModelIndex());
-        assertEquals(
-                JobColumn.STAT.getIndex(),
-                panel.getJobsTable().getColumnModel().getColumn(2).getModelIndex());
+        JobsPanelTest.assertVisibleColumns(panel, JobColumn.TITL, JobColumn.STAT);
     }
 
     private static TableColumn column(JobsPanel panel, JobColumn column) {

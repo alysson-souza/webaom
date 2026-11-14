@@ -38,12 +38,10 @@ import javax.swing.JPanel;
 import javax.swing.table.TableColumn;
 
 public class JobsPanel extends JPanel implements ActionListener {
-    private static final List<JobColumn> DEFAULT_VISIBLE_COLUMNS =
-            List.of(JobColumn.NUMB, JobColumn.FILE, JobColumn.STAT);
-    private static final String DEFAULT_FILE_PATH_SAMPLE =
-            "/Volumes/Anime Library/Series Name/Series Name - 01 [BluRay 1080p][AAC].mkv";
+    private static final List<JobColumn> DEFAULT_VISIBLE_COLUMNS = List.of(JobColumn.TITL, JobColumn.STAT);
+
+    private static final String DEFAULT_TITLE_SAMPLE = "Series Name Season 2 - 01 - The Episode Title [BluRay Group]";
     private static final String DEFAULT_STATUS_SAMPLE = "Waiting for network I/O";
-    private static final String DEFAULT_ROW_NUMBER_SAMPLE = "00000";
     private static final int INDEX_NORMAL = 0;
     private static final int INDEX_PAUSED = 1;
     private static final int INDEX_WAITING = 2;
@@ -81,6 +79,8 @@ public class JobsPanel extends JPanel implements ActionListener {
             filterCheckboxes[i].addActionListener(this);
             southPanel.add(filterCheckboxes[i]);
         }
+
+        jobsTable.getHeaderListener().setResetColumnsAction(this::resetColumns);
 
         add(scrollTable, BorderLayout.CENTER);
         add(southPanel, BorderLayout.SOUTH);
@@ -159,29 +159,42 @@ public class JobsPanel extends JPanel implements ActionListener {
 
     public void loadOptions(Options options) {
         String columnConfig = options.getString(Options.STR_JOB_COLUMNS);
-        if (columnConfig == null || columnConfig.isEmpty()) {
-            applyDefaultColumnConfig();
-            usesScaleAwareDefaultColumns = true;
-            return;
-        }
-        List<ColumnConfig> parsedColumns = parseColumnConfig(columnConfig);
+        List<ColumnConfig> parsedColumns = columnConfig == null ? List.of() : parseColumnConfig(columnConfig);
         if (parsedColumns.isEmpty()) {
-            applyDefaultColumnConfig();
-            usesScaleAwareDefaultColumns = true;
+            resetColumns();
             return;
         }
         usesScaleAwareDefaultColumns = false;
         applyColumnConfig(parsedColumns);
     }
 
+    /** The minimum depends on the font, so it is measured again whenever the font changes. */
+    private void applyRowNumberMinimumWidth() {
+        TableColumn column = jobsTable.getHeaderListener().getColumnByModelIndex(JobColumn.NUMB.getIndex());
+        if (column != null) {
+            TableModelJobs.applyRowNumberMinimumWidth(jobsTable, column);
+        }
+    }
+
+    /** Restores the default columns and widths, and keeps those widths sized to the font. */
+    private void resetColumns() {
+        showDefaultColumns();
+        applyDefaultColumnWidths();
+        usesScaleAwareDefaultColumns = true;
+    }
+
+    /** Re-measures the default widths for the current font, leaving the columns the user chose shown. */
     public void reapplyScaleAwareSizing() {
+        applyRowNumberMinimumWidth();
         if (usesScaleAwareDefaultColumns) {
-            applyDefaultColumnConfig();
+            applyDefaultColumnWidths();
         }
     }
 
     public void scaleCurrentColumnWidths(double scaleFactor) {
         TableColumnSizing.scalePreferredWidths(jobsTable.getHeaderListener().getAllColumns(), scaleFactor);
+        // After scaling, so a width raised to the new minimum is not scaled a second time
+        applyRowNumberMinimumWidth();
     }
 
     private void appendColumnConfig(StringBuilder builder, TableColumn column) {
@@ -225,20 +238,22 @@ public class JobsPanel extends JPanel implements ActionListener {
             }
         }
         if (visibleModelIndices.isEmpty()) {
-            jobsTable.getHeaderListener().setMask(TableModelJobs.MASK);
+            showDefaultColumns();
             return;
         }
         jobsTable.getHeaderListener().setVisibleColumns(visibleModelIndices);
     }
 
-    private void applyDefaultColumnConfig() {
+    private void showDefaultColumns() {
         jobsTable
                 .getHeaderListener()
                 .setVisibleColumns(DEFAULT_VISIBLE_COLUMNS.stream()
                         .map(JobColumn::getIndex)
                         .toList());
-        applyDefaultColumnWidth(JobColumn.NUMB, 48, DEFAULT_ROW_NUMBER_SAMPLE);
-        applyDefaultColumnWidth(JobColumn.FILE, 360, DEFAULT_FILE_PATH_SAMPLE);
+    }
+
+    private void applyDefaultColumnWidths() {
+        applyDefaultColumnWidth(JobColumn.TITL, 360, DEFAULT_TITLE_SAMPLE);
         applyDefaultColumnWidth(JobColumn.STAT, 140, DEFAULT_STATUS_SAMPLE);
     }
 

@@ -17,10 +17,12 @@
 package epox.swing;
 
 import epox.swing.layout.TableRowSizing;
+import java.awt.Component;
 import java.awt.Font;
 import java.util.ArrayList;
 import java.util.List;
 import javax.swing.JTable;
+import javax.swing.SwingUtilities;
 import javax.swing.UIManager;
 import javax.swing.table.AbstractTableModel;
 import javax.swing.table.TableColumn;
@@ -30,6 +32,8 @@ import javax.swing.table.TableRowSorter;
  * A JTable with sortable columns. Uses built-in TableRowSorter for sorting.
  */
 public class JTableSortable extends JTable {
+    private static final String COLUMN_CHOOSER_HINT = "Click to sort, right-click to choose columns";
+
     /** Header click listener for column visibility menu */
     private transient HeaderListener headerListener;
 
@@ -52,6 +56,7 @@ public class JTableSortable extends JTable {
         }
 
         super.updateUI();
+        updateHiddenColumnRenderers();
         setAutoCreateColumnsFromModel(false);
         installHeaderListener();
         restoreColumnState(snapshot);
@@ -68,6 +73,25 @@ public class JTableSortable extends JTable {
         return headerListener;
     }
 
+    /** JTable.updateUI reaches only the renderers of shown columns; hidden ones would keep the old look and feel. */
+    private void updateHiddenColumnRenderers() {
+        if (headerListener == null) {
+            return;
+        }
+        for (TableColumn column : headerListener.getAllColumns()) {
+            if (!headerListener.isColumnVisible(column.getModelIndex())) {
+                updateRendererUi(column.getCellRenderer());
+                updateRendererUi(column.getHeaderRenderer());
+            }
+        }
+    }
+
+    private static void updateRendererUi(Object renderer) {
+        if (renderer instanceof Component component) {
+            SwingUtilities.updateComponentTreeUI(component);
+        }
+    }
+
     private void installHeaderListener() {
         if (headerListener == null) {
             headerListener = new HeaderListener(getTableHeader(), getColumnModel());
@@ -76,6 +100,7 @@ public class JTableSortable extends JTable {
         }
         if (getTableHeader() != null) {
             getTableHeader().addMouseListener(headerListener);
+            getTableHeader().setToolTipText(COLUMN_CHOOSER_HINT);
         }
     }
 

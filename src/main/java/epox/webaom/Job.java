@@ -328,9 +328,14 @@ public class Job {
         this.altVisible = altVisible;
     }
 
+    /** Hashing progress as a whole percentage, truncated like the status text shows it. */
+    public int getHashPercent() {
+        return (int) (hashProgress * 100);
+    }
+
     public String getStatusText() {
         if (check(HASHING)) {
-            return "Hashing " + (int) (hashProgress * 100) + "%";
+            return "Hashing " + getHashPercent() + "%";
         }
         if (check(H_NORMAL)) {
             return statusStr(getStatus());

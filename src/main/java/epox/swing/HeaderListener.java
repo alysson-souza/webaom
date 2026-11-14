@@ -24,6 +24,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import javax.swing.JCheckBoxMenuItem;
+import javax.swing.JMenuItem;
 import javax.swing.JPopupMenu;
 import javax.swing.table.JTableHeader;
 import javax.swing.table.TableColumn;
@@ -38,6 +39,7 @@ public class HeaderListener extends MouseAdapter {
     protected TableColumnModel columnModel;
     private final List<TableColumn> allColumns;
     protected JPopupMenu columnPopup = null;
+    private Runnable resetColumnsAction;
 
     public HeaderListener(JTableHeader header, TableColumnModel columns) {
         allColumns = new ArrayList<>();
@@ -62,21 +64,6 @@ public class HeaderListener extends MouseAdapter {
             }
         }
         rebuildPopup();
-    }
-
-    public void setMask(long mask) {
-        if (columnModel == null) {
-            return;
-        }
-
-        List<Integer> visibleColumns = new ArrayList<>();
-        for (TableColumn column : allColumns) {
-            int modelIndex = column.getModelIndex();
-            if ((mask & (1L << modelIndex)) == (1L << modelIndex)) {
-                visibleColumns.add(modelIndex);
-            }
-        }
-        setVisibleColumns(visibleColumns);
     }
 
     public void setVisibleColumns(List<Integer> visibleModelIndices) {
@@ -128,6 +115,17 @@ public class HeaderListener extends MouseAdapter {
         return getVisibleColumnIndex(modelIndex) >= 0;
     }
 
+    /** Adds a "Reset Columns" item to the header menu that runs {@code action}; null removes it. */
+    public void setResetColumnsAction(Runnable action) {
+        resetColumnsAction = action;
+        rebuildPopup();
+    }
+
+    /** The right-click menu currently offered on the table header. */
+    public JPopupMenu getColumnPopup() {
+        return columnPopup;
+    }
+
     public List<TableColumn> getAllColumns() {
         return Collections.unmodifiableList(allColumns);
     }
@@ -160,6 +158,15 @@ public class HeaderListener extends MouseAdapter {
                     new JCheckBoxMenuItem(column.getHeaderValue().toString(), isColumnVisible(column.getModelIndex()));
             menuItem.addActionListener(new ColumnAction(column, menuItem));
             columnPopup.add(menuItem);
+        }
+        if (resetColumnsAction != null) {
+            columnPopup.addSeparator();
+            JMenuItem resetItem = new JMenuItem("Reset Columns");
+            resetItem.addActionListener(event -> {
+                resetColumnsAction.run();
+                rebuildPopup();
+            });
+            columnPopup.add(resetItem);
         }
     }
 
