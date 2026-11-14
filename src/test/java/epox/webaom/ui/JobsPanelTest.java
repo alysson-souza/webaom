@@ -417,25 +417,34 @@ class JobsPanelTest {
         panel.getJobsTable()
                 .getHeaderListener()
                 .setVisibleColumns(List.of(JobColumn.STAT.getIndex(), JobColumn.NUMB.getIndex()));
+        int rowNumberWidth = widthAboveRowNumberMinimum(panel);
         panel.getJobsTable().getColumnModel().getColumn(0).setPreferredWidth(200);
-        panel.getJobsTable().getColumnModel().getColumn(1).setPreferredWidth(60);
+        panel.getJobsTable().getColumnModel().getColumn(1).setPreferredWidth(rowNumberWidth);
 
         Options options = new Options();
         panel.saveOptions(options);
 
-        assertEquals("14,200;0,60;", options.getString(Options.STR_JOB_COLUMNS));
+        assertEquals("14,200;0," + rowNumberWidth + ";", options.getString(Options.STR_JOB_COLUMNS));
     }
 
     @Test
     void loadOptions_newFormatThenSave_rewritesToLegacyVisibleOnlyFormat() {
-        Options options = new Options();
-        options.setString(Options.STR_JOB_COLUMNS, "14,200,1;0,60,1;11,973,0;");
-
         JobsPanel panel = createJobsPanel();
+        int rowNumberWidth = widthAboveRowNumberMinimum(panel);
+        Options options = new Options();
+        options.setString(Options.STR_JOB_COLUMNS, "14,200,1;0," + rowNumberWidth + ",1;11,973,0;");
+
         panel.loadOptions(options);
         panel.saveOptions(options);
 
-        assertEquals("14,200;0,60;", options.getString(Options.STR_JOB_COLUMNS));
+        assertEquals("14,200;0," + rowNumberWidth + ";", options.getString(Options.STR_JOB_COLUMNS));
+    }
+
+    /** The row-number column's minimum width depends on the font, so a fixed width could fall below it. */
+    private static int widthAboveRowNumberMinimum(JobsPanel panel) {
+        TableColumn rowNumber =
+                panel.getJobsTable().getHeaderListener().getColumnByModelIndex(JobColumn.NUMB.getIndex());
+        return rowNumber.getMinWidth() + 40;
     }
 
     @Test
