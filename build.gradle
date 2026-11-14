@@ -206,6 +206,14 @@ tasks.register('installGitHooks', Exec) {
 	commandLine 'bash', 'scripts/install-hooks.sh'
 }
 
+tasks.register('resolveDependencies') {
+	group = 'help'
+	description = 'Downloads every dependency, including test and coverage tooling, so later builds can run offline'
+	doLast {
+		configurations.matching { it.canBeResolved }.each { it.resolve() }
+	}
+}
+
 tasks.configureEach {
 	if (name != 'installGitHooks') {
 		dependsOn(tasks.named('installGitHooks'))

@@ -1,0 +1,39 @@
+{
+  "$schema": "https://t3.codes/schema/t3.json",
+  "iconPath": "src/main/resources/webaom.png",
+  "scripts": [
+    {
+      "name": "Run",
+      "command": "./gradlew run",
+      "icon": "play",
+      "stopOnSettle": true
+    },
+    {
+      "name": "Test",
+      "command": "./gradlew test",
+      "icon": "test"
+    },
+    {
+      "name": "Test UI",
+      "command": "./gradlew testUi",
+      "icon": "test"
+    },
+    {
+      "name": "Format",
+      "command": "./gradlew spotlessApply",
+      "icon": "lint"
+    },
+    {
+      "name": "Build",
+      "command": "./gradlew build",
+      "icon": "build"
+    },
+    {
+      "name": "Setup Worktree",
+      "command": "bash scripts/setup-worktree.sh",
+      "icon": "configure",
+      "runOnWorktreeCreate": true,
+      "async": false
+    }
+  ]
+}
